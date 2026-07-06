@@ -9,8 +9,44 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VersoesRouteImport } from './routes/versoes'
+import { Route as MinhaContaRouteImport } from './routes/minha-conta'
+import { Route as KanbanRouteImport } from './routes/kanban'
+import { Route as ClientesRouteImport } from './routes/clientes'
+import { Route as BaseDeConhecimentoRouteImport } from './routes/base-de-conhecimento'
+import { Route as AtualizacoesRouteImport } from './routes/atualizacoes'
 import { Route as IndexRouteImport } from './routes/index'
 
+const VersoesRoute = VersoesRouteImport.update({
+  id: '/versoes',
+  path: '/versoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MinhaContaRoute = MinhaContaRouteImport.update({
+  id: '/minha-conta',
+  path: '/minha-conta',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KanbanRoute = KanbanRouteImport.update({
+  id: '/kanban',
+  path: '/kanban',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClientesRoute = ClientesRouteImport.update({
+  id: '/clientes',
+  path: '/clientes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BaseDeConhecimentoRoute = BaseDeConhecimentoRouteImport.update({
+  id: '/base-de-conhecimento',
+  path: '/base-de-conhecimento',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AtualizacoesRoute = AtualizacoesRouteImport.update({
+  id: '/atualizacoes',
+  path: '/atualizacoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +55,116 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/atualizacoes': typeof AtualizacoesRoute
+  '/base-de-conhecimento': typeof BaseDeConhecimentoRoute
+  '/clientes': typeof ClientesRoute
+  '/kanban': typeof KanbanRoute
+  '/minha-conta': typeof MinhaContaRoute
+  '/versoes': typeof VersoesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/atualizacoes': typeof AtualizacoesRoute
+  '/base-de-conhecimento': typeof BaseDeConhecimentoRoute
+  '/clientes': typeof ClientesRoute
+  '/kanban': typeof KanbanRoute
+  '/minha-conta': typeof MinhaContaRoute
+  '/versoes': typeof VersoesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/atualizacoes': typeof AtualizacoesRoute
+  '/base-de-conhecimento': typeof BaseDeConhecimentoRoute
+  '/clientes': typeof ClientesRoute
+  '/kanban': typeof KanbanRoute
+  '/minha-conta': typeof MinhaContaRoute
+  '/versoes': typeof VersoesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/atualizacoes'
+    | '/base-de-conhecimento'
+    | '/clientes'
+    | '/kanban'
+    | '/minha-conta'
+    | '/versoes'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/atualizacoes'
+    | '/base-de-conhecimento'
+    | '/clientes'
+    | '/kanban'
+    | '/minha-conta'
+    | '/versoes'
+  id:
+    | '__root__'
+    | '/'
+    | '/atualizacoes'
+    | '/base-de-conhecimento'
+    | '/clientes'
+    | '/kanban'
+    | '/minha-conta'
+    | '/versoes'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AtualizacoesRoute: typeof AtualizacoesRoute
+  BaseDeConhecimentoRoute: typeof BaseDeConhecimentoRoute
+  ClientesRoute: typeof ClientesRoute
+  KanbanRoute: typeof KanbanRoute
+  MinhaContaRoute: typeof MinhaContaRoute
+  VersoesRoute: typeof VersoesRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/versoes': {
+      id: '/versoes'
+      path: '/versoes'
+      fullPath: '/versoes'
+      preLoaderRoute: typeof VersoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/minha-conta': {
+      id: '/minha-conta'
+      path: '/minha-conta'
+      fullPath: '/minha-conta'
+      preLoaderRoute: typeof MinhaContaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/kanban': {
+      id: '/kanban'
+      path: '/kanban'
+      fullPath: '/kanban'
+      preLoaderRoute: typeof KanbanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clientes': {
+      id: '/clientes'
+      path: '/clientes'
+      fullPath: '/clientes'
+      preLoaderRoute: typeof ClientesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/base-de-conhecimento': {
+      id: '/base-de-conhecimento'
+      path: '/base-de-conhecimento'
+      fullPath: '/base-de-conhecimento'
+      preLoaderRoute: typeof BaseDeConhecimentoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/atualizacoes': {
+      id: '/atualizacoes'
+      path: '/atualizacoes'
+      fullPath: '/atualizacoes'
+      preLoaderRoute: typeof AtualizacoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,17 +177,13 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AtualizacoesRoute: AtualizacoesRoute,
+  BaseDeConhecimentoRoute: BaseDeConhecimentoRoute,
+  ClientesRoute: ClientesRoute,
+  KanbanRoute: KanbanRoute,
+  MinhaContaRoute: MinhaContaRoute,
+  VersoesRoute: VersoesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
