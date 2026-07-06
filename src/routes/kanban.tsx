@@ -1,91 +1,496 @@
+import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Plus, MoreHorizontal } from "lucide-react";
-import { AppShell, PageHeader } from "@/components/portal/AppShell";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import {
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  closestCorners,
+  type DragEndEvent,
+  type DragStartEvent,
+  type DragOverEvent,
+} from "@dnd-kit/core";
+import {
+  Plus,
+  Search,
+  SlidersHorizontal,
+  X,
+  ChevronDown,
+} from "lucide-react";
+import { AppShell } from "@/components/portal/AppShell";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { kanbanColumns } from "@/lib/mock-data";
+import { Badge } from "@/components/ui/badge";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
+import { KanbanColumnView } from "@/components/kanban/KanbanColumn";
+import { KanbanCardItem } from "@/components/kanban/KanbanCard";
+import { KanbanCardDrawer } from "@/components/kanban/KanbanCardDrawer";
+import {
+  type KanbanCard,
+  type ColumnId,
+  type Priority,
+  type CardType,
+  initialCards,
+  kanbanColumnsDef,
+  kanbanMembers,
+  kanbanClients,
+  priorities,
+  cardTypes,
+} from "@/lib/kanban-data";
 
 export const Route = createFileRoute("/kanban")({
   head: () => ({
     meta: [
-      { title: "Kanban Prócion — Portal Prócion" },
-      { name: "description", content: "Gestão visual de tarefas e projetos da equipe Prócion." },
+      { title: "Kanban Prócion — Gestão visual de demandas" },
+      {
+        name: "description",
+        content:
+          "Quadro Kanban para organizar demandas, suporte, implantação e melhorias da Prócion Sistemas.",
+      },
     ],
   }),
   component: KanbanPage,
 });
 
-const tagTone: Record<string, string> = {
-  Bug: "bg-destructive/10 text-destructive",
-  Feature: "bg-primary/10 text-primary",
-  Docs: "bg-accent/15 text-accent-foreground",
+const boards = [
+  { id: "geral", name: "Quadro Geral" },
+  { id: "suporte", name: "Suporte & Atendimento" },
+  { id: "implantacao", name: "Implantação" },
+  { id: "produto", name: "Produto & Melhorias" },
+];
+
+type Filters = {
+  client: string;
+  assignee: string;
+  priority: string;
+  type: string;
+  status: string;
 };
 
-const priorityDot: Record<string, string> = {
-  Alta: "bg-destructive",
-  Média: "bg-warning",
-  Baixa: "bg-muted-foreground",
+const emptyFilters: Filters = {
+  client: "all",
+  assignee: "all",
+  priority: "all",
+  type: "all",
+  status: "all",
 };
 
 function KanbanPage() {
+  const [cards, setCards] = useState<KanbanCard[]>(initialCards);
+  const [query, setQuery] = useState("");
+  const [filters, setFilters] = useState<Filters>(emptyFilters);
+  const [activeBoard, setActiveBoard] = useState(boards[0].id);
+  const [activeCard, setActiveCard] = useState<KanbanCard | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerMode, setDrawerMode] = useState<"edit" | "create">("edit");
+  const [drawerCard, setDrawerCard] = useState<KanbanCard | null>(null);
+  const [defaultColumnId, setDefaultColumnId] = useState<ColumnId>("backlog");
+  const [mobileColumn, setMobileColumn] = useState<ColumnId>("backlog");
+
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
+
+  const activeFilterCount = Object.values(filters).filter((v) => v !== "all").length;
+
+  const filteredCards = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return cards.filter((c) => {
+      if (filters.client !== "all" && c.client !== filters.client) return false;
+      if (filters.assignee !== "all" && c.assigneeId !== filters.assignee) return false;
+      if (filters.priority !== "all" && c.priority !== filters.priority) return false;
+      if (filters.type !== "all" && c.type !== filters.type) return false;
+      if (filters.status !== "all" && c.columnId !== filters.status) return false;
+      if (!q) return true;
+      return (
+        c.title.toLowerCase().includes(q) ||
+        c.summary.toLowerCase().includes(q) ||
+        c.client.toLowerCase().includes(q) ||
+        c.module.toLowerCase().includes(q) ||
+        c.id.toLowerCase().includes(q) ||
+        c.tags.some((t) => t.toLowerCase().includes(q))
+      );
+    });
+  }, [cards, query, filters]);
+
+  const cardsByColumn = useMemo(() => {
+    const grouped: Record<ColumnId, KanbanCard[]> = {
+      backlog: [],
+      triagem: [],
+      "em-andamento": [],
+      "aguardando-cliente": [],
+      homologacao: [],
+      concluido: [],
+    };
+    for (const c of filteredCards) grouped[c.columnId].push(c);
+    return grouped;
+  }, [filteredCards]);
+
+  const handleDragStart = (e: DragStartEvent) => {
+    const c = cards.find((x) => x.id === e.active.id);
+    if (c) setActiveCard(c);
+  };
+
+  const handleDragOver = (e: DragOverEvent) => {
+    const { active, over } = e;
+    if (!over) return;
+    const overType = over.data.current?.type;
+    const overColumn =
+      overType === "column"
+        ? (over.data.current?.columnId as ColumnId)
+        : (over.data.current?.card?.columnId as ColumnId | undefined);
+    if (!overColumn) return;
+
+    setCards((prev) => {
+      const activeIdx = prev.findIndex((c) => c.id === active.id);
+      if (activeIdx === -1) return prev;
+      const activeCardX = prev[activeIdx];
+      if (activeCardX.columnId === overColumn) return prev;
+      const next = [...prev];
+      next[activeIdx] = { ...activeCardX, columnId: overColumn };
+      return next;
+    });
+  };
+
+  const handleDragEnd = (e: DragEndEvent) => {
+    setActiveCard(null);
+    const { active, over } = e;
+    if (!over) return;
+    if (active.id === over.id) return;
+    const overType = over.data.current?.type;
+
+    setCards((prev) => {
+      const activeIdx = prev.findIndex((c) => c.id === active.id);
+      if (activeIdx === -1) return prev;
+
+      if (overType === "card") {
+        const overIdx = prev.findIndex((c) => c.id === over.id);
+        if (overIdx === -1) return prev;
+        const next = [...prev];
+        const [moved] = next.splice(activeIdx, 1);
+        const targetIdx = next.findIndex((c) => c.id === over.id);
+        next.splice(targetIdx, 0, {
+          ...moved,
+          columnId: prev[overIdx].columnId,
+        });
+        return next;
+      }
+      return prev;
+    });
+  };
+
+  const openCard = (card: KanbanCard) => {
+    setDrawerMode("edit");
+    setDrawerCard(card);
+    setDrawerOpen(true);
+  };
+
+  const handleNewCard = (columnId: ColumnId = "backlog") => {
+    setDrawerMode("create");
+    setDrawerCard(null);
+    setDefaultColumnId(columnId);
+    setDrawerOpen(true);
+  };
+
+  const handleSave = (card: KanbanCard) => {
+    setCards((prev) => {
+      if (drawerMode === "create") {
+        const nextId =
+          "PRC-" +
+          (Math.max(
+            ...prev.map((c) => parseInt(c.id.replace(/\D/g, ""), 10) || 0),
+          ) + 1);
+        return [...prev, { ...card, id: nextId }];
+      }
+      return prev.map((c) => (c.id === card.id ? card : c));
+    });
+  };
+
+  const handleDelete = (id: string) => {
+    setCards((prev) => prev.filter((c) => c.id !== id));
+  };
+
+  const clearFilters = () => setFilters(emptyFilters);
+
   return (
     <AppShell>
-      <PageHeader
-        title="Kanban Prócion"
-        description="Gestão visual de tarefas e projetos da equipe."
-        actions={
-          <Button size="sm">
-            <Plus className="h-4 w-4 mr-1" /> Nova tarefa
-          </Button>
-        }
-      />
-
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-        {kanbanColumns.map((col) => (
-          <div key={col.id} className="min-w-0">
-            <div className="flex items-center justify-between mb-3 px-1">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold">{col.title}</span>
-                <span className="text-[11px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
-                  {col.cards.length}
-                </span>
+      {/* Board header */}
+      <div className="mb-6 space-y-4">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 sm:flex sm:flex-wrap sm:justify-between">
+          <div className="min-w-0 flex items-center gap-3">
+            <div>
+              <p className="text-xs text-muted-foreground">Kanban Prócion</p>
+              <div className="flex items-center gap-2 min-w-0">
+                <h1 className="text-2xl font-semibold tracking-tight truncate">
+                  {boards.find((b) => b.id === activeBoard)?.name}
+                </h1>
               </div>
-              <button className="text-muted-foreground hover:text-foreground">
-                <Plus className="h-4 w-4" />
-              </button>
             </div>
-            <div className="space-y-3 min-h-[120px] p-2 rounded-xl bg-muted/40 border border-border/60">
-              {col.cards.map((c) => (
-                <Card key={c.id} className="p-3 cursor-pointer hover:shadow-md transition-shadow">
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <Badge className={cn("text-[10px]", tagTone[c.tag])}>{c.tag}</Badge>
-                    <button className="text-muted-foreground hover:text-foreground">
-                      <MoreHorizontal className="h-4 w-4" />
+          </div>
+
+          <div className="shrink-0 flex items-center gap-3">
+            <div className="hidden md:flex -space-x-2">
+              {kanbanMembers.slice(0, 5).map((m) => (
+                <Avatar key={m.id} className="h-8 w-8 ring-2 ring-background">
+                  <AvatarFallback className={cn("text-[10px] font-semibold", m.color)}>
+                    {m.initials}
+                  </AvatarFallback>
+                </Avatar>
+              ))}
+              <div className="grid h-8 w-8 place-items-center rounded-full bg-muted text-[10px] font-medium text-muted-foreground ring-2 ring-background">
+                +{Math.max(0, kanbanMembers.length - 5)}
+              </div>
+            </div>
+            <Button size="sm" onClick={() => handleNewCard()}>
+              <Plus className="h-4 w-4 mr-1" /> Novo card
+            </Button>
+          </div>
+        </div>
+
+        {/* Toolbar */}
+        <div className="grid grid-cols-1 md:grid-cols-[auto_1fr_auto] gap-3 items-center">
+          <Select value={activeBoard} onValueChange={setActiveBoard}>
+            <SelectTrigger className="w-full md:w-[240px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {boards.map((b) => (
+                <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              type="search"
+              placeholder="Buscar por título, cliente, módulo, tag ou ID..."
+              className="w-full h-10 pl-9 pr-3 rounded-lg border border-border bg-background text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <SlidersHorizontal className="h-4 w-4 mr-1.5" />
+                  Filtros
+                  {activeFilterCount > 0 && (
+                    <Badge className="ml-2 h-5 min-w-5 px-1 bg-primary text-primary-foreground">
+                      {activeFilterCount}
+                    </Badge>
+                  )}
+                  <ChevronDown className="h-3 w-3 ml-1 opacity-60" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-4" align="end">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-sm font-semibold">Filtros</p>
+                  {activeFilterCount > 0 && (
+                    <button
+                      onClick={clearFilters}
+                      className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
+                    >
+                      <X className="h-3 w-3" /> Limpar
                     </button>
-                  </div>
-                  <p className="text-sm font-medium leading-snug mb-3">{c.title}</p>
-                  <div className="flex items-center justify-between">
-                    <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                      <span
-                        className={cn("h-1.5 w-1.5 rounded-full", priorityDot[c.priority])}
-                      />
-                      {c.priority}
-                    </span>
-                    <Avatar className="h-6 w-6">
-                      <AvatarFallback className="text-[10px] bg-secondary text-secondary-foreground">
-                        {c.assignee}
-                      </AvatarFallback>
-                    </Avatar>
-                  </div>
-                </Card>
+                  )}
+                </div>
+                <div className="space-y-3">
+                  <FilterSelect
+                    label="Cliente"
+                    value={filters.client}
+                    onChange={(v) => setFilters({ ...filters, client: v })}
+                    options={[
+                      { value: "all", label: "Todos" },
+                      { value: "Interno", label: "Interno" },
+                      ...kanbanClients.map((c) => ({ value: c, label: c })),
+                    ]}
+                  />
+                  <FilterSelect
+                    label="Responsável"
+                    value={filters.assignee}
+                    onChange={(v) => setFilters({ ...filters, assignee: v })}
+                    options={[
+                      { value: "all", label: "Todos" },
+                      ...kanbanMembers.map((m) => ({ value: m.id, label: m.name })),
+                    ]}
+                  />
+                  <FilterSelect
+                    label="Prioridade"
+                    value={filters.priority}
+                    onChange={(v) => setFilters({ ...filters, priority: v as Priority | "all" })}
+                    options={[
+                      { value: "all", label: "Todas" },
+                      ...priorities.map((p) => ({ value: p, label: p })),
+                    ]}
+                  />
+                  <FilterSelect
+                    label="Tipo"
+                    value={filters.type}
+                    onChange={(v) => setFilters({ ...filters, type: v as CardType | "all" })}
+                    options={[
+                      { value: "all", label: "Todos" },
+                      ...cardTypes.map((t) => ({ value: t, label: t })),
+                    ]}
+                  />
+                  <FilterSelect
+                    label="Status"
+                    value={filters.status}
+                    onChange={(v) => setFilters({ ...filters, status: v })}
+                    options={[
+                      { value: "all", label: "Todos" },
+                      ...kanbanColumnsDef.map((c) => ({ value: c.id, label: c.title })),
+                    ]}
+                  />
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+        </div>
+
+        {activeFilterCount > 0 && (
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs text-muted-foreground">Ativos:</span>
+            {Object.entries(filters).map(([k, v]) => {
+              if (v === "all") return null;
+              const label =
+                k === "assignee"
+                  ? kanbanMembers.find((m) => m.id === v)?.name ?? v
+                  : k === "status"
+                    ? kanbanColumnsDef.find((c) => c.id === v)?.title ?? v
+                    : v;
+              return (
+                <Badge
+                  key={k}
+                  variant="secondary"
+                  className="text-[11px] gap-1 pr-1"
+                >
+                  {label}
+                  <button
+                    onClick={() => setFilters({ ...filters, [k]: "all" })}
+                    className="ml-0.5 rounded hover:bg-muted-foreground/10 p-0.5"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Mobile column tabs */}
+      <div className="md:hidden mb-3">
+        <Tabs value={mobileColumn} onValueChange={(v) => setMobileColumn(v as ColumnId)}>
+          <TabsList className="w-full h-auto flex overflow-x-auto justify-start">
+            {kanbanColumnsDef.map((c) => (
+              <TabsTrigger key={c.id} value={c.id} className="whitespace-nowrap text-xs">
+                {c.title}
+                <span className="ml-1.5 text-[10px] px-1.5 py-0.5 rounded bg-muted-foreground/10">
+                  {cardsByColumn[c.id].length}
+                </span>
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+      </div>
+
+      {/* Board */}
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCorners}
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDragEnd={handleDragEnd}
+      >
+        {/* Desktop / tablet: horizontal scroll */}
+        <div className="hidden md:block -mx-4 sm:-mx-6 lg:-mx-8">
+          <div className="overflow-x-auto snap-x snap-mandatory pb-4 px-4 sm:px-6 lg:px-8">
+            <div className="flex gap-4 min-w-max">
+              {kanbanColumnsDef.map((col) => (
+                <KanbanColumnView
+                  key={col.id}
+                  column={col}
+                  cards={cardsByColumn[col.id]}
+                  onCardClick={openCard}
+                  onAddCard={handleNewCard}
+                />
               ))}
             </div>
           </div>
-        ))}
-      </div>
+        </div>
+
+        {/* Mobile: single column via tabs */}
+        <div className="md:hidden">
+          {kanbanColumnsDef
+            .filter((c) => c.id === mobileColumn)
+            .map((col) => (
+              <KanbanColumnView
+                key={col.id}
+                column={col}
+                cards={cardsByColumn[col.id]}
+                onCardClick={openCard}
+                onAddCard={handleNewCard}
+              />
+            ))}
+        </div>
+
+        <DragOverlay>
+          {activeCard && <KanbanCardItem card={activeCard} overlay />}
+        </DragOverlay>
+      </DndContext>
+
+      <KanbanCardDrawer
+        open={drawerOpen}
+        onOpenChange={setDrawerOpen}
+        card={drawerCard}
+        mode={drawerMode}
+        defaultColumnId={defaultColumnId}
+        onSave={handleSave}
+        onDelete={handleDelete}
+      />
     </AppShell>
+  );
+}
+
+function FilterSelect({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: { value: string; label: string }[];
+}) {
+  return (
+    <div className="space-y-1.5">
+      <label className="text-xs font-medium text-muted-foreground">{label}</label>
+      <Select value={value} onValueChange={onChange}>
+        <SelectTrigger className="h-9 text-sm">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map((o) => (
+            <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
   );
 }
