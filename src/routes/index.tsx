@@ -180,7 +180,7 @@ function HomePage() {
                         {cat && (
                           <span className="inline-flex items-center gap-1">
                             <Tag className="h-3 w-3" />
-                            {cat.label}
+                            {cat.name}
                           </span>
                         )}
                         <span className="inline-flex items-center gap-1">
