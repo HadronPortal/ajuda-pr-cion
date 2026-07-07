@@ -46,8 +46,7 @@ export function CommandPalette({
 
   const go = (to: string) => {
     onOpenChange(false);
-    // @ts-expect-error dynamic string routes
-    navigate({ to });
+    navigate({ to: to as string });
   };
 
   return (

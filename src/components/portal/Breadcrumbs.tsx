@@ -36,9 +36,8 @@ export function Breadcrumbs({
           <Fragment key={`${item.label}-${i}`}>
             <ChevronRight className="h-3.5 w-3.5 opacity-50" />
             {item.to && !last ? (
-              // @ts-expect-error dynamic route string
               <Link
-                to={item.to}
+                to={item.to as string}
                 className="hover:text-foreground transition-colors truncate max-w-[220px]"
               >
                 {item.label}
