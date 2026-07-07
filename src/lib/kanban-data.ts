@@ -9,6 +9,13 @@ export type KanbanMember = {
   color: string;
 };
 
+export type ChecklistItem = { id: string; text: string; done: boolean };
+export type CommentEntry = { id: string; authorId: string; at: string; text: string };
+export type ActivityEntry = { id: string; at: string; text: string; authorId?: string };
+export type AttachmentItem = { id: string; name: string; size: string; kind: string };
+export type RelatedArticle = { id: string; title: string; category: string };
+export type RelatedVersion = { id: string; version: string; date: string; note: string };
+
 export type KanbanCard = {
   id: string;
   columnId: ColumnId;
@@ -23,6 +30,15 @@ export type KanbanCard = {
   tags: string[];
   comments: number;
   attachments: number;
+  archived?: boolean;
+  description?: string;
+  participants?: string[];
+  checklist?: ChecklistItem[];
+  commentsList?: CommentEntry[];
+  activity?: ActivityEntry[];
+  attachmentsList?: AttachmentItem[];
+  relatedArticles?: RelatedArticle[];
+  relatedVersions?: RelatedVersion[];
 };
 
 export type KanbanColumn = {
