@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { AppSidebar, MobileBottomNav } from "./AppSidebar";
 import { AppHeader } from "./AppHeader";
+import { Breadcrumbs, type Crumb } from "./Breadcrumbs";
 
 export function AppShell({ children }: { children: ReactNode }) {
   return (
@@ -21,22 +22,29 @@ export function PageHeader({
   title,
   description,
   actions,
+  breadcrumbs,
 }: {
   title: string;
   description?: string;
   actions?: ReactNode;
+  breadcrumbs?: Crumb[];
 }) {
   return (
-    <div className="mb-6 lg:mb-8 grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 sm:flex sm:flex-wrap sm:justify-between">
-      <div className="min-w-0">
-        <h1 className="text-2xl lg:text-3xl font-semibold tracking-tight text-foreground truncate">
-          {title}
-        </h1>
-        {description && (
-          <p className="mt-1.5 text-sm text-muted-foreground max-w-2xl">{description}</p>
-        )}
+    <div className="mb-6 lg:mb-8">
+      {breadcrumbs && breadcrumbs.length > 0 && <Breadcrumbs items={breadcrumbs} />}
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 sm:flex sm:flex-wrap sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="text-2xl lg:text-3xl font-semibold tracking-tight text-foreground truncate">
+            {title}
+          </h1>
+          {description && (
+            <p className="mt-1.5 text-sm text-muted-foreground max-w-2xl">
+              {description}
+            </p>
+          )}
+        </div>
+        {actions && <div className="shrink-0 flex items-center gap-2">{actions}</div>}
       </div>
-      {actions && <div className="shrink-0 flex items-center gap-2">{actions}</div>}
     </div>
   );
 }
