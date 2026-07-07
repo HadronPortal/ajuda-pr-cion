@@ -36,7 +36,7 @@ const progressTone: Record<string, string> = {
 const dueTone = {
   danger: "bg-[#ffe8eb] text-[#fb5166]",
   warn: "bg-[#fff4d8] text-[#c47a13]",
-  muted: "bg-[#eef5ff] text-[#6677a3]",
+  muted: "bg-primary/10 text-[#6677a3]",
 };
 
 const priorityLabel: Record<string, string> = {
@@ -104,10 +104,10 @@ export function KanbanCardItem({
     >
       <div className="mb-3 flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="line-clamp-2 text-[13.5px] font-bold leading-snug text-[#25293b]">
+          <p className="line-clamp-2 text-[13.5px] font-bold leading-snug text-foreground">
             {card.title}
           </p>
-          <p className="mt-1 truncate text-[11px] font-medium text-[#8b91ad]">
+          <p className="mt-1 truncate text-[11px] font-medium text-muted-foreground">
             {card.client} · {card.module}
           </p>
         </div>
@@ -117,7 +117,7 @@ export function KanbanCardItem({
             <button
               onClick={(e) => e.stopPropagation()}
               onPointerDown={(e) => e.stopPropagation()}
-              className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-[#eef1f8] text-[#9aa0bb] transition hover:border-primary/30 hover:bg-accent hover:text-primary"
+              className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-border text-[#9aa0bb] transition hover:border-primary/30 hover:bg-accent hover:text-primary"
               aria-label="Ações do card"
             >
               <MoreHorizontal className="h-4 w-4" />
@@ -168,13 +168,13 @@ export function KanbanCardItem({
         <div className="flex min-w-0 items-center gap-2">
           <div className="hidden items-center gap-2 xl:flex">
             {card.comments > 0 && (
-              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#8b91ad]">
+              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground">
                 <MessageSquare className="h-3.5 w-3.5" />
                 {card.comments}
               </span>
             )}
             {card.attachments > 0 && (
-              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#8b91ad]">
+              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground">
                 <Paperclip className="h-3.5 w-3.5" />
                 {card.attachments}
               </span>
@@ -189,7 +189,7 @@ export function KanbanCardItem({
               </Avatar>
             ))}
             {extraAssignees > 0 && (
-              <div className="grid h-7 w-7 place-items-center rounded-md bg-[#f0f2f8] text-[10px] font-bold text-[#8b91ad] ring-2 ring-white">
+              <div className="grid h-7 w-7 place-items-center rounded-md bg-[#f0f2f8] text-[10px] font-bold text-muted-foreground ring-2 ring-white">
                 +{extraAssignees}
               </div>
             )}
@@ -206,7 +206,7 @@ export function KanbanCardItem({
             "rounded-full px-2 py-0.5 text-[10px] font-bold",
             card.priority === "Crítica" && "bg-[#ffe8eb] text-[#fb5166]",
             card.priority === "Alta" && "bg-[#fff4d8] text-[#c47a13]",
-            card.priority === "Média" && "bg-[#e8f7fc] text-primary",
+            card.priority === "Média" && "bg-primary/10 text-primary",
             card.priority === "Baixa" && "bg-[#eafaf1] text-[#23a061]",
           )}
         >
