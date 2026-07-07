@@ -1,4 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
+import { ProcionLogo } from "./ProcionLogo";
 import {
   BarChart3,
   BookOpen,
@@ -50,17 +51,11 @@ export function AppSidebar() {
       )}
     >
       <div className={cn("flex items-center h-[88px] px-5", collapsed && "justify-center px-3")}>
-        <div className="grid h-11 w-11 shrink-0 place-items-center rounded-[14px] bg-primary text-primary-foreground font-bold text-xl shadow-[0_12px_24px_rgba(11,151,196,0.22)]">
-          P
-        </div>
-        {!collapsed && (
-          <div className="ml-3 min-w-0 animate-fade-in">
-            <p className="text-[26px] font-bold leading-none tracking-tight text-sidebar-accent-foreground">
-              Prócion.
-            </p>
-            <p className="mt-1 text-xs font-medium text-sidebar-foreground/70">
-              Portal de ajuda e demandas
-            </p>
+        {collapsed ? (
+          <ProcionLogo variant="mark" className="h-9 w-9" />
+        ) : (
+          <div className="flex items-center gap-3 min-w-0 animate-fade-in">
+            <ProcionLogo variant="full" className="h-10 w-auto max-w-[190px]" />
           </div>
         )}
         <button
