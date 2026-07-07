@@ -32,7 +32,7 @@ export function KanbanColumnView({
         </div>
         <button
           onClick={() => onAddCard(column.id)}
-          className="inline-flex items-center gap-1.5 rounded-lg px-1.5 py-1 text-[11px] font-semibold text-[#191d33] transition hover:bg-accent hover:text-primary"
+          className="inline-flex items-center gap-1.5 rounded-lg px-1.5 py-1 text-[11px] font-semibold text-foreground transition hover:bg-accent hover:text-primary"
           aria-label="Adicionar tarefa"
         >
           <CirclePlus className="h-3.5 w-3.5" />

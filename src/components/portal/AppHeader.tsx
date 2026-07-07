@@ -4,13 +4,14 @@ import { Button } from "@/components/ui/button";
 import { CommandPalette } from "./CommandPalette";
 import { NotificationsPopover } from "./NotificationsPopover";
 import { UserMenu } from "./UserMenu";
+import { ThemeToggle } from "./ThemeToggle";
 import { sidebarStore } from "@/lib/sidebar-store";
 
 export function AppHeader() {
   const [paletteOpen, setPaletteOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-20 h-16 border-b border-[#edf0f6] bg-background/85 backdrop-blur-xl">
+    <header className="sticky top-0 z-20 h-16 border-b border-border bg-background/85 backdrop-blur-xl">
       <div className="h-full px-4 sm:px-6 lg:px-7 flex items-center gap-3">
         <Button
           variant="ghost"
@@ -24,7 +25,7 @@ export function AppHeader() {
           variant="ghost"
           size="icon"
           onClick={sidebarStore.toggle}
-          className="hidden lg:inline-flex rounded-xl border border-[#edf0f6] bg-white text-[#8b91ad] shadow-sm hover:text-primary focus-visible:ring-2 focus-visible:ring-ring"
+          className="hidden lg:inline-flex rounded-xl border border-border bg-card text-muted-foreground shadow-sm hover:text-primary focus-visible:ring-2 focus-visible:ring-ring"
           aria-label="Recolher menu lateral"
         >
           <PanelLeft className="h-5 w-5" />
@@ -35,7 +36,7 @@ export function AppHeader() {
           <button
             type="button"
             onClick={() => setPaletteOpen(true)}
-            className="group w-full h-10 flex items-center gap-2 pl-3 pr-2 rounded-xl border border-[#edf0f6] bg-white text-sm text-muted-foreground shadow-sm hover:border-primary/40 hover:bg-card transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="group w-full h-10 flex items-center gap-2 pl-3 pr-2 rounded-xl border border-border bg-card text-sm text-muted-foreground shadow-sm hover:border-primary/40 hover:bg-card transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <Search className="h-4 w-4 shrink-0" />
             <span className="flex-1 text-left truncate">
@@ -56,6 +57,7 @@ export function AppHeader() {
           >
             <HelpCircle className="h-5 w-5 text-muted-foreground" />
           </Button>
+          <ThemeToggle />
           <NotificationsPopover />
           <div className="ml-1">
             <UserMenu />
