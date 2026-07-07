@@ -5,7 +5,7 @@ import { CommandPalette } from "./CommandPalette";
 import { NotificationsPopover } from "./NotificationsPopover";
 import { UserMenu } from "./UserMenu";
 import { ThemeToggle } from "./ThemeToggle";
-import { sidebarStore } from "@/lib/sidebar-store";
+
 
 export function AppHeader() {
   const [paletteOpen, setPaletteOpen] = useState(false);
