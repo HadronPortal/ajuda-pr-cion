@@ -42,7 +42,7 @@ const shortcuts = [
     label: "Base de Conhecimento",
     description: "Guias, manuais e correções.",
     icon: BookOpen,
-    tone: "bg-[#e8f7fc] text-primary",
+    tone: "bg-primary/10 text-primary",
   },
   {
     to: "/atualizacoes",
@@ -63,7 +63,7 @@ const shortcuts = [
     label: "Kanban Prócion",
     description: "Suas demandas em andamento.",
     icon: KanbanSquare,
-    tone: "bg-[#eef0ff] text-[#4d5bd8]",
+    tone: "bg-primary/10 text-[#4d5bd8]",
   },
 ] as const;
 
@@ -101,14 +101,14 @@ function HomePage() {
         </p>
 
         <form
-          className="mt-6 flex w-full max-w-2xl items-center gap-2 rounded-full bg-white p-1.5 shadow-lg"
+          className="mt-6 flex w-full max-w-2xl items-center gap-2 rounded-full bg-white dark:bg-[#20263d] p-1.5 shadow-lg"
           onSubmit={(e) => e.preventDefault()}
         >
-          <Search className="ml-3 h-5 w-5 shrink-0 text-[#8b91ad]" />
+          <Search className="ml-3 h-5 w-5 shrink-0 text-muted-foreground" />
           <input
             type="search"
             placeholder="Buscar por artigos, erros, módulos..."
-            className="h-10 flex-1 bg-transparent text-sm text-[#191d33] outline-none placeholder:text-[#8b91ad]"
+            className="h-10 flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
           />
           <Button asChild className="rounded-full bg-[#191d33] px-5 text-white hover:bg-[#191d33]/90">
             <Link to="/base-de-conhecimento">Buscar</Link>
@@ -119,7 +119,7 @@ function HomePage() {
       {/* Atalhos */}
       <section className="mb-10">
         <div className="mb-4 flex items-end justify-between">
-          <h2 className="text-lg font-bold text-[#191d33]">Atalhos</h2>
+          <h2 className="text-lg font-bold text-foreground">Atalhos</h2>
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {shortcuts.map((s) => (
@@ -128,12 +128,12 @@ function HomePage() {
               to={s.to}
               className="group"
             >
-              <Card className="h-full rounded-[14px] border-0 bg-white p-5 shadow-[0_10px_26px_rgba(25,29,51,0.06)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_32px_rgba(25,29,51,0.10)]">
+              <Card className="h-full rounded-[14px] border-0 bg-white dark:bg-[#20263d] p-5 shadow-[0_10px_26px_rgba(25,29,51,0.06)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_32px_rgba(25,29,51,0.10)]">
                 <div className={`grid h-11 w-11 place-items-center rounded-xl ${s.tone}`}>
                   <s.icon className="h-5 w-5" />
                 </div>
-                <p className="mt-4 text-sm font-bold text-[#25293b]">{s.label}</p>
-                <p className="mt-1 text-xs text-[#8b91ad]">{s.description}</p>
+                <p className="mt-4 text-sm font-bold text-foreground">{s.label}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{s.description}</p>
                 <span className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-primary opacity-0 transition group-hover:opacity-100">
                   Abrir <ArrowRight className="h-3 w-3" />
                 </span>
@@ -145,11 +145,11 @@ function HomePage() {
 
       {/* Últimos artigos + Versões */}
       <section className="grid grid-cols-1 gap-6 xl:grid-cols-[1.4fr_1fr]">
-        <Card className="rounded-[14px] border-0 bg-white p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
+        <Card className="rounded-[14px] border-0 bg-white dark:bg-[#20263d] p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
           <div className="mb-5 flex items-end justify-between">
             <div>
-              <h3 className="text-base font-bold text-[#191d33]">Últimos artigos</h3>
-              <p className="mt-0.5 text-xs text-[#8b91ad]">
+              <h3 className="text-base font-bold text-foreground">Últimos artigos</h3>
+              <p className="mt-0.5 text-xs text-muted-foreground">
                 Atualizações recentes na base de conhecimento.
               </p>
             </div>
@@ -167,16 +167,16 @@ function HomePage() {
                   <Link
                     to="/base-de-conhecimento/$slug"
                     params={{ slug: a.slug }}
-                    className="flex items-start gap-4 py-4 transition hover:bg-[#f7f9fc]/60"
+                    className="flex items-start gap-4 py-4 transition hover:bg-muted/40/60"
                   >
-                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-[#eef5ff] text-primary">
+                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
                       <BookOpen className="h-4 w-4" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-[#25293b]">
+                      <p className="truncate text-sm font-semibold text-foreground">
                         {a.title}
                       </p>
-                      <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-[#8b91ad]">
+                      <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
                         {cat && (
                           <span className="inline-flex items-center gap-1">
                             <Tag className="h-3 w-3" />
@@ -202,11 +202,11 @@ function HomePage() {
           </ul>
         </Card>
 
-        <Card className="rounded-[14px] border-0 bg-white p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
+        <Card className="rounded-[14px] border-0 bg-white dark:bg-[#20263d] p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
           <div className="mb-5 flex items-end justify-between">
             <div>
-              <h3 className="text-base font-bold text-[#191d33]">Últimas versões</h3>
-              <p className="mt-0.5 text-xs text-[#8b91ad]">Release notes recentes.</p>
+              <h3 className="text-base font-bold text-foreground">Últimas versões</h3>
+              <p className="mt-0.5 text-xs text-muted-foreground">Release notes recentes.</p>
             </div>
             <Button asChild variant="ghost" size="sm" className="text-primary hover:text-primary">
               <Link to="/versoes">
@@ -214,14 +214,14 @@ function HomePage() {
               </Link>
             </Button>
           </div>
-          <ol className="relative space-y-5 border-l border-[#eef1f8] pl-5">
+          <ol className="relative space-y-5 border-l border-border pl-5">
             {latestVersions.map((v) => (
               <li key={v.version} className="relative">
-                <span className="absolute -left-[26px] top-1 grid h-4 w-4 place-items-center rounded-full bg-white ring-2 ring-primary">
+                <span className="absolute -left-[26px] top-1 grid h-4 w-4 place-items-center rounded-full bg-white dark:bg-[#20263d] ring-2 ring-primary">
                   <span className="h-1.5 w-1.5 rounded-full bg-primary" />
                 </span>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold text-[#191d33]">{v.version}</span>
+                  <span className="text-sm font-bold text-foreground">{v.version}</span>
                   <Badge
                     variant="secondary"
                     className={`rounded-full text-[10px] ${
@@ -232,9 +232,9 @@ function HomePage() {
                   >
                     {v.type}
                   </Badge>
-                  <span className="ml-auto text-[11px] text-[#8b91ad]">{v.date}</span>
+                  <span className="ml-auto text-[11px] text-muted-foreground">{v.date}</span>
                 </div>
-                <ul className="mt-2 space-y-1 text-xs text-[#555b75]">
+                <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
                   {v.highlights.slice(0, 3).map((h) => (
                     <li key={h} className="flex gap-1.5">
                       <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-[#c5cadb]" />

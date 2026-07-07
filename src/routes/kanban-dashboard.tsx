@@ -83,7 +83,7 @@ const miniBarData = [
 ];
 
 const importantProjects = [
-  { name: "NF-e Curitiba", label: "Fiscal", tone: "bg-[#e8f7fc] text-primary" },
+  { name: "NF-e Curitiba", label: "Fiscal", tone: "bg-primary/10 text-primary" },
   { name: "Produção fase 2", label: "Implantação", tone: "bg-[#fff4d8] text-[#c47a13]" },
   { name: "Portal Cliente", label: "Produto", tone: "bg-[#eafaf1] text-[#23a061]" },
 ];
@@ -137,7 +137,7 @@ function HeroPanel() {
         <p className="mt-4 text-sm leading-relaxed text-white/78">
           Acompanhe suporte, implantação, versões e base de conhecimento com a visão executiva do Portal Prócion.
         </p>
-        <Button asChild className="mt-7 rounded-full bg-white px-6 text-[#191d33] hover:bg-white/90">
+        <Button asChild className="mt-7 rounded-full bg-white dark:bg-[#20263d] px-6 text-foreground hover:bg-white/90">
           <Link to="/kanban">
             Abrir Kanban <ArrowRight className="ml-2 h-4 w-4" />
           </Link>
@@ -149,7 +149,7 @@ function HeroPanel() {
         <div className="absolute bottom-10 left-5 h-[66px] w-[86px] rounded-xl bg-[#33c3e8] shadow-lg">
           <div className="absolute left-4 top-4 flex h-9 items-end gap-1.5">
             {[18, 28, 36, 54, 42, 64].map((h, i) => (
-              <span key={i} className="w-1.5 rounded-full bg-white" style={{ height: h }} />
+              <span key={i} className="w-1.5 rounded-full bg-white dark:bg-[#20263d]" style={{ height: h }} />
             ))}
           </div>
         </div>
@@ -212,12 +212,12 @@ function SmallMetricCard({
   visual: React.ReactNode;
 }) {
   return (
-    <Card className="min-h-[126px] rounded-[14px] border-0 bg-white p-5 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
+    <Card className="min-h-[126px] rounded-[14px] border-0 bg-white dark:bg-[#20263d] p-5 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
       <div className="flex h-full items-center justify-between gap-4">
         <div className="min-w-0">
-          <p className="text-sm font-bold text-[#25293b]">{title}</p>
+          <p className="text-sm font-bold text-foreground">{title}</p>
           <div className="mt-4 flex items-end gap-2">
-            <span className="text-3xl font-bold tabular-nums text-[#191d33]">{value}</span>
+            <span className="text-3xl font-bold tabular-nums text-foreground">{value}</span>
             {change && (
               <span
                 className={cn(
@@ -242,7 +242,7 @@ function MiniBars() {
   return (
     <div className="flex h-full items-center justify-end gap-2">
       {miniBarData.map((bar, index) => (
-        <div key={index} className="flex h-14 w-2 items-center rounded-full bg-[#edf0f6]">
+        <div key={index} className="flex h-14 w-2 items-center rounded-full bg-muted">
           <span
             className="mt-auto w-full rounded-full bg-[#7c65c9]"
             style={{ height: `${bar.value}%`, opacity: 0.62 + index * 0.08 }}
@@ -270,7 +270,7 @@ function MiniWave({ color, rising = false }: { color: string; rising?: boolean }
 function ProgressLine({ value }: { value: number }) {
   return (
     <div className="flex h-full items-center">
-      <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#edf0f6]">
+      <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
         <div className="h-full rounded-full bg-[#7c65c9]" style={{ width: `${value}%` }} />
       </div>
     </div>
@@ -279,16 +279,16 @@ function ProgressLine({ value }: { value: number }) {
 
 function ProjectStatistics() {
   return (
-    <Card className="rounded-[14px] border-0 bg-white p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
+    <Card className="rounded-[14px] border-0 bg-white dark:bg-[#20263d] p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
       <div className="mb-5 flex items-center justify-between gap-4">
-        <h3 className="text-base font-bold text-[#191d33]">Estatísticas do projeto</h3>
-        <div className="flex rounded-full bg-[#eef5ff] p-1 text-[11px] font-semibold text-[#8b91ad]">
+        <h3 className="text-base font-bold text-foreground">Estatísticas do projeto</h3>
+        <div className="flex rounded-full bg-primary/10 p-1 text-[11px] font-semibold text-muted-foreground">
           {["Mensal", "Semanal", "Diário"].map((item) => (
             <button
               key={item}
               className={cn(
                 "rounded-full px-4 py-2 transition",
-                item === "Diário" && "bg-white text-[#191d33] shadow-sm",
+                item === "Diário" && "bg-white dark:bg-[#20263d] text-foreground shadow-sm",
               )}
             >
               {item}
@@ -305,7 +305,7 @@ function ProjectStatistics() {
 
       <ProjectBarChart />
 
-      <div className="mt-2 flex items-center gap-8 text-xs font-semibold text-[#555b75]">
+      <div className="mt-2 flex items-center gap-8 text-xs font-semibold text-muted-foreground">
         <span className="inline-flex items-center gap-2">
           Número <span className="h-3 w-6 rounded-full bg-[#8d6bd8]" />
         </span>
@@ -321,16 +321,16 @@ function ProjectBarChart() {
   return (
     <div className="mt-2 h-[260px]">
       <div className="grid h-[220px] grid-cols-[34px_1fr] gap-3">
-        <div className="flex h-full flex-col justify-between pb-7 pt-2 text-[11px] text-[#8b91ad]">
+        <div className="flex h-full flex-col justify-between pb-7 pt-2 text-[11px] text-muted-foreground">
           {[100, 80, 60, 40, 20, 0].map((tick) => (
             <span key={tick}>{tick}</span>
           ))}
         </div>
-        <div className="relative h-full border-b border-[#eef1f8]">
+        <div className="relative h-full border-b border-border">
           {[0, 1, 2, 3, 4].map((line) => (
             <span
               key={line}
-              className="absolute left-0 right-0 border-t border-[#eef1f8]"
+              className="absolute left-0 right-0 border-t border-border"
               style={{ top: `${line * 20}%` }}
             />
           ))}
@@ -351,14 +351,14 @@ function ProjectBarChart() {
               </div>
             ))}
           </div>
-          <div className="absolute bottom-0 left-0 right-0 grid grid-cols-7 gap-3 px-1 text-center text-[11px] text-[#8b91ad]">
+          <div className="absolute bottom-0 left-0 right-0 grid grid-cols-7 gap-3 px-1 text-center text-[11px] text-muted-foreground">
             {weeklyStats.map((item) => (
               <span key={item.day}>{item.day}</span>
             ))}
           </div>
-          <div className="absolute left-[25%] top-[30%] hidden rounded-xl bg-white px-4 py-3 text-xs shadow-[0_16px_32px_rgba(25,29,51,0.12)] md:block">
-            <p className="font-bold text-[#191d33]">56 projetos</p>
-            <p className="mt-1 text-[#8b91ad]">24 out, 2026</p>
+          <div className="absolute left-[25%] top-[30%] hidden rounded-xl bg-white dark:bg-[#20263d] px-4 py-3 text-xs shadow-[0_16px_32px_rgba(25,29,51,0.12)] md:block">
+            <p className="font-bold text-foreground">56 projetos</p>
+            <p className="mt-1 text-muted-foreground">24 out, 2026</p>
           </div>
         </div>
       </div>
@@ -371,8 +371,8 @@ function StatLegend({ color, label, value }: { color: string; label: string; val
     <div className="flex items-center gap-2">
       <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: color }} />
       <div className="min-w-0">
-        <p className="text-lg font-bold leading-none text-[#191d33]">{value}</p>
-        <p className="mt-1 truncate text-xs text-[#555b75]">{label}</p>
+        <p className="text-lg font-bold leading-none text-foreground">{value}</p>
+        <p className="mt-1 truncate text-xs text-muted-foreground">{label}</p>
       </div>
     </div>
   );
@@ -380,12 +380,12 @@ function StatLegend({ color, label, value }: { color: string; label: string; val
 
 function CompanyProfile() {
   return (
-    <Card className="rounded-[14px] border-0 bg-white p-7 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
+    <Card className="rounded-[14px] border-0 bg-white dark:bg-[#20263d] p-7 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
       <div className="grid gap-6 md:grid-cols-[1fr_260px] md:items-center">
         <div>
-          <h3 className="text-base font-bold text-[#191d33]">Perfil Prócion</h3>
-          <p className="mt-1 text-sm font-semibold text-[#25293b]">Portal de Ajuda e Kanban</p>
-          <p className="mt-5 max-w-sm text-sm leading-relaxed text-[#6f7590]">
+          <h3 className="text-base font-bold text-foreground">Perfil Prócion</h3>
+          <p className="mt-1 text-sm font-semibold text-foreground">Portal de Ajuda e Kanban</p>
+          <p className="mt-5 max-w-sm text-sm leading-relaxed text-muted-foreground">
             Visão consolidada das demandas, clientes, tarefas concluídas e evolução dos projetos internos.
           </p>
           <div className="mt-6 flex gap-3">
@@ -462,7 +462,7 @@ function Gauge() {
           <circle cx={cx} cy={cy} r={5} fill="#ffffff" />
         </svg>
       </div>
-      <p className="mt-2 text-sm font-bold text-[#8b91ad]">
+      <p className="mt-2 text-sm font-bold text-muted-foreground">
         Em progresso <span className="text-[#20bf6b]">70%</span>
       </p>
     </div>
@@ -472,9 +472,9 @@ function Gauge() {
 
 function EmailCategories() {
   return (
-    <Card className="rounded-[14px] border-0 bg-white p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
-      <h3 className="text-base font-bold text-[#191d33]">Categorias</h3>
-      <p className="mt-1 text-xs text-[#8b91ad]">Demandas por tipo</p>
+    <Card className="rounded-[14px] border-0 bg-white dark:bg-[#20263d] p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
+      <h3 className="text-base font-bold text-foreground">Categorias</h3>
+      <p className="mt-1 text-xs text-muted-foreground">Demandas por tipo</p>
       <div className="mt-5 h-[190px]">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
@@ -488,7 +488,7 @@ function EmailCategories() {
       </div>
       <div className="mt-2 grid grid-cols-2 gap-2">
         {categoryData.map((item) => (
-          <span key={item.name} className="inline-flex items-center gap-2 text-xs text-[#555b75]">
+          <span key={item.name} className="inline-flex items-center gap-2 text-xs text-muted-foreground">
             <span className="h-2 w-2 rounded-full" style={{ background: item.color }} />
             {item.name}
           </span>
@@ -500,25 +500,25 @@ function EmailCategories() {
 
 function ImportantProjects() {
   return (
-    <Card className="rounded-[14px] border-0 bg-white p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
+    <Card className="rounded-[14px] border-0 bg-white dark:bg-[#20263d] p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
       <div className="mb-5 flex items-start justify-between">
         <div>
-          <h3 className="text-base font-bold text-[#191d33]">Projetos importantes</h3>
-          <p className="mt-1 text-xs text-[#8b91ad]">Prioridades em andamento</p>
+          <h3 className="text-base font-bold text-foreground">Projetos importantes</h3>
+          <p className="mt-1 text-xs text-muted-foreground">Prioridades em andamento</p>
         </div>
-        <MoreVertical className="h-5 w-5 text-[#8b91ad]" />
+        <MoreVertical className="h-5 w-5 text-muted-foreground" />
       </div>
       <div className="space-y-5">
         {importantProjects.map((project, index) => (
           <div key={project.name} className="flex gap-3">
-            <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#eef5ff]">
+            <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary/10">
               {index === 0 && <KanbanSquare className="h-5 w-5 text-primary" />}
               {index === 1 && <Users className="h-5 w-5 text-[#c47a13]" />}
               {index === 2 && <BookOpen className="h-5 w-5 text-[#23a061]" />}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-bold text-[#25293b]">{project.name}</p>
-              <p className="mt-1 text-xs text-[#8b91ad]">
+              <p className="truncate text-sm font-bold text-foreground">{project.name}</p>
+              <p className="mt-1 text-xs text-muted-foreground">
                 Otimização e acompanhamento no Kanban Prócion.
               </p>
               <Badge className={cn("mt-2 rounded-full px-2.5 py-0.5 text-[10px] hover:bg-current/0", project.tone)}>
@@ -534,10 +534,10 @@ function ImportantProjects() {
 
 function CompletionRate() {
   return (
-    <Card className="rounded-[14px] border-0 bg-white p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
+    <Card className="rounded-[14px] border-0 bg-white dark:bg-[#20263d] p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-base font-bold text-[#191d33]">Taxa de conclusão</h3>
-        <MoreVertical className="h-5 w-5 text-[#8b91ad]" />
+        <h3 className="text-base font-bold text-foreground">Taxa de conclusão</h3>
+        <MoreVertical className="h-5 w-5 text-muted-foreground" />
       </div>
       <div className="h-[220px]">
         <ResponsiveContainer width="100%" height="100%">
@@ -575,10 +575,10 @@ function InfoPill({
   value: string;
 }) {
   return (
-    <div className="rounded-xl bg-[#f7f9fc] p-3">
+    <div className="rounded-xl bg-muted/40 p-3">
       <Icon className="h-4 w-4 text-primary" />
-      <p className="mt-2 text-[11px] text-[#8b91ad]">{label}</p>
-      <p className="text-sm font-bold text-[#191d33]">{value}</p>
+      <p className="mt-2 text-[11px] text-muted-foreground">{label}</p>
+      <p className="text-sm font-bold text-foreground">{value}</p>
     </div>
   );
 }
