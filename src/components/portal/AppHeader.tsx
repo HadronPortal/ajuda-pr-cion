@@ -20,6 +20,7 @@ export function AppHeader() {
         >
           <Menu className="h-5 w-5" />
         </Button>
+
         <div className="flex-1 max-w-xl">
           <button
             type="button"

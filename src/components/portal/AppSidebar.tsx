@@ -2,16 +2,16 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { ProcionLogo } from "./ProcionLogo";
 import dashboardIconUrl from "@/assets/dashboard-menu-icon.png?url";
 import {
-  BarChart3,
   BookOpenText,
   CalendarDays,
+  ChartNoAxesColumnIncreasing,
   ChevronLeft,
   ChevronRight,
-  CircleUserRound,
-  GitBranch,
+  CircleUser,
+  History,
   KanbanSquare,
   MessageSquare,
-  Sparkles,
+  Newspaper,
   UsersRound,
 } from "lucide-react";
 import type { ComponentType } from "react";
@@ -26,7 +26,6 @@ type NavItem = {
   label: string;
   icon: NavIcon;
   exact?: boolean;
-  soft?: boolean;
 };
 
 const DashboardMenuIcon: NavIcon = ({ className }) => (
@@ -43,12 +42,12 @@ const DashboardMenuIcon: NavIcon = ({ className }) => (
 const nav: NavItem[] = [
   { to: "/", label: "Dashboard", icon: DashboardMenuIcon, exact: true },
   { to: "/base-de-conhecimento", label: "Base", icon: BookOpenText },
-  { to: "/atualizacoes", label: "Atualizações", icon: Sparkles },
-  { to: "/versoes", label: "Versões", icon: GitBranch },
+  { to: "/atualizacoes", label: "Atualizações", icon: Newspaper },
+  { to: "/versoes", label: "Versões", icon: History },
   { to: "/kanban", label: "Kanban", icon: KanbanSquare },
-  { to: "/kanban-dashboard", label: "Analytics", icon: BarChart3 },
+  { to: "/kanban-dashboard", label: "Analytics", icon: ChartNoAxesColumnIncreasing },
   { to: "/clientes", label: "Clientes", icon: UsersRound },
-  { to: "/minha-conta", label: "Minha Conta", icon: CircleUserRound, soft: true },
+  { to: "/minha-conta", label: "Minha Conta", icon: CircleUser },
 ];
 
 function isActivePath(pathname: string, item: NavItem) {
@@ -70,7 +69,7 @@ export function AppSidebar() {
       <button
         type="button"
         onClick={sidebarStore.toggle}
-        className="absolute -right-4 top-[108px] z-40 grid h-8 w-8 place-items-center rounded-full border border-sidebar-border bg-card text-muted-foreground shadow-[0_8px_22px_rgba(15,23,42,0.16)] transition hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:bg-sidebar dark:text-sidebar-foreground/75"
+        className="absolute -right-4 top-[108px] z-40 grid h-8 w-8 place-items-center rounded-full border border-sidebar-border bg-card text-muted-foreground shadow-[0_8px_22px_rgba(15,23,42,0.16)] transition hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:bg-sidebar dark:text-sidebar-foreground/75"
         aria-label={collapsed ? "Expandir menu" : "Recolher menu"}
       >
         {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
@@ -86,7 +85,7 @@ export function AppSidebar() {
         )}
       </div>
 
-      <nav className="kanban-scrollbar flex-1 overflow-y-auto overflow-x-hidden px-4 py-2">
+      <nav className="app-scrollbar flex-1 overflow-y-auto overflow-x-hidden px-4 py-2">
         {!collapsed && (
           <p className="mb-4 px-5 text-sm font-semibold text-sidebar-foreground/25">
             Main Menu
