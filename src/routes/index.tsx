@@ -406,22 +406,71 @@ function CompanyProfile() {
 }
 
 function Gauge() {
+  // Semicircle gauge using SVG for precise centering.
+  const size = 220;
+  const cx = size / 2;
+  const cy = size / 2;
+  const r = 88;
+  const stroke = 22;
+  const progress = 0.7; // 70%
+  const circumference = Math.PI * r;
+  const dash = circumference * progress;
+
+  // Needle angle: -180deg (left) -> 0deg (right). At 70% => -180 + 180*0.7 = -54deg
+  const angleDeg = -180 + 180 * progress;
+  const needleLength = r - 6;
+  const rad = (angleDeg * Math.PI) / 180;
+  const tipX = cx + needleLength * Math.cos(rad);
+  const tipY = cy + needleLength * Math.sin(rad);
+
   return (
-    <div className="mx-auto flex h-[190px] w-[240px] flex-col items-center justify-end">
-      <div className="relative h-[140px] w-[220px] overflow-hidden">
-        <div className="absolute left-0 top-0 h-[220px] w-[220px] rounded-full bg-[conic-gradient(from_270deg,#ff8ee4_0deg,#ff61cf_84deg,#eee7ff_84deg,#eee7ff_180deg,transparent_180deg)]" />
-        <div className="absolute left-[42px] top-[42px] h-[136px] w-[136px] rounded-full bg-white" />
-        <div className="absolute left-[74px] top-[74px] h-[72px] w-[72px] rounded-full bg-[#ede7ff]" />
-        <div className="absolute left-[88px] top-[88px] h-[44px] w-[44px] rounded-full bg-[#8d6bd8]" />
-        <div className="absolute left-[105px] top-[105px] h-2.5 w-2.5 rounded-full bg-white" />
-        <div className="absolute left-[106px] top-[20px] h-[118px] w-4 origin-bottom rotate-[48deg] rounded-full bg-[#7d69d6]" />
+    <div className="mx-auto flex w-full max-w-[240px] flex-col items-center">
+      <div className="relative w-full overflow-hidden" style={{ aspectRatio: "2 / 1" }}>
+        <svg
+          viewBox={`0 0 ${size} ${size / 2 + 4}`}
+          className="block h-auto w-full"
+          aria-hidden="true"
+        >
+          {/* Track */}
+          <path
+            d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`}
+            fill="none"
+            stroke="#eee7ff"
+            strokeWidth={stroke}
+            strokeLinecap="round"
+          />
+          {/* Progress */}
+          <path
+            d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`}
+            fill="none"
+            stroke="#ff61cf"
+            strokeWidth={stroke}
+            strokeLinecap="round"
+            strokeDasharray={`${dash} ${circumference}`}
+          />
+          {/* Inner disc */}
+          <circle cx={cx} cy={cy} r={30} fill="#ede7ff" />
+          <circle cx={cx} cy={cy} r={18} fill="#8d6bd8" />
+          {/* Needle */}
+          <line
+            x1={cx}
+            y1={cy}
+            x2={tipX}
+            y2={tipY}
+            stroke="#7d69d6"
+            strokeWidth={8}
+            strokeLinecap="round"
+          />
+          <circle cx={cx} cy={cy} r={5} fill="#ffffff" />
+        </svg>
       </div>
-      <p className="-mt-5 text-sm font-bold text-[#8b91ad]">
+      <p className="mt-2 text-sm font-bold text-[#8b91ad]">
         Em progresso <span className="text-[#20bf6b]">70%</span>
       </p>
     </div>
   );
 }
+
 
 function EmailCategories() {
   return (
