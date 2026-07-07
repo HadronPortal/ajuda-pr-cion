@@ -99,8 +99,8 @@ function KanbanPage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerMode, setDrawerMode] = useState<"edit" | "create">("edit");
   const [drawerCard, setDrawerCard] = useState<KanbanCard | null>(null);
-  const [defaultColumnId, setDefaultColumnId] = useState<ColumnId>("backlog");
-  const [mobileColumn, setMobileColumn] = useState<ColumnId>("backlog");
+  const [defaultColumnId, setDefaultColumnId] = useState<ColumnId>("a-fazer");
+  const [mobileColumn, setMobileColumn] = useState<ColumnId>("a-fazer");
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
 
@@ -132,7 +132,7 @@ function KanbanPage() {
       backlog: [],
       triagem: [],
       "em-andamento": [],
-      "aguardando-cliente": [],
+      "a-fazer": [],
       homologacao: [],
       concluido: [],
     };
@@ -199,7 +199,7 @@ function KanbanPage() {
     setDrawerOpen(true);
   };
 
-  const handleNewCard = (columnId: ColumnId = "backlog") => {
+  const handleNewCard = (columnId: ColumnId = "a-fazer") => {
     setDrawerMode("create");
     setDrawerCard(null);
     setDefaultColumnId(columnId);

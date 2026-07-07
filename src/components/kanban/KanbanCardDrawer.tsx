@@ -146,7 +146,7 @@ export function KanbanCardDrawer({
   onOpenChange,
   card,
   mode,
-  defaultColumnId = "backlog",
+  defaultColumnId = "a-fazer",
   onSave,
   onDelete,
 }: Props) {
