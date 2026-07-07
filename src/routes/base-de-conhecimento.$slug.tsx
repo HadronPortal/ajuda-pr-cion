@@ -33,7 +33,7 @@ import {
 } from "@/lib/kanban-data";
 
 export const Route = createFileRoute("/base-de-conhecimento/$slug")({
-  loader: ({ params }) => {
+  loader: ({ params }): { article: KbArticle } => {
     const article = getArticleBySlug(params.slug);
     if (!article) throw notFound();
     return { article };

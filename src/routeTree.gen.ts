@@ -17,6 +17,7 @@ import { Route as BaseDeConhecimentoRouteImport } from './routes/base-de-conheci
 import { Route as AtualizacoesRouteImport } from './routes/atualizacoes'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BaseDeConhecimentoIndexRouteImport } from './routes/base-de-conhecimento.index'
+import { Route as BaseDeConhecimentoSlugRouteImport } from './routes/base-de-conhecimento.$slug'
 
 const VersoesRoute = VersoesRouteImport.update({
   id: '/versoes',
@@ -58,6 +59,11 @@ const BaseDeConhecimentoIndexRoute = BaseDeConhecimentoIndexRouteImport.update({
   path: '/',
   getParentRoute: () => BaseDeConhecimentoRoute,
 } as any)
+const BaseDeConhecimentoSlugRoute = BaseDeConhecimentoSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => BaseDeConhecimentoRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -67,6 +73,7 @@ export interface FileRoutesByFullPath {
   '/kanban': typeof KanbanRoute
   '/minha-conta': typeof MinhaContaRoute
   '/versoes': typeof VersoesRoute
+  '/base-de-conhecimento/$slug': typeof BaseDeConhecimentoSlugRoute
   '/base-de-conhecimento/': typeof BaseDeConhecimentoIndexRoute
 }
 export interface FileRoutesByTo {
@@ -76,6 +83,7 @@ export interface FileRoutesByTo {
   '/kanban': typeof KanbanRoute
   '/minha-conta': typeof MinhaContaRoute
   '/versoes': typeof VersoesRoute
+  '/base-de-conhecimento/$slug': typeof BaseDeConhecimentoSlugRoute
   '/base-de-conhecimento': typeof BaseDeConhecimentoIndexRoute
 }
 export interface FileRoutesById {
@@ -87,6 +95,7 @@ export interface FileRoutesById {
   '/kanban': typeof KanbanRoute
   '/minha-conta': typeof MinhaContaRoute
   '/versoes': typeof VersoesRoute
+  '/base-de-conhecimento/$slug': typeof BaseDeConhecimentoSlugRoute
   '/base-de-conhecimento/': typeof BaseDeConhecimentoIndexRoute
 }
 export interface FileRouteTypes {
@@ -99,6 +108,7 @@ export interface FileRouteTypes {
     | '/kanban'
     | '/minha-conta'
     | '/versoes'
+    | '/base-de-conhecimento/$slug'
     | '/base-de-conhecimento/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -108,6 +118,7 @@ export interface FileRouteTypes {
     | '/kanban'
     | '/minha-conta'
     | '/versoes'
+    | '/base-de-conhecimento/$slug'
     | '/base-de-conhecimento'
   id:
     | '__root__'
@@ -118,6 +129,7 @@ export interface FileRouteTypes {
     | '/kanban'
     | '/minha-conta'
     | '/versoes'
+    | '/base-de-conhecimento/$slug'
     | '/base-de-conhecimento/'
   fileRoutesById: FileRoutesById
 }
@@ -189,14 +201,23 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BaseDeConhecimentoIndexRouteImport
       parentRoute: typeof BaseDeConhecimentoRoute
     }
+    '/base-de-conhecimento/$slug': {
+      id: '/base-de-conhecimento/$slug'
+      path: '/$slug'
+      fullPath: '/base-de-conhecimento/$slug'
+      preLoaderRoute: typeof BaseDeConhecimentoSlugRouteImport
+      parentRoute: typeof BaseDeConhecimentoRoute
+    }
   }
 }
 
 interface BaseDeConhecimentoRouteChildren {
+  BaseDeConhecimentoSlugRoute: typeof BaseDeConhecimentoSlugRoute
   BaseDeConhecimentoIndexRoute: typeof BaseDeConhecimentoIndexRoute
 }
 
 const BaseDeConhecimentoRouteChildren: BaseDeConhecimentoRouteChildren = {
+  BaseDeConhecimentoSlugRoute: BaseDeConhecimentoSlugRoute,
   BaseDeConhecimentoIndexRoute: BaseDeConhecimentoIndexRoute,
 }
 
