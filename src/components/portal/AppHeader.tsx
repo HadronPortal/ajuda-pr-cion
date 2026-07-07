@@ -21,15 +21,7 @@ export function AppHeader() {
         >
           <Menu className="h-5 w-5" />
         </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={sidebarStore.toggle}
-          className="hidden lg:inline-flex rounded-xl border border-border bg-card text-muted-foreground shadow-sm hover:text-primary focus-visible:ring-2 focus-visible:ring-ring"
-          aria-label="Recolher menu lateral"
-        >
-          <PanelLeft className="h-5 w-5" />
-        </Button>
+
 
 
         <div className="flex-1 max-w-xl">
