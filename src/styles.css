@@ -148,18 +148,26 @@
 }
 
 @layer utilities {
+  .app-scrollbar,
   .kanban-scrollbar {
     scrollbar-width: thin;
     scrollbar-color: color-mix(in oklab, var(--primary) 26%, transparent) transparent;
   }
 
+  .app-scrollbar::-webkit-scrollbar,
   .kanban-scrollbar::-webkit-scrollbar {
     height: 10px;
     width: 10px;
   }
 
+  .app-scrollbar::-webkit-scrollbar-thumb,
   .kanban-scrollbar::-webkit-scrollbar-thumb {
     background: color-mix(in oklab, var(--primary) 24%, transparent);
     border-radius: 999px;
+  }
+
+  .app-scrollbar::-webkit-scrollbar-track,
+  .kanban-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
   }
 }
