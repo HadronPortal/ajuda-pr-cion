@@ -5,6 +5,15 @@ import { cn } from "@/lib/utils";
 import { KanbanCardItem } from "./KanbanCard";
 import type { KanbanCard, KanbanColumn } from "@/lib/kanban-data";
 
+const columnTints: Record<string, string> = {
+  backlog: "bg-sky-50/70 dark:bg-sky-500/5",
+  triagem: "bg-indigo-50/60 dark:bg-indigo-500/5",
+  "em-andamento": "bg-amber-50/70 dark:bg-amber-400/5",
+  "aguardando-cliente": "bg-orange-50/60 dark:bg-orange-500/5",
+  homologacao: "bg-violet-50/60 dark:bg-violet-500/5",
+  concluido: "bg-emerald-50/70 dark:bg-emerald-500/5",
+};
+
 export function KanbanColumnView({
   column,
   cards,
@@ -22,7 +31,12 @@ export function KanbanColumnView({
   });
 
   return (
-    <section className="flex min-h-[610px] w-full min-w-0 shrink-0 flex-col px-1 md:w-[318px] md:min-w-[318px] md:border-r md:border-dashed md:border-[#e8ebf3] md:px-5 md:last:border-r-0">
+    <section
+      className={cn(
+        "flex min-h-[610px] w-full min-w-0 shrink-0 flex-col rounded-2xl px-3 py-3 md:w-[318px] md:min-w-[318px] md:mx-1.5 md:px-4 md:py-4",
+        columnTints[column.id] ?? "bg-muted/40",
+      )}
+    >
       <div className="mb-4 flex h-9 items-center justify-between">
         <div className="flex min-w-0 items-center gap-2">
           <h2 className="truncate text-[13px] font-bold text-[#8c91b1]">{column.title}</h2>
