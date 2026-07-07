@@ -129,13 +129,12 @@ function KanbanPage() {
 
   const cardsByColumn = useMemo(() => {
     const grouped: Record<ColumnId, KanbanCard[]> = {
-      backlog: [],
-      triagem: [],
-      "em-andamento": [],
       "a-fazer": [],
-      homologacao: [],
+      "em-andamento": [],
       concluido: [],
+      arquivado: [],
     };
+
     for (const c of filteredCards) grouped[c.columnId].push(c);
     return grouped;
   }, [filteredCards]);
