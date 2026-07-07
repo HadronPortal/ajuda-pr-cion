@@ -44,7 +44,6 @@ export type KanbanCard = {
 export type KanbanColumn = {
   id: ColumnId;
   title: string;
-  tone: string;
 };
 
 export const kanbanMembers: KanbanMember[] = [
@@ -57,11 +56,12 @@ export const kanbanMembers: KanbanMember[] = [
 ];
 
 export const kanbanColumnsDef: KanbanColumn[] = [
-  { id: "a-fazer", title: "A Fazer", tone: "bg-sky-50/80 dark:bg-sky-950/20" },
-  { id: "em-andamento", title: "Em Andamento", tone: "bg-amber-50/80 dark:bg-amber-950/20" },
-  { id: "concluido", title: "Concluido", tone: "bg-emerald-50/80 dark:bg-emerald-950/20" },
-  { id: "arquivado", title: "Arquivado", tone: "bg-slate-100/80 dark:bg-slate-800/35" },
+  { id: "a-fazer", title: "A Fazer" },
+  { id: "em-andamento", title: "Em Andamento" },
+  { id: "concluido", title: "Concluido" },
+  { id: "arquivado", title: "Arquivado" },
 ];
+
 
 export const kanbanClients = [
   "Vega Distribuidora",
@@ -215,7 +215,7 @@ export const initialCards: KanbanCard[] = [
   },
   {
     id: "PRC-1050",
-    columnId: "em-andamento",
+columnId: "em-andamento",
     title: "Validação de layout de boleto personalizado",
     summary: "Aguardando aprovação do time financeiro do cliente.",
     client: "Alpha Comércio",
@@ -230,7 +230,7 @@ export const initialCards: KanbanCard[] = [
   },
   {
     id: "PRC-1051",
-    columnId: "em-andamento",
+columnId: "em-andamento",
     title: "Confirmação de dados para migração de estoque",
     summary: "Cliente precisa validar planilha de saldo inicial dos CDs.",
     client: "Vega Distribuidora",
@@ -245,7 +245,7 @@ export const initialCards: KanbanCard[] = [
   },
   {
     id: "PRC-1060",
-    columnId: "concluido",
+columnId: "concluido",
     title: "Release 2026.3.1 - homologação com cliente piloto",
     summary: "Testes de emissão fiscal, kanban e pix automático.",
     client: "Órion Serviços",
@@ -260,7 +260,7 @@ export const initialCards: KanbanCard[] = [
   },
   {
     id: "PRC-1061",
-    columnId: "concluido",
+columnId: "concluido",
     title: "Pix Automático - fluxo de cobrança recorrente",
     summary: "Validando webhooks e reconciliação automática.",
     client: "Lyra Farmácias",
@@ -435,5 +435,7 @@ enrich("PRC-1030", {
   relatedArticles: [kbArticles[2]],
   relatedVersions: [kbVersions[0]],
 });
+
+
 
 
