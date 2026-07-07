@@ -1,57 +1,31 @@
-import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
-  BarChart,
-  Bar,
+  Area,
+  AreaChart,
+  Cell,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
-  PieChart,
-  Pie,
 } from "recharts";
 import {
-  AlertOctagon,
-  Clock,
-  CheckCircle2,
-  Inbox,
-  UserRoundCheck,
   ArrowRight,
-  Timer,
-  Activity,
-  SlidersHorizontal,
-  X,
+  BookOpen,
+  CheckCircle2,
+  GitBranch,
+  KanbanSquare,
+  MoreVertical,
+  TrendingDown,
+  TrendingUp,
+  Users,
 } from "lucide-react";
 import { AppShell, PageHeader } from "@/components/portal/AppShell";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import {
-  Select,
-  SelectTrigger,
-  SelectContent,
-  SelectItem,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { useKanbanCards } from "@/lib/kanban-store";
-import {
-  kanbanColumnsDef,
-  kanbanMembers,
-  kanbanClients,
-  priorities,
-  cardTypes,
-  priorityMeta,
-  type KanbanCard,
-  type Priority,
-} from "@/lib/kanban-data";
 
 export const Route = createFileRoute("/kanban-dashboard")({
   head: () => ({
@@ -60,730 +34,551 @@ export const Route = createFileRoute("/kanban-dashboard")({
       {
         name: "description",
         content:
-          "Visão executiva do Kanban Prócion: métricas, distribuição por status, prioridade e atividades recentes.",
+          "Visão executiva do Kanban Prócion: indicadores, distribuição, progresso e projetos importantes.",
+      },
+      { property: "og:title", content: "Portal Prócion" },
+      {
+        property: "og:description",
+        content:
+          "Central de ajuda e produtividade da Prócion Sistemas para clientes, parceiros e equipe interna.",
       },
     ],
   }),
-  component: KanbanDashboard,
+  component: KanbanDashboardPage,
 });
 
-type Period = "7" | "30" | "90" | "365" | "all";
-type Filters = {
-  period: Period;
-  client: string;
-  assignee: string;
-  type: string;
-  priority: string;
-};
+const weeklyStats = [
+  { day: "Dom", suporte: 64, melhorias: 78 },
+  { day: "Seg", suporte: 38, melhorias: 31 },
+  { day: "Ter", suporte: 51, melhorias: 69 },
+  { day: "Qua", suporte: 57, melhorias: 88 },
+  { day: "Qui", suporte: 20, melhorias: 36 },
+  { day: "Sex", suporte: 70, melhorias: 16 },
+  { day: "Sab", suporte: 32, melhorias: 77 },
+];
 
-const emptyFilters: Filters = {
-  period: "30",
-  client: "all",
-  assignee: "all",
-  type: "all",
-  priority: "all",
-};
+const completionData = [
+  { day: "Dom", value: 42 },
+  { day: "Seg", value: 48 },
+  { day: "Ter", value: 44 },
+  { day: "Qua", value: 62 },
+  { day: "Qui", value: 55 },
+  { day: "Sex", value: 72 },
+  { day: "Sab", value: 68 },
+];
 
-const periodLabels: Record<Period, string> = {
-  "7": "Últimos 7 dias",
-  "30": "Últimos 30 dias",
-  "90": "Últimos 90 dias",
-  "365": "Últimos 12 meses",
-  all: "Todo o período",
-};
+const categoryData = [
+  { name: "Suporte", value: 38, color: "#0b97c4" },
+  { name: "Bug", value: 26, color: "#ff6b91" },
+  { name: "Melhoria", value: 22, color: "#55d6be" },
+  { name: "Implantação", value: 14, color: "#ffd166" },
+];
 
-const priorityColor: Record<Priority, string> = {
-  Baixa: "var(--muted-foreground)",
-  Média: "var(--accent)",
-  Alta: "var(--warning)",
-  Crítica: "var(--destructive)",
-};
+const miniBarData = [
+  { value: 44 },
+  { value: 72 },
+  { value: 58 },
+  { value: 86 },
+  { value: 63 },
+];
 
-function isWithinPeriod(iso: string, period: Period) {
-  if (period === "all") return true;
-  const days = parseInt(period, 10);
-  const target = new Date(iso + (iso.length === 10 ? "T00:00:00" : ""));
-  const from = new Date();
-  from.setDate(from.getDate() - days);
-  return target >= from;
-}
+const importantProjects = [
+  { name: "NF-e Curitiba", label: "Fiscal", tone: "bg-[#e8f7fc] text-primary" },
+  { name: "Produção fase 2", label: "Implantação", tone: "bg-[#fff4d8] text-[#c47a13]" },
+  { name: "Portal Cliente", label: "Produto", tone: "bg-[#eafaf1] text-[#23a061]" },
+];
 
-function daysBetween(a: Date, b: Date) {
-  return Math.round((b.getTime() - a.getTime()) / (1000 * 60 * 60 * 24));
-}
-
-function KanbanDashboard() {
-  const allCards = useKanbanCards();
-  const [filters, setFilters] = useState<Filters>(emptyFilters);
-
-  const activeFilterCount = Object.entries(filters).filter(
-    ([k, v]) => k !== "period" && v !== "all",
-  ).length;
-
-  const cards = useMemo(
-    () =>
-      allCards.filter((c) => {
-        if (c.archived) return false;
-        if (filters.client !== "all" && c.client !== filters.client) return false;
-        if (filters.assignee !== "all" && c.assigneeId !== filters.assignee) return false;
-        if (filters.type !== "all" && c.type !== filters.type) return false;
-        if (filters.priority !== "all" && c.priority !== filters.priority) return false;
-        return isWithinPeriod(c.dueDate, filters.period);
-      }),
-    [allCards, filters],
-  );
-
-  const today = useMemo(() => {
-    const d = new Date();
-    d.setHours(0, 0, 0, 0);
-    return d;
-  }, []);
-
-  const metrics = useMemo(() => {
-    const open = cards.filter((c) => c.columnId !== "concluido");
-    const critical = open.filter((c) => c.priority === "Crítica");
-    const waiting = cards.filter((c) => c.columnId === "aguardando-cliente");
-    const currentMonth = new Date().getMonth();
-    const currentYear = new Date().getFullYear();
-    const doneMonth = cards.filter((c) => {
-      if (c.columnId !== "concluido") return false;
-      const d = new Date(c.dueDate + "T00:00:00");
-      return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
-    });
-    // Mock tempo médio: dif entre due e hoje para concluídos, absoluto
-    const done = cards.filter((c) => c.columnId === "concluido");
-    const avg =
-      done.length === 0
-        ? 0
-        : done.reduce(
-            (sum, c) =>
-              sum + Math.abs(daysBetween(new Date(c.dueDate + "T00:00:00"), today)),
-            0,
-          ) / done.length;
-    return {
-      open: open.length,
-      critical: critical.length,
-      waiting: waiting.length,
-      doneMonth: doneMonth.length,
-      avgDays: avg,
-    };
-  }, [cards, today]);
-
-  const byStatus = useMemo(
-    () =>
-      kanbanColumnsDef.map((col) => ({
-        name: col.title,
-        value: cards.filter((c) => c.columnId === col.id).length,
-        id: col.id,
-      })),
-    [cards],
-  );
-
-  const byPriority = useMemo(
-    () =>
-      priorities.map((p) => ({
-        name: p,
-        value: cards.filter((c) => c.priority === p).length,
-        color: priorityColor[p],
-      })),
-    [cards],
-  );
-
-  const criticalCards = useMemo(
-    () =>
-      cards
-        .filter((c) => c.priority === "Crítica" && c.columnId !== "concluido")
-        .sort((a, b) => a.dueDate.localeCompare(b.dueDate))
-        .slice(0, 6),
-    [cards],
-  );
-
-  const overdueCards = useMemo(
-    () =>
-      cards
-        .filter(
-          (c) =>
-            c.columnId !== "concluido" &&
-            new Date(c.dueDate + "T00:00:00") < today,
-        )
-        .sort((a, b) => a.dueDate.localeCompare(b.dueDate))
-        .slice(0, 6),
-    [cards, today],
-  );
-
-  const clientRanking = useMemo(() => {
-    const map = new Map<string, number>();
-    cards.forEach((c) => map.set(c.client, (map.get(c.client) ?? 0) + 1));
-    const total = cards.length || 1;
-    return [...map.entries()]
-      .map(([name, count]) => ({ name, count, pct: Math.round((count / total) * 100) }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 6);
-  }, [cards]);
-
-  const recentActivity = useMemo(() => {
-    type Entry = {
-      key: string;
-      cardId: string;
-      cardTitle: string;
-      at: string;
-      text: string;
-      authorId?: string;
-    };
-    const all: Entry[] = [];
-    for (const c of cards) {
-      for (const a of c.activity ?? []) {
-        all.push({
-          key: `${c.id}-${a.id}`,
-          cardId: c.id,
-          cardTitle: c.title,
-          at: a.at,
-          text: a.text,
-          authorId: a.authorId,
-        });
-      }
-    }
-    return all.sort((a, b) => b.at.localeCompare(a.at)).slice(0, 8);
-  }, [cards]);
-
-  const clearFilters = () => setFilters(emptyFilters);
-
+function KanbanDashboardPage() {
   return (
     <AppShell>
       <PageHeader
         title="Dashboard Kanban"
-        description="Visão executiva das demandas em andamento, atrasos e produtividade da equipe."
+        description="Visão executiva das demandas, progresso e produtividade da equipe."
         breadcrumbs={[
           { label: "Kanban Prócion", to: "/kanban" },
-          { label: "Dashboard" },
+          { label: "Analytics" },
         ]}
         actions={
-          <Button asChild variant="outline" size="sm">
+          <Button asChild variant="outline" size="sm" className="rounded-full">
             <Link to="/kanban">
-              Ir para o quadro <ArrowRight className="h-3.5 w-3.5 ml-1" />
+              Ir para o quadro <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
             </Link>
           </Button>
         }
       />
 
-      {/* Filtros */}
-      <div className="mb-6 grid grid-cols-1 md:grid-cols-[auto_1fr_auto] gap-3 items-center">
-        <Select
-          value={filters.period}
-          onValueChange={(v) => setFilters({ ...filters, period: v as Period })}
-        >
-          <SelectTrigger className="w-full md:w-[220px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {(Object.keys(periodLabels) as Period[]).map((p) => (
-              <SelectItem key={p} value={p}>
-                {periodLabels[p]}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <div className="flex items-center gap-2 flex-wrap">
-          {activeFilterCount > 0 && (
-            <>
-              <span className="text-xs text-muted-foreground">Ativos:</span>
-              {(["client", "assignee", "type", "priority"] as const).map((k) => {
-                const v = filters[k];
-                if (v === "all") return null;
-                const label =
-                  k === "assignee"
-                    ? kanbanMembers.find((m) => m.id === v)?.name ?? v
-                    : v;
-                return (
-                  <Badge key={k} variant="secondary" className="text-[11px] gap-1 pr-1">
-                    {label}
-                    <button
-                      onClick={() => setFilters({ ...filters, [k]: "all" })}
-                      className="ml-0.5 rounded hover:bg-muted-foreground/10 p-0.5"
-                      aria-label="Remover filtro"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </Badge>
-                );
-              })}
-              <button
-                onClick={clearFilters}
-                className="text-xs text-muted-foreground hover:text-foreground underline-offset-2 hover:underline"
-              >
-                Limpar
-              </button>
-            </>
-          )}
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.1fr_1.1fr]">
+        <div className="space-y-6">
+          <HeroPanel />
+          <ProjectStatistics />
+          <CompletionRate />
         </div>
 
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="outline" size="sm" className="md:justify-self-end">
-              <SlidersHorizontal className="h-4 w-4 mr-1.5" />
-              Filtros
-              {activeFilterCount > 0 && (
-                <Badge className="ml-2 h-5 min-w-5 px-1 bg-primary text-primary-foreground">
-                  {activeFilterCount}
-                </Badge>
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-80 p-4" align="end">
-            <p className="text-sm font-semibold mb-3">Filtros</p>
-            <div className="space-y-3">
-              <FilterSelect
-                label="Cliente"
-                value={filters.client}
-                onChange={(v) => setFilters({ ...filters, client: v })}
-                options={[
-                  { value: "all", label: "Todos" },
-                  { value: "Interno", label: "Interno" },
-                  ...kanbanClients.map((c) => ({ value: c, label: c })),
-                ]}
-              />
-              <FilterSelect
-                label="Responsável"
-                value={filters.assignee}
-                onChange={(v) => setFilters({ ...filters, assignee: v })}
-                options={[
-                  { value: "all", label: "Todos" },
-                  ...kanbanMembers.map((m) => ({ value: m.id, label: m.name })),
-                ]}
-              />
-              <FilterSelect
-                label="Tipo"
-                value={filters.type}
-                onChange={(v) => setFilters({ ...filters, type: v })}
-                options={[
-                  { value: "all", label: "Todos" },
-                  ...cardTypes.map((t) => ({ value: t, label: t })),
-                ]}
-              />
-              <FilterSelect
-                label="Prioridade"
-                value={filters.priority}
-                onChange={(v) => setFilters({ ...filters, priority: v })}
-                options={[
-                  { value: "all", label: "Todas" },
-                  ...priorities.map((p) => ({ value: p, label: p })),
-                ]}
-              />
-            </div>
-          </PopoverContent>
-        </Popover>
-      </div>
-
-      {/* Métricas */}
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 mb-6">
-        <MetricCard
-          icon={Inbox}
-          tone="primary"
-          label="Demandas abertas"
-          value={metrics.open}
-          hint={`${metrics.waiting} aguardando cliente`}
-        />
-        <MetricCard
-          icon={AlertOctagon}
-          tone="destructive"
-          label="Críticas"
-          value={metrics.critical}
-          hint="Requerem ação imediata"
-        />
-        <MetricCard
-          icon={UserRoundCheck}
-          tone="accent"
-          label="Aguardando cliente"
-          value={metrics.waiting}
-          hint="Sem ação nossa"
-        />
-        <MetricCard
-          icon={CheckCircle2}
-          tone="success"
-          label="Concluídas no mês"
-          value={metrics.doneMonth}
-          hint={new Date().toLocaleDateString("pt-BR", { month: "long" })}
-        />
-        <MetricCard
-          icon={Timer}
-          tone="warning"
-          label="Tempo médio"
-          value={`${metrics.avgDays.toFixed(1)}d`}
-          hint="Resolução dos concluídos"
-        />
-      </div>
-
-      {/* Gráficos */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-        <Card className="p-5 lg:col-span-2">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-sm font-semibold">Demandas por status</h3>
-              <p className="text-xs text-muted-foreground">
-                Distribuição atual entre as colunas do quadro.
-              </p>
-            </div>
-            <span className="text-xs text-muted-foreground">
-              {cards.length} cards
-            </span>
+        <div className="space-y-6">
+          <MetricGrid />
+          <CompanyProfile />
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <EmailCategories />
+            <ImportantProjects />
           </div>
-          <div className="h-[260px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={byStatus} margin={{ top: 10, right: 12, left: -8, bottom: 0 }}>
-                <XAxis
-                  dataKey="name"
-                  stroke="var(--muted-foreground)"
-                  fontSize={11}
-                  tickLine={false}
-                  axisLine={false}
-                  interval={0}
-                  angle={-15}
-                  textAnchor="end"
-                  height={50}
-                />
-                <YAxis
-                  stroke="var(--muted-foreground)"
-                  fontSize={11}
-                  tickLine={false}
-                  axisLine={false}
-                  allowDecimals={false}
-                />
-                <Tooltip
-                  cursor={{ fill: "var(--muted)", opacity: 0.4 }}
-                  contentStyle={{
-                    borderRadius: 8,
-                    border: "1px solid var(--border)",
-                    background: "var(--card)",
-                    fontSize: 12,
-                  }}
-                />
-                <Bar dataKey="value" fill="var(--primary)" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </Card>
-
-        <Card className="p-5">
-          <div className="mb-4">
-            <h3 className="text-sm font-semibold">Por prioridade</h3>
-            <p className="text-xs text-muted-foreground">
-              Distribuição de esforço por criticidade.
-            </p>
-          </div>
-          <div className="h-[220px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={byPriority}
-                  dataKey="value"
-                  nameKey="name"
-                  innerRadius={45}
-                  outerRadius={80}
-                  paddingAngle={2}
-                  stroke="var(--background)"
-                >
-                  {byPriority.map((p) => (
-                    <Cell key={p.name} fill={p.color} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{
-                    borderRadius: 8,
-                    border: "1px solid var(--border)",
-                    background: "var(--card)",
-                    fontSize: 12,
-                  }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="mt-2 space-y-1.5">
-            {byPriority.map((p) => (
-              <div key={p.name} className="flex items-center gap-2 text-xs">
-                <span
-                  className="h-2 w-2 rounded-full shrink-0"
-                  style={{ background: p.color }}
-                />
-                <span className="flex-1">{p.name}</span>
-                <span className="tabular-nums text-muted-foreground">{p.value}</span>
-              </div>
-            ))}
-          </div>
-        </Card>
-      </div>
-
-      {/* Listas */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-        <CardList
-          title="Cards críticos"
-          icon={AlertOctagon}
-          tone="destructive"
-          items={criticalCards}
-          empty="Nenhum card crítico no momento."
-        />
-        <CardList
-          title="Cards atrasados"
-          icon={Clock}
-          tone="warning"
-          items={overdueCards}
-          empty="Nenhum card atrasado."
-        />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Ranking clientes */}
-        <Card className="p-5">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-sm font-semibold">Clientes com mais demandas</h3>
-              <p className="text-xs text-muted-foreground">
-                Ranking no período selecionado.
-              </p>
-            </div>
-          </div>
-          {clientRanking.length === 0 ? (
-            <p className="text-xs text-muted-foreground italic">Sem dados.</p>
-          ) : (
-            <ul className="space-y-3">
-              {clientRanking.map((c, i) => (
-                <li key={c.name} className="space-y-1">
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="w-5 text-[11px] font-semibold text-muted-foreground tabular-nums">
-                        {String(i + 1).padStart(2, "0")}
-                      </span>
-                      <span className="truncate">{c.name}</span>
-                    </div>
-                    <span className="text-xs text-muted-foreground tabular-nums">
-                      {c.count} · {c.pct}%
-                    </span>
-                  </div>
-                  <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-                    <div
-                      className="h-full bg-primary rounded-full"
-                      style={{ width: `${c.pct}%` }}
-                    />
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
-
-        {/* Atividades recentes */}
-        <Card className="p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <Activity className="h-4 w-4 text-muted-foreground" />
-            <h3 className="text-sm font-semibold">Atividades recentes</h3>
-          </div>
-          {recentActivity.length === 0 ? (
-            <p className="text-xs text-muted-foreground italic">
-              Sem atividades no período.
-            </p>
-          ) : (
-            <ol className="relative border-l border-border ml-2 pl-4 space-y-3">
-              {recentActivity.map((e) => {
-                const author = kanbanMembers.find((m) => m.id === e.authorId);
-                return (
-                  <li key={e.key} className="relative">
-                    <span className="absolute -left-[21px] top-1.5 h-2 w-2 rounded-full bg-primary ring-2 ring-background" />
-                    <p className="text-sm">
-                      <span className="font-medium">{e.text}</span>{" "}
-                      <span className="text-muted-foreground">em</span>{" "}
-                      <Link
-                        to="/kanban"
-                        className="font-mono text-xs text-primary hover:underline"
-                      >
-                        {e.cardId}
-                      </Link>
-                    </p>
-                    <p className="text-[11px] text-muted-foreground truncate">
-                      {e.cardTitle}
-                    </p>
-                    <p className="text-[11px] text-muted-foreground">
-                      {author?.name ? `${author.name} · ` : ""}
-                      {new Date(e.at).toLocaleString("pt-BR", {
-                        day: "2-digit",
-                        month: "short",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </p>
-                  </li>
-                );
-              })}
-            </ol>
-          )}
-        </Card>
+        </div>
       </div>
     </AppShell>
   );
 }
 
-// ============ helpers ============
-
-const toneClasses: Record<string, { bg: string; text: string }> = {
-  primary: { bg: "bg-primary/10", text: "text-primary" },
-  destructive: { bg: "bg-destructive/10", text: "text-destructive" },
-  success: { bg: "bg-success/15", text: "text-success" },
-  warning: { bg: "bg-warning/25", text: "text-warning-foreground" },
-  accent: { bg: "bg-accent/20", text: "text-accent-foreground" },
-};
-
-function MetricCard({
-  icon: Icon,
-  label,
-  value,
-  hint,
-  tone,
-}: {
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  value: number | string;
-  hint?: string;
-  tone: keyof typeof toneClasses;
-}) {
-  const t = toneClasses[tone];
+function HeroPanel() {
   return (
-    <Card className="p-4">
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <p className="text-[11px] uppercase tracking-wide text-muted-foreground truncate">
-            {label}
-          </p>
-          <p className="mt-1 text-2xl font-semibold tabular-nums">{value}</p>
-        </div>
-        <div className={cn("grid h-9 w-9 place-items-center rounded-lg shrink-0", t.bg, t.text)}>
-          <Icon className="h-4 w-4" />
-        </div>
+    <Card className="relative min-h-[250px] overflow-hidden rounded-[14px] border-0 bg-gradient-to-br from-[#0b97c4] via-[#0490d1] to-[#313866] p-8 text-white shadow-[0_18px_40px_rgba(11,151,196,0.22)]">
+      <div className="relative z-10 max-w-[360px]">
+        <h2 className="text-[26px] font-bold leading-tight">
+          Gerencie suas demandas em um só lugar
+        </h2>
+        <p className="mt-4 text-sm leading-relaxed text-white/78">
+          Acompanhe suporte, implantação, versões e base de conhecimento com a visão executiva do Portal Prócion.
+        </p>
+        <Button asChild className="mt-7 rounded-full bg-white px-6 text-[#191d33] hover:bg-white/90">
+          <Link to="/kanban">
+            Abrir Kanban <ArrowRight className="ml-2 h-4 w-4" />
+          </Link>
+        </Button>
       </div>
-      {hint && (
-        <p className="mt-2 text-[11px] text-muted-foreground truncate">{hint}</p>
-      )}
+
+      <div className="absolute right-8 top-10 hidden h-[180px] w-[220px] md:block">
+        <div className="absolute bottom-0 left-10 h-[92px] w-[142px] rounded-lg bg-white/75 shadow-xl" />
+        <div className="absolute bottom-10 left-5 h-[66px] w-[86px] rounded-xl bg-[#33c3e8] shadow-lg">
+          <div className="absolute left-4 top-4 flex h-9 items-end gap-1.5">
+            {[18, 28, 36, 54, 42, 64].map((h, i) => (
+              <span key={i} className="w-1.5 rounded-full bg-white" style={{ height: h }} />
+            ))}
+          </div>
+        </div>
+        <div className="absolute bottom-12 left-34 h-[86px] w-[120px] border-[7px] border-[#7d69d6]/35" />
+        <div className="absolute bottom-20 right-8 h-4 w-4 rounded-full bg-[#ff8ecf]" />
+        <div className="absolute right-16 top-8 h-8 w-8 rounded-full border-[10px] border-[#61c8e8]" />
+        <div className="absolute bottom-24 left-24 h-2 w-2 rounded-full bg-white/80" />
+      </div>
     </Card>
   );
 }
 
-function CardList({
+function MetricGrid() {
+  return (
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+      <SmallMetricCard
+        title="Clientes ativos"
+        value="68"
+        change="+0,5%"
+        trend="up"
+        visual={<MiniBars />}
+      />
+      <SmallMetricCard
+        title="Tarefas concluídas"
+        value="24"
+        subtitle="76 restantes da meta"
+        visual={<ProgressLine value={43} />}
+      />
+      <SmallMetricCard
+        title="Total de demandas"
+        value="562"
+        change="-2%"
+        trend="down"
+        visual={<MiniWave color="#8d6bd8" />}
+      />
+      <SmallMetricCard
+        title="Novos projetos"
+        value="892"
+        change="+0,5%"
+        trend="up"
+        visual={<MiniWave color="#7b61c9" rising />}
+      />
+    </div>
+  );
+}
+
+function SmallMetricCard({
   title,
-  icon: Icon,
-  tone,
-  items,
-  empty,
+  value,
+  subtitle,
+  change,
+  trend,
+  visual,
 }: {
   title: string;
-  icon: React.ComponentType<{ className?: string }>;
-  tone: keyof typeof toneClasses;
-  items: KanbanCard[];
-  empty: string;
+  value: string;
+  subtitle?: string;
+  change?: string;
+  trend?: "up" | "down";
+  visual: React.ReactNode;
 }) {
-  const t = toneClasses[tone];
   return (
-    <Card className="p-5">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <div className={cn("grid h-7 w-7 place-items-center rounded-md", t.bg, t.text)}>
-            <Icon className="h-3.5 w-3.5" />
+    <Card className="min-h-[126px] rounded-[14px] border-0 bg-white p-5 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
+      <div className="flex h-full items-center justify-between gap-4">
+        <div className="min-w-0">
+          <p className="text-sm font-bold text-[#25293b]">{title}</p>
+          <div className="mt-4 flex items-end gap-2">
+            <span className="text-3xl font-bold tabular-nums text-[#191d33]">{value}</span>
+            {change && (
+              <span
+                className={cn(
+                  "mb-1 inline-flex items-center gap-1 text-xs font-semibold",
+                  trend === "down" ? "text-[#fb5166]" : "text-[#20bf6b]",
+                )}
+              >
+                {trend === "down" ? <TrendingDown className="h-3 w-3" /> : <TrendingUp className="h-3 w-3" />}
+                {change}
+              </span>
+            )}
           </div>
-          <h3 className="text-sm font-semibold">{title}</h3>
-          <span className="text-[11px] text-muted-foreground">({items.length})</span>
+          {subtitle && <p className="mt-1 text-xs text-[#fb5166]">{subtitle}</p>}
         </div>
-        <Link
-          to="/kanban"
-          className="text-[11px] text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
-        >
-          Ver no quadro <ArrowRight className="h-3 w-3" />
-        </Link>
+        <div className="h-16 w-24 shrink-0">{visual}</div>
       </div>
-      {items.length === 0 ? (
-        <p className="text-xs text-muted-foreground italic">{empty}</p>
-      ) : (
-        <ul className="divide-y divide-border -mx-1">
-          {items.map((c) => {
-            const assignee = kanbanMembers.find((m) => m.id === c.assigneeId);
-            const due = new Date(c.dueDate + "T00:00:00");
-            const overdue = due < new Date(new Date().setHours(0, 0, 0, 0));
-            return (
-              <li key={c.id} className="px-1 py-2.5">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-                      <span className="font-mono">{c.id}</span>
-                      <span>·</span>
-                      <span className="truncate">{c.client}</span>
-                    </div>
-                    <p className="text-sm font-medium leading-snug truncate mt-0.5">
-                      {c.title}
-                    </p>
-                    <div className="mt-1 flex items-center gap-2 text-[11px] text-muted-foreground flex-wrap">
-                      <span className="inline-flex items-center gap-1">
-                        <span
-                          className={cn(
-                            "h-1.5 w-1.5 rounded-full",
-                            priorityMeta[c.priority].dot,
-                          )}
-                        />
-                        {c.priority}
-                      </span>
-                      <span>·</span>
-                      <span className={cn(overdue && "text-destructive font-medium")}>
-                        {due.toLocaleDateString("pt-BR", {
-                          day: "2-digit",
-                          month: "short",
-                        })}
-                      </span>
-                      <span>·</span>
-                      <span className="truncate">
-                        {kanbanColumnsDef.find((k) => k.id === c.columnId)?.title}
-                      </span>
-                    </div>
-                  </div>
-                  {assignee && (
-                    <Avatar className="h-7 w-7 shrink-0">
-                      <AvatarFallback
-                        className={cn("text-[10px] font-semibold", assignee.color)}
-                      >
-                        {assignee.initials}
-                      </AvatarFallback>
-                    </Avatar>
-                  )}
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      )}
     </Card>
   );
 }
 
-function FilterSelect({
+function MiniBars() {
+  return (
+    <div className="flex h-full items-center justify-end gap-2">
+      {miniBarData.map((bar, index) => (
+        <div key={index} className="flex h-14 w-2 items-center rounded-full bg-[#edf0f6]">
+          <span
+            className="mt-auto w-full rounded-full bg-[#7c65c9]"
+            style={{ height: `${bar.value}%`, opacity: 0.62 + index * 0.08 }}
+          />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function MiniWave({ color, rising = false }: { color: string; rising?: boolean }) {
+  const data = rising
+    ? [{ v: 25 }, { v: 34 }, { v: 31 }, { v: 58 }, { v: 49 }, { v: 72 }]
+    : [{ v: 70 }, { v: 64 }, { v: 36 }, { v: 31 }, { v: 45 }, { v: 43 }];
+
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <AreaChart data={data} margin={{ top: 8, right: 4, left: 4, bottom: 8 }}>
+        <Area type="monotone" dataKey="v" stroke={color} strokeWidth={4} fill="transparent" dot={false} />
+      </AreaChart>
+    </ResponsiveContainer>
+  );
+}
+
+function ProgressLine({ value }: { value: number }) {
+  return (
+    <div className="flex h-full items-center">
+      <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#edf0f6]">
+        <div className="h-full rounded-full bg-[#7c65c9]" style={{ width: `${value}%` }} />
+      </div>
+    </div>
+  );
+}
+
+function ProjectStatistics() {
+  return (
+    <Card className="rounded-[14px] border-0 bg-white p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
+      <div className="mb-5 flex items-center justify-between gap-4">
+        <h3 className="text-base font-bold text-[#191d33]">Estatísticas do projeto</h3>
+        <div className="flex rounded-full bg-[#eef5ff] p-1 text-[11px] font-semibold text-[#8b91ad]">
+          {["Mensal", "Semanal", "Diário"].map((item) => (
+            <button
+              key={item}
+              className={cn(
+                "rounded-full px-4 py-2 transition",
+                item === "Diário" && "bg-white text-[#191d33] shadow-sm",
+              )}
+            >
+              {item}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="mb-4 grid grid-cols-3 gap-3">
+        <StatLegend color="#8d6bd8" label="Total" value="246" />
+        <StatLegend color="#ffd166" label="Em andamento" value="167" />
+        <StatLegend color="#ff6bba" label="Inacabadas" value="28" />
+      </div>
+
+      <ProjectBarChart />
+
+      <div className="mt-2 flex items-center gap-8 text-xs font-semibold text-[#555b75]">
+        <span className="inline-flex items-center gap-2">
+          Número <span className="h-3 w-6 rounded-full bg-[#8d6bd8]" />
+        </span>
+        <span className="inline-flex items-center gap-2">
+          Análise <span className="h-3 w-6 rounded-full bg-[#8b91ad]" />
+        </span>
+      </div>
+    </Card>
+  );
+}
+
+function ProjectBarChart() {
+  return (
+    <div className="mt-2 h-[260px]">
+      <div className="grid h-[220px] grid-cols-[34px_1fr] gap-3">
+        <div className="flex h-full flex-col justify-between pb-7 pt-2 text-[11px] text-[#8b91ad]">
+          {[100, 80, 60, 40, 20, 0].map((tick) => (
+            <span key={tick}>{tick}</span>
+          ))}
+        </div>
+        <div className="relative h-full border-b border-[#eef1f8]">
+          {[0, 1, 2, 3, 4].map((line) => (
+            <span
+              key={line}
+              className="absolute left-0 right-0 border-t border-[#eef1f8]"
+              style={{ top: `${line * 20}%` }}
+            />
+          ))}
+          <div className="relative z-10 grid h-full grid-cols-7 items-end gap-3 px-1 pb-7">
+            {weeklyStats.map((item, index) => (
+              <div key={item.day} className="group flex h-full items-end justify-center gap-2">
+                <div
+                  className="w-3.5 rounded-t-full bg-[#ff9f68] shadow-[0_8px_18px_rgba(255,159,104,0.22)] transition group-hover:opacity-85"
+                  style={{ height: `${item.suporte}%` }}
+                />
+                <div
+                  className={cn(
+                    "w-3.5 rounded-t-full bg-[#ff5fc8] shadow-[0_8px_18px_rgba(255,95,200,0.20)] transition group-hover:opacity-85",
+                    index === 2 && "bg-[repeating-linear-gradient(135deg,#ff5fc8_0_4px,#ff9dde_4px_8px)]",
+                  )}
+                  style={{ height: `${item.melhorias}%` }}
+                />
+              </div>
+            ))}
+          </div>
+          <div className="absolute bottom-0 left-0 right-0 grid grid-cols-7 gap-3 px-1 text-center text-[11px] text-[#8b91ad]">
+            {weeklyStats.map((item) => (
+              <span key={item.day}>{item.day}</span>
+            ))}
+          </div>
+          <div className="absolute left-[25%] top-[30%] hidden rounded-xl bg-white px-4 py-3 text-xs shadow-[0_16px_32px_rgba(25,29,51,0.12)] md:block">
+            <p className="font-bold text-[#191d33]">56 projetos</p>
+            <p className="mt-1 text-[#8b91ad]">24 out, 2026</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StatLegend({ color, label, value }: { color: string; label: string; value: string }) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: color }} />
+      <div className="min-w-0">
+        <p className="text-lg font-bold leading-none text-[#191d33]">{value}</p>
+        <p className="mt-1 truncate text-xs text-[#555b75]">{label}</p>
+      </div>
+    </div>
+  );
+}
+
+function CompanyProfile() {
+  return (
+    <Card className="rounded-[14px] border-0 bg-white p-7 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
+      <div className="grid gap-6 md:grid-cols-[1fr_260px] md:items-center">
+        <div>
+          <h3 className="text-base font-bold text-[#191d33]">Perfil Prócion</h3>
+          <p className="mt-1 text-sm font-semibold text-[#25293b]">Portal de Ajuda e Kanban</p>
+          <p className="mt-5 max-w-sm text-sm leading-relaxed text-[#6f7590]">
+            Visão consolidada das demandas, clientes, tarefas concluídas e evolução dos projetos internos.
+          </p>
+          <div className="mt-6 flex gap-3">
+            <Button size="icon" variant="secondary" className="h-9 w-9 rounded-full">
+              <ArrowRight className="h-4 w-4 rotate-180" />
+            </Button>
+            <Button size="icon" className="h-9 w-9 rounded-full">
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+        <Gauge />
+      </div>
+    </Card>
+  );
+}
+
+function Gauge() {
+  // Semicircle gauge using SVG for precise centering.
+  const size = 220;
+  const cx = size / 2;
+  const cy = size / 2;
+  const r = 88;
+  const stroke = 22;
+  const progress = 0.7; // 70%
+  const circumference = Math.PI * r;
+  const dash = circumference * progress;
+
+  // Needle angle: -180deg (left) -> 0deg (right). At 70% => -180 + 180*0.7 = -54deg
+  const angleDeg = -180 + 180 * progress;
+  const needleLength = r - 6;
+  const rad = (angleDeg * Math.PI) / 180;
+  const tipX = cx + needleLength * Math.cos(rad);
+  const tipY = cy + needleLength * Math.sin(rad);
+
+  return (
+    <div className="mx-auto flex w-full max-w-[240px] flex-col items-center">
+      <div className="relative w-full overflow-hidden" style={{ aspectRatio: "2 / 1" }}>
+        <svg
+          viewBox={`0 0 ${size} ${size / 2 + 4}`}
+          className="block h-auto w-full"
+          aria-hidden="true"
+        >
+          {/* Track */}
+          <path
+            d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`}
+            fill="none"
+            stroke="#eee7ff"
+            strokeWidth={stroke}
+            strokeLinecap="round"
+          />
+          {/* Progress */}
+          <path
+            d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`}
+            fill="none"
+            stroke="#ff61cf"
+            strokeWidth={stroke}
+            strokeLinecap="round"
+            strokeDasharray={`${dash} ${circumference}`}
+          />
+          {/* Inner disc */}
+          <circle cx={cx} cy={cy} r={30} fill="#ede7ff" />
+          <circle cx={cx} cy={cy} r={18} fill="#8d6bd8" />
+          {/* Needle */}
+          <line
+            x1={cx}
+            y1={cy}
+            x2={tipX}
+            y2={tipY}
+            stroke="#7d69d6"
+            strokeWidth={8}
+            strokeLinecap="round"
+          />
+          <circle cx={cx} cy={cy} r={5} fill="#ffffff" />
+        </svg>
+      </div>
+      <p className="mt-2 text-sm font-bold text-[#8b91ad]">
+        Em progresso <span className="text-[#20bf6b]">70%</span>
+      </p>
+    </div>
+  );
+}
+
+
+function EmailCategories() {
+  return (
+    <Card className="rounded-[14px] border-0 bg-white p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
+      <h3 className="text-base font-bold text-[#191d33]">Categorias</h3>
+      <p className="mt-1 text-xs text-[#8b91ad]">Demandas por tipo</p>
+      <div className="mt-5 h-[190px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie data={categoryData} innerRadius={48} outerRadius={74} paddingAngle={0} dataKey="value">
+              {categoryData.map((entry) => (
+                <Cell key={entry.name} fill={entry.color} />
+              ))}
+            </Pie>
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
+      <div className="mt-2 grid grid-cols-2 gap-2">
+        {categoryData.map((item) => (
+          <span key={item.name} className="inline-flex items-center gap-2 text-xs text-[#555b75]">
+            <span className="h-2 w-2 rounded-full" style={{ background: item.color }} />
+            {item.name}
+          </span>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
+function ImportantProjects() {
+  return (
+    <Card className="rounded-[14px] border-0 bg-white p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
+      <div className="mb-5 flex items-start justify-between">
+        <div>
+          <h3 className="text-base font-bold text-[#191d33]">Projetos importantes</h3>
+          <p className="mt-1 text-xs text-[#8b91ad]">Prioridades em andamento</p>
+        </div>
+        <MoreVertical className="h-5 w-5 text-[#8b91ad]" />
+      </div>
+      <div className="space-y-5">
+        {importantProjects.map((project, index) => (
+          <div key={project.name} className="flex gap-3">
+            <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#eef5ff]">
+              {index === 0 && <KanbanSquare className="h-5 w-5 text-primary" />}
+              {index === 1 && <Users className="h-5 w-5 text-[#c47a13]" />}
+              {index === 2 && <BookOpen className="h-5 w-5 text-[#23a061]" />}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-bold text-[#25293b]">{project.name}</p>
+              <p className="mt-1 text-xs text-[#8b91ad]">
+                Otimização e acompanhamento no Kanban Prócion.
+              </p>
+              <Badge className={cn("mt-2 rounded-full px-2.5 py-0.5 text-[10px] hover:bg-current/0", project.tone)}>
+                {project.label}
+              </Badge>
+            </div>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
+function CompletionRate() {
+  return (
+    <Card className="rounded-[14px] border-0 bg-white p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
+      <div className="mb-4 flex items-center justify-between">
+        <h3 className="text-base font-bold text-[#191d33]">Taxa de conclusão</h3>
+        <MoreVertical className="h-5 w-5 text-[#8b91ad]" />
+      </div>
+      <div className="h-[220px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={completionData} margin={{ top: 12, right: 10, left: -18, bottom: 0 }}>
+            <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#8b91ad" }} />
+            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#8b91ad" }} />
+            <Tooltip
+              contentStyle={{
+                border: "0",
+                borderRadius: 12,
+                boxShadow: "0 14px 30px rgba(25,29,51,0.12)",
+                fontSize: 12,
+              }}
+            />
+            <Area type="monotone" dataKey="value" stroke="#0b97c4" strokeWidth={3} fill="rgba(11,151,196,0.12)" />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+      <div className="mt-3 grid grid-cols-3 gap-3">
+        <InfoPill icon={CheckCircle2} label="Concluído" value="74%" />
+        <InfoPill icon={GitBranch} label="Versões" value="12" />
+        <InfoPill icon={KanbanSquare} label="Cards" value="86" />
+      </div>
+    </Card>
+  );
+}
+
+function InfoPill({
+  icon: Icon,
   label,
   value,
-  onChange,
-  options,
 }: {
+  icon: React.ComponentType<{ className?: string }>;
   label: string;
   value: string;
-  onChange: (v: string) => void;
-  options: { value: string; label: string }[];
 }) {
   return (
-    <div className="space-y-1.5">
-      <label className="text-xs font-medium text-muted-foreground">{label}</label>
-      <Select value={value} onValueChange={onChange}>
-        <SelectTrigger className="h-9 text-sm">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {options.map((o) => (
-            <SelectItem key={o.value} value={o.value}>
-              {o.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+    <div className="rounded-xl bg-[#f7f9fc] p-3">
+      <Icon className="h-4 w-4 text-primary" />
+      <p className="mt-2 text-[11px] text-[#8b91ad]">{label}</p>
+      <p className="text-sm font-bold text-[#191d33]">{value}</p>
     </div>
   );
 }
