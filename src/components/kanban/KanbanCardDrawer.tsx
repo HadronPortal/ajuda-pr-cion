@@ -1,17 +1,39 @@
-import { useEffect, useState } from "react";
-import { Trash2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import {
+  Trash2,
+  Archive,
+  Plus,
+  Paperclip,
+  MessageSquare,
+  History,
+  BookOpen,
+  Tag,
+  CheckSquare,
+  Send,
+  FileText,
+  GitBranch,
+  Users,
+  Calendar,
+  Building2,
+  Boxes,
+  X,
+} from "lucide-react";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
   SheetDescription,
-  SheetFooter,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Separator } from "@/components/ui/separator";
 import {
   Select,
   SelectTrigger,
@@ -19,10 +41,19 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   type KanbanCard,
   type ColumnId,
+  type ChecklistItem,
+  type CommentEntry,
+  type ActivityEntry,
+  type RelatedArticle,
+  type RelatedVersion,
   kanbanMembers,
   kanbanClients,
   kanbanModules,
@@ -30,6 +61,8 @@ import {
   priorities,
   cardTypes,
   priorityMeta,
+  kbArticles,
+  kbVersions,
 } from "@/lib/kanban-data";
 import { cn } from "@/lib/utils";
 
@@ -42,6 +75,8 @@ type Props = {
   onSave: (card: KanbanCard) => void;
   onDelete?: (id: string) => void;
 };
+
+const CURRENT_USER_ID = "u-ar"; // usuário logado simulado
 
 const emptyDraft = (columnId: ColumnId): KanbanCard => ({
   id: "",
@@ -57,7 +92,47 @@ const emptyDraft = (columnId: ColumnId): KanbanCard => ({
   tags: [],
   comments: 0,
   attachments: 0,
+  description: "",
+  participants: [],
+  checklist: [],
+  commentsList: [],
+  activity: [],
+  attachmentsList: [],
+  relatedArticles: [],
+  relatedVersions: [],
 });
+
+const uid = (prefix: string) =>
+  `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+
+const nowIso = () => new Date().toISOString();
+
+const withDefaults = (c: KanbanCard): KanbanCard => ({
+  ...c,
+  description: c.description ?? c.summary,
+  participants: c.participants ?? [c.assigneeId],
+  checklist: c.checklist ?? [],
+  commentsList: c.commentsList ?? [],
+  activity: c.activity ?? [],
+  attachmentsList: c.attachmentsList ?? [],
+  relatedArticles: c.relatedArticles ?? [],
+  relatedVersions: c.relatedVersions ?? [],
+});
+
+function formatWhen(iso: string) {
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return iso;
+  return d.toLocaleString("pt-BR", {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function memberById(id?: string) {
+  return kanbanMembers.find((m) => m.id === id);
+}
 
 export function KanbanCardDrawer({
   open,
@@ -68,19 +143,167 @@ export function KanbanCardDrawer({
   onSave,
   onDelete,
 }: Props) {
-  const [draft, setDraft] = useState<KanbanCard>(card ?? emptyDraft(defaultColumnId));
+  const [draft, setDraft] = useState<KanbanCard>(
+    card ? withDefaults(card) : emptyDraft(defaultColumnId),
+  );
   const [tagsInput, setTagsInput] = useState((card?.tags ?? []).join(", "));
+  const [newComment, setNewComment] = useState("");
+  const [newChecklistItem, setNewChecklistItem] = useState("");
+  const [newAttachment, setNewAttachment] = useState("");
 
   useEffect(() => {
     if (open) {
-      const base = card ?? emptyDraft(defaultColumnId);
+      const base = card ? withDefaults(card) : emptyDraft(defaultColumnId);
       setDraft(base);
       setTagsInput((base.tags ?? []).join(", "));
+      setNewComment("");
+      setNewChecklistItem("");
+      setNewAttachment("");
     }
   }, [open, card, defaultColumnId]);
 
   const update = <K extends keyof KanbanCard>(key: K, value: KanbanCard[K]) => {
     setDraft((d) => ({ ...d, [key]: value }));
+  };
+
+  const pushActivity = (text: string) => {
+    setDraft((d) => ({
+      ...d,
+      activity: [
+        ...(d.activity ?? []),
+        { id: uid("ac"), at: nowIso(), text, authorId: CURRENT_USER_ID },
+      ],
+    }));
+  };
+
+  // === Ações ===
+  const handleChangeStatus = (v: ColumnId) => {
+    if (v === draft.columnId) return;
+    const from = kanbanColumnsDef.find((c) => c.id === draft.columnId)?.title;
+    const to = kanbanColumnsDef.find((c) => c.id === v)?.title;
+    update("columnId", v);
+    pushActivity(`Movido de "${from}" para "${to}"`);
+  };
+
+  const handleChangePriority = (v: KanbanCard["priority"]) => {
+    if (v === draft.priority) return;
+    const prev = draft.priority;
+    update("priority", v);
+    pushActivity(`Prioridade alterada de ${prev} para ${v}`);
+  };
+
+  const handleChangeAssignee = (v: string) => {
+    if (v === draft.assigneeId) return;
+    const prev = memberById(draft.assigneeId)?.name ?? "—";
+    const next = memberById(v)?.name ?? "—";
+    update("assigneeId", v);
+    pushActivity(`Responsável alterado de ${prev} para ${next}`);
+  };
+
+  const toggleParticipant = (id: string) => {
+    setDraft((d) => {
+      const has = (d.participants ?? []).includes(id);
+      return {
+        ...d,
+        participants: has
+          ? (d.participants ?? []).filter((p) => p !== id)
+          : [...(d.participants ?? []), id],
+      };
+    });
+  };
+
+  const addChecklistItem = () => {
+    const t = newChecklistItem.trim();
+    if (!t) return;
+    setDraft((d) => ({
+      ...d,
+      checklist: [...(d.checklist ?? []), { id: uid("ck"), text: t, done: false }],
+    }));
+    setNewChecklistItem("");
+  };
+
+  const toggleChecklist = (id: string) => {
+    setDraft((d) => ({
+      ...d,
+      checklist: (d.checklist ?? []).map((it) =>
+        it.id === id ? { ...it, done: !it.done } : it,
+      ),
+    }));
+  };
+
+  const removeChecklist = (id: string) => {
+    setDraft((d) => ({
+      ...d,
+      checklist: (d.checklist ?? []).filter((it) => it.id !== id),
+    }));
+  };
+
+  const addComment = () => {
+    const t = newComment.trim();
+    if (!t) return;
+    const entry: CommentEntry = {
+      id: uid("cm"),
+      authorId: CURRENT_USER_ID,
+      at: nowIso(),
+      text: t,
+    };
+    setDraft((d) => ({
+      ...d,
+      commentsList: [...(d.commentsList ?? []), entry],
+      comments: (d.commentsList?.length ?? d.comments ?? 0) + 1,
+    }));
+    setNewComment("");
+  };
+
+  const addAttachment = () => {
+    const name = newAttachment.trim();
+    if (!name) return;
+    setDraft((d) => ({
+      ...d,
+      attachmentsList: [
+        ...(d.attachmentsList ?? []),
+        { id: uid("at"), name, size: "—", kind: name.split(".").pop() ?? "file" },
+      ],
+      attachments: (d.attachmentsList?.length ?? d.attachments ?? 0) + 1,
+    }));
+    setNewAttachment("");
+  };
+
+  const removeAttachment = (id: string) => {
+    setDraft((d) => ({
+      ...d,
+      attachmentsList: (d.attachmentsList ?? []).filter((a) => a.id !== id),
+    }));
+  };
+
+  const toggleArticle = (article: RelatedArticle) => {
+    setDraft((d) => {
+      const has = (d.relatedArticles ?? []).some((a) => a.id === article.id);
+      return {
+        ...d,
+        relatedArticles: has
+          ? (d.relatedArticles ?? []).filter((a) => a.id !== article.id)
+          : [...(d.relatedArticles ?? []), article],
+      };
+    });
+  };
+
+  const toggleVersion = (version: RelatedVersion) => {
+    setDraft((d) => {
+      const has = (d.relatedVersions ?? []).some((v) => v.id === version.id);
+      return {
+        ...d,
+        relatedVersions: has
+          ? (d.relatedVersions ?? []).filter((v) => v.id !== version.id)
+          : [...(d.relatedVersions ?? []), version],
+      };
+    });
+  };
+
+  const handleArchive = () => {
+    const updated: KanbanCard = { ...draft, archived: true };
+    onSave(updated);
+    onOpenChange(false);
   };
 
   const handleSave = () => {
@@ -89,175 +312,718 @@ export function KanbanCardDrawer({
       .split(",")
       .map((t) => t.trim().replace(/^#/, ""))
       .filter(Boolean);
-    onSave({ ...draft, tags });
+    const final: KanbanCard = {
+      ...draft,
+      tags,
+      comments: (draft.commentsList ?? []).length || draft.comments,
+      attachments: (draft.attachmentsList ?? []).length || draft.attachments,
+    };
+    onSave(final);
     onOpenChange(false);
   };
 
+  const checklistProgress = useMemo(() => {
+    const items = draft.checklist ?? [];
+    if (!items.length) return 0;
+    return Math.round((items.filter((i) => i.done).length / items.length) * 100);
+  }, [draft.checklist]);
+
+  const assignee = memberById(draft.assigneeId);
+  const isCritical = draft.priority === "Crítica";
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-xl overflow-y-auto p-0">
-        <div className="px-6 pt-6 pb-4 border-b border-border">
-          <SheetHeader>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              {mode === "edit" && draft.id && <span className="font-mono">{draft.id}</span>}
+      <SheetContent
+        className="w-full sm:max-w-3xl lg:max-w-5xl h-full max-h-screen p-0 flex flex-col gap-0"
+      >
+        {/* Header */}
+        <div className="px-5 sm:px-6 pt-5 pb-4 border-b border-border bg-background">
+          <SheetHeader className="space-y-2">
+            <div className="flex items-center gap-2 text-[11px] text-muted-foreground flex-wrap">
+              {mode === "edit" && draft.id && (
+                <span className="font-mono">{draft.id}</span>
+              )}
               {mode === "edit" && draft.id && <span>·</span>}
-              <Badge
-                className={cn(
-                  "text-[10px]",
-                  priorityMeta[draft.priority].badge,
-                )}
-              >
+              <Badge className={cn("text-[10px]", priorityMeta[draft.priority].badge)}>
+                {isCritical && "🚨 "}
                 {draft.priority}
               </Badge>
+              <Badge variant="secondary" className="text-[10px]">
+                {draft.type}
+              </Badge>
+              <Badge variant="outline" className="text-[10px]">
+                {kanbanColumnsDef.find((c) => c.id === draft.columnId)?.title}
+              </Badge>
+              {draft.archived && (
+                <Badge variant="outline" className="text-[10px] text-muted-foreground">
+                  Arquivado
+                </Badge>
+              )}
             </div>
-            <SheetTitle className="text-xl mt-2">
-              {mode === "create" ? "Novo card" : "Detalhes do card"}
+            <SheetTitle className="sr-only">
+              {mode === "create" ? "Novo card" : draft.title || "Detalhes do card"}
             </SheetTitle>
-            <SheetDescription>
+            <SheetDescription className="sr-only">
               {mode === "create"
                 ? "Preencha as informações da nova demanda."
                 : "Edite as informações e clique em salvar."}
             </SheetDescription>
+            <Input
+              value={draft.title}
+              onChange={(e) => update("title", e.target.value)}
+              placeholder="Ex: Erro na emissão de NF-e: rejeição XML"
+              className="text-lg sm:text-xl font-semibold border-0 shadow-none focus-visible:ring-1 focus-visible:ring-ring px-2 -mx-2 h-auto py-1.5"
+            />
           </SheetHeader>
         </div>
 
-        <div className="px-6 py-5 space-y-5">
-          <div className="space-y-2">
-            <Label htmlFor="k-title">Título</Label>
-            <Input
-              id="k-title"
-              value={draft.title}
-              onChange={(e) => update("title", e.target.value)}
-              placeholder="Ex: Rejeição NF-e 539 na filial de Curitiba"
-            />
-          </div>
+        {/* Body: two columns on lg */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_320px]">
+            {/* MAIN */}
+            <div className="px-5 sm:px-6 py-5 space-y-7 min-w-0">
+              {/* Descrição */}
+              <section className="space-y-2">
+                <SectionHeader icon={FileText} title="Descrição" />
+                <Textarea
+                  rows={5}
+                  value={draft.description ?? ""}
+                  onChange={(e) => update("description", e.target.value)}
+                  placeholder="Contexto, hipóteses, critérios de aceite e impacto no cliente."
+                  className="resize-y"
+                />
+              </section>
 
-          <div className="space-y-2">
-            <Label htmlFor="k-summary">Descrição</Label>
-            <Textarea
-              id="k-summary"
-              rows={4}
-              value={draft.summary}
-              onChange={(e) => update("summary", e.target.value)}
-              placeholder="Breve resumo do problema, contexto e critérios de aceite."
-            />
-          </div>
+              {/* Checklist */}
+              <section className="space-y-3">
+                <div className="flex items-center justify-between gap-3">
+                  <SectionHeader
+                    icon={CheckSquare}
+                    title="Checklist"
+                    count={`${(draft.checklist ?? []).filter((i) => i.done).length}/${(draft.checklist ?? []).length}`}
+                  />
+                  {(draft.checklist ?? []).length > 0 && (
+                    <div className="flex items-center gap-2 min-w-[140px]">
+                      <Progress value={checklistProgress} className="h-1.5" />
+                      <span className="text-[11px] text-muted-foreground tabular-nums w-8 text-right">
+                        {checklistProgress}%
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <div className="space-y-1.5">
+                  {(draft.checklist ?? []).map((item) => (
+                    <ChecklistRow
+                      key={item.id}
+                      item={item}
+                      onToggle={() => toggleChecklist(item.id)}
+                      onRemove={() => removeChecklist(item.id)}
+                    />
+                  ))}
+                  {(draft.checklist ?? []).length === 0 && (
+                    <p className="text-xs text-muted-foreground italic">
+                      Nenhum item adicionado.
+                    </p>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Input
+                    value={newChecklistItem}
+                    onChange={(e) => setNewChecklistItem(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && addChecklistItem()}
+                    placeholder="Adicionar item ao checklist..."
+                    className="h-9 text-sm"
+                  />
+                  <Button size="sm" variant="secondary" onClick={addChecklistItem}>
+                    <Plus className="h-4 w-4 mr-1" /> Adicionar
+                  </Button>
+                </div>
+              </section>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Status</Label>
-              <Select value={draft.columnId} onValueChange={(v) => update("columnId", v as ColumnId)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {kanbanColumnsDef.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>
+              {/* Anexos */}
+              <section className="space-y-3">
+                <SectionHeader
+                  icon={Paperclip}
+                  title="Anexos"
+                  count={(draft.attachmentsList ?? []).length}
+                />
+                <div className="space-y-1.5">
+                  {(draft.attachmentsList ?? []).map((a) => (
+                    <div
+                      key={a.id}
+                      className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card px-3 py-2"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="h-8 w-8 shrink-0 grid place-items-center rounded bg-muted text-[10px] font-semibold uppercase text-muted-foreground">
+                          {a.kind.slice(0, 4)}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium truncate">{a.name}</p>
+                          <p className="text-[11px] text-muted-foreground">{a.size}</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => removeAttachment(a.id)}
+                        className="text-muted-foreground hover:text-destructive p-1"
+                        aria-label="Remover anexo"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
                   ))}
-                </SelectContent>
-              </Select>
+                  {(draft.attachmentsList ?? []).length === 0 && (
+                    <p className="text-xs text-muted-foreground italic">
+                      Nenhum anexo.
+                    </p>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Input
+                    value={newAttachment}
+                    onChange={(e) => setNewAttachment(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && addAttachment()}
+                    placeholder="Nome do arquivo (ex: log-erro.txt)"
+                    className="h-9 text-sm"
+                  />
+                  <Button size="sm" variant="secondary" onClick={addAttachment}>
+                    <Paperclip className="h-4 w-4 mr-1" /> Anexar
+                  </Button>
+                </div>
+              </section>
+
+              {/* Relacionados */}
+              <section className="space-y-3">
+                <SectionHeader icon={BookOpen} title="Relacionados" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <RelatedBlock
+                    title="Artigos da base"
+                    icon={BookOpen}
+                    items={(draft.relatedArticles ?? []).map((a) => ({
+                      key: a.id,
+                      primary: a.title,
+                      secondary: `${a.id} · ${a.category}`,
+                    }))}
+                    emptyLabel="Nenhum artigo vinculado."
+                    picker={
+                      <RelationPicker
+                        label="Vincular artigo"
+                        options={kbArticles.map((a) => ({
+                          id: a.id,
+                          label: a.title,
+                          hint: a.category,
+                          selected: (draft.relatedArticles ?? []).some(
+                            (x) => x.id === a.id,
+                          ),
+                          onToggle: () => toggleArticle(a),
+                        }))}
+                      />
+                    }
+                  />
+                  <RelatedBlock
+                    title="Versões"
+                    icon={GitBranch}
+                    items={(draft.relatedVersions ?? []).map((v) => ({
+                      key: v.id,
+                      primary: `v${v.version}`,
+                      secondary: `${v.date} · ${v.note}`,
+                    }))}
+                    emptyLabel="Nenhuma versão vinculada."
+                    picker={
+                      <RelationPicker
+                        label="Vincular versão"
+                        options={kbVersions.map((v) => ({
+                          id: v.id,
+                          label: `v${v.version}`,
+                          hint: v.note,
+                          selected: (draft.relatedVersions ?? []).some(
+                            (x) => x.id === v.id,
+                          ),
+                          onToggle: () => toggleVersion(v),
+                        }))}
+                      />
+                    }
+                  />
+                </div>
+              </section>
+
+              {/* Comentários */}
+              <section className="space-y-3">
+                <SectionHeader
+                  icon={MessageSquare}
+                  title="Comentários"
+                  count={(draft.commentsList ?? []).length}
+                />
+                <div className="space-y-4">
+                  {[...(draft.commentsList ?? [])]
+                    .sort((a, b) => a.at.localeCompare(b.at))
+                    .map((c) => {
+                      const author = memberById(c.authorId);
+                      return (
+                        <div key={c.id} className="flex gap-3">
+                          <Avatar className="h-8 w-8 shrink-0">
+                            <AvatarFallback
+                              className={cn(
+                                "text-[10px] font-semibold",
+                                author?.color,
+                              )}
+                            >
+                              {author?.initials ?? "?"}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 text-xs">
+                              <span className="font-semibold">
+                                {author?.name ?? "Usuário"}
+                              </span>
+                              <span className="text-muted-foreground">
+                                {formatWhen(c.at)}
+                              </span>
+                            </div>
+                            <p className="mt-1 text-sm leading-relaxed whitespace-pre-wrap">
+                              {c.text}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  {(draft.commentsList ?? []).length === 0 && (
+                    <p className="text-xs text-muted-foreground italic">
+                      Nenhum comentário ainda.
+                    </p>
+                  )}
+                </div>
+                <div className="flex gap-2 items-start pt-2 border-t border-border">
+                  <Avatar className="h-8 w-8 shrink-0 mt-1">
+                    <AvatarFallback
+                      className={cn(
+                        "text-[10px] font-semibold",
+                        memberById(CURRENT_USER_ID)?.color,
+                      )}
+                    >
+                      {memberById(CURRENT_USER_ID)?.initials}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 space-y-2">
+                    <Textarea
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      placeholder="Escreva um comentário..."
+                      rows={2}
+                      className="resize-none text-sm"
+                    />
+                    <div className="flex justify-end">
+                      <Button size="sm" onClick={addComment} disabled={!newComment.trim()}>
+                        <Send className="h-3.5 w-3.5 mr-1" /> Comentar
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* Histórico */}
+              <section className="space-y-3">
+                <SectionHeader
+                  icon={History}
+                  title="Histórico de movimentações"
+                  count={(draft.activity ?? []).length}
+                />
+                <ol className="relative border-l border-border ml-2 pl-4 space-y-3">
+                  {[...(draft.activity ?? [])]
+                    .sort((a, b) => b.at.localeCompare(a.at))
+                    .map((e) => {
+                      const author = memberById(e.authorId);
+                      return (
+                        <li key={e.id} className="relative">
+                          <span className="absolute -left-[21px] top-1.5 h-2 w-2 rounded-full bg-primary ring-2 ring-background" />
+                          <p className="text-sm">{e.text}</p>
+                          <p className="text-[11px] text-muted-foreground">
+                            {author?.name ? `${author.name} · ` : ""}
+                            {formatWhen(e.at)}
+                          </p>
+                        </li>
+                      );
+                    })}
+                  {(draft.activity ?? []).length === 0 && (
+                    <p className="text-xs text-muted-foreground italic">
+                      Sem movimentações registradas.
+                    </p>
+                  )}
+                </ol>
+              </section>
             </div>
-            <div className="space-y-2">
-              <Label>Prioridade</Label>
-              <Select value={draft.priority} onValueChange={(v) => update("priority", v as KanbanCard["priority"])}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {priorities.map((p) => (
-                    <SelectItem key={p} value={p}>{p}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Tipo</Label>
-              <Select value={draft.type} onValueChange={(v) => update("type", v as KanbanCard["type"])}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {cardTypes.map((t) => (
-                    <SelectItem key={t} value={t}>{t}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Responsável</Label>
-              <Select value={draft.assigneeId} onValueChange={(v) => update("assigneeId", v)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {kanbanMembers.map((m) => (
-                    <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Cliente</Label>
-              <Select value={draft.client} onValueChange={(v) => update("client", v)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Interno">Interno</SelectItem>
-                  {kanbanClients.map((c) => (
-                    <SelectItem key={c} value={c}>{c}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Módulo</Label>
-              <Select value={draft.module} onValueChange={(v) => update("module", v)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {kanbanModules.map((m) => (
-                    <SelectItem key={m} value={m}>{m}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="k-due">Data limite</Label>
-              <Input
-                id="k-due"
-                type="date"
-                value={draft.dueDate}
-                onChange={(e) => update("dueDate", e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="k-tags">Tags (separadas por vírgula)</Label>
-              <Input
-                id="k-tags"
-                value={tagsInput}
-                onChange={(e) => setTagsInput(e.target.value)}
-                placeholder="fiscal, nf-e"
-              />
-            </div>
+
+            {/* SIDEBAR (props operacionais) */}
+            <aside className="border-t lg:border-t-0 lg:border-l border-border bg-muted/30 px-5 sm:px-6 py-5 space-y-5">
+              <SidebarField icon={Boxes} label="Status">
+                <Select value={draft.columnId} onValueChange={(v) => handleChangeStatus(v as ColumnId)}>
+                  <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {kanbanColumnsDef.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </SidebarField>
+
+              <SidebarField icon={Tag} label="Prioridade">
+                <Select value={draft.priority} onValueChange={(v) => handleChangePriority(v as KanbanCard["priority"])}>
+                  <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {priorities.map((p) => (
+                      <SelectItem key={p} value={p}>
+                        <span className="inline-flex items-center gap-2">
+                          <span className={cn("h-1.5 w-1.5 rounded-full", priorityMeta[p].dot)} />
+                          {p}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </SidebarField>
+
+              <SidebarField icon={Tag} label="Tipo">
+                <Select value={draft.type} onValueChange={(v) => update("type", v as KanbanCard["type"])}>
+                  <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {cardTypes.map((t) => (
+                      <SelectItem key={t} value={t}>{t}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </SidebarField>
+
+              <SidebarField icon={Users} label="Responsável">
+                <Select value={draft.assigneeId} onValueChange={handleChangeAssignee}>
+                  <SelectTrigger className="h-9">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {kanbanMembers.map((m) => (
+                      <SelectItem key={m.id} value={m.id}>
+                        <span className="inline-flex items-center gap-2">
+                          <span className={cn("h-5 w-5 rounded-full grid place-items-center text-[9px] font-semibold", m.color)}>
+                            {m.initials}
+                          </span>
+                          {m.name}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {assignee && (
+                  <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+                    <Avatar className="h-6 w-6">
+                      <AvatarFallback className={cn("text-[10px] font-semibold", assignee.color)}>
+                        {assignee.initials}
+                      </AvatarFallback>
+                    </Avatar>
+                    {assignee.name}
+                  </div>
+                )}
+              </SidebarField>
+
+              <SidebarField icon={Users} label="Participantes">
+                <div className="flex items-center flex-wrap gap-1.5">
+                  {(draft.participants ?? []).map((pid) => {
+                    const p = memberById(pid);
+                    if (!p) return null;
+                    return (
+                      <button
+                        key={pid}
+                        onClick={() => toggleParticipant(pid)}
+                        className="group inline-flex items-center gap-1 pl-0.5 pr-1.5 py-0.5 rounded-full bg-background border border-border text-[11px]"
+                      >
+                        <Avatar className="h-5 w-5">
+                          <AvatarFallback className={cn("text-[9px] font-semibold", p.color)}>
+                            {p.initials}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span>{p.name.split(" ")[0]}</span>
+                        <X className="h-3 w-3 text-muted-foreground group-hover:text-destructive" />
+                      </button>
+                    );
+                  })}
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button className="inline-flex items-center gap-1 h-6 px-2 rounded-full border border-dashed border-border text-[11px] text-muted-foreground hover:text-foreground hover:border-primary/40">
+                        <Plus className="h-3 w-3" /> Adicionar
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-64 p-2" align="end">
+                      <div className="space-y-0.5 max-h-64 overflow-y-auto">
+                        {kanbanMembers.map((m) => {
+                          const selected = (draft.participants ?? []).includes(m.id);
+                          return (
+                            <button
+                              key={m.id}
+                              onClick={() => toggleParticipant(m.id)}
+                              className={cn(
+                                "w-full flex items-center gap-2 px-2 py-1.5 rounded text-sm hover:bg-muted",
+                                selected && "bg-muted",
+                              )}
+                            >
+                              <Avatar className="h-6 w-6">
+                                <AvatarFallback className={cn("text-[10px] font-semibold", m.color)}>
+                                  {m.initials}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span className="flex-1 text-left">{m.name}</span>
+                              {selected && <CheckSquare className="h-3.5 w-3.5 text-primary" />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </SidebarField>
+
+              <SidebarField icon={Building2} label="Cliente">
+                <Select value={draft.client} onValueChange={(v) => update("client", v)}>
+                  <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Interno">Interno</SelectItem>
+                    {kanbanClients.map((c) => (
+                      <SelectItem key={c} value={c}>{c}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </SidebarField>
+
+              <SidebarField icon={Boxes} label="Módulo do sistema">
+                <Select value={draft.module} onValueChange={(v) => update("module", v)}>
+                  <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {kanbanModules.map((m) => (
+                      <SelectItem key={m} value={m}>{m}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </SidebarField>
+
+              <SidebarField icon={Calendar} label="Prazo">
+                <Input
+                  type="date"
+                  value={draft.dueDate}
+                  onChange={(e) => update("dueDate", e.target.value)}
+                  className="h-9"
+                />
+              </SidebarField>
+
+              <SidebarField icon={Tag} label="Tags">
+                <Input
+                  value={tagsInput}
+                  onChange={(e) => setTagsInput(e.target.value)}
+                  placeholder="fiscal, nf-e"
+                  className="h-9"
+                />
+              </SidebarField>
+
+              <Separator />
+
+              <div className="space-y-1.5">
+                <Label className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                  Ações
+                </Label>
+                <div className="flex flex-col gap-1.5">
+                  <Button variant="outline" size="sm" className="justify-start" onClick={handleArchive}>
+                    <Archive className="h-4 w-4 mr-2" /> Arquivar card
+                  </Button>
+                  {mode === "edit" && onDelete && draft.id && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="justify-start text-destructive hover:text-destructive"
+                      onClick={() => {
+                        onDelete(draft.id);
+                        onOpenChange(false);
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" /> Excluir
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </aside>
           </div>
         </div>
 
-        <SheetFooter className="px-6 py-4 border-t border-border bg-muted/30 flex-row justify-between sm:justify-between">
-          <div>
-            {mode === "edit" && onDelete && draft.id && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-destructive hover:text-destructive"
-                onClick={() => {
-                  onDelete(draft.id);
-                  onOpenChange(false);
-                }}
-              >
-                <Trash2 className="h-4 w-4 mr-1" /> Excluir
-              </Button>
-            )}
-          </div>
+        {/* Footer sticky */}
+        <div className="px-5 sm:px-6 py-3 border-t border-border bg-background flex items-center justify-between gap-3">
+          <p className="text-[11px] text-muted-foreground truncate">
+            {mode === "create" ? "Criando novo card" : `Editando ${draft.id || "card"}`}
+          </p>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
-            <Button size="sm" onClick={handleSave}>
-              {mode === "create" ? "Criar card" : "Salvar"}
+            <Button size="sm" onClick={handleSave} disabled={!draft.title.trim()}>
+              {mode === "create" ? "Criar card" : "Salvar alterações"}
             </Button>
           </div>
-        </SheetFooter>
+        </div>
       </SheetContent>
     </Sheet>
+  );
+}
+
+// ============ helpers ============
+
+function SectionHeader({
+  icon: Icon,
+  title,
+  count,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  count?: number | string;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <Icon className="h-4 w-4 text-muted-foreground" />
+      <h3 className="text-sm font-semibold">{title}</h3>
+      {count !== undefined && count !== "" && (
+        <span className="text-[11px] text-muted-foreground">({count})</span>
+      )}
+    </div>
+  );
+}
+
+function SidebarField({
+  icon: Icon,
+  label,
+  children,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-[11px] uppercase tracking-wide text-muted-foreground flex items-center gap-1.5">
+        <Icon className="h-3.5 w-3.5" />
+        {label}
+      </Label>
+      {children}
+    </div>
+  );
+}
+
+function ChecklistRow({
+  item,
+  onToggle,
+  onRemove,
+}: {
+  item: ChecklistItem;
+  onToggle: () => void;
+  onRemove: () => void;
+}) {
+  return (
+    <div className="group flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-muted/60">
+      <Checkbox checked={item.done} onCheckedChange={onToggle} />
+      <span
+        className={cn(
+          "flex-1 text-sm",
+          item.done && "line-through text-muted-foreground",
+        )}
+      >
+        {item.text}
+      </span>
+      <button
+        onClick={onRemove}
+        className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive p-1"
+        aria-label="Remover item"
+      >
+        <X className="h-3.5 w-3.5" />
+      </button>
+    </div>
+  );
+}
+
+function RelatedBlock({
+  title,
+  icon: Icon,
+  items,
+  emptyLabel,
+  picker,
+}: {
+  title: string;
+  icon: React.ComponentType<{ className?: string }>;
+  items: { key: string; primary: string; secondary: string }[];
+  emptyLabel: string;
+  picker: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-lg border border-border bg-card p-3 space-y-2">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+          <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+          {title}
+        </div>
+        {picker}
+      </div>
+      <div className="space-y-1.5">
+        {items.length === 0 && (
+          <p className="text-xs text-muted-foreground italic">{emptyLabel}</p>
+        )}
+        {items.map((it) => (
+          <div key={it.key} className="text-sm">
+            <p className="font-medium leading-tight">{it.primary}</p>
+            <p className="text-[11px] text-muted-foreground">{it.secondary}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function RelationPicker({
+  label,
+  options,
+}: {
+  label: string;
+  options: {
+    id: string;
+    label: string;
+    hint: string;
+    selected: boolean;
+    onToggle: () => void;
+  }[];
+}) {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button className="inline-flex items-center gap-1 h-6 px-2 rounded-md border border-border text-[11px] text-muted-foreground hover:text-foreground hover:border-primary/40">
+          <Plus className="h-3 w-3" /> {label}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-72 p-2" align="end">
+        <div className="space-y-0.5 max-h-72 overflow-y-auto">
+          {options.map((o) => (
+            <button
+              key={o.id}
+              onClick={o.onToggle}
+              className={cn(
+                "w-full text-left px-2 py-1.5 rounded hover:bg-muted flex items-start gap-2",
+                o.selected && "bg-muted",
+              )}
+            >
+              <CheckSquare
+                className={cn(
+                  "h-3.5 w-3.5 mt-0.5 shrink-0",
+                  o.selected ? "text-primary" : "text-muted-foreground/40",
+                )}
+              />
+              <div className="min-w-0">
+                <p className="text-sm font-medium truncate">{o.label}</p>
+                <p className="text-[11px] text-muted-foreground truncate">
+                  {o.hint}
+                </p>
+              </div>
+            </button>
+          ))}
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
