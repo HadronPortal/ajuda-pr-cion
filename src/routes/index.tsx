@@ -101,7 +101,7 @@ function HomePage() {
         </p>
 
         <form
-          className="mt-6 flex w-full max-w-2xl items-center gap-2 rounded-full bg-white p-1.5 shadow-lg"
+          className="mt-6 flex w-full max-w-2xl items-center gap-2 rounded-full bg-white dark:bg-[#20263d] p-1.5 shadow-lg"
           onSubmit={(e) => e.preventDefault()}
         >
           <Search className="ml-3 h-5 w-5 shrink-0 text-muted-foreground" />
@@ -128,7 +128,7 @@ function HomePage() {
               to={s.to}
               className="group"
             >
-              <Card className="h-full rounded-[14px] border-0 bg-white p-5 shadow-[0_10px_26px_rgba(25,29,51,0.06)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_32px_rgba(25,29,51,0.10)]">
+              <Card className="h-full rounded-[14px] border-0 bg-white dark:bg-[#20263d] p-5 shadow-[0_10px_26px_rgba(25,29,51,0.06)] transition hover:-translate-y-0.5 hover:shadow-[0_14px_32px_rgba(25,29,51,0.10)]">
                 <div className={`grid h-11 w-11 place-items-center rounded-xl ${s.tone}`}>
                   <s.icon className="h-5 w-5" />
                 </div>
@@ -145,7 +145,7 @@ function HomePage() {
 
       {/* Últimos artigos + Versões */}
       <section className="grid grid-cols-1 gap-6 xl:grid-cols-[1.4fr_1fr]">
-        <Card className="rounded-[14px] border-0 bg-white p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
+        <Card className="rounded-[14px] border-0 bg-white dark:bg-[#20263d] p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
           <div className="mb-5 flex items-end justify-between">
             <div>
               <h3 className="text-base font-bold text-foreground">Últimos artigos</h3>
@@ -202,7 +202,7 @@ function HomePage() {
           </ul>
         </Card>
 
-        <Card className="rounded-[14px] border-0 bg-white p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
+        <Card className="rounded-[14px] border-0 bg-white dark:bg-[#20263d] p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
           <div className="mb-5 flex items-end justify-between">
             <div>
               <h3 className="text-base font-bold text-foreground">Últimas versões</h3>
@@ -217,7 +217,7 @@ function HomePage() {
           <ol className="relative space-y-5 border-l border-border pl-5">
             {latestVersions.map((v) => (
               <li key={v.version} className="relative">
-                <span className="absolute -left-[26px] top-1 grid h-4 w-4 place-items-center rounded-full bg-white ring-2 ring-primary">
+                <span className="absolute -left-[26px] top-1 grid h-4 w-4 place-items-center rounded-full bg-white dark:bg-[#20263d] ring-2 ring-primary">
                   <span className="h-1.5 w-1.5 rounded-full bg-primary" />
                 </span>
                 <div className="flex items-center gap-2">

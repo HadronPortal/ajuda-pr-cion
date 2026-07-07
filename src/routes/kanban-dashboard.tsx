@@ -137,7 +137,7 @@ function HeroPanel() {
         <p className="mt-4 text-sm leading-relaxed text-white/78">
           Acompanhe suporte, implantação, versões e base de conhecimento com a visão executiva do Portal Prócion.
         </p>
-        <Button asChild className="mt-7 rounded-full bg-white px-6 text-foreground hover:bg-white/90">
+        <Button asChild className="mt-7 rounded-full bg-white dark:bg-[#20263d] px-6 text-foreground hover:bg-white/90">
           <Link to="/kanban">
             Abrir Kanban <ArrowRight className="ml-2 h-4 w-4" />
           </Link>
@@ -149,7 +149,7 @@ function HeroPanel() {
         <div className="absolute bottom-10 left-5 h-[66px] w-[86px] rounded-xl bg-[#33c3e8] shadow-lg">
           <div className="absolute left-4 top-4 flex h-9 items-end gap-1.5">
             {[18, 28, 36, 54, 42, 64].map((h, i) => (
-              <span key={i} className="w-1.5 rounded-full bg-white" style={{ height: h }} />
+              <span key={i} className="w-1.5 rounded-full bg-white dark:bg-[#20263d]" style={{ height: h }} />
             ))}
           </div>
         </div>
@@ -212,7 +212,7 @@ function SmallMetricCard({
   visual: React.ReactNode;
 }) {
   return (
-    <Card className="min-h-[126px] rounded-[14px] border-0 bg-white p-5 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
+    <Card className="min-h-[126px] rounded-[14px] border-0 bg-white dark:bg-[#20263d] p-5 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
       <div className="flex h-full items-center justify-between gap-4">
         <div className="min-w-0">
           <p className="text-sm font-bold text-foreground">{title}</p>
@@ -279,7 +279,7 @@ function ProgressLine({ value }: { value: number }) {
 
 function ProjectStatistics() {
   return (
-    <Card className="rounded-[14px] border-0 bg-white p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
+    <Card className="rounded-[14px] border-0 bg-white dark:bg-[#20263d] p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
       <div className="mb-5 flex items-center justify-between gap-4">
         <h3 className="text-base font-bold text-foreground">Estatísticas do projeto</h3>
         <div className="flex rounded-full bg-primary/10 p-1 text-[11px] font-semibold text-muted-foreground">
@@ -288,7 +288,7 @@ function ProjectStatistics() {
               key={item}
               className={cn(
                 "rounded-full px-4 py-2 transition",
-                item === "Diário" && "bg-white text-foreground shadow-sm",
+                item === "Diário" && "bg-white dark:bg-[#20263d] text-foreground shadow-sm",
               )}
             >
               {item}
@@ -356,7 +356,7 @@ function ProjectBarChart() {
               <span key={item.day}>{item.day}</span>
             ))}
           </div>
-          <div className="absolute left-[25%] top-[30%] hidden rounded-xl bg-white px-4 py-3 text-xs shadow-[0_16px_32px_rgba(25,29,51,0.12)] md:block">
+          <div className="absolute left-[25%] top-[30%] hidden rounded-xl bg-white dark:bg-[#20263d] px-4 py-3 text-xs shadow-[0_16px_32px_rgba(25,29,51,0.12)] md:block">
             <p className="font-bold text-foreground">56 projetos</p>
             <p className="mt-1 text-muted-foreground">24 out, 2026</p>
           </div>
@@ -380,7 +380,7 @@ function StatLegend({ color, label, value }: { color: string; label: string; val
 
 function CompanyProfile() {
   return (
-    <Card className="rounded-[14px] border-0 bg-white p-7 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
+    <Card className="rounded-[14px] border-0 bg-white dark:bg-[#20263d] p-7 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
       <div className="grid gap-6 md:grid-cols-[1fr_260px] md:items-center">
         <div>
           <h3 className="text-base font-bold text-foreground">Perfil Prócion</h3>
@@ -472,7 +472,7 @@ function Gauge() {
 
 function EmailCategories() {
   return (
-    <Card className="rounded-[14px] border-0 bg-white p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
+    <Card className="rounded-[14px] border-0 bg-white dark:bg-[#20263d] p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
       <h3 className="text-base font-bold text-foreground">Categorias</h3>
       <p className="mt-1 text-xs text-muted-foreground">Demandas por tipo</p>
       <div className="mt-5 h-[190px]">
@@ -500,7 +500,7 @@ function EmailCategories() {
 
 function ImportantProjects() {
   return (
-    <Card className="rounded-[14px] border-0 bg-white p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
+    <Card className="rounded-[14px] border-0 bg-white dark:bg-[#20263d] p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
       <div className="mb-5 flex items-start justify-between">
         <div>
           <h3 className="text-base font-bold text-foreground">Projetos importantes</h3>
@@ -534,7 +534,7 @@ function ImportantProjects() {
 
 function CompletionRate() {
   return (
-    <Card className="rounded-[14px] border-0 bg-white p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
+    <Card className="rounded-[14px] border-0 bg-white dark:bg-[#20263d] p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
       <div className="mb-4 flex items-center justify-between">
         <h3 className="text-base font-bold text-foreground">Taxa de conclusão</h3>
         <MoreVertical className="h-5 w-5 text-muted-foreground" />

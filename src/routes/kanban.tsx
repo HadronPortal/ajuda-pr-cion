@@ -255,7 +255,7 @@ function KanbanPage() {
                 +{Math.max(0, kanbanMembers.length - 5)}
               </div>
             </div>
-            <Button asChild size="sm" variant="outline" className="w-full min-w-0 rounded-xl border-border bg-white px-2 text-xs md:w-auto md:px-3 md:text-sm">
+            <Button asChild size="sm" variant="outline" className="w-full min-w-0 rounded-xl border-border bg-white dark:bg-[#20263d] px-2 text-xs md:w-auto md:px-3 md:text-sm">
               <Link to="/kanban-dashboard">Dashboard</Link>
             </Button>
             <Button size="sm" onClick={() => handleNewCard()} className="w-full min-w-0 rounded-xl px-2 text-xs shadow-[0_10px_22px_rgba(11,151,196,0.18)] md:w-auto md:px-3 md:text-sm">
@@ -267,7 +267,7 @@ function KanbanPage() {
         </div>
 
         {/* Toolbar */}
-        <div className="grid grid-cols-1 md:grid-cols-[auto_1fr_auto] gap-3 items-center rounded-2xl border border-border bg-white p-3 shadow-[0_10px_30px_rgba(25,29,51,0.025)]">
+        <div className="grid grid-cols-1 md:grid-cols-[auto_1fr_auto] gap-3 items-center rounded-2xl border border-border bg-white dark:bg-[#20263d] p-3 shadow-[0_10px_30px_rgba(25,29,51,0.025)]">
           <Select value={activeBoard} onValueChange={setActiveBoard}>
             <SelectTrigger className="w-full md:w-[240px] rounded-xl border-border bg-muted/40">
               <SelectValue placeholder={boards.find((b) => b.id === activeBoard)?.name ?? "Quadro Geral"} />
@@ -293,7 +293,7 @@ function KanbanPage() {
           <div className="flex items-center gap-2">
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className="rounded-xl border-border bg-white">
+                <Button variant="outline" size="sm" className="rounded-xl border-border bg-white dark:bg-[#20263d]">
                   <SlidersHorizontal className="h-4 w-4 mr-1.5" />
                   Filtros
                   {activeFilterCount > 0 && (
@@ -426,7 +426,7 @@ function KanbanPage() {
       >
         {/* Desktop / tablet: horizontal scroll */}
         <div className="hidden md:block">
-          <div className="rounded-[14px] border border-border bg-white p-4 shadow-[0_16px_40px_rgba(25,29,51,0.035)]">
+          <div className="rounded-[14px] border border-border bg-white dark:bg-[#20263d] p-4 shadow-[0_16px_40px_rgba(25,29,51,0.035)]">
             <div className="overflow-x-auto kanban-scrollbar snap-x snap-mandatory rounded-xl border border-dashed border-border px-0 py-4">
               <div className="flex min-w-max gap-0">
                 {kanbanColumnsDef.map((col) => (

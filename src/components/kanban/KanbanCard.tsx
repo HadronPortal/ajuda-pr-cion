@@ -96,7 +96,7 @@ export function KanbanCardItem({
         onClick?.();
       }}
       className={cn(
-        "group relative cursor-pointer rounded-[10px] border border-[#e9edf6] bg-white p-4 shadow-[0_8px_22px_rgba(25,29,51,0.035)] transition-all duration-200",
+        "group relative cursor-pointer rounded-[10px] border border-border bg-white dark:bg-[#20263d] p-4 shadow-[0_8px_22px_rgba(25,29,51,0.035)] transition-all duration-200",
         "hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-[0_18px_34px_rgba(11,151,196,0.10)]",
         isDragging && !overlay && "opacity-40",
         overlay && "rotate-1 shadow-2xl",
