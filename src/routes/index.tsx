@@ -202,13 +202,13 @@ function HomePage() {
           </ul>
         </Card>
 
-        <Card className="rounded-[14px] border-0 bg-white dark:bg-[#20263d] p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
-          <div className="mb-5 flex items-end justify-between">
-            <div>
-              <h3 className="text-base font-bold text-foreground">Últimas versões</h3>
+        <Card className="min-w-0 overflow-hidden rounded-[14px] border-0 bg-white dark:bg-[#20263d] p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
+          <div className="mb-5 flex items-end justify-between gap-3">
+            <div className="min-w-0">
+              <h3 className="truncate text-base font-bold text-foreground">Últimas versões</h3>
               <p className="mt-0.5 text-xs text-muted-foreground">Release notes recentes.</p>
             </div>
-            <Button asChild variant="ghost" size="sm" className="text-primary hover:text-primary">
+            <Button asChild variant="ghost" size="sm" className="shrink-0 text-primary hover:text-primary">
               <Link to="/versoes">
                 Ver todas <ArrowRight className="ml-1 h-3 w-3" />
               </Link>
