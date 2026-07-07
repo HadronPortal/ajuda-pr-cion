@@ -25,7 +25,7 @@ export function AppHeader() {
           variant="ghost"
           size="icon"
           onClick={sidebarStore.toggle}
-          className="hidden lg:inline-flex rounded-xl border border-border bg-white text-muted-foreground shadow-sm hover:text-primary focus-visible:ring-2 focus-visible:ring-ring"
+          className="hidden lg:inline-flex rounded-xl border border-border bg-card text-muted-foreground shadow-sm hover:text-primary focus-visible:ring-2 focus-visible:ring-ring"
           aria-label="Recolher menu lateral"
         >
           <PanelLeft className="h-5 w-5" />
@@ -36,7 +36,7 @@ export function AppHeader() {
           <button
             type="button"
             onClick={() => setPaletteOpen(true)}
-            className="group w-full h-10 flex items-center gap-2 pl-3 pr-2 rounded-xl border border-border bg-white text-sm text-muted-foreground shadow-sm hover:border-primary/40 hover:bg-card transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="group w-full h-10 flex items-center gap-2 pl-3 pr-2 rounded-xl border border-border bg-card text-sm text-muted-foreground shadow-sm hover:border-primary/40 hover:bg-card transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <Search className="h-4 w-4 shrink-0" />
             <span className="flex-1 text-left truncate">
