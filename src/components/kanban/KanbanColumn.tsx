@@ -6,13 +6,12 @@ import { KanbanCardItem } from "./KanbanCard";
 import type { KanbanCard, KanbanColumn } from "@/lib/kanban-data";
 
 const columnTints: Record<string, string> = {
-  backlog: "bg-sky-50/70 dark:bg-sky-500/5",
-  triagem: "bg-indigo-50/60 dark:bg-indigo-500/5",
+  "a-fazer": "bg-sky-50/70 dark:bg-sky-500/5",
   "em-andamento": "bg-amber-50/70 dark:bg-amber-400/5",
-  "aguardando-cliente": "bg-orange-50/60 dark:bg-orange-500/5",
-  homologacao: "bg-violet-50/60 dark:bg-violet-500/5",
   concluido: "bg-emerald-50/70 dark:bg-emerald-500/5",
+  arquivado: "bg-violet-50/50 dark:bg-violet-500/5",
 };
+
 
 export function KanbanColumnView({
   column,

@@ -99,8 +99,8 @@ function KanbanPage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerMode, setDrawerMode] = useState<"edit" | "create">("edit");
   const [drawerCard, setDrawerCard] = useState<KanbanCard | null>(null);
-  const [defaultColumnId, setDefaultColumnId] = useState<ColumnId>("backlog");
-  const [mobileColumn, setMobileColumn] = useState<ColumnId>("backlog");
+  const [defaultColumnId, setDefaultColumnId] = useState<ColumnId>("a-fazer");
+  const [mobileColumn, setMobileColumn] = useState<ColumnId>("a-fazer");
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
 
@@ -109,7 +109,7 @@ function KanbanPage() {
   const filteredCards = useMemo(() => {
     const q = query.trim().toLowerCase();
     return cards.filter((c) => {
-      if (c.archived) return false;
+      if (c.archived && c.columnId !== "arquivado") return false;
       if (filters.client !== "all" && c.client !== filters.client) return false;
       if (filters.assignee !== "all" && c.assigneeId !== filters.assignee) return false;
       if (filters.priority !== "all" && c.priority !== filters.priority) return false;
@@ -129,13 +129,12 @@ function KanbanPage() {
 
   const cardsByColumn = useMemo(() => {
     const grouped: Record<ColumnId, KanbanCard[]> = {
-      backlog: [],
-      triagem: [],
+      "a-fazer": [],
       "em-andamento": [],
-      "aguardando-cliente": [],
-      homologacao: [],
       concluido: [],
+      arquivado: [],
     };
+
     for (const c of filteredCards) grouped[c.columnId].push(c);
     return grouped;
   }, [filteredCards]);
@@ -199,7 +198,7 @@ function KanbanPage() {
     setDrawerOpen(true);
   };
 
-  const handleNewCard = (columnId: ColumnId = "backlog") => {
+  const handleNewCard = (columnId: ColumnId = "a-fazer") => {
     setDrawerMode("create");
     setDrawerCard(null);
     setDefaultColumnId(columnId);

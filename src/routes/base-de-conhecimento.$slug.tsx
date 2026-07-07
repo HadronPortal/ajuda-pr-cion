@@ -90,7 +90,7 @@ function ArticleDetailPage() {
 
   const seedCard: KanbanCard = {
     id: "",
-    columnId: "backlog",
+    columnId: "a-fazer",
     title: `[${article.id}] ${article.title}`,
     summary: article.summary,
     description: `Card criado a partir do artigo ${article.id} — ${article.title}.\n\n${article.summary}`,
@@ -275,7 +275,7 @@ function ArticleDetailPage() {
         onOpenChange={setDrawerOpen}
         card={seedCard}
         mode="create"
-        defaultColumnId="backlog"
+        defaultColumnId="a-fazer"
         onSave={handleCreateCard}
       />
     </AppShell>

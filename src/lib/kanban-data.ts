@@ -1,6 +1,6 @@
 export type Priority = "Baixa" | "Média" | "Alta" | "Crítica";
 export type CardType = "Suporte" | "Melhoria" | "Bug" | "Implantação" | "Documentação";
-export type ColumnId = "backlog" | "triagem" | "em-andamento" | "aguardando-cliente" | "homologacao" | "concluido";
+export type ColumnId = "a-fazer" | "em-andamento" | "concluido" | "arquivado";
 
 export type KanbanMember = {
   id: string;
@@ -56,13 +56,12 @@ export const kanbanMembers: KanbanMember[] = [
 ];
 
 export const kanbanColumnsDef: KanbanColumn[] = [
-  { id: "backlog", title: "Backlog" },
-  { id: "triagem", title: "Triagem" },
-  { id: "em-andamento", title: "Em andamento" },
-  { id: "aguardando-cliente", title: "Aguardando cliente" },
-  { id: "homologacao", title: "Homologação" },
+  { id: "a-fazer", title: "A Fazer" },
+  { id: "em-andamento", title: "Em Andamento" },
   { id: "concluido", title: "Concluído" },
+  { id: "arquivado", title: "Arquivado" },
 ];
+
 
 export const kanbanClients = [
   "Vega Distribuidora",
@@ -96,7 +95,7 @@ const daysFromNow = (n: number) => {
 export const initialCards: KanbanCard[] = [
   {
     id: "PRC-1024",
-    columnId: "backlog",
+    columnId: "a-fazer",
     title: "Rejeição NF-e 539 na filial de Curitiba",
     summary: "Cliente relata rejeição intermitente ao transmitir notas acima de R$ 50 mil.",
     client: "Vega Distribuidora",
@@ -111,7 +110,7 @@ export const initialCards: KanbanCard[] = [
   },
   {
     id: "PRC-1025",
-    columnId: "backlog",
+    columnId: "a-fazer",
     title: "Novo relatório de curva ABC de estoque",
     summary: "Solicitação de relatório com filtros por CD e período customizado.",
     client: "Nébula Indústria",
@@ -126,7 +125,7 @@ export const initialCards: KanbanCard[] = [
   },
   {
     id: "PRC-1026",
-    columnId: "backlog",
+    columnId: "a-fazer",
     title: "Documentar API pública de pedidos",
     summary: "Endpoints REST v2 de criação, consulta e cancelamento de pedidos.",
     client: "Interno",
@@ -141,7 +140,7 @@ export const initialCards: KanbanCard[] = [
   },
   {
     id: "PRC-1030",
-    columnId: "triagem",
+    columnId: "a-fazer",
     title: "Lentidão ao gerar SPED Contribuições",
     summary: "Empresas com mais de 20 mil notas/mês estão levando mais de 30 min.",
     client: "Alpha Comércio",
@@ -156,7 +155,7 @@ export const initialCards: KanbanCard[] = [
   },
   {
     id: "PRC-1031",
-    columnId: "triagem",
+    columnId: "a-fazer",
     title: "Erro no rateio de comissão por vendedor",
     summary: "Rateio ignora devoluções lançadas no mesmo mês da venda original.",
     client: "Lyra Farmácias",
@@ -216,7 +215,7 @@ export const initialCards: KanbanCard[] = [
   },
   {
     id: "PRC-1050",
-    columnId: "aguardando-cliente",
+    columnId: "a-fazer",
     title: "Validação de layout de boleto personalizado",
     summary: "Aguardando aprovação do time financeiro do cliente.",
     client: "Alpha Comércio",
@@ -231,7 +230,7 @@ export const initialCards: KanbanCard[] = [
   },
   {
     id: "PRC-1051",
-    columnId: "aguardando-cliente",
+    columnId: "a-fazer",
     title: "Confirmação de dados para migração de estoque",
     summary: "Cliente precisa validar planilha de saldo inicial dos CDs.",
     client: "Vega Distribuidora",
@@ -246,7 +245,7 @@ export const initialCards: KanbanCard[] = [
   },
   {
     id: "PRC-1060",
-    columnId: "homologacao",
+    columnId: "em-andamento",
     title: "Release 2026.3.1 - homologação com cliente piloto",
     summary: "Testes de emissão fiscal, kanban e pix automático.",
     client: "Órion Serviços",
@@ -261,7 +260,7 @@ export const initialCards: KanbanCard[] = [
   },
   {
     id: "PRC-1061",
-    columnId: "homologacao",
+    columnId: "em-andamento",
     title: "Pix Automático - fluxo de cobrança recorrente",
     summary: "Validando webhooks e reconciliação automática.",
     client: "Lyra Farmácias",
