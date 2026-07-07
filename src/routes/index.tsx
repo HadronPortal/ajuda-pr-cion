@@ -144,8 +144,8 @@ function HomePage() {
       </section>
 
       {/* Últimos artigos + Versões */}
-      <section className="grid grid-cols-1 gap-6 xl:grid-cols-[1.4fr_1fr]">
-        <Card className="rounded-[14px] border-0 bg-white dark:bg-[#20263d] p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
+      <section className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+        <Card className="min-w-0 overflow-hidden rounded-[14px] border-0 bg-white dark:bg-[#20263d] p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
           <div className="mb-5 flex items-end justify-between">
             <div>
               <h3 className="text-base font-bold text-foreground">Últimos artigos</h3>
