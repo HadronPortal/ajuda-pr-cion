@@ -1,18 +1,18 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { ProcionLogo } from "./ProcionLogo";
 import dashboardIconUrl from "@/assets/dashboard-menu-icon.png?url";
+import analyticsIconUrl from "@/assets/menu-analytics.png?url";
+import baseIconUrl from "@/assets/menu-base.png?url";
+import customersIconUrl from "@/assets/menu-customers.png?url";
+import kanbanIconUrl from "@/assets/menu-kanban.png?url";
+import updatesIconUrl from "@/assets/menu-updates.png?url";
+import userIconUrl from "@/assets/menu-user.png?url";
+import versionsIconUrl from "@/assets/menu-versions.png?url";
 import {
-  BookOpenText,
   CalendarDays,
-  ChartNoAxesColumnIncreasing,
   ChevronLeft,
   ChevronRight,
-  CircleUser,
-  History,
-  KanbanSquare,
   MessageSquare,
-  Newspaper,
-  UsersRound,
 } from "lucide-react";
 import type { ComponentType } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -28,26 +28,39 @@ type NavItem = {
   exact?: boolean;
 };
 
-const DashboardMenuIcon: NavIcon = ({ className }) => (
-  <span
-    aria-hidden="true"
-    className={cn("block bg-current", className)}
-    style={{
-      WebkitMask: `url(${dashboardIconUrl}) center / contain no-repeat`,
-      mask: `url(${dashboardIconUrl}) center / contain no-repeat`,
-    }}
-  />
-);
+function createMaskedMenuIcon(maskUrl: string): NavIcon {
+  return function MaskedMenuIcon({ className }) {
+    return (
+      <span
+        aria-hidden="true"
+        className={cn("block bg-current", className)}
+        style={{
+          WebkitMask: `url(${maskUrl}) center / contain no-repeat`,
+          mask: `url(${maskUrl}) center / contain no-repeat`,
+        }}
+      />
+    );
+  };
+}
+
+const DashboardMenuIcon = createMaskedMenuIcon(dashboardIconUrl);
+const BaseMenuIcon = createMaskedMenuIcon(baseIconUrl);
+const UpdatesMenuIcon = createMaskedMenuIcon(updatesIconUrl);
+const VersionsMenuIcon = createMaskedMenuIcon(versionsIconUrl);
+const KanbanMenuIcon = createMaskedMenuIcon(kanbanIconUrl);
+const AnalyticsMenuIcon = createMaskedMenuIcon(analyticsIconUrl);
+const CustomersMenuIcon = createMaskedMenuIcon(customersIconUrl);
+const UserMenuIcon = createMaskedMenuIcon(userIconUrl);
 
 const nav: NavItem[] = [
   { to: "/", label: "Dashboard", icon: DashboardMenuIcon, exact: true },
-  { to: "/base-de-conhecimento", label: "Base", icon: BookOpenText },
-  { to: "/atualizacoes", label: "Atualizações", icon: Newspaper },
-  { to: "/versoes", label: "Versões", icon: History },
-  { to: "/kanban", label: "Kanban", icon: KanbanSquare },
-  { to: "/kanban-dashboard", label: "Analytics", icon: ChartNoAxesColumnIncreasing },
-  { to: "/clientes", label: "Clientes", icon: UsersRound },
-  { to: "/minha-conta", label: "Minha Conta", icon: CircleUser },
+  { to: "/base-de-conhecimento", label: "Base", icon: BaseMenuIcon },
+  { to: "/atualizacoes", label: "Atualizações", icon: UpdatesMenuIcon },
+  { to: "/versoes", label: "Versões", icon: VersionsMenuIcon },
+  { to: "/kanban", label: "Kanban", icon: KanbanMenuIcon },
+  { to: "/kanban-dashboard", label: "Analytics", icon: AnalyticsMenuIcon },
+  { to: "/clientes", label: "Clientes", icon: CustomersMenuIcon },
+  { to: "/minha-conta", label: "Minha Conta", icon: UserMenuIcon },
 ];
 
 function isActivePath(pathname: string, item: NavItem) {
