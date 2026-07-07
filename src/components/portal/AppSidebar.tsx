@@ -125,9 +125,6 @@ export function AppSidebar() {
                       )}
                     </>
                   )}
-                  {collapsed && item.badge && (
-                    <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-primary ring-2 ring-sidebar" />
-                  )}
                 </Link>
               </li>
             );
