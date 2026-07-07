@@ -102,26 +102,7 @@ export function AppSidebar() {
                   )}
                   <Icon className={cn("h-5 w-5 shrink-0", active ? "text-primary" : "text-sidebar-foreground")} />
                   {!collapsed && (
-                    <>
-                      <span className="min-w-0 flex-1 truncate">{item.label}</span>
-                      {item.badge && (
-                        <span
-                          className={cn(
-                            "grid min-w-7 place-items-center rounded-full px-2 py-1 text-[11px] font-bold",
-                            active
-                              ? "bg-primary text-primary-foreground"
-                              : item.soft
-                                ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                                : "bg-success text-success-foreground",
-                          )}
-                        >
-                          {item.badge}
-                        </span>
-                      )}
-                      {(item.to === "/atualizacoes" || item.to === "/versoes") && (
-                        <ChevronRight className="h-3.5 w-3.5 text-sidebar-foreground/30" />
-                      )}
-                    </>
+                    <span className="min-w-0 flex-1 truncate">{item.label}</span>
                   )}
                 </Link>
               </li>
