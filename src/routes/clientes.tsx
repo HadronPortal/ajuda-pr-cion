@@ -35,6 +35,7 @@ function ClientsPage() {
       <PageHeader
         title="Clientes"
         description="Consulte e gerencie clientes e parceiros do portal."
+        breadcrumbs={[{ label: "Clientes" }]}
         actions={
           <Button size="sm">
             <Plus className="h-4 w-4 mr-1" /> Novo cliente
