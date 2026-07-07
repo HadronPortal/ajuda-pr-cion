@@ -35,7 +35,7 @@ const nav: NavItem[] = [
   { to: "/kanban", label: "Kanban", icon: KanbanSquare, badge: "12" },
   { to: "/kanban-dashboard", label: "Analytics", icon: BarChart3, badge: "6" },
   { to: "/clientes", label: "Clientes", icon: Users },
-  { to: "/minha-conta", label: "Minha Conta", icon: UserCircle, soft: true },
+  { to: "/minha-conta", label: "Minha Conta", icon: CircleUser, soft: true },
 ];
 
 export function AppSidebar() {
