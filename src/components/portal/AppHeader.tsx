@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { CommandPalette } from "./CommandPalette";
 import { NotificationsPopover } from "./NotificationsPopover";
 import { UserMenu } from "./UserMenu";
+import { ThemeToggle } from "./ThemeToggle";
 import { sidebarStore } from "@/lib/sidebar-store";
 
 export function AppHeader() {
@@ -56,6 +57,7 @@ export function AppHeader() {
           >
             <HelpCircle className="h-5 w-5 text-muted-foreground" />
           </Button>
+          <ThemeToggle />
           <NotificationsPopover />
           <div className="ml-1">
             <UserMenu />
