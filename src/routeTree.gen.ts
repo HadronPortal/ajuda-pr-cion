@@ -16,6 +16,7 @@ import { Route as ClientesRouteImport } from './routes/clientes'
 import { Route as BaseDeConhecimentoRouteImport } from './routes/base-de-conhecimento'
 import { Route as AtualizacoesRouteImport } from './routes/atualizacoes'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BaseDeConhecimentoIndexRouteImport } from './routes/base-de-conhecimento.index'
 
 const VersoesRoute = VersoesRouteImport.update({
   id: '/versoes',
@@ -52,34 +53,41 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BaseDeConhecimentoIndexRoute = BaseDeConhecimentoIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => BaseDeConhecimentoRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/atualizacoes': typeof AtualizacoesRoute
-  '/base-de-conhecimento': typeof BaseDeConhecimentoRoute
+  '/base-de-conhecimento': typeof BaseDeConhecimentoRouteWithChildren
   '/clientes': typeof ClientesRoute
   '/kanban': typeof KanbanRoute
   '/minha-conta': typeof MinhaContaRoute
   '/versoes': typeof VersoesRoute
+  '/base-de-conhecimento/': typeof BaseDeConhecimentoIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/atualizacoes': typeof AtualizacoesRoute
-  '/base-de-conhecimento': typeof BaseDeConhecimentoRoute
   '/clientes': typeof ClientesRoute
   '/kanban': typeof KanbanRoute
   '/minha-conta': typeof MinhaContaRoute
   '/versoes': typeof VersoesRoute
+  '/base-de-conhecimento': typeof BaseDeConhecimentoIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/atualizacoes': typeof AtualizacoesRoute
-  '/base-de-conhecimento': typeof BaseDeConhecimentoRoute
+  '/base-de-conhecimento': typeof BaseDeConhecimentoRouteWithChildren
   '/clientes': typeof ClientesRoute
   '/kanban': typeof KanbanRoute
   '/minha-conta': typeof MinhaContaRoute
   '/versoes': typeof VersoesRoute
+  '/base-de-conhecimento/': typeof BaseDeConhecimentoIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -91,15 +99,16 @@ export interface FileRouteTypes {
     | '/kanban'
     | '/minha-conta'
     | '/versoes'
+    | '/base-de-conhecimento/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/atualizacoes'
-    | '/base-de-conhecimento'
     | '/clientes'
     | '/kanban'
     | '/minha-conta'
     | '/versoes'
+    | '/base-de-conhecimento'
   id:
     | '__root__'
     | '/'
@@ -109,12 +118,13 @@ export interface FileRouteTypes {
     | '/kanban'
     | '/minha-conta'
     | '/versoes'
+    | '/base-de-conhecimento/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AtualizacoesRoute: typeof AtualizacoesRoute
-  BaseDeConhecimentoRoute: typeof BaseDeConhecimentoRoute
+  BaseDeConhecimentoRoute: typeof BaseDeConhecimentoRouteWithChildren
   ClientesRoute: typeof ClientesRoute
   KanbanRoute: typeof KanbanRoute
   MinhaContaRoute: typeof MinhaContaRoute
@@ -172,13 +182,31 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/base-de-conhecimento/': {
+      id: '/base-de-conhecimento/'
+      path: '/'
+      fullPath: '/base-de-conhecimento/'
+      preLoaderRoute: typeof BaseDeConhecimentoIndexRouteImport
+      parentRoute: typeof BaseDeConhecimentoRoute
+    }
   }
 }
+
+interface BaseDeConhecimentoRouteChildren {
+  BaseDeConhecimentoIndexRoute: typeof BaseDeConhecimentoIndexRoute
+}
+
+const BaseDeConhecimentoRouteChildren: BaseDeConhecimentoRouteChildren = {
+  BaseDeConhecimentoIndexRoute: BaseDeConhecimentoIndexRoute,
+}
+
+const BaseDeConhecimentoRouteWithChildren =
+  BaseDeConhecimentoRoute._addFileChildren(BaseDeConhecimentoRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AtualizacoesRoute: AtualizacoesRoute,
-  BaseDeConhecimentoRoute: BaseDeConhecimentoRoute,
+  BaseDeConhecimentoRoute: BaseDeConhecimentoRouteWithChildren,
   ClientesRoute: ClientesRoute,
   KanbanRoute: KanbanRoute,
   MinhaContaRoute: MinhaContaRoute,
