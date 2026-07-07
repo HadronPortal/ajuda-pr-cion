@@ -82,7 +82,7 @@ export function AppSidebar() {
       <button
         type="button"
         onClick={sidebarStore.toggle}
-        className="absolute -right-4 top-[108px] z-40 grid h-8 w-8 place-items-center rounded-full border border-sidebar-border bg-card text-muted-foreground shadow-[0_8px_22px_rgba(15,23,42,0.16)] transition hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:bg-sidebar dark:text-sidebar-foreground/75"
+        className="absolute -right-4 top-10 z-40 grid h-8 w-8 place-items-center rounded-full border border-sidebar-border bg-card text-muted-foreground shadow-[0_8px_22px_rgba(15,23,42,0.16)] transition hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:bg-sidebar dark:text-sidebar-foreground/75"
         aria-label={collapsed ? "Expandir menu" : "Recolher menu"}
       >
         {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
