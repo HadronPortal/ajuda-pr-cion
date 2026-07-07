@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { HelpCircle, Menu, Search, Command as CommandIcon, PanelLeft } from "lucide-react";
+import { HelpCircle, Menu, Search, Command as CommandIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CommandPalette } from "./CommandPalette";
 import { NotificationsPopover } from "./NotificationsPopover";
