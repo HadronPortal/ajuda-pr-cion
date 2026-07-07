@@ -61,10 +61,17 @@ import {
   priorities,
   cardTypes,
   priorityMeta,
-  kbArticles,
   kbVersions,
 } from "@/lib/kanban-data";
+import { kbArticlesFull, suggestArticlesForCard, getCategory } from "@/lib/kb-data";
+import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
+
+const kbArticles: RelatedArticle[] = kbArticlesFull.map((a) => ({
+  id: a.id,
+  title: a.title,
+  category: getCategory(a.category).name,
+}));
 
 type Props = {
   open: boolean;
