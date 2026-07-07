@@ -12,7 +12,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <AppSidebar />
       <div className={cn("transition-[padding] duration-300 ease-out", collapsed ? "lg:pl-[86px]" : "lg:pl-[286px]")}>
         <AppHeader />
-        <main className="px-4 sm:px-6 lg:px-7 py-6 lg:py-7 pb-24 lg:pb-8 max-w-[1680px] mx-auto">
+        <main className="mx-auto max-w-[1680px] min-w-0 overflow-x-hidden px-4 py-6 pb-24 sm:px-6 lg:px-7 lg:py-7 lg:pb-8">
           {children}
         </main>
       </div>
