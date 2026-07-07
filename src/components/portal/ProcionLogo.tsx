@@ -1,4 +1,5 @@
 import logoUrl from "@/assets/procion-menu-logo.png?url";
+import starUrl from "@/assets/procion-star.png?url";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -7,18 +8,20 @@ type Props = {
 };
 
 export function ProcionLogo({ variant = "full", className }: Props) {
+  const isMark = variant === "mark";
+  const src = isMark ? starUrl : logoUrl;
   return (
     <span
       role="img"
       aria-label="Prócion"
       className={cn(
         "block shrink-0 bg-current select-none",
-        variant === "mark" ? "h-8 w-12" : "h-10 w-[154px]",
+        isMark ? "h-9 w-9" : "h-12 w-[190px]",
         className,
       )}
       style={{
-        WebkitMask: `url(${logoUrl}) center / contain no-repeat`,
-        mask: `url(${logoUrl}) center / contain no-repeat`,
+        WebkitMask: `url(${src}) center / contain no-repeat`,
+        mask: `url(${src}) center / contain no-repeat`,
       }}
     />
   );
