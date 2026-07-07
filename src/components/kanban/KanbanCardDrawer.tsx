@@ -498,6 +498,59 @@ export function KanbanCardDrawer({
                 </div>
               </section>
 
+              {/* Sugestões automáticas para Bug/Suporte */}
+              {(draft.type === "Bug" || draft.type === "Suporte") && (() => {
+                const suggestions = suggestArticlesForCard({
+                  type: draft.type,
+                  module: draft.module,
+                  tags: draft.tags,
+                }).filter(
+                  (a) => !(draft.relatedArticles ?? []).some((x) => x.id === a.id),
+                );
+                if (suggestions.length === 0) return null;
+                return (
+                  <section className="space-y-3">
+                    <SectionHeader icon={BookOpen} title="Sugestões da base" count={suggestions.length} />
+                    <p className="text-xs text-muted-foreground">
+                      Artigos de Erros e Correções que podem ajudar neste card.
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {suggestions.map((a) => (
+                        <div
+                          key={a.id}
+                          className="flex items-start justify-between gap-2 rounded-lg border border-dashed border-primary/30 bg-primary/5 p-3"
+                        >
+                          <div className="min-w-0">
+                            <Link
+                              to="/base-de-conhecimento/$slug"
+                              params={{ slug: a.slug }}
+                              className="text-sm font-medium hover:underline block truncate"
+                            >
+                              {a.title}
+                            </Link>
+                            <p className="text-[11px] text-muted-foreground truncate">
+                              {a.id} · {getCategory(a.category).name} · {a.module}
+                            </p>
+                          </div>
+                          <button
+                            onClick={() =>
+                              toggleArticle({
+                                id: a.id,
+                                title: a.title,
+                                category: getCategory(a.category).name,
+                              })
+                            }
+                            className="shrink-0 inline-flex items-center gap-1 text-[11px] text-primary hover:underline"
+                          >
+                            <Plus className="h-3 w-3" /> Vincular
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                );
+              })()}
+
               {/* Relacionados */}
               <section className="space-y-3">
                 <SectionHeader icon={BookOpen} title="Relacionados" />
@@ -505,11 +558,15 @@ export function KanbanCardDrawer({
                   <RelatedBlock
                     title="Artigos da base"
                     icon={BookOpen}
-                    items={(draft.relatedArticles ?? []).map((a) => ({
-                      key: a.id,
-                      primary: a.title,
-                      secondary: `${a.id} · ${a.category}`,
-                    }))}
+                    items={(draft.relatedArticles ?? []).map((a) => {
+                      const full = kbArticlesFull.find((k) => k.id === a.id);
+                      return {
+                        key: a.id,
+                        primary: a.title,
+                        secondary: `${a.id} · ${a.category}`,
+                        href: full ? `/base-de-conhecimento/${full.slug}` : undefined,
+                      };
+                    })}
                     emptyLabel="Nenhum artigo vinculado."
                     picker={
                       <RelationPicker
@@ -552,6 +609,7 @@ export function KanbanCardDrawer({
                   />
                 </div>
               </section>
+
 
               {/* Comentários */}
               <section className="space-y-3">
