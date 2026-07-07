@@ -56,13 +56,12 @@ export const kanbanMembers: KanbanMember[] = [
 ];
 
 export const kanbanColumnsDef: KanbanColumn[] = [
-  { id: "a-fazer", title: "Backlog" },
-  { id: "a-fazer", title: "Triagem" },
-  { id: "em-andamento", title: "Em andamento" },
-  { id: "a-fazer", title: "Aguardando cliente" },
-  { id: "em-andamento", title: "Homologação" },
+  { id: "a-fazer", title: "A Fazer" },
+  { id: "em-andamento", title: "Em Andamento" },
   { id: "concluido", title: "Concluído" },
+  { id: "arquivado", title: "Arquivado" },
 ];
+
 
 export const kanbanClients = [
   "Vega Distribuidora",
