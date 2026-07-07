@@ -2,12 +2,15 @@ import type { ReactNode } from "react";
 import { AppSidebar, MobileBottomNav } from "./AppSidebar";
 import { AppHeader } from "./AppHeader";
 import { Breadcrumbs, type Crumb } from "./Breadcrumbs";
+import { useSidebarCollapsed } from "@/lib/sidebar-store";
+import { cn } from "@/lib/utils";
 
 export function AppShell({ children }: { children: ReactNode }) {
+  const collapsed = useSidebarCollapsed();
   return (
     <div className="min-h-screen bg-background">
       <AppSidebar />
-      <div className="lg:pl-64">
+      <div className={cn("transition-[padding] duration-300 ease-out", collapsed ? "lg:pl-[76px]" : "lg:pl-64")}>
         <AppHeader />
         <main className="px-4 sm:px-6 lg:px-8 py-6 lg:py-8 pb-24 lg:pb-8 max-w-[1400px] mx-auto">
           {children}
