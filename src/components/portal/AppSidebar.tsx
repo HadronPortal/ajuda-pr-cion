@@ -23,19 +23,17 @@ type NavItem = {
   label: string;
   icon: typeof LayoutDashboard;
   exact?: boolean;
-  badge?: string;
-  soft?: boolean;
 };
 
 const nav: NavItem[] = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { to: "/base-de-conhecimento", label: "Base", icon: BookOpen, badge: "135" },
-  { to: "/atualizacoes", label: "Atualizações", icon: Sparkles, badge: "3" },
-  { to: "/versoes", label: "Versões", icon: GitBranch },
-  { to: "/kanban", label: "Kanban", icon: KanbanSquare, badge: "12" },
-  { to: "/kanban-dashboard", label: "Analytics", icon: BarChart3, badge: "6" },
-  { to: "/clientes", label: "Clientes", icon: Users },
-  { to: "/minha-conta", label: "Minha Conta", icon: CircleUser, soft: true },
+  { to: "/base-de-conhecimento", label: "Base", icon: BookOpenText },
+  { to: "/atualizacoes", label: "Atualizações", icon: Newspaper },
+  { to: "/versoes", label: "Versões", icon: History },
+  { to: "/kanban", label: "Kanban", icon: KanbanSquare },
+  { to: "/kanban-dashboard", label: "Analytics", icon: ChartNoAxesColumnIncreasing },
+  { to: "/clientes", label: "Clientes", icon: UsersRound },
+  { to: "/minha-conta", label: "Minha Conta", icon: CircleUser },
 ];
 
 export function AppSidebar() {
