@@ -10,9 +10,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-background">
       <AppSidebar />
-      <div className={cn("transition-[padding] duration-300 ease-out", collapsed ? "lg:pl-[76px]" : "lg:pl-64")}>
+      <div className={cn("transition-[padding] duration-300 ease-out", collapsed ? "lg:pl-[86px]" : "lg:pl-[286px]")}>
         <AppHeader />
-        <main className="px-4 sm:px-6 lg:px-8 py-6 lg:py-8 pb-24 lg:pb-8 max-w-[1400px] mx-auto">
+        <main className="px-4 sm:px-6 lg:px-7 py-6 lg:py-7 pb-24 lg:pb-8 max-w-[1680px] mx-auto">
           {children}
         </main>
       </div>

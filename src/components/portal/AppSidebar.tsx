@@ -1,14 +1,18 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
-  LayoutDashboard,
+  BarChart3,
   BookOpen,
-  Sparkles,
-  GitBranch,
-  KanbanSquare,
-  Users,
-  UserCircle,
+  CalendarDays,
+  ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  GitBranch,
+  KanbanSquare,
+  LayoutDashboard,
+  MessageSquare,
+  Sparkles,
+  UserCircle,
+  Users,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
@@ -20,16 +24,18 @@ type NavItem = {
   icon: typeof LayoutDashboard;
   exact?: boolean;
   badge?: string;
+  soft?: boolean;
 };
 
 const nav: NavItem[] = [
-  { to: "/", label: "Início", icon: LayoutDashboard, exact: true },
-  { to: "/base-de-conhecimento", label: "Base de Conhecimento", icon: BookOpen, badge: "128" },
+  { to: "/", label: "Dashboard", icon: LayoutDashboard, exact: true },
+  { to: "/base-de-conhecimento", label: "Base", icon: BookOpen, badge: "128" },
   { to: "/atualizacoes", label: "Atualizações", icon: Sparkles, badge: "3" },
   { to: "/versoes", label: "Versões", icon: GitBranch },
-  { to: "/kanban", label: "Kanban Prócion", icon: KanbanSquare, badge: "12" },
+  { to: "/kanban", label: "Kanban", icon: KanbanSquare, badge: "12" },
+  { to: "/kanban-dashboard", label: "Analytics", icon: BarChart3, badge: "6" },
   { to: "/clientes", label: "Clientes", icon: Users },
-  { to: "/minha-conta", label: "Minha Conta", icon: UserCircle },
+  { to: "/minha-conta", label: "Minha Conta", icon: UserCircle, soft: true },
 ];
 
 export function AppSidebar() {
@@ -40,23 +46,29 @@ export function AppSidebar() {
     <aside
       className={cn(
         "hidden lg:flex fixed inset-y-0 left-0 z-30 flex-col bg-sidebar text-sidebar-foreground border-r border-sidebar-border transition-[width] duration-300 ease-out",
-        collapsed ? "w-[76px]" : "w-64",
+        collapsed ? "w-[86px]" : "w-[286px]",
       )}
     >
-      {/* Brand */}
-      <div className="flex items-center gap-2.5 px-4 h-16 border-b border-sidebar-border/70">
-        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-sidebar-primary text-sidebar-primary-foreground font-bold text-sm shadow-sm">
+      <div className={cn("flex items-center h-[88px] px-5", collapsed && "justify-center px-3")}>
+        <div className="grid h-11 w-11 shrink-0 place-items-center rounded-[14px] bg-primary text-primary-foreground font-bold text-xl shadow-[0_12px_24px_rgba(11,151,196,0.22)]">
           P
         </div>
         {!collapsed && (
-          <div className="min-w-0 animate-fade-in">
-            <p className="text-sm font-semibold leading-none tracking-tight">Portal Prócion</p>
-            <p className="text-[11px] text-sidebar-foreground/60 mt-1">Sistemas ERP</p>
+          <div className="ml-3 min-w-0 animate-fade-in">
+            <p className="text-[26px] font-bold leading-none tracking-tight text-[#313866]">
+              Prócion.
+            </p>
+            <p className="mt-1 text-xs font-medium text-sidebar-foreground/70">
+              Portal de ajuda e demandas
+            </p>
           </div>
         )}
         <button
           onClick={sidebarStore.toggle}
-          className="ml-auto grid h-7 w-7 shrink-0 place-items-center rounded-md text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition"
+          className={cn(
+            "ml-auto grid h-8 w-8 shrink-0 place-items-center rounded-lg text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition",
+            collapsed && "absolute bottom-5",
+          )}
           aria-label={collapsed ? "Expandir menu" : "Recolher menu"}
         >
           {collapsed ? (
@@ -67,16 +79,20 @@ export function AppSidebar() {
         </button>
       </div>
 
-      {/* Nav */}
-      <nav className="flex-1 overflow-y-auto px-3 py-4">
+      <nav className="flex-1 overflow-y-auto px-4 py-2">
         {!collapsed && (
-          <p className="px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-sidebar-foreground/40 mb-2">
-            Navegação
+          <p className="mb-4 px-5 text-sm font-semibold text-sidebar-foreground/25">
+            Main Menu
           </p>
         )}
-        <ul className="space-y-1">
+        <ul className="space-y-2">
           {nav.map((item) => {
-            const active = item.exact ? pathname === item.to : pathname.startsWith(item.to);
+            const active =
+              item.to === "/kanban"
+                ? pathname === "/kanban"
+                : item.exact
+                  ? pathname === item.to
+                  : pathname.startsWith(item.to);
             const Icon = item.icon;
             return (
               <li key={item.to}>
@@ -84,33 +100,41 @@ export function AppSidebar() {
                   to={item.to}
                   title={collapsed ? item.label : undefined}
                   className={cn(
-                    "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all",
-                    collapsed && "justify-center px-0",
+                    "group relative flex h-12 items-center gap-4 rounded-r-[26px] rounded-l-lg px-4 text-[15px] font-semibold transition-all",
+                    collapsed && "mx-auto w-12 justify-center rounded-2xl px-0",
                     active
-                      ? "bg-sidebar-primary text-sidebar-primary-foreground font-medium shadow-sm shadow-sidebar-primary/25"
-                      : "text-sidebar-foreground/75 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                      ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-[0_14px_30px_rgba(11,151,196,0.12)]"
+                      : "text-sidebar-foreground hover:bg-sidebar-accent/45 hover:text-[#313866]",
                   )}
                 >
-                  <Icon className={cn("h-[18px] w-[18px] shrink-0", active && "text-sidebar-primary-foreground")} />
+                  {active && !collapsed && (
+                    <span className="absolute -left-4 top-1/2 h-9 w-1.5 -translate-y-1/2 rounded-r-full bg-primary" />
+                  )}
+                  <Icon className={cn("h-5 w-5 shrink-0", active ? "text-primary" : "text-sidebar-foreground")} />
                   {!collapsed && (
                     <>
-                      <span className="truncate flex-1">{item.label}</span>
+                      <span className="min-w-0 flex-1 truncate">{item.label}</span>
                       {item.badge && (
                         <span
                           className={cn(
-                            "text-[10px] font-semibold px-1.5 py-0.5 rounded-md min-w-[22px] text-center",
+                            "grid min-w-7 place-items-center rounded-full px-2 py-1 text-[11px] font-bold",
                             active
-                              ? "bg-white/20 text-sidebar-primary-foreground"
-                              : "bg-sidebar-accent text-sidebar-foreground/80",
+                              ? "bg-primary text-primary-foreground"
+                              : item.soft
+                                ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                                : "bg-success text-success-foreground",
                           )}
                         >
                           {item.badge}
                         </span>
                       )}
+                      {(item.to === "/atualizacoes" || item.to === "/versoes") && (
+                        <ChevronRight className="h-3.5 w-3.5 text-sidebar-foreground/30" />
+                      )}
                     </>
                   )}
                   {collapsed && item.badge && (
-                    <span className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-sidebar-primary" />
+                    <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-primary ring-2 ring-sidebar" />
                   )}
                 </Link>
               </li>
@@ -119,43 +143,46 @@ export function AppSidebar() {
         </ul>
       </nav>
 
-      {/* Progress block */}
       {!collapsed && (
-        <div className="px-3 pb-3 animate-fade-in">
-          <div className="rounded-xl bg-gradient-to-br from-sidebar-accent to-sidebar-accent/40 border border-sidebar-border/60 p-3.5">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-[11px] font-semibold text-sidebar-accent-foreground">Suas tarefas hoje</p>
-              <span className="text-[10px] font-medium text-sidebar-foreground/60">7 / 12</span>
+        <div className="px-6 pb-5 animate-fade-in">
+          <div className="mb-5 flex items-center gap-3">
+            <Avatar className="h-12 w-12 ring-2 ring-primary/20">
+              <AvatarFallback className="bg-primary/12 text-primary text-sm font-bold">
+                AR
+              </AvatarFallback>
+            </Avatar>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-bold text-[#191d33]">Ana Ribeiro</p>
+              <p className="truncate text-xs text-sidebar-foreground/65">
+                suporte@procion.com.br
+              </p>
             </div>
-            <div className="h-1.5 rounded-full bg-sidebar/60 overflow-hidden">
-              <div className="h-full rounded-full bg-sidebar-primary" style={{ width: "58%" }} />
+            <ChevronRight className="h-4 w-4 rotate-90 text-sidebar-foreground/35" />
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-xs">
+              <span className="inline-flex items-center gap-1.5 font-semibold text-[#313866]">
+                <MessageSquare className="h-3.5 w-3.5 text-primary" />
+                Task Progress
+              </span>
+              <span className="font-medium text-sidebar-foreground">20/45</span>
             </div>
-            <p className="text-[10px] text-sidebar-foreground/55 mt-2 leading-relaxed">
-              5 demandas em andamento no Kanban Prócion.
-            </p>
+            <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+              <div className="h-full w-[44%] rounded-full bg-gradient-to-r from-primary to-[#0490d1]" />
+            </div>
           </div>
         </div>
       )}
 
-      {/* User block */}
-      <div
-        className={cn(
-          "border-t border-sidebar-border/70 p-3 flex items-center gap-3",
-          collapsed && "justify-center",
-        )}
-      >
-        <Avatar className="h-9 w-9 ring-2 ring-sidebar-primary/40 shrink-0">
-          <AvatarFallback className="bg-sidebar-primary/20 text-sidebar-primary-foreground text-xs font-semibold">
-            AR
-          </AvatarFallback>
-        </Avatar>
-        {!collapsed && (
-          <div className="min-w-0 flex-1 animate-fade-in">
-            <p className="text-sm font-medium truncate">Ana Ribeiro</p>
-            <p className="text-[11px] text-sidebar-foreground/55 truncate">Suporte · Prócion</p>
+      {!collapsed && (
+        <div className="px-6 pb-6 text-xs text-sidebar-foreground/55">
+          <div className="flex items-center gap-2">
+            <CalendarDays className="h-3.5 w-3.5" />
+            Portal Prócion 2026
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </aside>
   );
 }

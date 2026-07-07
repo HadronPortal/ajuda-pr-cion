@@ -1,4 +1,4 @@
-import { MessageSquare, Paperclip, MoreHorizontal, Calendar } from "lucide-react";
+import { MessageSquare, MoreHorizontal, Paperclip, Sparkles } from "lucide-react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -13,7 +13,6 @@ import { cn } from "@/lib/utils";
 import {
   type KanbanCard as CardType,
   kanbanMembers,
-  typeMeta,
 } from "@/lib/kanban-data";
 
 function formatDue(iso: string) {
@@ -22,25 +21,29 @@ function formatDue(iso: string) {
   today.setHours(0, 0, 0, 0);
   const diff = Math.round((d.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
   const dateStr = d.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
-  if (diff < 0) return { label: `Atrasado · ${dateStr}`, tone: "danger" as const };
-  if (diff === 0) return { label: "Hoje · " + dateStr, tone: "warn" as const };
-  if (diff === 1) return { label: "Amanhã · " + dateStr, tone: "warn" as const };
-  if (diff <= 3) return { label: `${diff}d · ${dateStr}`, tone: "warn" as const };
+  if (diff < 0) return { label: dateStr, tone: "danger" as const };
+  if (diff <= 3) return { label: dateStr, tone: "warn" as const };
   return { label: dateStr, tone: "muted" as const };
 }
 
-const priorityBar: Record<string, string> = {
-  Baixa: "bg-muted-foreground/30",
-  Média: "bg-primary/70",
-  Alta: "bg-warning",
-  Crítica: "bg-destructive",
+const progressTone: Record<string, string> = {
+  Baixa: "bg-[#86e3b5]",
+  Média: "bg-[#0b97c4]",
+  Alta: "bg-[#ffbe55]",
+  Crítica: "bg-[#ff6b7a]",
 };
 
-const priorityAccent: Record<string, string> = {
-  Baixa: "bg-muted-foreground/40",
-  Média: "bg-primary",
-  Alta: "bg-warning",
-  Crítica: "bg-destructive",
+const dueTone = {
+  danger: "bg-[#ffe8eb] text-[#fb5166]",
+  warn: "bg-[#fff4d8] text-[#c47a13]",
+  muted: "bg-[#eef5ff] text-[#6677a3]",
+};
+
+const priorityLabel: Record<string, string> = {
+  Baixa: "Baixa",
+  Média: "Média",
+  Alta: "Alta",
+  Crítica: "Crítica",
 };
 
 export function KanbanCardItem({
@@ -71,13 +74,15 @@ export function KanbanCardItem({
     .map((id) => kanbanMembers.find((m) => m.id === id))
     .filter(Boolean) as typeof kanbanMembers;
   const allAssignees = [assignee, ...participants.filter((p) => p.id !== assignee?.id)].filter(Boolean) as typeof kanbanMembers;
-  const shownAssignees = allAssignees.slice(0, 3);
+  const shownAssignees = allAssignees.slice(0, 2);
   const extraAssignees = Math.max(0, allAssignees.length - shownAssignees.length);
 
   const due = formatDue(card.dueDate);
   const total = card.checklist?.length ?? 0;
   const done = card.checklist?.filter((c) => c.done).length ?? 0;
-  const progress = total > 0 ? Math.round((done / total) * 100) : 0;
+  const syntheticTotal = total || (card.priority === "Crítica" ? 8 : card.priority === "Alta" ? 7 : 6);
+  const syntheticDone = total ? done : Math.max(1, Math.min(syntheticTotal, Math.round((card.comments + card.attachments + 2) / 2)));
+  const progress = Math.round((syntheticDone / syntheticTotal) * 100);
 
   return (
     <div
@@ -91,124 +96,122 @@ export function KanbanCardItem({
         onClick?.();
       }}
       className={cn(
-        "group relative overflow-hidden rounded-xl border border-border/80 bg-card shadow-[0_1px_2px_rgba(15,23,42,0.04),0_1px_3px_rgba(15,23,42,0.03)] cursor-pointer",
-        "hover:border-primary/30 hover:shadow-[0_4px_12px_rgba(11,151,196,0.10)] hover:-translate-y-0.5 transition-all duration-200",
+        "group relative cursor-pointer rounded-[10px] border border-[#e9edf6] bg-white p-4 shadow-[0_8px_22px_rgba(25,29,51,0.035)] transition-all duration-200",
+        "hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-[0_18px_34px_rgba(11,151,196,0.10)]",
         isDragging && !overlay && "opacity-40",
-        overlay && "shadow-xl rotate-1",
+        overlay && "rotate-1 shadow-2xl",
       )}
     >
-      {/* Priority accent bar */}
-      <div className={cn("absolute inset-y-0 left-0 w-1", priorityAccent[card.priority])} />
-
-      <div className="p-3.5 pl-4">
-        {/* Top row: type + menu */}
-        <div className="flex items-center justify-between gap-2 mb-2">
-          <span
-            className={cn(
-              "inline-flex items-center text-[10px] font-semibold px-2 py-0.5 rounded-md tracking-wide",
-              typeMeta[card.type],
-            )}
-          >
-            {card.type}
-          </span>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                onClick={(e) => e.stopPropagation()}
-                onPointerDown={(e) => e.stopPropagation()}
-                className="opacity-0 group-hover:opacity-100 focus:opacity-100 rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground transition"
-                aria-label="Ações do card"
-              >
-                <MoreHorizontal className="h-4 w-4" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-44">
-              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onClick?.(); }}>
-                Abrir detalhes
-              </DropdownMenuItem>
-              <DropdownMenuItem>Duplicar</DropdownMenuItem>
-              <DropdownMenuItem>Copiar link</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive focus:text-destructive">
-                Arquivar
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+      <div className="mb-3 flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="line-clamp-2 text-[13.5px] font-bold leading-snug text-[#25293b]">
+            {card.title}
+          </p>
+          <p className="mt-1 truncate text-[11px] font-medium text-[#8b91ad]">
+            {card.client} · {card.module}
+          </p>
         </div>
 
-        {/* Title */}
-        <p className="text-[13.5px] font-semibold leading-snug text-foreground line-clamp-2 mb-1">
-          {card.title}
-        </p>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              onClick={(e) => e.stopPropagation()}
+              onPointerDown={(e) => e.stopPropagation()}
+              className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-[#eef1f8] text-[#9aa0bb] transition hover:border-primary/30 hover:bg-accent hover:text-primary"
+              aria-label="Ações do card"
+            >
+              <MoreHorizontal className="h-4 w-4" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-44">
+            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onClick?.(); }}>
+              Abrir detalhes
+            </DropdownMenuItem>
+            <DropdownMenuItem>Duplicar</DropdownMenuItem>
+            <DropdownMenuItem>Copiar link</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem className="text-destructive focus:text-destructive">
+              Arquivar
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
 
-        {/* Subtitle: client · module */}
-        <p className="text-[11px] text-muted-foreground truncate mb-3">
-          {card.client} · {card.module}
-        </p>
-
-        {/* Progress */}
-        {total > 0 && (
-          <div className="mb-3">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
-                Progresso
-              </span>
-              <span className="text-[10.5px] font-semibold text-foreground/80">
-                {done}/{total}
-              </span>
-            </div>
-            <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-              <div
-                className={cn("h-full rounded-full transition-all", priorityBar[card.priority])}
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Footer: date pill + avatars + counts */}
-        <div className="flex items-center justify-between gap-2 pt-1">
-          <span
-            className={cn(
-              "inline-flex items-center gap-1 text-[10.5px] font-medium px-2 py-1 rounded-md",
-              due.tone === "danger" && "bg-destructive/10 text-destructive",
-              due.tone === "warn" && "bg-warning/20 text-warning-foreground",
-              due.tone === "muted" && "bg-muted text-muted-foreground",
-            )}
-          >
-            <Calendar className="h-3 w-3" />
-            {due.label}
+      <div className="mb-4">
+        <div className="mb-2 flex items-center justify-between">
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-[#9298b5]">
+            <Sparkles className="h-3 w-3" />
+            Progress
           </span>
+          <span className="text-[12px] font-semibold tabular-nums text-[#31364d]">
+            {syntheticDone}/{syntheticTotal}
+          </span>
+        </div>
+        <div className="h-[3px] overflow-hidden rounded-full bg-[#edf0f5]">
+          <div
+            className={cn("h-full rounded-full transition-all", progressTone[card.priority])}
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      </div>
 
-          <div className="flex items-center gap-2.5">
+      <div className="flex items-center justify-between gap-3">
+        <span
+          className={cn(
+            "inline-flex h-7 items-center rounded-md px-2.5 text-[10.5px] font-semibold",
+            dueTone[due.tone],
+          )}
+        >
+          {due.label}
+        </span>
+
+        <div className="flex min-w-0 items-center gap-2">
+          <div className="hidden items-center gap-2 xl:flex">
             {card.comments > 0 && (
-              <span className="inline-flex items-center gap-0.5 text-[11px] text-muted-foreground">
+              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#8b91ad]">
                 <MessageSquare className="h-3.5 w-3.5" />
                 {card.comments}
               </span>
             )}
             {card.attachments > 0 && (
-              <span className="inline-flex items-center gap-0.5 text-[11px] text-muted-foreground">
+              <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#8b91ad]">
                 <Paperclip className="h-3.5 w-3.5" />
                 {card.attachments}
               </span>
             )}
-            <div className="flex -space-x-1.5">
-              {shownAssignees.map((m) => (
-                <Avatar key={m.id} className="h-6 w-6 ring-2 ring-card">
-                  <AvatarFallback className={cn("text-[9.5px] font-semibold", m.color)}>
-                    {m.initials}
-                  </AvatarFallback>
-                </Avatar>
-              ))}
-              {extraAssignees > 0 && (
-                <div className="grid h-6 w-6 place-items-center rounded-full bg-muted text-[9.5px] font-semibold text-muted-foreground ring-2 ring-card">
-                  +{extraAssignees}
-                </div>
-              )}
-            </div>
+          </div>
+          <div className="flex -space-x-2">
+            {shownAssignees.map((m) => (
+              <Avatar key={m.id} className="h-7 w-7 border-2 border-white">
+                <AvatarFallback className={cn("text-[10px] font-bold", m.color)}>
+                  {m.initials}
+                </AvatarFallback>
+              </Avatar>
+            ))}
+            {extraAssignees > 0 && (
+              <div className="grid h-7 w-7 place-items-center rounded-md bg-[#f0f2f8] text-[10px] font-bold text-[#8b91ad] ring-2 ring-white">
+                +{extraAssignees}
+              </div>
+            )}
           </div>
         </div>
+      </div>
+
+      <div className="mt-3 flex items-center justify-between gap-2 border-t border-[#f1f3f8] pt-2">
+        <span className="truncate text-[10.5px] font-semibold uppercase tracking-wide text-primary">
+          {card.type}
+        </span>
+        <span
+          className={cn(
+            "rounded-full px-2 py-0.5 text-[10px] font-bold",
+            card.priority === "Crítica" && "bg-[#ffe8eb] text-[#fb5166]",
+            card.priority === "Alta" && "bg-[#fff4d8] text-[#c47a13]",
+            card.priority === "Média" && "bg-[#e8f7fc] text-primary",
+            card.priority === "Baixa" && "bg-[#eafaf1] text-[#23a061]",
+          )}
+        >
+          {priorityLabel[card.priority]}
+        </span>
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import { Plus } from "lucide-react";
+import { CirclePlus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { KanbanCardItem } from "./KanbanCard";
 import type { KanbanCard, KanbanColumn } from "@/lib/kanban-data";
@@ -22,45 +22,48 @@ export function KanbanColumnView({
   });
 
   return (
-    <div className="flex flex-col min-w-[300px] w-[300px] shrink-0 snap-start">
-      <div className="flex items-center justify-between px-1 mb-2">
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="text-sm font-semibold truncate">{column.title}</span>
-          <span className="text-[11px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+    <section className="flex min-h-[610px] w-full min-w-0 shrink-0 flex-col px-1 md:w-[318px] md:min-w-[318px] md:border-r md:border-dashed md:border-[#e8ebf3] md:px-5 md:last:border-r-0">
+      <div className="mb-4 flex h-9 items-center justify-between">
+        <div className="flex min-w-0 items-center gap-2">
+          <h2 className="truncate text-[13px] font-bold text-[#8c91b1]">{column.title}</h2>
+          <span className="grid h-5 min-w-5 place-items-center rounded-full bg-[#f2f4fa] px-1.5 text-[10px] font-bold text-[#9298b5]">
             {cards.length}
           </span>
         </div>
         <button
           onClick={() => onAddCard(column.id)}
-          className="text-muted-foreground hover:text-foreground transition"
-          aria-label="Adicionar card"
+          className="inline-flex items-center gap-1.5 rounded-lg px-1.5 py-1 text-[11px] font-semibold text-[#191d33] transition hover:bg-accent hover:text-primary"
+          aria-label="Adicionar tarefa"
         >
-          <Plus className="h-4 w-4" />
+          <CirclePlus className="h-3.5 w-3.5" />
+          Nova tarefa
         </button>
       </div>
 
       <div
         ref={setNodeRef}
         className={cn(
-          "flex-1 rounded-xl border border-border/60 bg-muted/40 p-2 transition-colors min-h-[200px]",
-          isOver && "bg-primary/5 border-primary/40",
+          "flex-1 rounded-xl border border-dashed border-transparent transition-colors",
+          isOver && "border-primary/40 bg-primary/5",
         )}
       >
         <SortableContext items={cards.map((c) => c.id)} strategy={verticalListSortingStrategy}>
-          <div className="space-y-2.5">
+          <div className="space-y-4">
             {cards.map((c) => (
               <KanbanCardItem key={c.id} card={c} onClick={() => onCardClick(c)} />
             ))}
           </div>
         </SortableContext>
 
-        <button
-          onClick={() => onAddCard(column.id)}
-          className="mt-2.5 w-full flex items-center justify-center gap-1.5 rounded-lg border border-dashed border-border py-2 text-xs text-muted-foreground hover:bg-card hover:text-foreground transition"
-        >
-          <Plus className="h-3.5 w-3.5" /> Novo card
-        </button>
+        {cards.length === 0 && (
+          <button
+            onClick={() => onAddCard(column.id)}
+            className="mt-1 flex min-h-[150px] w-full items-center justify-center rounded-xl border border-dashed border-[#e7ebf4] text-xs font-semibold text-muted-foreground transition hover:border-primary/35 hover:bg-accent/50 hover:text-primary"
+          >
+            Criar primeiro card
+          </button>
+        )}
       </div>
-    </div>
+    </section>
   );
 }

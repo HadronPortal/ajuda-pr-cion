@@ -229,20 +229,20 @@ function KanbanPage() {
   return (
     <AppShell>
       {/* Board header */}
-      <div className="mb-6 space-y-4">
-        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 sm:flex sm:flex-wrap sm:justify-between">
+      <div className="mb-5 space-y-4">
+        <div className="grid grid-cols-1 items-center gap-3 sm:flex sm:flex-wrap sm:justify-between">
           <div className="min-w-0 flex items-center gap-3">
             <div>
-              <p className="text-xs text-muted-foreground">Kanban Prócion</p>
+              <p className="text-xs font-semibold text-primary">Kanban Prócion</p>
               <div className="flex items-center gap-2 min-w-0">
-                <h1 className="text-2xl font-semibold tracking-tight truncate">
+                <h1 className="text-[26px] font-bold tracking-tight text-[#191d33] truncate">
                   {boards.find((b) => b.id === activeBoard)?.name}
                 </h1>
               </div>
             </div>
           </div>
 
-          <div className="shrink-0 flex items-center gap-3">
+          <div className="grid w-full min-w-0 max-w-full shrink-0 grid-cols-1 items-center gap-2 md:flex md:w-auto md:justify-start md:gap-3">
             <div className="hidden md:flex -space-x-2">
               {kanbanMembers.slice(0, 5).map((m) => (
                 <Avatar key={m.id} className="h-8 w-8 ring-2 ring-background">
@@ -255,20 +255,22 @@ function KanbanPage() {
                 +{Math.max(0, kanbanMembers.length - 5)}
               </div>
             </div>
-            <Button asChild size="sm" variant="outline">
+            <Button asChild size="sm" variant="outline" className="w-full min-w-0 rounded-xl border-[#e6eaf3] bg-white px-2 text-xs md:w-auto md:px-3 md:text-sm">
               <Link to="/kanban-dashboard">Dashboard</Link>
             </Button>
-            <Button size="sm" onClick={() => handleNewCard()}>
-              <Plus className="h-4 w-4 mr-1" /> Novo card
+            <Button size="sm" onClick={() => handleNewCard()} className="w-full min-w-0 rounded-xl px-2 text-xs shadow-[0_10px_22px_rgba(11,151,196,0.18)] md:w-auto md:px-3 md:text-sm">
+              <Plus className="h-4 w-4 mr-1" />
+              <span className="md:hidden">Novo</span>
+              <span className="hidden md:inline">Novo card</span>
             </Button>
           </div>
         </div>
 
         {/* Toolbar */}
-        <div className="grid grid-cols-1 md:grid-cols-[auto_1fr_auto] gap-3 items-center">
+        <div className="grid grid-cols-1 md:grid-cols-[auto_1fr_auto] gap-3 items-center rounded-2xl border border-[#edf0f6] bg-white p-3 shadow-[0_10px_30px_rgba(25,29,51,0.025)]">
           <Select value={activeBoard} onValueChange={setActiveBoard}>
-            <SelectTrigger className="w-full md:w-[240px]">
-              <SelectValue />
+            <SelectTrigger className="w-full md:w-[240px] rounded-xl border-[#e6eaf3] bg-[#fbfcff]">
+              <SelectValue placeholder={boards.find((b) => b.id === activeBoard)?.name ?? "Quadro Geral"} />
             </SelectTrigger>
             <SelectContent>
               {boards.map((b) => (
@@ -284,14 +286,14 @@ function KanbanPage() {
               onChange={(e) => setQuery(e.target.value)}
               type="search"
               placeholder="Buscar por título, cliente, módulo, tag ou ID..."
-              className="w-full h-10 pl-9 pr-3 rounded-lg border border-border bg-background text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+              className="w-full h-10 pl-9 pr-3 rounded-xl border border-[#e6eaf3] bg-[#fbfcff] text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </div>
 
           <div className="flex items-center gap-2">
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" className="rounded-xl border-[#e6eaf3] bg-white">
                   <SlidersHorizontal className="h-4 w-4 mr-1.5" />
                   Filtros
                   {activeFilterCount > 0 && (
@@ -399,9 +401,9 @@ function KanbanPage() {
       </div>
 
       {/* Mobile column tabs */}
-      <div className="md:hidden mb-3">
+      <div className="md:hidden mb-3 max-w-full overflow-hidden">
         <Tabs value={mobileColumn} onValueChange={(v) => setMobileColumn(v as ColumnId)}>
-          <TabsList className="w-full h-auto flex overflow-x-auto justify-start">
+          <TabsList className="w-full max-w-full h-auto flex overflow-x-auto justify-start">
             {kanbanColumnsDef.map((c) => (
               <TabsTrigger key={c.id} value={c.id} className="whitespace-nowrap text-xs">
                 {c.title}
@@ -423,18 +425,20 @@ function KanbanPage() {
         onDragEnd={handleDragEnd}
       >
         {/* Desktop / tablet: horizontal scroll */}
-        <div className="hidden md:block -mx-4 sm:-mx-6 lg:-mx-8">
-          <div className="overflow-x-auto snap-x snap-mandatory pb-4 px-4 sm:px-6 lg:px-8">
-            <div className="flex gap-4 min-w-max">
-              {kanbanColumnsDef.map((col) => (
-                <KanbanColumnView
-                  key={col.id}
-                  column={col}
-                  cards={cardsByColumn[col.id]}
-                  onCardClick={openCard}
-                  onAddCard={handleNewCard}
-                />
-              ))}
+        <div className="hidden md:block">
+          <div className="rounded-[14px] border border-[#edf0f6] bg-white p-4 shadow-[0_16px_40px_rgba(25,29,51,0.035)]">
+            <div className="overflow-x-auto kanban-scrollbar snap-x snap-mandatory rounded-xl border border-dashed border-[#edf0f6] px-0 py-4">
+              <div className="flex min-w-max gap-0">
+                {kanbanColumnsDef.map((col) => (
+                  <KanbanColumnView
+                    key={col.id}
+                    column={col}
+                    cards={cardsByColumn[col.id]}
+                    onCardClick={openCard}
+                    onAddCard={handleNewCard}
+                  />
+                ))}
+              </div>
             </div>
           </div>
         </div>
