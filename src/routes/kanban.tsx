@@ -109,7 +109,7 @@ function KanbanPage() {
   const filteredCards = useMemo(() => {
     const q = query.trim().toLowerCase();
     return cards.filter((c) => {
-      if (c.archived) return false;
+      if (c.archived && c.columnId !== "arquivado") return false;
       if (filters.client !== "all" && c.client !== filters.client) return false;
       if (filters.assignee !== "all" && c.assigneeId !== filters.assignee) return false;
       if (filters.priority !== "all" && c.priority !== filters.priority) return false;
