@@ -4,15 +4,14 @@ import {
   BarChart3,
   BookOpen,
   CalendarDays,
+  ChevronLeft,
   ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
+  CircleUser,
   GitBranch,
   KanbanSquare,
   LayoutDashboard,
   MessageSquare,
   Sparkles,
-  UserCircle,
   Users,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
