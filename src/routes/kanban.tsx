@@ -255,6 +255,9 @@ function KanbanPage() {
                 +{Math.max(0, kanbanMembers.length - 5)}
               </div>
             </div>
+            <Button asChild size="sm" variant="outline">
+              <Link to="/kanban-dashboard">Dashboard</Link>
+            </Button>
             <Button size="sm" onClick={() => handleNewCard()}>
               <Plus className="h-4 w-4 mr-1" /> Novo card
             </Button>
