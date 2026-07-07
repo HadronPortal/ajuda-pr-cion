@@ -82,7 +82,7 @@ function formatDate(iso: string) {
 }
 
 function ArticleDetailPage() {
-  const { article } = Route.useLoaderData();
+  const { article } = Route.useLoaderData() as { article: KbArticle };
   const navigate = useNavigate();
   const related = getRelatedArticles(article);
   const [drawerOpen, setDrawerOpen] = useState(false);
