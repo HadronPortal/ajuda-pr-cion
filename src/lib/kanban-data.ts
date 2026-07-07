@@ -1,6 +1,6 @@
 export type Priority = "Baixa" | "Média" | "Alta" | "Crítica";
 export type CardType = "Suporte" | "Melhoria" | "Bug" | "Implantação" | "Documentação";
-export type ColumnId = "backlog" | "triagem" | "em-andamento" | "aguardando-cliente" | "homologacao" | "concluido";
+export type ColumnId = "a-fazer" | "em-andamento" | "concluido" | "arquivado";
 
 export type KanbanMember = {
   id: string;
