@@ -22,6 +22,7 @@ function VersionsPage() {
       <PageHeader
         title="Versões"
         description="Histórico completo de releases, com destaques e correções."
+        breadcrumbs={[{ label: "Versões" }]}
       />
 
       <div className="relative">

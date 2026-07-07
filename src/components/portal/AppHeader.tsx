@@ -1,48 +1,58 @@
-import { Bell, Search, HelpCircle, Menu } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useState } from "react";
+import { HelpCircle, Menu, Search, Command as CommandIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { currentUser } from "@/lib/mock-data";
+import { CommandPalette } from "./CommandPalette";
+import { NotificationsPopover } from "./NotificationsPopover";
+import { UserMenu } from "./UserMenu";
 
 export function AppHeader() {
+  const [paletteOpen, setPaletteOpen] = useState(false);
+
   return (
     <header className="sticky top-0 z-20 h-16 border-b border-border bg-card/80 backdrop-blur-xl">
       <div className="h-full px-4 sm:px-6 lg:px-8 flex items-center gap-3">
-        <Button variant="ghost" size="icon" className="lg:hidden">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="lg:hidden focus-visible:ring-2 focus-visible:ring-ring"
+          aria-label="Abrir menu"
+        >
           <Menu className="h-5 w-5" />
         </Button>
 
         <div className="flex-1 max-w-xl">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <input
-              type="search"
-              placeholder="Buscar em manuais, artigos, versões..."
-              className="w-full h-10 pl-9 pr-3 rounded-lg border border-border bg-background text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
-            />
-          </div>
+          <button
+            type="button"
+            onClick={() => setPaletteOpen(true)}
+            className="group w-full h-10 flex items-center gap-2 pl-3 pr-2 rounded-lg border border-border bg-background text-sm text-muted-foreground hover:border-primary/40 hover:bg-card transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <Search className="h-4 w-4 shrink-0" />
+            <span className="flex-1 text-left truncate">
+              Buscar em manuais, artigos, versões...
+            </span>
+            <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded border border-border bg-muted text-[10px] font-mono text-muted-foreground group-hover:border-primary/30 transition">
+              <CommandIcon className="h-3 w-3" />K
+            </kbd>
+          </button>
         </div>
 
-        <div className="ml-auto flex items-center gap-1.5">
-          <Button variant="ghost" size="icon" className="hidden sm:inline-flex">
+        <div className="ml-auto flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="hidden sm:inline-flex focus-visible:ring-2 focus-visible:ring-ring"
+            aria-label="Ajuda"
+          >
             <HelpCircle className="h-5 w-5 text-muted-foreground" />
           </Button>
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-5 w-5 text-muted-foreground" />
-            <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-accent ring-2 ring-card" />
-          </Button>
-          <div className="ml-2 flex items-center gap-3 pl-3 border-l border-border">
-            <div className="hidden sm:block text-right">
-              <p className="text-sm font-medium leading-none">{currentUser.name}</p>
-              <p className="text-[11px] text-muted-foreground mt-1">{currentUser.role}</p>
-            </div>
-            <Avatar className="h-9 w-9">
-              <AvatarFallback className="bg-primary text-primary-foreground text-xs font-semibold">
-                {currentUser.initials}
-              </AvatarFallback>
-            </Avatar>
+          <NotificationsPopover />
+          <div className="ml-1">
+            <UserMenu />
           </div>
         </div>
       </div>
+
+      <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
     </header>
   );
 }

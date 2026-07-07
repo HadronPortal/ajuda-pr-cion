@@ -24,6 +24,7 @@ function AccountPage() {
       <PageHeader
         title="Minha Conta"
         description="Gerencie seu perfil, segurança e preferências."
+        breadcrumbs={[{ label: "Minha Conta" }]}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/portal/AppShell";
+import { Breadcrumbs } from "@/components/portal/Breadcrumbs";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -132,12 +133,13 @@ function ArticleDetailPage() {
 
   return (
     <AppShell>
-      <Link
-        to="/base-de-conhecimento"
-        className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mb-4"
-      >
-        <ArrowLeft className="h-3.5 w-3.5" /> Base de Conhecimento
-      </Link>
+      <Breadcrumbs
+        items={[
+          { label: "Base de Conhecimento", to: "/base-de-conhecimento" },
+          { label: getCategory(article.category).name },
+          { label: article.title },
+        ]}
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_300px] gap-8">
         {/* Content */}

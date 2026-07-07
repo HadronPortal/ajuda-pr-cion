@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   Search,
+  SearchX,
   FileText,
   BookOpen,
   AlertTriangle,
@@ -12,6 +13,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { AppShell, PageHeader } from "@/components/portal/AppShell";
+import { EmptyState } from "@/components/portal/EmptyState";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -84,6 +86,7 @@ function KbIndexPage() {
       <PageHeader
         title="Base de Conhecimento"
         description="Manuais, guias, erros e correções, legislação e novidades organizados por módulo."
+        breadcrumbs={[{ label: "Base de Conhecimento" }]}
       />
 
       <Card className="p-4 mb-6">
@@ -142,9 +145,11 @@ function KbIndexPage() {
         </div>
 
         {filtered.length === 0 ? (
-          <Card className="p-10 text-center text-sm text-muted-foreground">
-            Nenhum artigo encontrado para os filtros atuais.
-          </Card>
+          <EmptyState
+            icon={SearchX}
+            title="Nenhum artigo encontrado"
+            description="Tente ajustar a busca ou selecionar outra categoria. Você também pode abrir a paleta de comandos com ⌘K para navegar mais rápido."
+          />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {filtered.map((a) => (

@@ -32,6 +32,7 @@ function UpdatesPage() {
       <PageHeader
         title="Atualizações"
         description="Novidades, melhorias e comunicados oficiais do produto."
+        breadcrumbs={[{ label: "Atualizações" }]}
       />
 
       <div className="space-y-4">
