@@ -144,8 +144,8 @@ function HomePage() {
       </section>
 
       {/* Últimos artigos + Versões */}
-      <section className="grid grid-cols-1 gap-6 xl:grid-cols-[1.4fr_1fr]">
-        <Card className="rounded-[14px] border-0 bg-white dark:bg-[#20263d] p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
+      <section className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+        <Card className="min-w-0 overflow-hidden rounded-[14px] border-0 bg-white dark:bg-[#20263d] p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
           <div className="mb-5 flex items-end justify-between">
             <div>
               <h3 className="text-base font-bold text-foreground">Últimos artigos</h3>
@@ -202,13 +202,13 @@ function HomePage() {
           </ul>
         </Card>
 
-        <Card className="rounded-[14px] border-0 bg-white dark:bg-[#20263d] p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
-          <div className="mb-5 flex items-end justify-between">
-            <div>
-              <h3 className="text-base font-bold text-foreground">Últimas versões</h3>
+        <Card className="min-w-0 overflow-hidden rounded-[14px] border-0 bg-white dark:bg-[#20263d] p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
+          <div className="mb-5 flex items-end justify-between gap-3">
+            <div className="min-w-0">
+              <h3 className="truncate text-base font-bold text-foreground">Últimas versões</h3>
               <p className="mt-0.5 text-xs text-muted-foreground">Release notes recentes.</p>
             </div>
-            <Button asChild variant="ghost" size="sm" className="text-primary hover:text-primary">
+            <Button asChild variant="ghost" size="sm" className="shrink-0 text-primary hover:text-primary">
               <Link to="/versoes">
                 Ver todas <ArrowRight className="ml-1 h-3 w-3" />
               </Link>
@@ -216,11 +216,11 @@ function HomePage() {
           </div>
           <ol className="relative space-y-5 border-l border-border pl-5">
             {latestVersions.map((v) => (
-              <li key={v.version} className="relative">
+              <li key={v.version} className="relative min-w-0">
                 <span className="absolute -left-[26px] top-1 grid h-4 w-4 place-items-center rounded-full bg-white dark:bg-[#20263d] ring-2 ring-primary">
                   <span className="h-1.5 w-1.5 rounded-full bg-primary" />
                 </span>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                   <span className="text-sm font-bold text-foreground">{v.version}</span>
                   <Badge
                     variant="secondary"
@@ -232,13 +232,13 @@ function HomePage() {
                   >
                     {v.type}
                   </Badge>
-                  <span className="ml-auto text-[11px] text-muted-foreground">{v.date}</span>
+                  <span className="ml-auto text-[11px] text-muted-foreground whitespace-nowrap">{v.date}</span>
                 </div>
                 <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
                   {v.highlights.slice(0, 3).map((h) => (
                     <li key={h} className="flex gap-1.5">
                       <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-[#c5cadb]" />
-                      <span>{h}</span>
+                      <span className="min-w-0 break-words">{h}</span>
                     </li>
                   ))}
                 </ul>
