@@ -57,21 +57,19 @@ export function AppSidebar() {
             <ProcionLogo variant="full" className="h-10 w-auto max-w-[190px]" />
           </div>
         )}
-        <button
-          onClick={sidebarStore.toggle}
-          className={cn(
-            "ml-auto grid h-8 w-8 shrink-0 place-items-center rounded-lg text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition",
-            collapsed && "absolute bottom-5",
-          )}
-          aria-label={collapsed ? "Expandir menu" : "Recolher menu"}
-        >
-          {collapsed ? (
-            <ChevronsRight className="h-4 w-4" />
-          ) : (
-            <ChevronsLeft className="h-4 w-4" />
-          )}
-        </button>
       </div>
+
+      <button
+        onClick={sidebarStore.toggle}
+        className="absolute top-20 -right-3 z-40 grid h-7 w-7 place-items-center rounded-full border border-sidebar-border bg-card text-muted-foreground shadow-md hover:text-primary hover:border-primary/40 transition"
+        aria-label={collapsed ? "Expandir menu" : "Recolher menu"}
+      >
+        {collapsed ? (
+          <ChevronRight className="h-4 w-4" />
+        ) : (
+          <ChevronLeft className="h-4 w-4" />
+        )}
+      </button>
 
       <nav className="app-scrollbar flex-1 overflow-y-auto overflow-x-hidden px-4 py-2">
         {!collapsed && (
