@@ -29,7 +29,7 @@ type NavItem = {
 
 const nav: NavItem[] = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { to: "/base-de-conhecimento", label: "Base", icon: BookOpen, badge: "128" },
+  { to: "/base-de-conhecimento", label: "Base", icon: BookOpen, badge: "135" },
   { to: "/atualizacoes", label: "Atualizações", icon: Sparkles, badge: "3" },
   { to: "/versoes", label: "Versões", icon: GitBranch },
   { to: "/kanban", label: "Kanban", icon: KanbanSquare, badge: "12" },

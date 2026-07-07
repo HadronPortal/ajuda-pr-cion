@@ -175,6 +175,13 @@ function ArticleDetailPage() {
             <Button size="sm" onClick={() => setDrawerOpen(true)}>
               <Link2 className="h-4 w-4 mr-1.5" /> Vincular a um Card
             </Button>
+            {article.sourceUrl && (
+              <Button asChild size="sm" variant="outline">
+                <a href={article.sourceUrl} target="_blank" rel="noreferrer">
+                  Ver original
+                </a>
+              </Button>
+            )}
           </div>
 
           <hr className="my-6 border-border" />
@@ -218,6 +225,17 @@ function ArticleDetailPage() {
               label="Atualização"
               value={formatDate(article.updatedAt)}
             />
+            {article.sourceUrl && (
+              <a
+                href={article.sourceUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline"
+              >
+                <Link2 className="h-3.5 w-3.5" />
+                Abrir artigo original
+              </a>
+            )}
           </Card>
 
           <Card className="p-4">
@@ -319,6 +337,22 @@ function BlockView({ block }: { block: KbBlock }) {
         <pre className="rounded-lg bg-muted/60 border border-border p-3 text-xs font-mono overflow-x-auto whitespace-pre-wrap">
           {block.text}
         </pre>
+      );
+    case "image":
+      return (
+        <figure className="overflow-hidden rounded-xl border border-border bg-card">
+          <img
+            src={block.src}
+            alt={block.alt ?? "Imagem do artigo"}
+            loading="lazy"
+            className="w-full object-contain"
+          />
+          {block.alt && block.alt !== "Imagem do artigo" && (
+            <figcaption className="border-t border-border px-3 py-2 text-xs text-muted-foreground">
+              {block.alt}
+            </figcaption>
+          )}
+        </figure>
       );
     case "callout": {
       const tone = {

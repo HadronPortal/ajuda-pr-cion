@@ -1,3 +1,5 @@
+import { importedKbArticles } from "./kb-imported";
+
 export type KbCategoryId =
   | "guia"
   | "manual"
@@ -25,6 +27,7 @@ export type KbArticle = {
   readTime: string;
   author: string;
   summary: string;
+  sourceUrl?: string;
   content: KbBlock[];
 };
 
@@ -35,7 +38,8 @@ export type KbBlock =
   | { type: "ul"; items: string[] }
   | { type: "ol"; items: string[] }
   | { type: "callout"; tone: "info" | "warning" | "success" | "danger"; title: string; text: string }
-  | { type: "code"; text: string };
+  | { type: "code"; text: string }
+  | { type: "image"; src: string; alt?: string };
 
 export const kbCategoriesFull: KbCategory[] = [
   { id: "guia", name: "Guia", description: "Passo a passo para tarefas do dia a dia", tone: "primary" },
@@ -53,7 +57,7 @@ const daysAgo = (n: number) => {
   return d.toISOString().slice(0, 10);
 };
 
-export const kbArticlesFull: KbArticle[] = [
+const mockKbArticlesFull: KbArticle[] = [
   {
     id: "KB-101",
     slug: "nota-fiscal-de-devolucao",
@@ -350,6 +354,9 @@ export const kbArticlesFull: KbArticle[] = [
     ],
   },
 ];
+
+export const kbArticlesFull: KbArticle[] =
+  importedKbArticles.length > 0 ? importedKbArticles : mockKbArticlesFull;
 
 export function getArticleBySlug(slug: string) {
   return kbArticlesFull.find((a) => a.slug === slug) ?? null;
