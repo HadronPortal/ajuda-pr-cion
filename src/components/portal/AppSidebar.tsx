@@ -1,18 +1,18 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { ProcionLogo } from "./ProcionLogo";
 import {
-  BarChart3,
-  BookOpen,
+  BookOpenText,
   CalendarDays,
+  ChartNoAxesColumnIncreasing,
   ChevronLeft,
   ChevronRight,
   CircleUser,
-  GitBranch,
+  History,
   KanbanSquare,
   LayoutDashboard,
   MessageSquare,
-  Sparkles,
-  Users,
+  Newspaper,
+  UsersRound,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
