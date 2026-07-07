@@ -1,18 +1,18 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { ProcionLogo } from "./ProcionLogo";
 import {
-  BarChart3,
-  BookOpen,
+  BookOpenText,
   CalendarDays,
+  ChartNoAxesColumnIncreasing,
   ChevronLeft,
   ChevronRight,
   CircleUser,
-  GitBranch,
+  History,
   KanbanSquare,
   LayoutDashboard,
   MessageSquare,
-  Sparkles,
-  Users,
+  Newspaper,
+  UsersRound,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
@@ -23,19 +23,17 @@ type NavItem = {
   label: string;
   icon: typeof LayoutDashboard;
   exact?: boolean;
-  badge?: string;
-  soft?: boolean;
 };
 
 const nav: NavItem[] = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { to: "/base-de-conhecimento", label: "Base", icon: BookOpen, badge: "135" },
-  { to: "/atualizacoes", label: "Atualizações", icon: Sparkles, badge: "3" },
-  { to: "/versoes", label: "Versões", icon: GitBranch },
-  { to: "/kanban", label: "Kanban", icon: KanbanSquare, badge: "12" },
-  { to: "/kanban-dashboard", label: "Analytics", icon: BarChart3, badge: "6" },
-  { to: "/clientes", label: "Clientes", icon: Users },
-  { to: "/minha-conta", label: "Minha Conta", icon: CircleUser, soft: true },
+  { to: "/base-de-conhecimento", label: "Base", icon: BookOpenText },
+  { to: "/atualizacoes", label: "Atualizações", icon: Newspaper },
+  { to: "/versoes", label: "Versões", icon: History },
+  { to: "/kanban", label: "Kanban", icon: KanbanSquare },
+  { to: "/kanban-dashboard", label: "Analytics", icon: ChartNoAxesColumnIncreasing },
+  { to: "/clientes", label: "Clientes", icon: UsersRound },
+  { to: "/minha-conta", label: "Minha Conta", icon: CircleUser },
 ];
 
 export function AppSidebar() {
@@ -104,26 +102,7 @@ export function AppSidebar() {
                   )}
                   <Icon className={cn("h-5 w-5 shrink-0", active ? "text-primary" : "text-sidebar-foreground")} />
                   {!collapsed && (
-                    <>
-                      <span className="min-w-0 flex-1 truncate">{item.label}</span>
-                      {item.badge && (
-                        <span
-                          className={cn(
-                            "grid min-w-7 place-items-center rounded-full px-2 py-1 text-[11px] font-bold",
-                            active
-                              ? "bg-primary text-primary-foreground"
-                              : item.soft
-                                ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                                : "bg-success text-success-foreground",
-                          )}
-                        >
-                          {item.badge}
-                        </span>
-                      )}
-                      {(item.to === "/atualizacoes" || item.to === "/versoes") && (
-                        <ChevronRight className="h-3.5 w-3.5 text-sidebar-foreground/30" />
-                      )}
-                    </>
+                    <span className="min-w-0 flex-1 truncate">{item.label}</span>
                   )}
                 </Link>
               </li>
