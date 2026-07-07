@@ -91,7 +91,8 @@ const emptyFilters: Filters = {
 };
 
 function KanbanPage() {
-  const [cards, setCards] = useState<KanbanCard[]>(initialCards);
+  const cards = useKanbanCards();
+  const setCards = kanbanStore.setCards;
   const [query, setQuery] = useState("");
   const [filters, setFilters] = useState<Filters>(emptyFilters);
   const [activeBoard, setActiveBoard] = useState(boards[0].id);
