@@ -55,7 +55,7 @@ export function AppSidebar() {
         </div>
         {!collapsed && (
           <div className="ml-3 min-w-0 animate-fade-in">
-            <p className="text-[26px] font-bold leading-none tracking-tight text-[#313866]">
+            <p className="text-[26px] font-bold leading-none tracking-tight text-sidebar-accent-foreground">
               Prócion.
             </p>
             <p className="mt-1 text-xs font-medium text-sidebar-foreground/70">
@@ -104,7 +104,7 @@ export function AppSidebar() {
                     collapsed && "mx-auto w-12 justify-center rounded-2xl px-0",
                     active
                       ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-[0_14px_30px_rgba(11,151,196,0.12)]"
-                      : "text-sidebar-foreground hover:bg-sidebar-accent/45 hover:text-[#313866]",
+                      : "text-sidebar-foreground hover:bg-sidebar-accent/45 hover:text-sidebar-accent-foreground",
                   )}
                 >
                   {active && !collapsed && (
@@ -152,7 +152,7 @@ export function AppSidebar() {
               </AvatarFallback>
             </Avatar>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-bold text-[#191d33]">Ana Ribeiro</p>
+              <p className="truncate text-sm font-bold text-sidebar-accent-foreground">Ana Ribeiro</p>
               <p className="truncate text-xs text-sidebar-foreground/65">
                 suporte@procion.com.br
               </p>
@@ -162,7 +162,7 @@ export function AppSidebar() {
 
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs">
-              <span className="inline-flex items-center gap-1.5 font-semibold text-[#313866]">
+              <span className="inline-flex items-center gap-1.5 font-semibold text-sidebar-accent-foreground">
                 <MessageSquare className="h-3.5 w-3.5 text-primary" />
                 Task Progress
               </span>
