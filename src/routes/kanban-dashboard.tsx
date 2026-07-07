@@ -93,10 +93,10 @@ const periodLabels: Record<Period, string> = {
 };
 
 const priorityColor: Record<Priority, string> = {
-  Baixa: "hsl(var(--muted-foreground))",
-  Média: "hsl(var(--accent))",
-  Alta: "hsl(var(--warning))",
-  Crítica: "hsl(var(--destructive))",
+  Baixa: "var(--muted-foreground)",
+  Média: "var(--accent)",
+  Alta: "var(--warning)",
+  Crítica: "var(--destructive)",
 };
 
 function isWithinPeriod(iso: string, period: Period) {
@@ -429,7 +429,7 @@ function KanbanDashboard() {
               <BarChart data={byStatus} margin={{ top: 10, right: 12, left: -8, bottom: 0 }}>
                 <XAxis
                   dataKey="name"
-                  stroke="hsl(var(--muted-foreground))"
+                  stroke="var(--muted-foreground)"
                   fontSize={11}
                   tickLine={false}
                   axisLine={false}
@@ -439,22 +439,22 @@ function KanbanDashboard() {
                   height={50}
                 />
                 <YAxis
-                  stroke="hsl(var(--muted-foreground))"
+                  stroke="var(--muted-foreground)"
                   fontSize={11}
                   tickLine={false}
                   axisLine={false}
                   allowDecimals={false}
                 />
                 <Tooltip
-                  cursor={{ fill: "hsl(var(--muted))", opacity: 0.4 }}
+                  cursor={{ fill: "var(--muted)", opacity: 0.4 }}
                   contentStyle={{
                     borderRadius: 8,
-                    border: "1px solid hsl(var(--border))",
-                    background: "hsl(var(--card))",
+                    border: "1px solid var(--border)",
+                    background: "var(--card)",
                     fontSize: 12,
                   }}
                 />
-                <Bar dataKey="value" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="value" fill="var(--primary)" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -477,7 +477,7 @@ function KanbanDashboard() {
                   innerRadius={45}
                   outerRadius={80}
                   paddingAngle={2}
-                  stroke="hsl(var(--background))"
+                  stroke="var(--background)"
                 >
                   {byPriority.map((p) => (
                     <Cell key={p.name} fill={p.color} />
@@ -486,8 +486,8 @@ function KanbanDashboard() {
                 <Tooltip
                   contentStyle={{
                     borderRadius: 8,
-                    border: "1px solid hsl(var(--border))",
-                    background: "hsl(var(--card))",
+                    border: "1px solid var(--border)",
+                    background: "var(--card)",
                     fontSize: 12,
                   }}
                 />
