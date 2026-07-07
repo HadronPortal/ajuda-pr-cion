@@ -9,6 +9,13 @@ export type KanbanMember = {
   color: string;
 };
 
+export type ChecklistItem = { id: string; text: string; done: boolean };
+export type CommentEntry = { id: string; authorId: string; at: string; text: string };
+export type ActivityEntry = { id: string; at: string; text: string; authorId?: string };
+export type AttachmentItem = { id: string; name: string; size: string; kind: string };
+export type RelatedArticle = { id: string; title: string; category: string };
+export type RelatedVersion = { id: string; version: string; date: string; note: string };
+
 export type KanbanCard = {
   id: string;
   columnId: ColumnId;
@@ -23,6 +30,15 @@ export type KanbanCard = {
   tags: string[];
   comments: number;
   attachments: number;
+  archived?: boolean;
+  description?: string;
+  participants?: string[];
+  checklist?: ChecklistItem[];
+  commentsList?: CommentEntry[];
+  activity?: ActivityEntry[];
+  attachmentsList?: AttachmentItem[];
+  relatedArticles?: RelatedArticle[];
+  relatedVersions?: RelatedVersion[];
 };
 
 export type KanbanColumn = {
@@ -326,3 +342,98 @@ export const typeMeta: Record<CardType, string> = {
 
 export const priorities: Priority[] = ["Baixa", "Média", "Alta", "Crítica"];
 export const cardTypes: CardType[] = ["Suporte", "Melhoria", "Bug", "Implantação", "Documentação"];
+
+export const kbArticles: RelatedArticle[] = [
+  { id: "KB-201", title: "Rejeição 539 na NF-e: causas e soluções", category: "Fiscal" },
+  { id: "KB-202", title: "Configurando lote de transmissão de NF-e", category: "Fiscal" },
+  { id: "KB-118", title: "Performance na geração do SPED Contribuições", category: "Fiscal" },
+  { id: "KB-305", title: "Curva ABC de estoque: parâmetros e filtros", category: "Estoque" },
+  { id: "KB-410", title: "Rateio de comissão x devoluções", category: "Financeiro" },
+  { id: "KB-512", title: "Integração WMS: mapeamento de eventos", category: "Logística" },
+];
+
+export const kbVersions: RelatedVersion[] = [
+  { id: "V-2026.3.1", version: "2026.3.1", date: "2026-06-28", note: "Ajustes fiscais e Pix automático" },
+  { id: "V-2026.3.0", version: "2026.3.0", date: "2026-05-30", note: "Novo módulo de produção fase 2" },
+  { id: "V-2026.2.4", version: "2026.2.4", date: "2026-04-12", note: "Hotfix ICMS ST / SC" },
+];
+
+// Enriquecer alguns cards de exemplo com dados detalhados
+const enrich = (id: string, data: Partial<KanbanCard>) => {
+  const idx = initialCards.findIndex((c) => c.id === id);
+  if (idx !== -1) initialCards[idx] = { ...initialCards[idx], ...data };
+};
+
+enrich("PRC-1024", {
+  description:
+    "Cliente relata rejeição intermitente ao transmitir notas acima de R$ 50 mil na filial de Curitiba.\n\nCritérios de aceite:\n• Reproduzir o cenário em ambiente de homologação\n• Ajustar validação de XML no gerador de NF-e\n• Publicar hotfix na versão 2026.3.2\n\nImpacto: bloqueio parcial de faturamento em 3 filiais.",
+  participants: ["u-bl", "u-ar", "u-jp"],
+  checklist: [
+    { id: "ck-1", text: "Reproduzir rejeição em homologação", done: true },
+    { id: "ck-2", text: "Analisar payload XML enviado à SEFAZ-PR", done: true },
+    { id: "ck-3", text: "Ajustar validação do campo vBC", done: false },
+    { id: "ck-4", text: "Criar teste automatizado no pipeline fiscal", done: false },
+    { id: "ck-5", text: "Publicar hotfix 2026.3.2", done: false },
+  ],
+  commentsList: [
+    {
+      id: "cm-1",
+      authorId: "u-ar",
+      at: daysFromNow(-2) + "T09:20:00",
+      text: "Consegui reproduzir no ambiente de homologação. O erro ocorre quando o valor do ICMS ST é zero e há desconto no item.",
+    },
+    {
+      id: "cm-2",
+      authorId: "u-bl",
+      at: daysFromNow(-1) + "T14:05:00",
+      text: "Abri chamado paralelo com a SEFAZ-PR pedindo detalhamento da regra de validação. Enquanto isso, vamos ajustar no gerador.",
+    },
+    {
+      id: "cm-3",
+      authorId: "u-jp",
+      at: daysFromNow(0) + "T08:40:00",
+      text: "Sugestão: adicionar log estruturado no envio do lote para facilitar triagem futura.",
+    },
+  ],
+  activity: [
+    { id: "ac-1", at: daysFromNow(-4) + "T10:00:00", text: "Card criado por Ana Ribeiro", authorId: "u-ar" },
+    { id: "ac-2", at: daysFromNow(-3) + "T11:30:00", text: "Prioridade alterada de Média para Alta", authorId: "u-ar" },
+    { id: "ac-3", at: daysFromNow(-2) + "T09:15:00", text: "Responsável definido: Bruno Lima", authorId: "u-ar" },
+    { id: "ac-4", at: daysFromNow(-1) + "T16:00:00", text: "Movido de Backlog para Triagem", authorId: "u-bl" },
+  ],
+  attachmentsList: [
+    { id: "at-1", name: "xml-rejeitado-539.xml", size: "48 KB", kind: "xml" },
+    { id: "at-2", name: "log-transmissao-sefaz.txt", size: "112 KB", kind: "log" },
+  ],
+  relatedArticles: [kbArticles[0], kbArticles[1]],
+  relatedVersions: [kbVersions[0], kbVersions[2]],
+});
+
+enrich("PRC-1030", {
+  description:
+    "Empresas com mais de 20 mil notas/mês estão levando mais de 30 minutos para gerar o SPED Contribuições.\n\nHipóteses:\n• Query de apuração sem índice adequado\n• Falta de paginação no processamento em lote",
+  participants: ["u-ar", "u-jp"],
+  checklist: [
+    { id: "ck-1", text: "Coletar plano de execução em ambiente do cliente", done: true },
+    { id: "ck-2", text: "Criar índice em fis_apuracao(data, empresa)", done: false },
+    { id: "ck-3", text: "Aplicar processamento em lote de 5 mil registros", done: false },
+  ],
+  commentsList: [
+    {
+      id: "cm-1",
+      authorId: "u-ar",
+      at: daysFromNow(-1) + "T10:00:00",
+      text: "Plano de execução confirma sequential scan em fis_apuracao. Índice deve resolver.",
+    },
+  ],
+  activity: [
+    { id: "ac-1", at: daysFromNow(-2) + "T08:00:00", text: "Card criado por Ana Ribeiro", authorId: "u-ar" },
+    { id: "ac-2", at: daysFromNow(-1) + "T09:00:00", text: "Movido para Triagem", authorId: "u-ar" },
+  ],
+  attachmentsList: [
+    { id: "at-1", name: "plano-execucao.sql", size: "3 KB", kind: "sql" },
+  ],
+  relatedArticles: [kbArticles[2]],
+  relatedVersions: [kbVersions[0]],
+});
+
