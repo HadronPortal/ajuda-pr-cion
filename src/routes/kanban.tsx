@@ -45,7 +45,6 @@ import {
   type ColumnId,
   type Priority,
   type CardType,
-  initialCards,
   kanbanColumnsDef,
   kanbanMembers,
   kanbanClients,
