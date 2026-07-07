@@ -9,11 +9,13 @@ export function KanbanColumnView({
   column,
   cards,
   onCardClick,
+  onArchiveCard,
   onAddCard,
 }: {
   column: KanbanColumn;
   cards: KanbanCard[];
   onCardClick: (card: KanbanCard) => void;
+  onArchiveCard: (card: KanbanCard) => void;
   onAddCard: (columnId: KanbanColumn["id"]) => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({
@@ -22,7 +24,12 @@ export function KanbanColumnView({
   });
 
   return (
-    <section className="flex min-h-[610px] w-full min-w-0 shrink-0 flex-col px-1 md:w-[318px] md:min-w-[318px] md:border-r md:border-dashed md:border-[#e8ebf3] md:px-5 md:last:border-r-0">
+    <section
+      className={cn(
+        "flex min-h-[610px] w-full min-w-0 shrink-0 flex-col rounded-2xl px-3 py-3 md:w-[318px] md:min-w-[318px] md:px-5",
+        column.tone,
+      )}
+    >
       <div className="mb-4 flex h-9 items-center justify-between">
         <div className="flex min-w-0 items-center gap-2">
           <h2 className="truncate text-[13px] font-bold text-[#8c91b1]">{column.title}</h2>
@@ -32,7 +39,7 @@ export function KanbanColumnView({
         </div>
         <button
           onClick={() => onAddCard(column.id)}
-          className="inline-flex items-center gap-1.5 rounded-lg px-1.5 py-1 text-[11px] font-semibold text-foreground transition hover:bg-accent hover:text-primary"
+          className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg px-1.5 py-1 text-[11px] font-semibold text-foreground transition hover:bg-accent hover:text-primary"
           aria-label="Adicionar tarefa"
         >
           <CirclePlus className="h-3.5 w-3.5" />
@@ -50,7 +57,12 @@ export function KanbanColumnView({
         <SortableContext items={cards.map((c) => c.id)} strategy={verticalListSortingStrategy}>
           <div className="space-y-4">
             {cards.map((c) => (
-              <KanbanCardItem key={c.id} card={c} onClick={() => onCardClick(c)} />
+              <KanbanCardItem
+                key={c.id}
+                card={c}
+                onClick={() => onCardClick(c)}
+                onArchive={onArchiveCard}
+              />
             ))}
           </div>
         </SortableContext>
@@ -58,7 +70,7 @@ export function KanbanColumnView({
         {cards.length === 0 && (
           <button
             onClick={() => onAddCard(column.id)}
-            className="mt-1 flex min-h-[150px] w-full items-center justify-center rounded-xl border border-dashed border-[#e7ebf4] text-xs font-semibold text-muted-foreground transition hover:border-primary/35 hover:bg-accent/50 hover:text-primary"
+            className="mt-1 flex min-h-[150px] w-full cursor-pointer items-center justify-center rounded-xl border border-dashed border-[#e7ebf4] text-xs font-semibold text-muted-foreground transition hover:border-primary/35 hover:bg-accent/50 hover:text-primary"
           >
             Criar primeiro card
           </button>

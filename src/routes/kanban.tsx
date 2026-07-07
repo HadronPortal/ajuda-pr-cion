@@ -99,8 +99,8 @@ function KanbanPage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerMode, setDrawerMode] = useState<"edit" | "create">("edit");
   const [drawerCard, setDrawerCard] = useState<KanbanCard | null>(null);
-  const [defaultColumnId, setDefaultColumnId] = useState<ColumnId>("backlog");
-  const [mobileColumn, setMobileColumn] = useState<ColumnId>("backlog");
+  const [defaultColumnId, setDefaultColumnId] = useState<ColumnId>("a-fazer");
+  const [mobileColumn, setMobileColumn] = useState<ColumnId>("a-fazer");
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
 
@@ -109,7 +109,6 @@ function KanbanPage() {
   const filteredCards = useMemo(() => {
     const q = query.trim().toLowerCase();
     return cards.filter((c) => {
-      if (c.archived) return false;
       if (filters.client !== "all" && c.client !== filters.client) return false;
       if (filters.assignee !== "all" && c.assigneeId !== filters.assignee) return false;
       if (filters.priority !== "all" && c.priority !== filters.priority) return false;
@@ -128,15 +127,12 @@ function KanbanPage() {
   }, [cards, query, filters]);
 
   const cardsByColumn = useMemo(() => {
-    const grouped: Record<ColumnId, KanbanCard[]> = {
-      backlog: [],
-      triagem: [],
-      "em-andamento": [],
-      "aguardando-cliente": [],
-      homologacao: [],
-      concluido: [],
-    };
-    for (const c of filteredCards) grouped[c.columnId].push(c);
+    const grouped = Object.fromEntries(
+      kanbanColumnsDef.map((col) => [col.id, [] as KanbanCard[]]),
+    ) as Record<ColumnId, KanbanCard[]>;
+    for (const c of filteredCards) {
+      (grouped[c.columnId] ?? grouped["a-fazer"]).push(c);
+    }
     return grouped;
   }, [filteredCards]);
 
@@ -161,7 +157,11 @@ function KanbanPage() {
       const activeCardX = prev[activeIdx];
       if (activeCardX.columnId === overColumn) return prev;
       const next = [...prev];
-      next[activeIdx] = { ...activeCardX, columnId: overColumn };
+      next[activeIdx] = {
+        ...activeCardX,
+        columnId: overColumn,
+        archived: overColumn === "arquivado",
+      };
       return next;
     });
   };
@@ -186,9 +186,18 @@ function KanbanPage() {
         next.splice(targetIdx, 0, {
           ...moved,
           columnId: prev[overIdx].columnId,
+          archived: prev[overIdx].columnId === "arquivado",
         });
         return next;
       }
+      if (overType === "column") {
+        const overColumn = over.data.current?.columnId as ColumnId | undefined;
+        if (!overColumn) return prev;
+        return prev.map((c) =>
+          c.id === active.id ? { ...c, columnId: overColumn, archived: overColumn === "arquivado" } : c,
+        );
+      }
+
       return prev;
     });
   };
@@ -199,7 +208,15 @@ function KanbanPage() {
     setDrawerOpen(true);
   };
 
-  const handleNewCard = (columnId: ColumnId = "backlog") => {
+  const handleArchiveCard = (card: KanbanCard) => {
+    setCards((prev) =>
+      prev.map((c) =>
+        c.id === card.id ? { ...c, columnId: "arquivado", archived: true } : c,
+      ),
+    );
+  };
+
+  const handleNewCard = (columnId: ColumnId = "a-fazer") => {
     setDrawerMode("create");
     setDrawerCard(null);
     setDefaultColumnId(columnId);
@@ -269,7 +286,7 @@ function KanbanPage() {
         {/* Toolbar */}
         <div className="grid grid-cols-1 md:grid-cols-[auto_1fr_auto] gap-3 items-center rounded-2xl border border-border bg-white dark:bg-[#20263d] p-3 shadow-[0_10px_30px_rgba(25,29,51,0.025)]">
           <Select value={activeBoard} onValueChange={setActiveBoard}>
-            <SelectTrigger className="w-full md:w-[240px] rounded-xl border-border bg-muted/40">
+            <SelectTrigger className="w-full cursor-pointer rounded-xl border-border bg-muted/40 md:w-[240px]">
               <SelectValue placeholder={boards.find((b) => b.id === activeBoard)?.name ?? "Quadro Geral"} />
             </SelectTrigger>
             <SelectContent>
@@ -310,7 +327,7 @@ function KanbanPage() {
                   {activeFilterCount > 0 && (
                     <button
                       onClick={clearFilters}
-                      className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
+                      className="inline-flex cursor-pointer items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
                     >
                       <X className="h-3 w-3" /> Limpar
                     </button>
@@ -384,12 +401,12 @@ function KanbanPage() {
                 <Badge
                   key={k}
                   variant="secondary"
-                  className="text-[11px] gap-1 pr-1"
+                  className="gap-1 pr-1 text-[11px]"
                 >
                   {label}
                   <button
                     onClick={() => setFilters({ ...filters, [k]: "all" })}
-                    className="ml-0.5 rounded hover:bg-muted-foreground/10 p-0.5"
+                    className="ml-0.5 cursor-pointer rounded p-0.5 hover:bg-muted-foreground/10"
                   >
                     <X className="h-3 w-3" />
                   </button>
@@ -405,7 +422,7 @@ function KanbanPage() {
         <Tabs value={mobileColumn} onValueChange={(v) => setMobileColumn(v as ColumnId)}>
           <TabsList className="w-full max-w-full h-auto flex overflow-x-auto justify-start">
             {kanbanColumnsDef.map((c) => (
-              <TabsTrigger key={c.id} value={c.id} className="whitespace-nowrap text-xs">
+              <TabsTrigger key={c.id} value={c.id} className="cursor-pointer whitespace-nowrap text-xs">
                 {c.title}
                 <span className="ml-1.5 text-[10px] px-1.5 py-0.5 rounded bg-muted-foreground/10">
                   {cardsByColumn[c.id].length}
@@ -435,6 +452,7 @@ function KanbanPage() {
                     column={col}
                     cards={cardsByColumn[col.id]}
                     onCardClick={openCard}
+                    onArchiveCard={handleArchiveCard}
                     onAddCard={handleNewCard}
                   />
                 ))}
@@ -453,6 +471,7 @@ function KanbanPage() {
                 column={col}
                 cards={cardsByColumn[col.id]}
                 onCardClick={openCard}
+                onArchiveCard={handleArchiveCard}
                 onAddCard={handleNewCard}
               />
             ))}
@@ -491,7 +510,7 @@ function FilterSelect({
     <div className="space-y-1.5">
       <label className="text-xs font-medium text-muted-foreground">{label}</label>
       <Select value={value} onValueChange={onChange}>
-        <SelectTrigger className="h-9 text-sm">
+        <SelectTrigger className="h-9 cursor-pointer text-sm">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>

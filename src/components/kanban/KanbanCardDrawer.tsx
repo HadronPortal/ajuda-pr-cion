@@ -146,7 +146,7 @@ export function KanbanCardDrawer({
   onOpenChange,
   card,
   mode,
-  defaultColumnId = "backlog",
+  defaultColumnId = "a-fazer",
   onSave,
   onDelete,
 }: Props) {
@@ -188,7 +188,7 @@ export function KanbanCardDrawer({
     if (v === draft.columnId) return;
     const from = kanbanColumnsDef.find((c) => c.id === draft.columnId)?.title;
     const to = kanbanColumnsDef.find((c) => c.id === v)?.title;
-    update("columnId", v);
+    setDraft((d) => ({ ...d, columnId: v, archived: v === "arquivado" }));
     pushActivity(`Movido de "${from}" para "${to}"`);
   };
 
@@ -308,7 +308,20 @@ export function KanbanCardDrawer({
   };
 
   const handleArchive = () => {
-    const updated: KanbanCard = { ...draft, archived: true };
+    const updated: KanbanCard = {
+      ...draft,
+      columnId: "arquivado",
+      archived: true,
+      activity: [
+        ...(draft.activity ?? []),
+        {
+          id: uid("ac"),
+          at: nowIso(),
+          text: "Arquivado",
+          authorId: CURRENT_USER_ID,
+        },
+      ],
+    };
     onSave(updated);
     onOpenChange(false);
   };
@@ -721,7 +734,7 @@ export function KanbanCardDrawer({
             <aside className="border-t lg:border-t-0 lg:border-l border-border bg-muted/30 px-5 sm:px-6 py-5 space-y-5">
               <SidebarField icon={Boxes} label="Status">
                 <Select value={draft.columnId} onValueChange={(v) => handleChangeStatus(v as ColumnId)}>
-                  <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="h-9 cursor-pointer"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {kanbanColumnsDef.map((c) => (
                       <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>
@@ -732,7 +745,7 @@ export function KanbanCardDrawer({
 
               <SidebarField icon={Tag} label="Prioridade">
                 <Select value={draft.priority} onValueChange={(v) => handleChangePriority(v as KanbanCard["priority"])}>
-                  <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="h-9 cursor-pointer"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {priorities.map((p) => (
                       <SelectItem key={p} value={p}>
@@ -748,7 +761,7 @@ export function KanbanCardDrawer({
 
               <SidebarField icon={Tag} label="Tipo">
                 <Select value={draft.type} onValueChange={(v) => update("type", v as KanbanCard["type"])}>
-                  <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="h-9 cursor-pointer"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {cardTypes.map((t) => (
                       <SelectItem key={t} value={t}>{t}</SelectItem>
@@ -759,7 +772,7 @@ export function KanbanCardDrawer({
 
               <SidebarField icon={Users} label="Responsável">
                 <Select value={draft.assigneeId} onValueChange={handleChangeAssignee}>
-                  <SelectTrigger className="h-9">
+                  <SelectTrigger className="h-9 cursor-pointer">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -845,7 +858,7 @@ export function KanbanCardDrawer({
 
               <SidebarField icon={Building2} label="Cliente">
                 <Select value={draft.client} onValueChange={(v) => update("client", v)}>
-                  <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="h-9 cursor-pointer"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Interno">Interno</SelectItem>
                     {kanbanClients.map((c) => (
@@ -857,7 +870,7 @@ export function KanbanCardDrawer({
 
               <SidebarField icon={Boxes} label="Módulo do sistema">
                 <Select value={draft.module} onValueChange={(v) => update("module", v)}>
-                  <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="h-9 cursor-pointer"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {kanbanModules.map((m) => (
                       <SelectItem key={m} value={m}>{m}</SelectItem>
@@ -871,7 +884,7 @@ export function KanbanCardDrawer({
                   type="date"
                   value={draft.dueDate}
                   onChange={(e) => update("dueDate", e.target.value)}
-                  className="h-9"
+                  className="h-9 cursor-pointer"
                 />
               </SidebarField>
 
@@ -880,7 +893,7 @@ export function KanbanCardDrawer({
                   value={tagsInput}
                   onChange={(e) => setTagsInput(e.target.value)}
                   placeholder="fiscal, nf-e"
-                  className="h-9"
+                  className="h-9 cursor-pointer"
                 />
               </SidebarField>
 
@@ -891,7 +904,7 @@ export function KanbanCardDrawer({
                   Ações
                 </Label>
                 <div className="flex flex-col gap-1.5">
-                  <Button variant="outline" size="sm" className="justify-start" onClick={handleArchive}>
+                  <Button variant="outline" size="sm" className="cursor-pointer justify-start" onClick={handleArchive}>
                     <Archive className="h-4 w-4 mr-2" /> Arquivar card
                   </Button>
                   {mode === "edit" && onDelete && draft.id && (
@@ -1101,3 +1114,4 @@ function RelationPicker({
     </Popover>
   );
 }
+

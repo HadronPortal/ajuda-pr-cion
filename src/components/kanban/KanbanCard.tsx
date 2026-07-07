@@ -49,10 +49,12 @@ const priorityLabel: Record<string, string> = {
 export function KanbanCardItem({
   card,
   onClick,
+  onArchive,
   overlay = false,
 }: {
   card: CardType;
   onClick?: () => void;
+  onArchive?: (card: CardType) => void;
   overlay?: boolean;
 }) {
   const {
@@ -117,20 +119,26 @@ export function KanbanCardItem({
             <button
               onClick={(e) => e.stopPropagation()}
               onPointerDown={(e) => e.stopPropagation()}
-              className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-border text-[#9aa0bb] transition hover:border-primary/30 hover:bg-accent hover:text-primary"
+              className="grid h-8 w-8 shrink-0 cursor-pointer place-items-center rounded-lg border border-border text-[#9aa0bb] transition hover:border-primary/30 hover:bg-accent hover:text-primary"
               aria-label="Ações do card"
             >
               <MoreHorizontal className="h-4 w-4" />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-44">
-            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onClick?.(); }}>
+            <DropdownMenuItem className="cursor-pointer" onClick={(e) => { e.stopPropagation(); onClick?.(); }}>
               Abrir detalhes
             </DropdownMenuItem>
-            <DropdownMenuItem>Duplicar</DropdownMenuItem>
-            <DropdownMenuItem>Copiar link</DropdownMenuItem>
+            <DropdownMenuItem className="cursor-pointer">Duplicar</DropdownMenuItem>
+            <DropdownMenuItem className="cursor-pointer">Copiar link</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive focus:text-destructive">
+            <DropdownMenuItem
+              className="cursor-pointer text-destructive focus:text-destructive"
+              onClick={(e) => {
+                e.stopPropagation();
+                onArchive?.(card);
+              }}
+            >
               Arquivar
             </DropdownMenuItem>
           </DropdownMenuContent>
