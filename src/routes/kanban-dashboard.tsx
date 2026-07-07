@@ -253,6 +253,10 @@ function KanbanDashboard() {
       <PageHeader
         title="Dashboard Kanban"
         description="Visão executiva das demandas em andamento, atrasos e produtividade da equipe."
+        breadcrumbs={[
+          { label: "Kanban Prócion", to: "/kanban" },
+          { label: "Dashboard" },
+        ]}
         actions={
           <Button asChild variant="outline" size="sm">
             <Link to="/kanban">
