@@ -1014,7 +1014,7 @@ function RelatedBlock({
 }: {
   title: string;
   icon: React.ComponentType<{ className?: string }>;
-  items: { key: string; primary: string; secondary: string }[];
+  items: { key: string; primary: string; secondary: string; href?: string }[];
   emptyLabel: string;
   picker: React.ReactNode;
 }) {
@@ -1033,7 +1033,16 @@ function RelatedBlock({
         )}
         {items.map((it) => (
           <div key={it.key} className="text-sm">
-            <p className="font-medium leading-tight">{it.primary}</p>
+            {it.href ? (
+              <a
+                href={it.href}
+                className="font-medium leading-tight hover:underline block"
+              >
+                {it.primary}
+              </a>
+            ) : (
+              <p className="font-medium leading-tight">{it.primary}</p>
+            )}
             <p className="text-[11px] text-muted-foreground">{it.secondary}</p>
           </div>
         ))}
