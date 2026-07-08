@@ -419,7 +419,15 @@ const slaTextTone: Record<"ok" | "warn" | "late", string> = {
   late: "text-destructive",
 };
 
-function TicketCard({ ticket, onOpen }: { ticket: SupportTicket; onOpen?: (ticket: SupportTicket) => void }) {
+function TicketCard({
+  ticket,
+  onOpen,
+  onHistory,
+}: {
+  ticket: SupportTicket;
+  onOpen?: (ticket: SupportTicket) => void;
+  onHistory?: (ticket: SupportTicket) => void;
+}) {
   const sla = computeSla(ticket);
   return (
     <Card className="flex min-w-0 flex-col gap-4 rounded-[16px] border border-border/70 bg-card p-5 shadow-[0_10px_28px_rgba(25,29,51,0.05)] transition hover:shadow-[0_14px_32px_rgba(25,29,51,0.09)]">
