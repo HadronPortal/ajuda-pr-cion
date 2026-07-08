@@ -206,14 +206,7 @@ export function TicketDetailSheet({
   const [closeOpen, setCloseOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
-  const [showAllTimeline, setShowAllTimeline] = useState(false);
-  const [activeNav, setActiveNav] = useState<NavKey>("resumo");
-
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const sectionRefs = useRef<Record<NavKey, HTMLElement | null>>({
-    resumo: null, cliente: null, contato: null, detalhes: null,
-    timeline: null, arquivos: null, historico: null,
-  });
+  const [timelineOpen, setTimelineOpen] = useState(false);
 
   const mock = useMemo(() => (ticket ? buildMock(ticket) : null), [ticket]);
   const sla = useMemo(() => (ticket ? computeSla(ticket) : null), [ticket]);
@@ -221,22 +214,10 @@ export function TicketDetailSheet({
   if (!ticket || !mock || !sla) return null;
 
   const timelineEvents = events.filter((e) => e.kind !== "note");
-  const timelineSorted = [...timelineEvents].sort(
-    (a, b) => new Date(b.when).getTime() - new Date(a.when).getTime(),
-  );
-  const timelineShown = showAllTimeline ? timelineSorted : timelineSorted.slice(0, 5);
 
   const isMine =
     ticket.owner === currentUser.operator || ticket.lockedBy === currentUser.operator;
 
-  const scrollTo = (key: NavKey) => {
-    setActiveNav(key);
-    const el = sectionRefs.current[key];
-    const container = scrollRef.current;
-    if (el && container) {
-      container.scrollTo({ top: el.offsetTop - 12, behavior: "smooth" });
-    }
-  };
 
   const handleAssume = () => {
     ticketsStore.assumeTicket(ticket.id);
