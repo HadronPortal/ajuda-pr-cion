@@ -536,11 +536,43 @@ function TicketCard({
           <Button
             variant="ghost"
             size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              onHistory?.(ticket);
+            }}
             className="h-8 cursor-pointer rounded-lg px-2 text-[12px] text-muted-foreground hover:text-foreground"
           >
             <History className="mr-1 h-3.5 w-3.5" />
             Historico
           </Button>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function HistoryModalHost({
+  ticketId,
+  open,
+  onOpenChange,
+  tickets,
+}: {
+  ticketId: string | null;
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  tickets: SupportTicket[];
+}) {
+  const historyItems = useTicketHistory(ticketId);
+  const ticket = ticketId ? (tickets.find((t) => t.id === ticketId) ?? null) : null;
+  return (
+    <TicketHistoryModal
+      open={open}
+      onOpenChange={onOpenChange}
+      ticket={ticket}
+      historyItems={historyItems}
+    />
+  );
+}
         </div>
       </div>
     </Card>
