@@ -270,7 +270,7 @@ export function TicketDetailSheet({
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent
-          className="flex max-h-[92vh] w-[calc(100vw-1rem)] max-w-none flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-background p-0 shadow-[0_30px_80px_rgba(0,0,0,0.35)] sm:w-[calc(100vw-2rem)] md:max-h-[88vh] md:w-[960px] lg:w-[1080px] xl:w-[1140px]"
+          className="flex max-h-[92vh] w-[calc(100vw-1rem)] max-w-none flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-background p-0 shadow-[0_30px_80px_rgba(0,0,0,0.35)] sm:w-[calc(100vw-2rem)] md:max-h-[88vh] md:w-[960px] lg:w-[1120px] xl:w-[1420px] 2xl:w-[1500px]"
         >
           <DialogTitle className="sr-only">
             Detalhes do chamado {ticket.protocol}
