@@ -85,7 +85,7 @@ function TodaySummaryCard() {
     { label: "Reabertos", value: "2", tone: "text-[#ffd66b]" },
   ];
   return (
-    <div className="relative flex flex-col overflow-hidden rounded-2xl border border-white/14 bg-[linear-gradient(135deg,rgba(36,133,213,0.42),rgba(49,56,102,0.78))] p-5 backdrop-blur-md">
+    <div className="relative flex flex-col overflow-hidden rounded-2xl border border-white/14 bg-[linear-gradient(135deg,rgba(36,133,213,0.42),rgba(49,56,102,0.78))] p-4 backdrop-blur-md">
       <div className="flex items-center justify-between gap-4">
         <p className="text-[11px] font-bold uppercase tracking-wider text-white/85">
           Resumo de hoje
@@ -96,31 +96,31 @@ function TodaySummaryCard() {
         </span>
       </div>
 
-      <div className="mt-4">
+      <div className="mt-3">
         <p className="text-[12px] text-white/85">Hoje foram abertos</p>
-        <p className="mt-0.5 text-[26px] font-extrabold leading-none">48 chamados</p>
-        <p className="mt-1.5 text-[11px] font-semibold text-white/75">
+        <p className="mt-0.5 text-[24px] font-extrabold leading-none">48 chamados</p>
+        <p className="mt-1 text-[11px] font-semibold text-white/75">
           39 foram finalizados pela equipe
         </p>
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-2">
+      <div className="mt-3 grid grid-cols-2 gap-2">
         {indicators.map((i) => (
           <div
             key={i.label}
-            className="rounded-xl border border-white/10 bg-white/10 px-3 py-2.5"
+            className="rounded-xl border border-white/10 bg-white/10 px-3 py-2"
           >
             <p className="text-[10px] font-semibold uppercase tracking-wider text-white/65">
               {i.label}
             </p>
-            <p className={`mt-1 text-lg font-extrabold leading-none ${i.tone}`}>
+            <p className={`mt-0.5 text-base font-extrabold leading-none ${i.tone}`}>
               {i.value}
             </p>
           </div>
         ))}
       </div>
 
-      <div className="mt-4 space-y-2">
+      <div className="mt-3 space-y-1.5">
         <SummaryProgress icon={CheckCircle2} label="Taxa de resolução" value="81%" />
         <SummaryProgress icon={Clock3} label="Tempo médio de resposta" value="24 min" />
       </div>
