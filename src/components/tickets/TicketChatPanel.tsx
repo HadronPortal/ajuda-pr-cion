@@ -100,7 +100,7 @@ export function TicketChatPanel({
   return (
     <aside
       className={cn(
-        "flex min-h-0 flex-col border-l border-border bg-card",
+        "flex min-h-0 flex-col bg-card",
         className,
       )}
     >
