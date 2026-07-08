@@ -271,16 +271,26 @@ export function TicketDetailSheet({
 }) {
   const ticket = useTicket(ticketId);
   const historyList = useTicketHistory(ticketId);
+  const events = useTicketEvents(ticketId);
+  const notes = useTicketNotes(ticketId);
 
   const [note, setNote] = useState("");
   const [statusOpen, setStatusOpen] = useState(false);
   const [closeOpen, setCloseOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [notesOpen, setNotesOpen] = useState(false);
+  const [showAllTimeline, setShowAllTimeline] = useState(false);
 
   const mock = useMemo(() => (ticket ? buildMock(ticket) : null), [ticket]);
   const sla = useMemo(() => (ticket ? computeSla(ticket) : null), [ticket]);
 
   if (!ticket || !mock || !sla) return null;
+
+  const timelineEvents = events.filter((e) => e.kind !== "note");
+  const timelineSorted = [...timelineEvents].sort(
+    (a, b) => new Date(b.when).getTime() - new Date(a.when).getTime(),
+  );
+  const timelineShown = showAllTimeline ? timelineSorted : timelineSorted.slice(0, 5);
 
   const isMine =
     ticket.owner === currentUser.operator || ticket.lockedBy === currentUser.operator;
@@ -301,9 +311,9 @@ export function TicketDetailSheet({
   const handleSaveNote = () => {
     const text = note.trim();
     if (!text) return;
-    ticketsStore.addNote(ticket.id, text);
+    ticketsStore.addInternalNote(ticket.id, text);
     setNote("");
-    toast.success("Nota interna adicionada ao histórico");
+    toast.success("Nota interna salva");
   };
   const handleClose = (payload: ClosurePayload) => {
     ticketsStore.closeTicket(ticket.id, payload);
