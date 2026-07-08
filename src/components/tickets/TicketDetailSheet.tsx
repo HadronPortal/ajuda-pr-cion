@@ -510,11 +510,90 @@ export function TicketDetailSheet({
 
 
 
-              <SectionCard title="Nota interna" icon={Send} className="lg:col-span-2">
-                <p className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-muted/60 px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
-                  <AlertCircle className="h-3 w-3" />
-                  Visível somente para o time de suporte
-                </p>
+
+              <SectionCard title="Timeline" icon={History} className="lg:col-span-2">
+                {timelineShown.length === 0 ? (
+                  <p className="py-4 text-center text-[12px] text-muted-foreground">
+                    Nenhum evento registrado ainda.
+                  </p>
+                ) : (
+                  <>
+                    <ol className="relative space-y-4 border-l border-border pl-5">
+                      {timelineShown.map((event) => {
+                        const Icon = timelineIcon[event.kind];
+                        return (
+                          <li key={event.id} className="relative">
+                            <span
+                              className={cn(
+                                "absolute -left-[30px] top-0 grid h-6 w-6 place-items-center rounded-full ring-4 ring-card",
+                                timelineTone[event.kind],
+                              )}
+                            >
+                              <Icon className="h-3 w-3" />
+                            </span>
+                            <div className="flex flex-wrap items-baseline justify-between gap-2">
+                              <p className="text-[13px] font-semibold text-foreground">
+                                {event.actor}{" "}
+                                <span className="text-[11px] font-normal text-muted-foreground">
+                                  · {event.actorType}
+                                </span>
+                              </p>
+                              <span className="text-[11px] text-muted-foreground">
+                                {formatDateTime(event.when)}
+                              </span>
+                            </div>
+                            <p className="mt-0.5 text-[12.5px] text-muted-foreground">
+                              {event.description}
+                            </p>
+                          </li>
+                        );
+                      })}
+                    </ol>
+                    {timelineSorted.length > 5 && (
+                      <div className="mt-3 flex justify-center">
+                        <button
+                          type="button"
+                          onClick={() => setShowAllTimeline((v) => !v)}
+                          className="cursor-pointer text-[12px] font-semibold text-primary hover:underline"
+                        >
+                          {showAllTimeline ? "Ver menos" : `Ver mais (${timelineSorted.length - 5})`}
+                        </button>
+                      </div>
+                    )}
+                  </>
+                )}
+              </SectionCard>
+
+              <SectionCard title="Nota interna" icon={NotebookText} className="lg:col-span-2">
+                <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                  <p className="inline-flex items-center gap-1.5 rounded-full bg-muted/60 px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
+                    <AlertCircle className="h-3 w-3" />
+                    Visível somente para o time de suporte
+                  </p>
+                  {notes.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setNotesOpen(true)}
+                      className="inline-flex cursor-pointer items-center gap-1 text-[11px] font-semibold text-primary hover:underline"
+                    >
+                      <NotebookText className="h-3 w-3" />
+                      Ver {notes.length} nota(s)
+                    </button>
+                  )}
+                </div>
+                <textarea
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  rows={4}
+                  placeholder="Escreva uma nota interna sobre este atendimento..."
+                  className="w-full resize-none rounded-xl border border-border bg-background p-3 text-[13px] outline-none focus:ring-2 focus:ring-ring"
+                />
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-9 cursor-pointer rounded-lg text-[12px]"
+                  >
                 <textarea
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
