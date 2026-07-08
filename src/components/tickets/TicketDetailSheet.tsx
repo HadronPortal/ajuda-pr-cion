@@ -180,17 +180,12 @@ const timelineTone: Record<TicketEvent["kind"], string> = {
   closed: "bg-success/15 text-success",
 };
 
-type NavKey = "resumo" | "cliente" | "contato" | "detalhes" | "timeline" | "arquivos" | "historico";
+type NavKey = "timeline";
 
 const navItems: { key: NavKey; label: string; icon: typeof Info }[] = [
-  { key: "resumo", label: "Resumo", icon: LayoutGrid },
-  { key: "cliente", label: "Cliente", icon: Building2 },
-  { key: "contato", label: "Contato", icon: UserRound },
-  { key: "detalhes", label: "Detalhes", icon: Info },
   { key: "timeline", label: "Timeline", icon: History },
-  { key: "arquivos", label: "Arquivos", icon: Paperclip },
-  { key: "historico", label: "Histórico", icon: Folder },
 ];
+
 
 export function TicketDetailSheet({
   ticketId,
