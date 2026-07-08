@@ -57,6 +57,7 @@ import {
   type TicketStatus,
 } from "@/lib/support-tickets-data";
 import { cn } from "@/lib/utils";
+import { TicketDetailSheet } from "@/components/tickets/TicketDetailSheet";
 
 export const Route = createFileRoute("/chamados")({
   head: () => ({
