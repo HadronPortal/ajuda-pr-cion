@@ -102,11 +102,19 @@ function HomePage() {
     return () => clearInterval(id);
   }, []);
 
-  const myTickets = getTicketsForCurrentUser(supportTickets, currentUser);
-  const myTicketsCount = myTickets.length;
-  const openCount = myTickets.filter((t) => t.status === "Em Aberto").length;
-  const overdueCount = myTickets.filter((t) => t.status === "Atrasado").length;
-  const waitingClientCount = myTickets.filter((t) => t.status === "Aguardando cliente").length;
+  // Lista única e pessoal do usuário logado — todos os chips derivam dela.
+  const personalTickets = getTicketsForCurrentUser(supportTickets, currentUser);
+
+  // Debug temporário para validar owner/status enquanto o backend não conecta.
+  if (typeof window !== "undefined") {
+    // eslint-disable-next-line no-console
+    console.debug("[banner] currentUser.operator =", currentUser.operator);
+    // eslint-disable-next-line no-console
+    console.debug(
+      "[banner] personalTickets =",
+      personalTickets.map((t) => ({ protocol: t.protocol, owner: t.owner, status: t.status })),
+    );
+  }
 
   const displayName = `PRC ${currentUser.name}`;
 
@@ -135,10 +143,22 @@ function HomePage() {
   }, [slides.length]);
 
   const stats = [
-    { label: "chamados", value: myTicketsCount, tone: "bg-white/15" },
-    { label: "em aberto", value: openCount, tone: "bg-white/15" },
-    { label: "atrasados", value: overdueCount, tone: "bg-[#ff6b6b]/25" },
-    { label: "aguardando cliente", value: waitingClientCount, tone: "bg-[#ffcf5c]/25" },
+    { label: "chamados", value: personalTickets.length, tone: "bg-white/15" },
+    {
+      label: "em aberto",
+      value: personalTickets.filter((t) => t.status === "Em Aberto").length,
+      tone: "bg-white/15",
+    },
+    {
+      label: "atrasados",
+      value: personalTickets.filter((t) => t.status === "Atrasado").length,
+      tone: "bg-[#ff6b6b]/25",
+    },
+    {
+      label: "aguardando cliente",
+      value: personalTickets.filter((t) => t.status === "Aguardando cliente").length,
+      tone: "bg-[#ffcf5c]/25",
+    },
   ];
 
   return (
