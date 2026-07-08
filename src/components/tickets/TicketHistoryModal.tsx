@@ -150,7 +150,7 @@ export function TicketHistoryModal({
                 <div className="flex min-w-0 flex-1 items-center gap-2">
                   <FileText className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                   <span
-                    className="truncate text-[12.5px] font-semibold uppercase tracking-wide text-foreground"
+                    className="truncate text-xs leading-4 font-semibold tracking-normal text-foreground cursor-default"
                     title={h.title}
                   >
                     {h.title}
