@@ -570,6 +570,16 @@ export function TicketDetailSheet({
                   <History className="mr-1.5 h-3.5 w-3.5" />
                   Histórico
                 </Button>
+
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setChatOpen(true)}
+                  className="h-9 cursor-pointer rounded-lg px-3 text-[12px] xl:hidden"
+                >
+                  <MessageCircle className="mr-1.5 h-3.5 w-3.5" />
+                  Chat
+                </Button>
               </div>
 
               {isMine && (
