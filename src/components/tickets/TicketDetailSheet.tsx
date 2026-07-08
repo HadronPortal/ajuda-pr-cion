@@ -231,6 +231,27 @@ const slaBarTone: Record<"ok" | "warn" | "late", string> = {
   late: "bg-destructive",
 };
 
+const timelineIcon: Record<TicketEvent["kind"], typeof Info> = {
+  created: MessageSquare,
+  attached: Paperclip,
+  assumed: UserPlus,
+  attend: PlayCircle,
+  status: ShieldCheck,
+  message: Send,
+  note: FileText,
+  closed: CheckCircle2,
+};
+
+const timelineTone: Record<TicketEvent["kind"], string> = {
+  created: "bg-primary/12 text-primary",
+  attached: "bg-muted text-foreground",
+  assumed: "bg-[#e7faf1] text-[#1f9860] dark:bg-[#14382b] dark:text-[#8ee8be]",
+  attend: "bg-[#fff1d6] text-[#b66a00] dark:bg-[#4d3516] dark:text-[#ffd28a]",
+  status: "bg-[#e8f3ff] text-[#246cb5] dark:bg-[#17314e] dark:text-[#9dcaff]",
+  message: "bg-[#f2eaff] text-[#7253bd] dark:bg-[#2e2549] dark:text-[#c7b8ff]",
+  note: "bg-muted text-foreground",
+  closed: "bg-success/15 text-success",
+};
 
 const clientStatusTone: Record<ClientMock["status"], string> = {
   Ativo: "bg-success/12 text-success border-success/20",
