@@ -145,9 +145,13 @@ function TicketsPage() {
   const openTickets = supportTickets.filter(
     (ticket) => !["Finalizado", "Cancelado"].includes(ticket.status),
   ).length;
+  const inProgressTickets = supportTickets.filter((ticket) => ticket.status === "Em andamento").length;
   const overdueTickets = supportTickets.filter((ticket) => ticket.status === "Atrasado").length;
   const portalTickets = supportTickets.filter((ticket) => ticket.source === "Portal do cliente").length;
   const finishedTickets = supportTickets.filter((ticket) => ticket.status === "Finalizado").length;
+  const resolutionRate = Math.round((finishedTickets / supportTickets.length) * 100);
+  const avgHandlingLabel = "01h 47min";
+  const slaMedio = 82;
 
   const statusDistribution = ticketStatuses
     .map((status) => ({
@@ -155,6 +159,24 @@ function TicketsPage() {
       total: supportTickets.filter((ticket) => ticket.status === status).length,
     }))
     .filter((item) => item.total > 0);
+
+  const sourceDistribution = (["Portal do cliente", "Telefone", "WhatsApp", "Email"] as const).map(
+    (source) => ({
+      source,
+      label: sourceLabels[source],
+      total: supportTickets.filter((ticket) => ticket.source === source).length,
+    }),
+  );
+
+  const moduleMap = new Map<string, number>();
+  supportTickets.forEach((ticket) => {
+    const key = ticket.module.split(" - ").pop() ?? ticket.module;
+    moduleMap.set(key, (moduleMap.get(key) ?? 0) + 1);
+  });
+  const moduleDistribution = Array.from(moduleMap.entries())
+    .map(([label, total]) => ({ label, total }))
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 5);
 
   return (
     <AppShell>
@@ -170,141 +192,63 @@ function TicketsPage() {
         }
       />
 
-      <section className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard
-          label="Chamados abertos"
-          value={openTickets}
-          trend="+18 hoje"
-          icon={Headphones}
-          tone="bg-primary/12 text-primary"
-        />
-        <MetricCard
-          label="Atrasados"
-          value={overdueTickets}
-          trend="exigem retorno"
-          icon={AlertTriangle}
-          tone="bg-destructive/12 text-destructive"
-        />
-        <MetricCard
-          label="Criados pelo cliente"
-          value={portalTickets}
-          trend="novo fluxo do portal"
-          icon={UserRound}
-          tone="bg-[#e7faf1] text-[#1f9860]"
-        />
-        <MetricCard
-          label="Finalizados"
-          value={finishedTickets}
-          trend="ultimas 24h"
-          icon={CheckCircle2}
-          tone="bg-success/12 text-success"
-        />
-      </section>
+      <section className="mb-6 grid grid-cols-1 gap-6 xl:grid-cols-[1.1fr_1.1fr]">
+        <div className="space-y-6">
+          <TicketsHero openTickets={openTickets} overdueTickets={overdueTickets} />
+          <DailyVolumeCard />
+          <WeeklyBacklogCard />
+        </div>
 
-      <section className="mb-6 grid min-w-0 grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.3fr)_minmax(340px,0.7fr)]">
-        <Card className="min-w-0 rounded-[14px] border-0 bg-card p-5 shadow-[0_10px_28px_rgba(25,29,51,0.06)]">
-          <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <p className="text-base font-bold text-foreground">Volume por dia</p>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                Abertos, finalizados e atrasados na semana atual.
-              </p>
-            </div>
-            <Badge variant="secondary" className="rounded-full">Dia / semana</Badge>
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <SmallStatCard
+              title="Abertos"
+              value={String(openTickets)}
+              change="+18 hoje"
+              trend="up"
+              icon={Headphones}
+              accent="#0b97c4"
+            />
+            <SmallStatCard
+              title="Em andamento"
+              value={String(inProgressTickets)}
+              change="ativos"
+              trend="up"
+              icon={Clock3}
+              accent="#8d6bd8"
+            />
+            <SmallStatCard
+              title="Atrasados"
+              value={String(overdueTickets)}
+              change="revisar SLA"
+              trend="down"
+              icon={AlertTriangle}
+              accent="#fb5166"
+            />
+            <SmallStatCard
+              title="Finalizados"
+              value={String(finishedTickets)}
+              change="+8 hoje"
+              trend="up"
+              icon={CheckCircle2}
+              accent="#20bf6b"
+            />
           </div>
-          <ChartContainer config={chartConfig} className="h-[300px] w-full">
-            <AreaChart data={dailyTicketAnalytics} margin={{ left: -16, right: 10, top: 8 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="day" tickLine={false} axisLine={false} />
-              <YAxis tickLine={false} axisLine={false} width={36} />
-              <ChartTooltip content={<ChartTooltipContent />} />
-              <Area
-                dataKey="opened"
-                type="monotone"
-                stroke="var(--color-opened)"
-                fill="var(--color-opened)"
-                fillOpacity={0.16}
-                strokeWidth={2.5}
-              />
-              <Area
-                dataKey="finished"
-                type="monotone"
-                stroke="var(--color-finished)"
-                fill="var(--color-finished)"
-                fillOpacity={0.12}
-                strokeWidth={2.5}
-              />
-              <Area
-                dataKey="overdue"
-                type="monotone"
-                stroke="var(--color-overdue)"
-                fill="var(--color-overdue)"
-                fillOpacity={0.08}
-                strokeWidth={2}
-              />
-            </AreaChart>
-          </ChartContainer>
-        </Card>
 
-        <div className="grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-1">
-          <Card className="rounded-[14px] border-0 bg-card p-5 shadow-[0_10px_28px_rgba(25,29,51,0.06)]">
-            <p className="text-base font-bold text-foreground">Backlog semanal</p>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              Comparativo entre abertura, finalização e saldo.
-            </p>
-            <ChartContainer config={chartConfig} className="mt-3 h-[190px] w-full">
-              <BarChart data={weeklyTicketAnalytics} margin={{ left: -20, right: 0, top: 8 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="week" tickLine={false} axisLine={false} />
-                <YAxis tickLine={false} axisLine={false} width={34} />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar dataKey="opened" fill="var(--color-opened)" radius={[6, 6, 0, 0]} />
-                <Bar dataKey="finished" fill="var(--color-finished)" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ChartContainer>
-          </Card>
+          <SlaProfileCard
+            slaMedio={slaMedio}
+            avgHandlingLabel={avgHandlingLabel}
+            resolutionRate={resolutionRate}
+            portalTickets={portalTickets}
+          />
 
-          <Card className="rounded-[14px] border-0 bg-card p-5 shadow-[0_10px_28px_rgba(25,29,51,0.06)]">
-            <p className="text-base font-bold text-foreground">Distribuicao por status</p>
-            <div className="mt-3 grid grid-cols-[132px_minmax(0,1fr)] items-center gap-3">
-              <ChartContainer config={chartConfig} className="h-[132px] w-[132px]">
-                <PieChart>
-                  <Pie
-                    data={statusDistribution}
-                    dataKey="total"
-                    nameKey="status"
-                    innerRadius={38}
-                    outerRadius={58}
-                    paddingAngle={3}
-                  >
-                    {statusDistribution.map((item, index) => (
-                      <Cell
-                        key={item.status}
-                        fill={[
-                          "var(--color-primary)",
-                          "var(--color-success)",
-                          "var(--color-destructive)",
-                          "var(--color-chart-2)",
-                          "var(--color-chart-4)",
-                        ][index % 5]}
-                      />
-                    ))}
-                  </Pie>
-                  <ChartTooltip content={<ChartTooltipContent nameKey="status" />} />
-                </PieChart>
-              </ChartContainer>
-              <div className="min-w-0 space-y-2">
-                {statusDistribution.slice(0, 5).map((item) => (
-                  <div key={item.status} className="flex min-w-0 items-center justify-between gap-2 text-xs">
-                    <span className="truncate text-muted-foreground">{item.status}</span>
-                    <span className="font-semibold text-foreground">{item.total}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </Card>
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <StatusCategoriesCard data={statusDistribution} />
+            <SourceModuleCard sources={sourceDistribution} modules={moduleDistribution} />
+          </div>
         </div>
       </section>
+
 
       <section className="mb-6 grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
         <Card className="rounded-[14px] border-0 bg-card p-4 shadow-[0_10px_28px_rgba(25,29,51,0.06)]">
