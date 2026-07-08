@@ -57,6 +57,7 @@ import {
   type TicketStatus,
 } from "@/lib/support-tickets-data";
 import { cn } from "@/lib/utils";
+import { TicketDetailSheet } from "@/components/tickets/TicketDetailSheet";
 
 export const Route = createFileRoute("/chamados")({
   head: () => ({
@@ -120,6 +121,13 @@ const initialFilters: Filters = {
 
 function TicketsPage() {
   const [filters, setFilters] = useState<Filters>(initialFilters);
+  const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
+
+  const openTicketDetail = (ticket: SupportTicket) => {
+    setSelectedTicket(ticket);
+    setDetailOpen(true);
+  };
 
   const filteredTickets = useMemo(() => {
     const query = filters.query.trim().toLowerCase();
@@ -323,9 +331,15 @@ function TicketsPage() {
       </div>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         {filteredTickets.map((ticket) => (
-          <TicketCard key={ticket.id} ticket={ticket} />
+          <TicketCard key={ticket.id} ticket={ticket} onOpen={openTicketDetail} />
         ))}
       </div>
+
+      <TicketDetailSheet
+        ticket={selectedTicket}
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+      />
     </AppShell>
   );
 }
@@ -384,7 +398,7 @@ const slaTextTone: Record<"ok" | "warn" | "late", string> = {
   late: "text-destructive",
 };
 
-function TicketCard({ ticket }: { ticket: SupportTicket }) {
+function TicketCard({ ticket, onOpen }: { ticket: SupportTicket; onOpen?: (ticket: SupportTicket) => void }) {
   const sla = computeSla(ticket);
   return (
     <Card className="flex min-w-0 flex-col gap-4 rounded-[16px] border border-border/70 bg-card p-5 shadow-[0_10px_28px_rgba(25,29,51,0.05)] transition hover:shadow-[0_14px_32px_rgba(25,29,51,0.09)]">
@@ -469,6 +483,7 @@ function TicketCard({ ticket }: { ticket: SupportTicket }) {
       <div className="flex items-center justify-between gap-2 border-t border-border/70 pt-3">
         <Button
           size="sm"
+          onClick={() => onOpen?.(ticket)}
           className="h-8 cursor-pointer rounded-lg px-3 text-[12px] shadow-[0_6px_14px_rgba(11,151,196,0.18)]"
         >
           Abrir
