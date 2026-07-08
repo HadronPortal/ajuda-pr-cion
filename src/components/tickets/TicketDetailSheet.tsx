@@ -594,19 +594,6 @@ export function TicketDetailSheet({
                     size="sm"
                     className="h-9 cursor-pointer rounded-lg text-[12px]"
                   >
-                <textarea
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                  rows={4}
-                  placeholder="Escreva uma nota interna sobre este atendimento..."
-                  className="w-full resize-none rounded-xl border border-border bg-background p-3 text-[13px] outline-none focus:ring-2 focus:ring-ring"
-                />
-                <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-9 cursor-pointer rounded-lg text-[12px]"
-                  >
                     <Paperclip className="mr-1.5 h-3.5 w-3.5" />
                     Anexar arquivo
                   </Button>
