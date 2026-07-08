@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowRight,
@@ -12,6 +13,9 @@ import {
 import { AppShell } from "@/components/portal/AppShell";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { currentUser } from "@/lib/mock-data";
+import { supportTickets } from "@/lib/support-tickets-data";
+import { getTicketsForCurrentUser } from "@/lib/tickets-scope";
 import { Badge } from "@/components/ui/badge";
 import { kbArticlesFull, kbCategoriesFull } from "@/lib/kb-data";
 import { versions } from "@/lib/mock-data";
@@ -77,6 +81,12 @@ function formatRelative(iso: string) {
   return d.toLocaleDateString("pt-BR");
 }
 
+function getGreeting(hour: number) {
+  if (hour >= 5 && hour < 12) return "Bom dia";
+  if (hour >= 12 && hour < 18) return "Boa tarde";
+  return "Boa noite";
+}
+
 function HomePage() {
   const latestArticles = [...kbArticlesFull]
     .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
@@ -86,34 +96,138 @@ function HomePage() {
     kbCategoriesFull.map((c) => [c.id, c]),
   );
 
+  const [greeting, setGreeting] = useState(() => getGreeting(new Date().getHours()));
+  useEffect(() => {
+    const id = setInterval(() => setGreeting(getGreeting(new Date().getHours())), 60_000);
+    return () => clearInterval(id);
+  }, []);
+
+  // Lista única e pessoal do usuário logado — todos os chips derivam dela.
+  const personalTickets = getTicketsForCurrentUser(supportTickets, currentUser);
+
+  // Debug temporário para validar owner/status enquanto o backend não conecta.
+  if (typeof window !== "undefined") {
+    // eslint-disable-next-line no-console
+    console.debug("[banner] currentUser.operator =", currentUser.operator);
+    // eslint-disable-next-line no-console
+    console.debug(
+      "[banner] personalTickets =",
+      personalTickets.map((t) => ({ protocol: t.protocol, owner: t.owner, status: t.status })),
+    );
+  }
+
+  const displayName = `PRC ${currentUser.name}`;
+
+  const slides = [
+    {
+      eyebrow: "Volume",
+      primary: "Ontem foram abertos 48 chamados",
+      secondary: "39 foram finalizados pela equipe",
+    },
+    {
+      eyebrow: "Performance",
+      primary: "SLA médio: 82%",
+      secondary: "Tempo médio de atendimento: 1h42",
+    },
+    {
+      eyebrow: "Destaques",
+      primary: "Módulo mais acionado: Vendas - NFE",
+      secondary: "Cliente com maior volume: Coopertransc",
+    },
+  ];
+
+  const [slideIdx, setSlideIdx] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setSlideIdx((i) => (i + 1) % slides.length), 4500);
+    return () => clearInterval(id);
+  }, [slides.length]);
+
+  const personalTicketsCount = personalTickets.length;
+  const personalTicketsLabel = personalTicketsCount === 1 ? "chamado" : "chamados";
+
   return (
     <AppShell>
-      {/* Hero + busca */}
-      <section className="mb-8 rounded-[18px] bg-gradient-to-br from-[#0b97c4] via-[#0490d1] to-[#313866] p-8 text-white shadow-[0_18px_40px_rgba(11,151,196,0.22)] md:p-12">
-        <p className="text-xs font-semibold uppercase tracking-wider text-white/80">
-          Portal Prócion
-        </p>
-        <h1 className="mt-2 max-w-2xl text-[26px] font-bold leading-tight md:text-[34px]">
-          Como podemos ajudar você hoje?
-        </h1>
-        <p className="mt-3 max-w-xl text-sm text-white/80 md:text-base">
-          Pesquise na base de conhecimento, acompanhe versões e resolva demandas no Kanban.
-        </p>
+      {/* Hero */}
+      <section className="mb-8 rounded-[18px] bg-gradient-to-br from-[#0b97c4] via-[#0490d1] to-[#313866] p-6 text-white shadow-[0_18px_40px_rgba(11,151,196,0.22)] md:p-10">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)] lg:items-stretch">
+          {/* Esquerda: saudação + chips + busca */}
+          <div className="min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-wider text-white/80">
+              Portal Prócion
+            </p>
+            <h1 className="mt-2 text-[24px] font-bold leading-tight md:text-[30px]">
+              {greeting}, {displayName}
+            </h1>
 
-        <form
-          className="mt-6 flex w-full max-w-2xl items-center gap-2 rounded-full bg-white dark:bg-[#20263d] p-1.5 shadow-lg"
-          onSubmit={(e) => e.preventDefault()}
-        >
-          <Search className="ml-3 h-5 w-5 shrink-0 text-muted-foreground" />
-          <input
-            type="search"
-            placeholder="Buscar por artigos, erros, módulos..."
-            className="h-10 flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
-          />
-          <Button asChild className="rounded-full bg-[#191d33] px-5 text-white hover:bg-[#191d33]/90">
-            <Link to="/base-de-conhecimento">Buscar</Link>
-          </Button>
-        </form>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 border border-white/15 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-sm">
+                <span className="text-sm font-bold">{personalTicketsCount}</span>
+                <span className="text-white/85">{personalTicketsLabel}</span>
+              </span>
+            </div>
+
+            <form
+              className="mt-5 flex w-full max-w-2xl items-center gap-2 rounded-full bg-white dark:bg-[#20263d] p-1.5 shadow-lg"
+              onSubmit={(e) => e.preventDefault()}
+            >
+              <Search className="ml-3 h-5 w-5 shrink-0 text-muted-foreground" />
+              <input
+                type="search"
+                placeholder="Buscar por artigos, erros, módulos..."
+                className="h-10 flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+              />
+              <Button asChild className="rounded-full bg-[#191d33] px-5 text-white hover:bg-[#191d33]/90">
+                <Link to="/base-de-conhecimento">Buscar</Link>
+              </Button>
+            </form>
+          </div>
+
+          {/* Direita: carrossel */}
+          <div className="min-w-0">
+            <div className="relative h-full min-h-[180px] overflow-hidden rounded-2xl border border-white/15 bg-white/10 p-5 backdrop-blur-md">
+              <div className="flex items-center justify-between">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-white/80">
+                  Resumo de ontem
+                </p>
+                <span className="text-[10px] font-medium text-white/60">
+                  {slides[slideIdx].eyebrow}
+                </span>
+              </div>
+
+              <div className="relative mt-4">
+                {slides.map((s, i) => (
+                  <div
+                    key={i}
+                    className={`transition-all duration-700 ease-out ${
+                      i === slideIdx
+                        ? "relative opacity-100 translate-y-0"
+                        : "pointer-events-none absolute inset-0 opacity-0 translate-y-2"
+                    }`}
+                  >
+                    <p className="text-lg font-semibold leading-snug text-white md:text-xl">
+                      {s.primary}
+                    </p>
+                    <p className="mt-2 text-sm text-white/80">{s.secondary}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="absolute bottom-4 left-5 flex gap-1.5">
+                {slides.map((_, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    aria-label={`Slide ${i + 1}`}
+                    onClick={() => setSlideIdx(i)}
+                    className={`h-1.5 rounded-full transition-all ${
+                      i === slideIdx ? "w-6 bg-white" : "w-1.5 bg-white/40 hover:bg-white/60"
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* Atalhos */}
