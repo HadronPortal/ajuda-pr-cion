@@ -257,74 +257,58 @@ function TicketsPage() {
       </section>
 
 
-      <section className="mb-6 grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <Card className="rounded-[14px] border-0 bg-card p-4 shadow-[0_10px_28px_rgba(25,29,51,0.06)]">
-          <div className="grid grid-cols-1 gap-3 lg:grid-cols-[180px_180px_180px_minmax(0,1fr)_auto]">
-            <select
-              value={filters.status}
-              onChange={(event) => setFilters((prev) => ({ ...prev, status: event.target.value }))}
-              className="h-10 cursor-pointer rounded-xl border border-border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-            >
-              <option>Todos</option>
-              {ticketStatuses.map((status) => (
-                <option key={status}>{status}</option>
-              ))}
-            </select>
-            <select
-              value={filters.operator}
-              onChange={(event) => setFilters((prev) => ({ ...prev, operator: event.target.value }))}
-              className="h-10 cursor-pointer rounded-xl border border-border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-            >
-              <option>Todos</option>
-              {ticketOperators.map((operator) => (
-                <option key={operator}>{operator}</option>
-              ))}
-            </select>
-            <select
-              value={filters.dateType}
-              onChange={(event) => setFilters((prev) => ({ ...prev, dateType: event.target.value }))}
-              className="h-10 cursor-pointer rounded-xl border border-border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-            >
-              <option>Registro</option>
-              <option>Atualizado</option>
-            </select>
-            <div className="relative min-w-0">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <input
-                value={filters.query}
-                onChange={(event) => setFilters((prev) => ({ ...prev, query: event.target.value }))}
-                type="search"
-                placeholder="Buscar por cliente, protocolo, assunto, contato..."
-                className="h-10 w-full rounded-xl border border-border bg-background pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-              />
-            </div>
-            <Button
-              type="button"
-              variant="outline"
-              className="cursor-pointer rounded-xl"
-              onClick={() => setFilters(initialFilters)}
-            >
-              <SlidersHorizontal className="mr-1.5 h-4 w-4" />
-              Limpar
-            </Button>
+      <Card className="mb-6 rounded-[14px] border-0 bg-card p-3 shadow-[0_10px_28px_rgba(25,29,51,0.06)]">
+        <div className="flex flex-col gap-2.5 md:flex-row md:flex-wrap md:items-center xl:flex-nowrap">
+          <select
+            value={filters.status}
+            onChange={(event) => setFilters((prev) => ({ ...prev, status: event.target.value }))}
+            className="h-10 w-full shrink-0 cursor-pointer rounded-xl border border-border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring md:w-[160px]"
+          >
+            <option>Todos</option>
+            {ticketStatuses.map((status) => (
+              <option key={status}>{status}</option>
+            ))}
+          </select>
+          <select
+            value={filters.operator}
+            onChange={(event) => setFilters((prev) => ({ ...prev, operator: event.target.value }))}
+            className="h-10 w-full shrink-0 cursor-pointer rounded-xl border border-border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring md:w-[160px]"
+          >
+            <option>Todos</option>
+            {ticketOperators.map((operator) => (
+              <option key={operator}>{operator}</option>
+            ))}
+          </select>
+          <select
+            value={filters.dateType}
+            onChange={(event) => setFilters((prev) => ({ ...prev, dateType: event.target.value }))}
+            className="h-10 w-full shrink-0 cursor-pointer rounded-xl border border-border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring md:w-[150px]"
+          >
+            <option>Registro</option>
+            <option>Atualizado</option>
+          </select>
+          <div className="relative w-full min-w-[240px] flex-1 md:basis-full xl:basis-0">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              value={filters.query}
+              onChange={(event) => setFilters((prev) => ({ ...prev, query: event.target.value }))}
+              type="search"
+              placeholder="Buscar por cliente, protocolo, assunto, contato..."
+              className="h-10 w-full rounded-xl border border-border bg-background pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+            />
           </div>
-        </Card>
+          <Button
+            type="button"
+            variant="outline"
+            className="h-10 w-full shrink-0 cursor-pointer rounded-xl md:w-auto"
+            onClick={() => setFilters(initialFilters)}
+          >
+            <SlidersHorizontal className="mr-1.5 h-4 w-4" />
+            Limpar
+          </Button>
+        </div>
+      </Card>
 
-        <Card className="rounded-[14px] border-0 bg-gradient-to-br from-primary/12 via-card to-card p-5 shadow-[0_10px_28px_rgba(25,29,51,0.06)]">
-          <div className="flex items-start gap-3">
-            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary/12 text-primary">
-              <PhoneCall className="h-5 w-5" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-bold text-foreground">Fluxo novo do cliente</p>
-              <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                O cliente abre o chamado pelo Ajuda Procion; o suporte recebe aqui com origem
-                "Portal do cliente", acompanha SLA e retorna pelo canal definido.
-              </p>
-            </div>
-          </div>
-        </Card>
-      </section>
 
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
         <div>
