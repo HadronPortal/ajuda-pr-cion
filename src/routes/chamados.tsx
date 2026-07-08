@@ -387,8 +387,20 @@ function TicketsPage() {
           </div>
         </div>
         <div className="app-scrollbar overflow-x-auto">
-          <table className="w-full min-w-[1080px] text-sm">
-            <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
+          <table className="w-full min-w-[920px] table-fixed text-[13px]">
+            <colgroup>
+              <col className="w-[136px]" />
+              <col className="w-[54px]" />
+              <col className="w-[92px]" />
+              <col className="w-[92px]" />
+              <col className="w-[84px]" />
+              <col className="w-[96px]" />
+              <col />
+              <col className="w-[110px]" />
+              <col />
+              <col className="w-[74px]" />
+            </colgroup>
+            <thead className="bg-muted/50 text-[11px] uppercase text-muted-foreground">
               <tr>
                 <TableHead>Status/ID</TableHead>
                 <TableHead>P</TableHead>
