@@ -48,7 +48,6 @@ import {
 } from "@/components/ui/chart";
 import {
   dailyTicketAnalytics,
-  supportTickets,
   ticketOperators,
   ticketStatuses,
   weeklyTicketAnalytics,
@@ -56,6 +55,7 @@ import {
   type TicketPriority,
   type TicketStatus,
 } from "@/lib/support-tickets-data";
+import { useTickets } from "@/lib/tickets-store";
 import { cn } from "@/lib/utils";
 import { TicketDetailSheet } from "@/components/tickets/TicketDetailSheet";
 
@@ -120,12 +120,13 @@ const initialFilters: Filters = {
 };
 
 function TicketsPage() {
+  const supportTickets = useTickets();
   const [filters, setFilters] = useState<Filters>(initialFilters);
-  const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
+  const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
 
   const openTicketDetail = (ticket: SupportTicket) => {
-    setSelectedTicket(ticket);
+    setSelectedTicketId(ticket.id);
     setDetailOpen(true);
   };
 
@@ -155,7 +156,7 @@ function TicketsPage() {
         .toLowerCase()
         .includes(query);
     });
-  }, [filters]);
+  }, [filters, supportTickets]);
 
   const openTickets = supportTickets.filter(
     (ticket) => !["Finalizado", "Cancelado"].includes(ticket.status),
@@ -336,7 +337,7 @@ function TicketsPage() {
       </div>
 
       <TicketDetailSheet
-        ticket={selectedTicket}
+        ticketId={selectedTicketId}
         open={detailOpen}
         onOpenChange={setDetailOpen}
       />
