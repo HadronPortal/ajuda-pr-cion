@@ -201,6 +201,7 @@ export const ticketsStore = {
   getTickets: () => tickets,
   getEvents: (id: string) => events[id] ?? [],
   getHistory: (id: string) => history[id] ?? [],
+  getInternalNotes: (id: string) => internalNotes[id] ?? [],
 
   assumeTicket(id: string) {
     const op = operator();
