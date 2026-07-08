@@ -55,9 +55,10 @@ import {
   type TicketPriority,
   type TicketStatus,
 } from "@/lib/support-tickets-data";
-import { useTickets } from "@/lib/tickets-store";
+import { useTickets, useTicketHistory } from "@/lib/tickets-store";
 import { cn } from "@/lib/utils";
 import { TicketDetailSheet } from "@/components/tickets/TicketDetailSheet";
+import { TicketHistoryModal } from "@/components/tickets/TicketHistoryModal";
 
 export const Route = createFileRoute("/chamados")({
   head: () => ({
