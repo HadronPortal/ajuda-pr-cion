@@ -121,6 +121,13 @@ const initialFilters: Filters = {
 
 function TicketsPage() {
   const [filters, setFilters] = useState<Filters>(initialFilters);
+  const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
+
+  const openTicketDetail = (ticket: SupportTicket) => {
+    setSelectedTicket(ticket);
+    setDetailOpen(true);
+  };
 
   const filteredTickets = useMemo(() => {
     const query = filters.query.trim().toLowerCase();
