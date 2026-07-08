@@ -278,24 +278,35 @@ export function TicketDetailSheet({
 
           {/* Header */}
           <header className="shrink-0 border-b border-border bg-card px-5 py-4 md:px-6">
-            <div className="min-w-0 pr-8">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="font-mono text-[12px] font-semibold text-muted-foreground">
-                  {ticket.protocol}
-                </span>
-                <span className="text-[12px] text-muted-foreground">·</span>
-                <span className="text-[12px] text-muted-foreground">
-                  {sourceLabels[ticket.source]}
-                </span>
+            <div className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3 pr-8">
+              <span
+                aria-hidden
+                className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary/12 text-primary ring-1 ring-primary/15"
+              >
+                {(() => {
+                  const Icon = getModuleIcon(ticket.module, ticket.source);
+                  return <Icon className="h-5 w-5" />;
+                })()}
+              </span>
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-mono text-[12px] font-semibold text-muted-foreground">
+                    {ticket.protocol}
+                  </span>
+                  <span className="text-[12px] text-muted-foreground">·</span>
+                  <span className="text-[12px] text-muted-foreground">
+                    {sourceLabels[ticket.source]}
+                  </span>
+                </div>
+                <h2 className="mt-1 truncate text-[18px] font-bold leading-snug text-foreground">
+                  {ticket.subject}
+                </h2>
+                <p className="mt-0.5 truncate text-[12.5px] text-muted-foreground">
+                  <span className="font-semibold text-foreground">{ticket.clientCode}</span>
+                  {" · "}
+                  {ticket.clientName}
+                </p>
               </div>
-              <h2 className="mt-1 truncate text-[18px] font-bold leading-snug text-foreground">
-                {ticket.subject}
-              </h2>
-              <p className="mt-0.5 truncate text-[12.5px] text-muted-foreground">
-                <span className="font-semibold text-foreground">{ticket.clientCode}</span>
-                {" · "}
-                {ticket.clientName}
-              </p>
             </div>
 
             <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -317,6 +328,7 @@ export function TicketDetailSheet({
               )}
             </div>
           </header>
+
 
           {/* Body with side nav + content */}
           <div className="flex flex-1 min-h-0 flex-col md:flex-row">
