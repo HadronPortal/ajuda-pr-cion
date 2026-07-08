@@ -1047,14 +1047,14 @@ function SideItem({
   label,
   collapsed,
   onClick,
-  highlight,
+  active,
   className,
 }: {
   icon: IconComponent;
   label: string;
   collapsed: boolean;
   onClick: () => void;
-  highlight?: boolean;
+  active?: boolean;
   className?: string;
 }) {
   return (
@@ -1063,13 +1063,14 @@ function SideItem({
       onClick={onClick}
       title={collapsed ? label : undefined}
       aria-label={label}
+      aria-pressed={!!active}
       className={cn(
-        sideItemClasses(!!highlight),
+        sideItemClasses(!!active),
         collapsed && "md:justify-center md:px-0",
         className,
       )}
     >
-      <Icon className="h-4 w-4 shrink-0" />
+      <Icon className="h-5 w-5 shrink-0" />
       <span className={cn("truncate", collapsed && "md:hidden")}>{label}</span>
     </button>
   );
