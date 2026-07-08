@@ -87,8 +87,6 @@ function getGreeting(hour: number) {
   return "Boa noite";
 }
 
-const CURRENT_OPERATOR = "PRCSUZ";
-
 function HomePage() {
   const latestArticles = [...kbArticlesFull]
     .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
@@ -104,9 +102,7 @@ function HomePage() {
     return () => clearInterval(id);
   }, []);
 
-  const myTickets = supportTickets.filter(
-    (t) => t.owner === CURRENT_OPERATOR || t.attendant === CURRENT_OPERATOR,
-  );
+  const myTickets = getTicketsForCurrentUser(supportTickets, currentUser);
   const myTicketsCount = myTickets.length;
   const openCount = myTickets.filter((t) => t.status === "Em Aberto").length;
   const overdueCount = myTickets.filter((t) => t.status === "Atrasado").length;
