@@ -331,9 +331,15 @@ function TicketsPage() {
       </div>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         {filteredTickets.map((ticket) => (
-          <TicketCard key={ticket.id} ticket={ticket} />
+          <TicketCard key={ticket.id} ticket={ticket} onOpen={openTicketDetail} />
         ))}
       </div>
+
+      <TicketDetailSheet
+        ticket={selectedTicket}
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+      />
     </AppShell>
   );
 }
