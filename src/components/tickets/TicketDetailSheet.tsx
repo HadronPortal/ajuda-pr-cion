@@ -332,8 +332,28 @@ export function TicketDetailSheet({
 
           {/* Body with side nav + content */}
           <div className="flex flex-1 min-h-0 flex-col md:flex-row">
-            {/* Side nav — apenas Timeline */}
-            <nav className="shrink-0 border-b border-border bg-card px-2 py-2 md:w-[160px] md:border-b-0 md:border-r md:px-2.5 md:py-4">
+            {/* Side nav — apenas Timeline, retrátil */}
+            <nav
+              className={cn(
+                "shrink-0 border-b border-border bg-card px-2 py-2 transition-[width] duration-200 md:border-b-0 md:border-r md:py-4",
+                navCollapsed ? "md:w-[60px] md:px-2" : "md:w-[200px] md:px-2.5",
+              )}
+            >
+              <div className="hidden md:mb-3 md:flex md:justify-end">
+                <button
+                  type="button"
+                  onClick={() => setNavCollapsed((v) => !v)}
+                  aria-label={navCollapsed ? "Expandir menu" : "Retrair menu"}
+                  title={navCollapsed ? "Expandir menu" : "Retrair menu"}
+                  className="grid h-7 w-7 cursor-pointer place-items-center rounded-md border border-border text-muted-foreground transition hover:bg-accent hover:text-foreground"
+                >
+                  {navCollapsed ? (
+                    <ChevronRight className="h-4 w-4" />
+                  ) : (
+                    <ChevronLeft className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
               <ul className="flex gap-1 overflow-x-auto md:flex-col md:gap-0.5 md:overflow-visible">
                 {navItems.map((item) => {
                   const Icon = item.icon;
@@ -342,16 +362,23 @@ export function TicketDetailSheet({
                       <button
                         type="button"
                         onClick={() => setTimelineOpen(true)}
-                        className="flex w-full cursor-pointer items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-left text-[12.5px] font-medium text-muted-foreground transition hover:bg-accent hover:text-foreground"
+                        title={navCollapsed ? item.label : undefined}
+                        aria-label={item.label}
+                        className={cn(
+                          "flex w-full cursor-pointer items-center gap-2 whitespace-nowrap rounded-lg py-2 text-left text-[12.5px] font-medium text-muted-foreground transition hover:bg-accent hover:text-foreground",
+                          navCollapsed ? "md:justify-center md:px-0" : "px-3",
+                          !navCollapsed && "px-3",
+                        )}
                       >
                         <Icon className="h-4 w-4 shrink-0" />
-                        <span>{item.label}</span>
+                        <span className={cn(navCollapsed && "md:hidden")}>{item.label}</span>
                       </button>
                     </li>
                   );
                 })}
               </ul>
             </nav>
+
 
             {/* Content */}
             <div className="flex-1 min-w-0 overflow-y-auto bg-muted/30 px-5 py-5 md:px-6">
