@@ -337,7 +337,7 @@ function TicketsPage() {
       </div>
 
       <TicketDetailSheet
-        ticket={selectedTicket}
+        ticketId={selectedTicketId}
         open={detailOpen}
         onOpenChange={setDetailOpen}
       />
