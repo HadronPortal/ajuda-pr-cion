@@ -456,7 +456,8 @@ export function TicketDetailSheet({
                 </Section>
               </div>
 
-              <div className="mt-3 grid grid-cols-1 gap-3 rounded-2xl border border-border bg-card p-3 sm:grid-cols-3">
+              {/* Datas e responsável — card próprio */}
+              <div className="mt-4 grid grid-cols-1 gap-3 rounded-2xl border border-border bg-card p-3 shadow-[0_6px_18px_rgba(25,29,51,0.04)] sm:grid-cols-3">
                 <CompactInfo icon={CalendarClock} label="Abertura" value={formatDateTime(ticket.openedAt)} />
                 <CompactInfo icon={Clock3} label="Última atualização" value={formatDateTime(ticket.updatedAt)} />
                 <CompactInfo
@@ -466,49 +467,56 @@ export function TicketDetailSheet({
                 />
               </div>
 
-
-
-              {/* Nota interna */}
-              <Section title="Nota interna" icon={NotebookText}>
-                <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                  <p className="inline-flex items-center gap-1.5 rounded-full bg-muted/60 px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
-                    <AlertCircle className="h-3 w-3" />
-                    Visível somente para o time de suporte
-                  </p>
-                  {notes.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => setNotesOpen(true)}
-                      className="inline-flex cursor-pointer items-center gap-1 text-[11px] font-semibold text-primary hover:underline"
+              {/* Nota interna — card separado */}
+              <div className="mt-4">
+                <Section title="Nota interna" icon={NotebookText}>
+                  <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                    <p className="inline-flex items-center gap-1.5 rounded-full bg-muted/60 px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
+                      <AlertCircle className="h-3 w-3" />
+                      Visível somente para o time de suporte
+                    </p>
+                    {notes.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setNotesOpen(true)}
+                        className="inline-flex cursor-pointer items-center gap-1 text-[11px] font-semibold text-primary hover:underline"
+                      >
+                        <NotebookText className="h-3 w-3" />
+                        Ver {notes.length} nota(s)
+                      </button>
+                    )}
+                  </div>
+                  <textarea
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                    rows={3}
+                    placeholder="Escreva uma nota interna sobre este atendimento..."
+                    className="w-full resize-none rounded-xl border border-border bg-background p-3 text-[13px] outline-none focus:ring-2 focus:ring-ring"
+                  />
+                  <div className="mt-3 flex justify-end">
+                    <Button
+                      size="sm"
+                      disabled={!note.trim()}
+                      onClick={handleSaveNote}
+                      className="h-9 cursor-pointer rounded-lg text-[12px]"
                     >
-                      <NotebookText className="h-3 w-3" />
-                      Ver {notes.length} nota(s)
-                    </button>
-                  )}
-                </div>
-                <textarea
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                  rows={3}
-                  placeholder="Escreva uma nota interna sobre este atendimento..."
-                  className="w-full resize-none rounded-xl border border-border bg-background p-3 text-[13px] outline-none focus:ring-2 focus:ring-ring"
-                />
-                <div className="mt-3 flex justify-end">
-                  <Button
-                    size="sm"
-                    disabled={!note.trim()}
-                    onClick={handleSaveNote}
-                    className="h-9 cursor-pointer rounded-lg text-[12px]"
-                  >
-                    <Send className="mr-1.5 h-3.5 w-3.5" />
-                    Salvar nota
-                  </Button>
-                </div>
-              </Section>
+                      <Send className="mr-1.5 h-3.5 w-3.5" />
+                      Salvar nota
+                    </Button>
+                  </div>
+                </Section>
+              </div>
 
               <div className="h-2" />
             </div>
+
+            {/* Chat lateral direito — visível em telas grandes */}
+            <TicketChatPanel
+              ticket={ticket}
+              className="hidden xl:flex xl:w-[340px] 2xl:w-[360px]"
+            />
           </div>
+
 
           {/* Footer */}
           <footer className="shrink-0 border-t border-border bg-card px-5 py-3 md:px-6">
