@@ -3,6 +3,7 @@ import { ProcionLogo } from "./ProcionLogo";
 import dashboardIconUrl from "@/assets/dashboard-menu-icon.png?url";
 import analyticsIconUrl from "@/assets/menu-analytics.png?url";
 import baseIconUrl from "@/assets/menu-base.png?url";
+import chamadosIconUrl from "@/assets/menu-chamados.png?url";
 import customersIconUrl from "@/assets/menu-customers.png?url";
 import kanbanIconUrl from "@/assets/menu-kanban.png?url";
 import updatesIconUrl from "@/assets/menu-updates.png?url";
@@ -13,7 +14,6 @@ import {
   ChevronLeft,
   ChevronRight,
   MessageSquare,
-  MessagesSquare,
 } from "lucide-react";
 import type { ComponentType } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -45,6 +45,7 @@ function createMaskedMenuIcon(maskUrl: string): NavIcon {
 }
 
 const DashboardMenuIcon = createMaskedMenuIcon(dashboardIconUrl);
+const ChamadosMenuIcon = createMaskedMenuIcon(chamadosIconUrl);
 const BaseMenuIcon = createMaskedMenuIcon(baseIconUrl);
 const UpdatesMenuIcon = createMaskedMenuIcon(updatesIconUrl);
 const VersionsMenuIcon = createMaskedMenuIcon(versionsIconUrl);
@@ -55,7 +56,7 @@ const UserMenuIcon = createMaskedMenuIcon(userIconUrl);
 
 const nav: NavItem[] = [
   { to: "/", label: "Dashboard", icon: DashboardMenuIcon, exact: true },
-  { to: "/chamados", label: "Chamados", icon: MessagesSquare },
+  { to: "/chamados", label: "Chamados", icon: ChamadosMenuIcon },
   { to: "/base-de-conhecimento", label: "Base", icon: BaseMenuIcon },
   { to: "/atualizacoes", label: "Atualizações", icon: UpdatesMenuIcon },
   { to: "/versoes", label: "Versões", icon: VersionsMenuIcon },
