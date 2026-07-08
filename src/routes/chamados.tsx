@@ -55,7 +55,9 @@ import {
   type TicketPriority,
   type TicketStatus,
 } from "@/lib/support-tickets-data";
-import { useTickets, useTicketHistory } from "@/lib/tickets-store";
+import { useTickets, useTicketHistory, ticketsStore } from "@/lib/tickets-store";
+import { FileText } from "lucide-react";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { TicketDetailSheet } from "@/components/tickets/TicketDetailSheet";
 import { TicketHistoryModal } from "@/components/tickets/TicketHistoryModal";
@@ -419,6 +421,51 @@ const slaTextTone: Record<"ok" | "warn" | "late", string> = {
   late: "text-destructive",
 };
 
+const sourceIcons: Record<SupportTicket["source"], typeof PhoneCall> = {
+  Telefone: PhoneCall,
+  "Portal do cliente": MessageSquarePlus,
+  WhatsApp: MessageSquarePlus,
+  Email: MessageSquarePlus,
+};
+
+const slaGaugeStroke: Record<"ok" | "warn" | "late", string> = {
+  ok: "stroke-success",
+  warn: "stroke-warning",
+  late: "stroke-destructive",
+};
+
+function SlaGauge({ pct, tone }: { pct: number; tone: "ok" | "warn" | "late" }) {
+  // Semicircle: path from (10,50) arc to (90,50), radius 40.
+  const circumference = Math.PI * 40; // ~125.66
+  const dash = (pct / 100) * circumference;
+  return (
+    <div className="relative flex h-[68px] w-[100px] items-end justify-center">
+      <svg viewBox="0 0 100 58" className="h-full w-full overflow-visible">
+        <path
+          d="M10 50 A40 40 0 0 1 90 50"
+          fill="none"
+          strokeWidth={9}
+          strokeLinecap="round"
+          className="stroke-muted"
+        />
+        <path
+          d="M10 50 A40 40 0 0 1 90 50"
+          fill="none"
+          strokeWidth={9}
+          strokeLinecap="round"
+          strokeDasharray={`${dash} ${circumference}`}
+          className={cn("transition-all", slaGaugeStroke[tone])}
+        />
+      </svg>
+      <div className="pointer-events-none absolute inset-x-0 bottom-1 flex justify-center">
+        <span className={cn("text-[15px] font-bold leading-none", slaTextTone[tone])}>
+          {pct}%
+        </span>
+      </div>
+    </div>
+  );
+}
+
 function TicketCard({
   ticket,
   onOpen,
@@ -429,92 +476,104 @@ function TicketCard({
   onHistory?: (ticket: SupportTicket) => void;
 }) {
   const sla = computeSla(ticket);
+  const SourceIcon = sourceIcons[ticket.source] ?? PhoneCall;
+
+  const handleAssume = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    ticketsStore.assumeTicket(ticket.id);
+    toast.success(`Chamado ${ticket.protocol} assumido.`);
+  };
+
   return (
-    <Card className="flex min-w-0 flex-col gap-4 rounded-[16px] border border-border/70 bg-card p-5 shadow-[0_10px_28px_rgba(25,29,51,0.05)] transition hover:shadow-[0_14px_32px_rgba(25,29,51,0.09)]">
+    <Card className="flex min-w-0 flex-col gap-4 rounded-[16px] border border-border/70 bg-card p-4 shadow-[0_10px_28px_rgba(25,29,51,0.05)] transition hover:shadow-[0_14px_32px_rgba(25,29,51,0.09)] sm:p-5">
+      {/* Top: icon + title + client / protocol + status */}
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="truncate text-[15px] font-bold leading-snug text-foreground">
-            {ticket.subject}
-          </p>
-          <p className="mt-1 truncate text-[12px] text-muted-foreground">
-            <span className="font-semibold text-foreground">{ticket.clientCode}</span>
-            {" · "}
-            {ticket.clientName}
-          </p>
+        <div className="flex min-w-0 items-start gap-3">
+          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary/12 text-primary">
+            <FileText className="h-5 w-5" />
+          </div>
+          <div className="min-w-0">
+            <p className="truncate text-[14px] font-bold leading-snug text-foreground">
+              {ticket.subject}
+            </p>
+            <p className="mt-0.5 truncate text-[11.5px] text-muted-foreground">
+              <span className="font-semibold text-foreground">{ticket.clientCode}</span>
+              {" · "}
+              {ticket.clientName}
+            </p>
+          </div>
         </div>
-        <div className="flex shrink-0 flex-col items-end">
-          <span className="font-mono text-[11px] font-semibold text-foreground">
+        <div className="flex shrink-0 flex-col items-end gap-1">
+          <span className="font-mono text-[10.5px] font-semibold text-muted-foreground">
             {ticket.protocol}
           </span>
-          <span className="mt-0.5 text-[11px] text-muted-foreground">
-            {sourceLabels[ticket.source]}
-          </span>
+          <Badge
+            className={cn(
+              "whitespace-nowrap rounded-full border px-2 py-0.5 text-[10.5px] font-semibold",
+              statusTone[ticket.status],
+            )}
+          >
+            {ticket.status}
+          </Badge>
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <Badge
-          className={cn(
-            "whitespace-nowrap rounded-full border px-2.5 py-0.5 text-[11px] font-semibold",
-            statusTone[ticket.status],
-          )}
-        >
-          {ticket.status}
-        </Badge>
-        {ticket.lockedBy && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-warning/15 px-2 py-0.5 text-[11px] font-medium text-warning-foreground">
-            <LockKeyhole className="h-3 w-3" />
-            Ocupado por {ticket.lockedBy}
-          </span>
-        )}
-      </div>
-
-      <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-[12px]">
-        <InfoRow label="Contato" value={ticket.contact} />
-        <InfoRow label="Modulo" value={ticket.module} />
-        <InfoRow label="Atendente" value={ticket.attendant} />
-        <InfoRow label="Responsavel" value={ticket.owner} />
-        <InfoRow
-          label="Registro"
-          value={<DateCell value={ticket.openedAt} icon={CalendarClock} />}
-        />
-        <InfoRow
-          label="Atualizado"
-          value={<DateCell value={ticket.updatedAt} icon={Clock3} />}
-        />
-      </dl>
-
-      <div>
-        <div className="mb-1 flex items-center justify-between text-[11px]">
-          <span className="font-medium text-muted-foreground">SLA</span>
-          <span className={cn("font-semibold", slaTextTone[sla.tone])}>{sla.pct}%</span>
-        </div>
-        <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
-          <div
-            className={cn("h-full rounded-full transition-all", slaBarTone[sla.tone])}
-            style={{ width: `${sla.pct}%` }}
+      {/* Middle: info grid + SLA gauge */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-stretch">
+        <dl className="grid min-w-0 flex-1 grid-cols-2 gap-x-3 gap-y-2 text-[12px]">
+          <InfoRow icon={UserRound} label="Contato" value={ticket.contact} />
+          <InfoRow icon={Layers} label="Módulo" value={ticket.module} />
+          <InfoRow icon={Headphones} label="Atendente" value={ticket.attendant} />
+          <InfoRow icon={UserPlus} label="Responsável" value={ticket.owner} />
+          <InfoRow
+            icon={CalendarClock}
+            label="Registro"
+            value={formatDateTime(ticket.openedAt)}
           />
+          <InfoRow
+            icon={Clock3}
+            label="Atualizado"
+            value={formatDateTime(ticket.updatedAt)}
+          />
+        </dl>
+
+        <div className="flex shrink-0 flex-col items-center justify-center gap-1 rounded-xl border border-border/60 bg-muted/40 px-3 py-2 sm:w-[118px]">
+          <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+            SLA
+          </span>
+          <SlaGauge pct={sla.pct} tone={sla.tone} />
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-1.5">
-        <Chip className={priorityTone[ticket.priority]}>{ticket.priority}</Chip>
+      {/* Chips */}
+      <div className="flex flex-wrap items-center gap-1.5">
+        <Chip className={priorityTone[ticket.priority]}>
+          <AlertTriangle className="h-3 w-3" />
+          {ticket.priority}
+        </Chip>
         <Chip className="bg-primary/10 text-primary">
-          <PhoneCall className="h-3 w-3" />
+          <SourceIcon className="h-3 w-3" />
           {sourceLabels[ticket.source]}
         </Chip>
         <Link
           to="/base-de-conhecimento"
           search={{ search: ticket.module }}
           onClick={(e) => e.stopPropagation()}
-          className="inline-flex cursor-pointer items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground transition hover:bg-primary/10 hover:text-primary"
+          className="inline-flex cursor-pointer items-center gap-1 whitespace-nowrap rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground transition hover:bg-primary/10 hover:text-primary"
           title={`Buscar "${ticket.module}" na Base de Conhecimento`}
         >
           <FolderKanban className="h-3 w-3" />
           {ticket.module}
         </Link>
+        {ticket.lockedBy && (
+          <Chip className="bg-warning/15 text-warning-foreground">
+            <LockKeyhole className="h-3 w-3" />
+            {ticket.lockedBy}
+          </Chip>
+        )}
       </div>
 
+      {/* Footer actions */}
       <div className="flex items-center justify-between gap-2 border-t border-border/70 pt-3">
         <Button
           size="sm"
@@ -522,12 +581,13 @@ function TicketCard({
           className="h-8 cursor-pointer rounded-lg px-3 text-[12px] shadow-[0_6px_14px_rgba(11,151,196,0.18)]"
         >
           Abrir
-          <ArrowUpRight className="ml-0.5 h-3.5 w-3.5" />
+          <ArrowRight className="ml-0.5 h-3.5 w-3.5" />
         </Button>
         <div className="flex items-center gap-1">
           <Button
             variant="ghost"
             size="sm"
+            onClick={handleAssume}
             className="h-8 cursor-pointer rounded-lg px-2 text-[12px] text-muted-foreground hover:text-foreground"
           >
             <UserPlus className="mr-1 h-3.5 w-3.5" />
@@ -543,7 +603,7 @@ function TicketCard({
             className="h-8 cursor-pointer rounded-lg px-2 text-[12px] text-muted-foreground hover:text-foreground"
           >
             <History className="mr-1 h-3.5 w-3.5" />
-            Historico
+            Histórico
           </Button>
         </div>
       </div>
@@ -574,11 +634,24 @@ function HistoryModalHost({
   );
 }
 
-function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
+function InfoRow({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: typeof CalendarClock;
+  label: string;
+  value: React.ReactNode;
+}) {
   return (
-    <div className="min-w-0">
-      <dt className="text-[10.5px] uppercase tracking-wide text-muted-foreground">{label}</dt>
-      <dd className="mt-0.5 truncate text-[12.5px] font-medium text-foreground">{value}</dd>
+    <div className="flex min-w-0 items-start gap-1.5">
+      <Icon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+      <div className="min-w-0">
+        <dt className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+          {label}
+        </dt>
+        <dd className="mt-0.5 truncate text-[12px] font-semibold text-foreground">{value}</dd>
+      </div>
     </div>
   );
 }
@@ -596,15 +669,12 @@ function Chip({ className, children }: { className?: string; children: React.Rea
   );
 }
 
-function DateCell({ value, icon: Icon }: { value: string; icon: typeof CalendarClock }) {
+function formatDateTime(value: string) {
   const date = new Date(value);
-  return (
-    <span className="inline-flex items-center gap-1 whitespace-nowrap">
-      <Icon className="h-3 w-3" />
-      {date.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}{" "}
-      {date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
-    </span>
-  );
+  return `${date.toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+  })} ${date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
 }
 
 
