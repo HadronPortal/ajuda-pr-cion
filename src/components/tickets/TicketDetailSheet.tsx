@@ -13,6 +13,7 @@ import {
   Mail,
   MapPin,
   MessageSquare,
+  NotebookText,
   Paperclip,
   Phone,
   PlayCircle,
@@ -51,11 +52,15 @@ import {
 import {
   ticketsStore,
   useTicket,
+  useTicketEvents,
   useTicketHistory,
+  useTicketNotes,
   type ClosurePayload,
+  type TicketEvent,
 } from "@/lib/tickets-store";
 import { currentUser } from "@/lib/mock-data";
 import { TicketHistoryModal } from "./TicketHistoryModal";
+import { TicketNotesModal } from "./TicketNotesModal";
 
 const statusTone: Record<TicketStatus, string> = {
   Atrasado: "bg-destructive/12 text-destructive border-destructive/20",
@@ -226,6 +231,27 @@ const slaBarTone: Record<"ok" | "warn" | "late", string> = {
   late: "bg-destructive",
 };
 
+const timelineIcon: Record<TicketEvent["kind"], typeof Info> = {
+  created: MessageSquare,
+  attached: Paperclip,
+  assumed: UserPlus,
+  attend: PlayCircle,
+  status: ShieldCheck,
+  message: Send,
+  note: FileText,
+  closed: CheckCircle2,
+};
+
+const timelineTone: Record<TicketEvent["kind"], string> = {
+  created: "bg-primary/12 text-primary",
+  attached: "bg-muted text-foreground",
+  assumed: "bg-[#e7faf1] text-[#1f9860] dark:bg-[#14382b] dark:text-[#8ee8be]",
+  attend: "bg-[#fff1d6] text-[#b66a00] dark:bg-[#4d3516] dark:text-[#ffd28a]",
+  status: "bg-[#e8f3ff] text-[#246cb5] dark:bg-[#17314e] dark:text-[#9dcaff]",
+  message: "bg-[#f2eaff] text-[#7253bd] dark:bg-[#2e2549] dark:text-[#c7b8ff]",
+  note: "bg-muted text-foreground",
+  closed: "bg-success/15 text-success",
+};
 
 const clientStatusTone: Record<ClientMock["status"], string> = {
   Ativo: "bg-success/12 text-success border-success/20",
@@ -245,16 +271,26 @@ export function TicketDetailSheet({
 }) {
   const ticket = useTicket(ticketId);
   const historyList = useTicketHistory(ticketId);
+  const events = useTicketEvents(ticketId);
+  const notes = useTicketNotes(ticketId);
 
   const [note, setNote] = useState("");
   const [statusOpen, setStatusOpen] = useState(false);
   const [closeOpen, setCloseOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [notesOpen, setNotesOpen] = useState(false);
+  const [showAllTimeline, setShowAllTimeline] = useState(false);
 
   const mock = useMemo(() => (ticket ? buildMock(ticket) : null), [ticket]);
   const sla = useMemo(() => (ticket ? computeSla(ticket) : null), [ticket]);
 
   if (!ticket || !mock || !sla) return null;
+
+  const timelineEvents = events.filter((e) => e.kind !== "note");
+  const timelineSorted = [...timelineEvents].sort(
+    (a, b) => new Date(b.when).getTime() - new Date(a.when).getTime(),
+  );
+  const timelineShown = showAllTimeline ? timelineSorted : timelineSorted.slice(0, 5);
 
   const isMine =
     ticket.owner === currentUser.operator || ticket.lockedBy === currentUser.operator;
@@ -275,9 +311,9 @@ export function TicketDetailSheet({
   const handleSaveNote = () => {
     const text = note.trim();
     if (!text) return;
-    ticketsStore.addNote(ticket.id, text);
+    ticketsStore.addInternalNote(ticket.id, text);
     setNote("");
-    toast.success("Nota interna adicionada ao histórico");
+    toast.success("Nota interna salva");
   };
   const handleClose = (payload: ClosurePayload) => {
     ticketsStore.closeTicket(ticket.id, payload);
@@ -420,7 +456,26 @@ export function TicketDetailSheet({
               <SectionCard title="Detalhes do chamado" icon={Info} className="lg:col-span-2">
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                   <Field icon={Tag} label="Assunto" value={ticket.subject} />
-                  <Field icon={FileText} label="Módulo" value={ticket.module} />
+                  <Field
+                    icon={FileText}
+                    label="Módulo"
+                    value={
+                      <span className="inline-flex w-full items-center justify-end gap-1.5">
+                        <span className="truncate">{ticket.module}</span>
+                        {notes.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => setNotesOpen(true)}
+                            title="Ver nota interna"
+                            aria-label="Ver nota interna"
+                            className="grid h-5 w-5 shrink-0 cursor-pointer place-items-center rounded-md bg-primary/10 text-primary transition hover:bg-primary/20"
+                          >
+                            <NotebookText className="h-3 w-3" />
+                          </button>
+                        )}
+                      </span>
+                    }
+                  />
                   <Field icon={Tag} label="Categoria" value={mock.category} />
                   <Field
                     icon={CalendarClock}
@@ -455,11 +510,77 @@ export function TicketDetailSheet({
 
 
 
-              <SectionCard title="Nota interna" icon={Send} className="lg:col-span-2">
-                <p className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-muted/60 px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
-                  <AlertCircle className="h-3 w-3" />
-                  Visível somente para o time de suporte
-                </p>
+
+              <SectionCard title="Timeline" icon={History} className="lg:col-span-2">
+                {timelineShown.length === 0 ? (
+                  <p className="py-4 text-center text-[12px] text-muted-foreground">
+                    Nenhum evento registrado ainda.
+                  </p>
+                ) : (
+                  <>
+                    <ol className="relative space-y-4 border-l border-border pl-5">
+                      {timelineShown.map((event) => {
+                        const Icon = timelineIcon[event.kind];
+                        return (
+                          <li key={event.id} className="relative">
+                            <span
+                              className={cn(
+                                "absolute -left-[30px] top-0 grid h-6 w-6 place-items-center rounded-full ring-4 ring-card",
+                                timelineTone[event.kind],
+                              )}
+                            >
+                              <Icon className="h-3 w-3" />
+                            </span>
+                            <div className="flex flex-wrap items-baseline justify-between gap-2">
+                              <p className="text-[13px] font-semibold text-foreground">
+                                {event.actor}{" "}
+                                <span className="text-[11px] font-normal text-muted-foreground">
+                                  · {event.actorType}
+                                </span>
+                              </p>
+                              <span className="text-[11px] text-muted-foreground">
+                                {formatDateTime(event.when)}
+                              </span>
+                            </div>
+                            <p className="mt-0.5 text-[12.5px] text-muted-foreground">
+                              {event.description}
+                            </p>
+                          </li>
+                        );
+                      })}
+                    </ol>
+                    {timelineSorted.length > 5 && (
+                      <div className="mt-3 flex justify-center">
+                        <button
+                          type="button"
+                          onClick={() => setShowAllTimeline((v) => !v)}
+                          className="cursor-pointer text-[12px] font-semibold text-primary hover:underline"
+                        >
+                          {showAllTimeline ? "Ver menos" : `Ver mais (${timelineSorted.length - 5})`}
+                        </button>
+                      </div>
+                    )}
+                  </>
+                )}
+              </SectionCard>
+
+              <SectionCard title="Nota interna" icon={NotebookText} className="lg:col-span-2">
+                <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                  <p className="inline-flex items-center gap-1.5 rounded-full bg-muted/60 px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
+                    <AlertCircle className="h-3 w-3" />
+                    Visível somente para o time de suporte
+                  </p>
+                  {notes.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setNotesOpen(true)}
+                      className="inline-flex cursor-pointer items-center gap-1 text-[11px] font-semibold text-primary hover:underline"
+                    >
+                      <NotebookText className="h-3 w-3" />
+                      Ver {notes.length} nota(s)
+                    </button>
+                  )}
+                </div>
                 <textarea
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
@@ -593,6 +714,13 @@ export function TicketDetailSheet({
         onOpenChange={setHistoryOpen}
         ticket={ticket}
         historyItems={historyList}
+      />
+
+      <TicketNotesModal
+        open={notesOpen}
+        onOpenChange={setNotesOpen}
+        notes={notes}
+        protocol={ticket.protocol}
       />
     </>
   );

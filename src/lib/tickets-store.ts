@@ -44,9 +44,17 @@ export type ClosurePayload = {
   generateKbArticle: boolean;
 };
 
+export type InternalNote = {
+  id: string;
+  operator: string;
+  createdAt: string;
+  text: string;
+};
+
 let tickets: SupportTicket[] = supportTickets.map((t) => ({ ...t }));
 const events: Record<string, TicketEvent[]> = {};
 const history: Record<string, PastAttendance[]> = {};
+const internalNotes: Record<string, InternalNote[]> = {};
 
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((l) => l());
@@ -193,6 +201,7 @@ export const ticketsStore = {
   getTickets: () => tickets,
   getEvents: (id: string) => events[id] ?? [],
   getHistory: (id: string) => history[id] ?? [],
+  getInternalNotes: (id: string) => internalNotes[id] ?? [],
 
   assumeTicket(id: string) {
     const op = operator();
@@ -250,37 +259,22 @@ export const ticketsStore = {
     emit();
   },
 
-  addNote(id: string, note: string) {
+  addInternalNote(id: string, note: string) {
     const op = operator();
-    const ticket = tickets.find((t) => t.id === id);
-    updateTicket(id, {});
     const when = nowIso();
-    pushEvent(id, {
-      kind: "note",
-      when,
-      actor: op,
-      actorType: "suporte",
-      description: `Nota interna: ${note}`,
-    });
-    if (ticket) {
-      const entry: PastAttendance = {
-        id: `${id}-note-${nextEventId()}`,
-        title: "NOTA INTERNA",
-        status: ticket.status,
-        module: ticket.module,
-        priority: ticket.priority,
-        operator: op,
-        date: when,
-        protocol: ticket.protocol,
-        description: note,
-      };
-      history[id] = [entry, ...(history[id] ?? [])];
-    }
+    const entry: InternalNote = {
+      id: `note-${Date.now().toString(36)}-${++eventCounter}`,
+      operator: op,
+      createdAt: when,
+      text: note,
+    };
+    internalNotes[id] = [entry, ...(internalNotes[id] ?? [])];
+    updateTicket(id, {});
     emit();
   },
 
-  addInternalNote(id: string, note: string) {
-    this.addNote(id, note);
+  addNote(id: string, note: string) {
+    this.addInternalNote(id, note);
   },
 };
 
@@ -302,6 +296,15 @@ export function useTicket(id: string | null | undefined): SupportTicket | null {
 
 const EMPTY_EVENTS: TicketEvent[] = [];
 const EMPTY_HISTORY: PastAttendance[] = [];
+const EMPTY_NOTES: InternalNote[] = [];
+
+export function useTicketNotes(id: string | null | undefined): InternalNote[] {
+  const getSnap = useCallback(
+    () => (id ? ticketsStore.getInternalNotes(id) : EMPTY_NOTES),
+    [id],
+  );
+  return useSyncExternalStore(ticketsStore.subscribe, getSnap, getSnap);
+}
 
 export function useTicketEvents(id: string | null | undefined): TicketEvent[] {
   const getSnap = useCallback(
