@@ -15,6 +15,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { currentUser } from "@/lib/mock-data";
 import { supportTickets } from "@/lib/support-tickets-data";
+import { getTicketsForCurrentUser } from "@/lib/tickets-scope";
 import { Badge } from "@/components/ui/badge";
 import { kbArticlesFull, kbCategoriesFull } from "@/lib/kb-data";
 import { versions } from "@/lib/mock-data";
