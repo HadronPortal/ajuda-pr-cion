@@ -5,10 +5,8 @@ import {
   Building2,
   CalendarClock,
   CheckCircle2,
-  ChevronRight,
   Clock3,
   FileText,
-  FolderKanban,
   History,
   Info,
   LockKeyhole,
@@ -53,12 +51,11 @@ import {
 import {
   ticketsStore,
   useTicket,
-  useTicketEvents,
   useTicketHistory,
   type ClosurePayload,
-  type TicketEvent,
 } from "@/lib/tickets-store";
 import { currentUser } from "@/lib/mock-data";
+import { TicketHistoryModal } from "./TicketHistoryModal";
 
 const statusTone: Record<TicketStatus, string> = {
   Atrasado: "bg-destructive/12 text-destructive border-destructive/20",
