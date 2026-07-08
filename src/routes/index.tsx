@@ -5,11 +5,11 @@ import {
   BookOpen,
   GitBranch,
   KanbanSquare,
-  Search,
   Sparkles,
   Clock,
   Tag,
 } from "lucide-react";
+import { SefazStatusPanel } from "@/components/portal/SefazStatusPanel";
 import { AppShell } from "@/components/portal/AppShell";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -166,20 +166,10 @@ function HomePage() {
               </span>
             </div>
 
-            <form
-              className="mt-5 flex w-full max-w-2xl items-center gap-2 rounded-full bg-white dark:bg-[#20263d] p-1.5 shadow-lg"
-              onSubmit={(e) => e.preventDefault()}
-            >
-              <Search className="ml-3 h-5 w-5 shrink-0 text-muted-foreground" />
-              <input
-                type="search"
-                placeholder="Buscar por artigos, erros, módulos..."
-                className="h-10 flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
-              />
-              <Button asChild className="rounded-full bg-[#191d33] px-5 text-white hover:bg-[#191d33]/90">
-                <Link to="/base-de-conhecimento">Buscar</Link>
-              </Button>
-            </form>
+            <div className="mt-5 max-w-2xl">
+              <SefazStatusPanel />
+            </div>
+
           </div>
 
           {/* Direita: carrossel */}
