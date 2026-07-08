@@ -483,6 +483,7 @@ function TicketCard({ ticket, onOpen }: { ticket: SupportTicket; onOpen?: (ticke
       <div className="flex items-center justify-between gap-2 border-t border-border/70 pt-3">
         <Button
           size="sm"
+          onClick={() => onOpen?.(ticket)}
           className="h-8 cursor-pointer rounded-lg px-3 text-[12px] shadow-[0_6px_14px_rgba(11,151,196,0.18)]"
         >
           Abrir
