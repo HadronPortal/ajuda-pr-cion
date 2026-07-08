@@ -174,7 +174,7 @@ function HomePage() {
 
           {/* Direita: carrossel */}
           <div className="min-w-0">
-            <div className="relative h-full min-h-[180px] overflow-hidden rounded-2xl border border-white/15 bg-white/10 p-5 backdrop-blur-md">
+            <div className="relative flex h-full min-h-[200px] flex-col overflow-hidden rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur-md lg:h-[266px]">
               <div className="flex items-center justify-between">
                 <p className="text-[11px] font-semibold uppercase tracking-wider text-white/80">
                   Resumo de ontem
@@ -184,25 +184,25 @@ function HomePage() {
                 </span>
               </div>
 
-              <div className="relative mt-4">
+              <div className="relative mt-3 flex-1">
                 {slides.map((s, i) => (
                   <div
                     key={i}
-                    className={`transition-all duration-700 ease-out ${
+                    className={`absolute inset-0 transition-all duration-500 ease-out ${
                       i === slideIdx
-                        ? "relative opacity-100 translate-y-0"
-                        : "pointer-events-none absolute inset-0 opacity-0 translate-y-2"
+                        ? "opacity-100 translate-y-0"
+                        : "pointer-events-none opacity-0 translate-y-2"
                     }`}
                   >
-                    <p className="text-lg font-semibold leading-snug text-white md:text-xl">
+                    <p className="text-base font-semibold leading-snug text-white md:text-lg">
                       {s.primary}
                     </p>
-                    <p className="mt-2 text-sm text-white/80">{s.secondary}</p>
+                    <p className="mt-1.5 text-[12.5px] leading-snug text-white/80">{s.secondary}</p>
                   </div>
                 ))}
               </div>
 
-              <div className="absolute bottom-4 left-5 flex gap-1.5">
+              <div className="mt-3 flex gap-1.5">
                 {slides.map((_, i) => (
                   <button
                     key={i}
