@@ -166,7 +166,7 @@ function HomePage() {
               </span>
             </div>
 
-            <div className="mt-5 max-w-2xl">
+            <div className="mt-5 max-w-2xl lg:h-[266px]">
               <SefazStatusPanel />
             </div>
 
