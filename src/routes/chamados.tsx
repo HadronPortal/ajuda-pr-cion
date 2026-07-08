@@ -125,10 +125,17 @@ function TicketsPage() {
   const [filters, setFilters] = useState<Filters>(initialFilters);
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [historyTicketId, setHistoryTicketId] = useState<string | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const openTicketDetail = (ticket: SupportTicket) => {
     setSelectedTicketId(ticket.id);
     setDetailOpen(true);
+  };
+
+  const openTicketHistory = (ticket: SupportTicket) => {
+    setHistoryTicketId(ticket.id);
+    setHistoryOpen(true);
   };
 
   const filteredTickets = useMemo(() => {
