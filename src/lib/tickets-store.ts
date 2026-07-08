@@ -280,9 +280,12 @@ export function useTicket(id: string | null | undefined): SupportTicket | null {
   return all.find((t) => t.id === id) ?? null;
 }
 
+const EMPTY_EVENTS: TicketEvent[] = [];
+const EMPTY_HISTORY: PastAttendance[] = [];
+
 export function useTicketEvents(id: string | null | undefined): TicketEvent[] {
   const getSnap = useCallback(
-    () => (id ? ticketsStore.getEvents(id) : []),
+    () => (id ? ticketsStore.getEvents(id) : EMPTY_EVENTS),
     [id],
   );
   return useSyncExternalStore(ticketsStore.subscribe, getSnap, getSnap);
@@ -290,8 +293,9 @@ export function useTicketEvents(id: string | null | undefined): TicketEvent[] {
 
 export function useTicketHistory(id: string | null | undefined): PastAttendance[] {
   const getSnap = useCallback(
-    () => (id ? ticketsStore.getHistory(id) : []),
+    () => (id ? ticketsStore.getHistory(id) : EMPTY_HISTORY),
     [id],
   );
   return useSyncExternalStore(ticketsStore.subscribe, getSnap, getSnap);
 }
+
