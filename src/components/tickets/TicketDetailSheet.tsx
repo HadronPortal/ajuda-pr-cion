@@ -2,29 +2,36 @@ import { forwardRef, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   AlertCircle,
+  Boxes,
   Building2,
   CalendarClock,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   Clock3,
   FileText,
   Folder,
-  Gauge,
+  Globe,
   History,
   Info,
   LayoutGrid,
   LockKeyhole,
-  Mail,
   MapPin,
+  MessageCircle,
   MessageSquare,
   NotebookText,
   Paperclip,
   Phone,
   PlayCircle,
+  ReceiptText,
   Send,
   ShieldCheck,
+  Ticket as TicketIcon,
   UserCheck,
   UserPlus,
   UserRound,
+  Users,
+  Wallet,
 } from "lucide-react";
 import {
   Dialog,
@@ -63,6 +70,7 @@ import { currentUser } from "@/lib/mock-data";
 import { TicketHistoryModal } from "./TicketHistoryModal";
 import { TicketNotesModal } from "./TicketNotesModal";
 import { TicketTimelineModal } from "./TicketTimelineModal";
+import { TicketChatPanel } from "./TicketChatPanel";
 
 const statusTone: Record<TicketStatus, string> = {
   Atrasado: "bg-destructive/12 text-destructive border-destructive/20",
@@ -186,6 +194,17 @@ const navItems: { key: NavKey; label: string; icon: typeof Info }[] = [
   { key: "timeline", label: "Timeline", icon: History },
 ];
 
+function getModuleIcon(module: string, source?: string): typeof Info {
+  const m = (module ?? "").toLowerCase();
+  const s = (source ?? "").toLowerCase();
+  if (/nfe|nota|fiscal/.test(m)) return ReceiptText;
+  if (/financ|conta|caixa|banco/.test(m)) return Wallet;
+  if (/terceiros|cadastro|cliente|fornecedor/.test(m)) return Users;
+  if (/estoque|produto/.test(m)) return Boxes;
+  if (/hadron|web|portal/.test(m) || s.includes("portal")) return Globe;
+  return TicketIcon;
+}
+
 
 export function TicketDetailSheet({
   ticketId,
@@ -207,6 +226,8 @@ export function TicketDetailSheet({
   const [historyOpen, setHistoryOpen] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
   const [timelineOpen, setTimelineOpen] = useState(false);
+  const [navCollapsed, setNavCollapsed] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
 
   const mock = useMemo(() => (ticket ? buildMock(ticket) : null), [ticket]);
   const sla = useMemo(() => (ticket ? computeSla(ticket) : null), [ticket]);
@@ -249,7 +270,7 @@ export function TicketDetailSheet({
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent
-          className="flex max-h-[92vh] w-[calc(100vw-1rem)] max-w-none flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-background p-0 shadow-[0_30px_80px_rgba(0,0,0,0.35)] sm:w-[calc(100vw-2rem)] md:max-h-[88vh] md:w-[960px] lg:w-[1080px] xl:w-[1140px]"
+          className="flex max-h-[92vh] w-[calc(100vw-1rem)] max-w-none flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-background p-0 shadow-[0_30px_80px_rgba(0,0,0,0.35)] sm:w-[calc(100vw-2rem)] md:max-h-[88vh] md:w-[960px] lg:w-[1120px] xl:w-[1420px] 2xl:w-[1500px]"
         >
           <DialogTitle className="sr-only">
             Detalhes do chamado {ticket.protocol}
@@ -257,24 +278,35 @@ export function TicketDetailSheet({
 
           {/* Header */}
           <header className="shrink-0 border-b border-border bg-card px-5 py-4 md:px-6">
-            <div className="min-w-0 pr-8">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="font-mono text-[12px] font-semibold text-muted-foreground">
-                  {ticket.protocol}
-                </span>
-                <span className="text-[12px] text-muted-foreground">·</span>
-                <span className="text-[12px] text-muted-foreground">
-                  {sourceLabels[ticket.source]}
-                </span>
+            <div className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3 pr-8">
+              <span
+                aria-hidden
+                className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary/12 text-primary ring-1 ring-primary/15"
+              >
+                {(() => {
+                  const Icon = getModuleIcon(ticket.module, ticket.source);
+                  return <Icon className="h-5 w-5" />;
+                })()}
+              </span>
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-mono text-[12px] font-semibold text-muted-foreground">
+                    {ticket.protocol}
+                  </span>
+                  <span className="text-[12px] text-muted-foreground">·</span>
+                  <span className="text-[12px] text-muted-foreground">
+                    {sourceLabels[ticket.source]}
+                  </span>
+                </div>
+                <h2 className="mt-1 truncate text-[18px] font-bold leading-snug text-foreground">
+                  {ticket.subject}
+                </h2>
+                <p className="mt-0.5 truncate text-[12.5px] text-muted-foreground">
+                  <span className="font-semibold text-foreground">{ticket.clientCode}</span>
+                  {" · "}
+                  {ticket.clientName}
+                </p>
               </div>
-              <h2 className="mt-1 truncate text-[18px] font-bold leading-snug text-foreground">
-                {ticket.subject}
-              </h2>
-              <p className="mt-0.5 truncate text-[12.5px] text-muted-foreground">
-                <span className="font-semibold text-foreground">{ticket.clientCode}</span>
-                {" · "}
-                {ticket.clientName}
-              </p>
             </div>
 
             <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -297,10 +329,31 @@ export function TicketDetailSheet({
             </div>
           </header>
 
+
           {/* Body with side nav + content */}
           <div className="flex flex-1 min-h-0 flex-col md:flex-row">
-            {/* Side nav — apenas Timeline */}
-            <nav className="shrink-0 border-b border-border bg-card px-2 py-2 md:w-[160px] md:border-b-0 md:border-r md:px-2.5 md:py-4">
+            {/* Side nav — apenas Timeline, retrátil */}
+            <nav
+              className={cn(
+                "shrink-0 border-b border-border bg-card px-2 py-2 transition-[width] duration-200 md:border-b-0 md:border-r md:py-4",
+                navCollapsed ? "md:w-[60px] md:px-2" : "md:w-[200px] md:px-2.5",
+              )}
+            >
+              <div className="hidden md:mb-3 md:flex md:justify-end">
+                <button
+                  type="button"
+                  onClick={() => setNavCollapsed((v) => !v)}
+                  aria-label={navCollapsed ? "Expandir menu" : "Retrair menu"}
+                  title={navCollapsed ? "Expandir menu" : "Retrair menu"}
+                  className="grid h-7 w-7 cursor-pointer place-items-center rounded-md border border-border text-muted-foreground transition hover:bg-accent hover:text-foreground"
+                >
+                  {navCollapsed ? (
+                    <ChevronRight className="h-4 w-4" />
+                  ) : (
+                    <ChevronLeft className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
               <ul className="flex gap-1 overflow-x-auto md:flex-col md:gap-0.5 md:overflow-visible">
                 {navItems.map((item) => {
                   const Icon = item.icon;
@@ -309,16 +362,23 @@ export function TicketDetailSheet({
                       <button
                         type="button"
                         onClick={() => setTimelineOpen(true)}
-                        className="flex w-full cursor-pointer items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-left text-[12.5px] font-medium text-muted-foreground transition hover:bg-accent hover:text-foreground"
+                        title={navCollapsed ? item.label : undefined}
+                        aria-label={item.label}
+                        className={cn(
+                          "flex w-full cursor-pointer items-center gap-2 whitespace-nowrap rounded-lg py-2 text-left text-[12.5px] font-medium text-muted-foreground transition hover:bg-accent hover:text-foreground",
+                          navCollapsed ? "md:justify-center md:px-0" : "px-3",
+                          !navCollapsed && "px-3",
+                        )}
                       >
                         <Icon className="h-4 w-4 shrink-0" />
-                        <span>{item.label}</span>
+                        <span className={cn(navCollapsed && "md:hidden")}>{item.label}</span>
                       </button>
                     </li>
                   );
                 })}
               </ul>
             </nav>
+
 
             {/* Content */}
             <div className="flex-1 min-w-0 overflow-y-auto bg-muted/30 px-5 py-5 md:px-6">
@@ -396,7 +456,8 @@ export function TicketDetailSheet({
                 </Section>
               </div>
 
-              <div className="mt-3 grid grid-cols-1 gap-3 rounded-2xl border border-border bg-card p-3 sm:grid-cols-3">
+              {/* Datas e responsável — card próprio */}
+              <div className="mt-4 grid grid-cols-1 gap-3 rounded-2xl border border-border bg-card p-3 shadow-[0_6px_18px_rgba(25,29,51,0.04)] sm:grid-cols-3">
                 <CompactInfo icon={CalendarClock} label="Abertura" value={formatDateTime(ticket.openedAt)} />
                 <CompactInfo icon={Clock3} label="Última atualização" value={formatDateTime(ticket.updatedAt)} />
                 <CompactInfo
@@ -406,49 +467,56 @@ export function TicketDetailSheet({
                 />
               </div>
 
-
-
-              {/* Nota interna */}
-              <Section title="Nota interna" icon={NotebookText}>
-                <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                  <p className="inline-flex items-center gap-1.5 rounded-full bg-muted/60 px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
-                    <AlertCircle className="h-3 w-3" />
-                    Visível somente para o time de suporte
-                  </p>
-                  {notes.length > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => setNotesOpen(true)}
-                      className="inline-flex cursor-pointer items-center gap-1 text-[11px] font-semibold text-primary hover:underline"
+              {/* Nota interna — card separado */}
+              <div className="mt-4">
+                <Section title="Nota interna" icon={NotebookText}>
+                  <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                    <p className="inline-flex items-center gap-1.5 rounded-full bg-muted/60 px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
+                      <AlertCircle className="h-3 w-3" />
+                      Visível somente para o time de suporte
+                    </p>
+                    {notes.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setNotesOpen(true)}
+                        className="inline-flex cursor-pointer items-center gap-1 text-[11px] font-semibold text-primary hover:underline"
+                      >
+                        <NotebookText className="h-3 w-3" />
+                        Ver {notes.length} nota(s)
+                      </button>
+                    )}
+                  </div>
+                  <textarea
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                    rows={3}
+                    placeholder="Escreva uma nota interna sobre este atendimento..."
+                    className="w-full resize-none rounded-xl border border-border bg-background p-3 text-[13px] outline-none focus:ring-2 focus:ring-ring"
+                  />
+                  <div className="mt-3 flex justify-end">
+                    <Button
+                      size="sm"
+                      disabled={!note.trim()}
+                      onClick={handleSaveNote}
+                      className="h-9 cursor-pointer rounded-lg text-[12px]"
                     >
-                      <NotebookText className="h-3 w-3" />
-                      Ver {notes.length} nota(s)
-                    </button>
-                  )}
-                </div>
-                <textarea
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                  rows={3}
-                  placeholder="Escreva uma nota interna sobre este atendimento..."
-                  className="w-full resize-none rounded-xl border border-border bg-background p-3 text-[13px] outline-none focus:ring-2 focus:ring-ring"
-                />
-                <div className="mt-3 flex justify-end">
-                  <Button
-                    size="sm"
-                    disabled={!note.trim()}
-                    onClick={handleSaveNote}
-                    className="h-9 cursor-pointer rounded-lg text-[12px]"
-                  >
-                    <Send className="mr-1.5 h-3.5 w-3.5" />
-                    Salvar nota
-                  </Button>
-                </div>
-              </Section>
+                      <Send className="mr-1.5 h-3.5 w-3.5" />
+                      Salvar nota
+                    </Button>
+                  </div>
+                </Section>
+              </div>
 
               <div className="h-2" />
             </div>
+
+            {/* Chat lateral direito — visível em telas grandes */}
+            <TicketChatPanel
+              ticket={ticket}
+              className="hidden xl:flex xl:w-[340px] 2xl:w-[360px]"
+            />
           </div>
+
 
           {/* Footer */}
           <footer className="shrink-0 border-t border-border bg-card px-5 py-3 md:px-6">
@@ -502,6 +570,16 @@ export function TicketDetailSheet({
                   <History className="mr-1.5 h-3.5 w-3.5" />
                   Histórico
                 </Button>
+
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setChatOpen(true)}
+                  className="h-9 cursor-pointer rounded-lg px-3 text-[12px] xl:hidden"
+                >
+                  <MessageCircle className="mr-1.5 h-3.5 w-3.5" />
+                  Chat
+                </Button>
               </div>
 
               {isMine && (
@@ -542,6 +620,19 @@ export function TicketDetailSheet({
         ticket={ticket}
         events={timelineEvents}
       />
+
+      {/* Chat como modal para notebook/mobile */}
+      <Dialog open={chatOpen} onOpenChange={setChatOpen}>
+        <DialogContent className="flex h-[85vh] max-h-[85vh] w-[calc(100vw-1rem)] max-w-md flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-background p-0 sm:w-[420px]">
+          <DialogTitle className="sr-only">Chat com o cliente</DialogTitle>
+          <TicketChatPanel
+            ticket={ticket}
+            className="flex-1 border-l-0"
+            onClose={() => setChatOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
+
 
     </>
   );
