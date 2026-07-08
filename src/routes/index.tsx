@@ -8,6 +8,12 @@ import {
   Sparkles,
   Clock,
   Tag,
+  BarChart3,
+  CheckCircle2,
+  Clock3,
+  Headphones,
+  Star,
+  Users,
 } from "lucide-react";
 import { SefazStatusPanel } from "@/components/portal/SefazStatusPanel";
 import { AppShell } from "@/components/portal/AppShell";
@@ -70,6 +76,109 @@ const shortcuts = [
     tone: "bg-primary/10 text-[#4d5bd8]",
   },
 ] as const;
+
+function TodaySummaryCard() {
+  const bars = [8, 15, 12, 9, 4];
+  return (
+    <div className="relative flex min-h-[320px] flex-col overflow-hidden rounded-2xl border border-white/14 bg-[linear-gradient(135deg,rgba(36,133,213,0.42),rgba(49,56,102,0.78))] p-5 backdrop-blur-md">
+      <div className="flex items-center justify-between gap-4">
+        <p className="text-[11px] font-bold uppercase tracking-wider text-white/85">
+          Resumo de hoje
+        </p>
+        <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-white/65">
+          <BarChart3 className="h-3.5 w-3.5" />
+          Volume
+        </span>
+      </div>
+
+      <div className="mt-5">
+        <p className="text-[13px] text-white/88">Hoje foram abertos</p>
+        <p className="mt-0.5 text-3xl font-extrabold leading-none">48 chamados</p>
+        <p className="mt-2 text-[12px] font-semibold text-white/80">
+          39 foram finalizados pela equipe
+        </p>
+      </div>
+
+      <div className="mt-5 flex h-[92px] items-end gap-3">
+        {bars.map((value, index) => (
+          <div key={index} className="flex flex-1 flex-col items-center gap-1.5">
+            <span className="text-[11px] font-bold text-white">{value}</span>
+            <div
+              className="w-full rounded-t-lg bg-gradient-to-b from-[#5ed7ff] to-[#5655ed] shadow-[0_10px_24px_rgba(47,118,255,0.3)]"
+              style={{ height: `${28 + value * 3}px` }}
+            />
+            <span className="text-[9px] font-semibold text-white/65">
+              {["08-12h", "12-18h", "18-24h", "00-06h", "06-08h"][index]}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-5 space-y-2">
+        <SummaryProgress icon={CheckCircle2} label="Taxa de resolucao" value="81%" />
+        <SummaryProgress icon={Clock3} label="Tempo medio de resposta" value="24 min" />
+      </div>
+
+      <div className="mt-auto flex gap-1.5 pt-4">
+        <span className="h-1.5 w-7 rounded-full bg-white" />
+        <span className="h-1.5 w-1.5 rounded-full bg-white/40" />
+        <span className="h-1.5 w-1.5 rounded-full bg-white/40" />
+      </div>
+    </div>
+  );
+}
+
+function SummaryProgress({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: typeof CheckCircle2;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-xl border border-white/10 bg-white/10 px-3 py-2">
+      <div className="flex items-center justify-between gap-3 text-[11px] font-semibold">
+        <span className="inline-flex items-center gap-2 text-white/86">
+          <span className="grid h-5 w-5 place-items-center rounded-full bg-white/12 text-[#68e7bd]">
+            <Icon className="h-3 w-3" />
+          </span>
+          {label}
+        </span>
+        <span className="text-[#8ee8ff]">{value}</span>
+      </div>
+      <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/14">
+        <div className="h-full w-[81%] rounded-full bg-gradient-to-r from-[#54e1a7] to-[#6bd9ff]" />
+      </div>
+    </div>
+  );
+}
+
+function BannerMetric({
+  icon: Icon,
+  label,
+  value,
+  detail,
+}: {
+  icon: typeof Headphones;
+  label: string;
+  value: string;
+  detail: string;
+}) {
+  return (
+    <div className="flex min-w-0 items-center gap-3 border-white/10 px-5 py-4 xl:border-r last:xl:border-r-0">
+      <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-white/12 text-[#8ee8ff]">
+        <Icon className="h-5 w-5" />
+      </span>
+      <div className="min-w-0">
+        <p className="truncate text-[11px] font-semibold text-white/70">{label}</p>
+        <p className="mt-0.5 text-xl font-extrabold leading-none text-white">{value}</p>
+        <p className="mt-1 truncate text-[10px] font-medium text-[#64e7b6]">{detail}</p>
+      </div>
+    </div>
+  );
+}
 
 function formatRelative(iso: string) {
   const d = new Date(iso);
@@ -148,7 +257,33 @@ function HomePage() {
   return (
     <AppShell>
       {/* Hero */}
-      <section className="mb-8 rounded-[18px] bg-gradient-to-br from-[#0b97c4] via-[#0490d1] to-[#313866] p-6 text-white shadow-[0_18px_40px_rgba(11,151,196,0.22)] md:p-10">
+      <section className="mb-8 overflow-hidden rounded-[18px] bg-[radial-gradient(circle_at_20%_10%,rgba(51,195,232,0.42),transparent_34%),linear-gradient(135deg,#0c9fd4_0%,#087ee0_42%,#263276_100%)] p-5 text-white shadow-[0_22px_54px_rgba(11,151,196,0.28)] md:p-7">
+        <div className="mb-4">
+          <p className="text-xl font-light leading-none text-white/90">{greeting},</p>
+          <h1 className="mt-1 text-[32px] font-extrabold leading-none tracking-normal md:text-[42px]">
+            {displayName} <span className="text-[24px] md:text-[30px]">👋</span>
+          </h1>
+          <span className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/17 px-3 py-1 text-[11px] font-semibold text-white backdrop-blur-sm">
+            <Headphones className="h-3.5 w-3.5" />
+            {personalTicketsCount} {personalTicketsLabel} em andamento
+          </span>
+        </div>
+
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,1.75fr)_minmax(360px,0.95fr)]">
+          <SefazStatusPanel />
+          <TodaySummaryCard />
+        </div>
+
+        <div className="mt-4 grid overflow-hidden rounded-2xl border border-white/12 bg-white/10 backdrop-blur-md sm:grid-cols-2 xl:grid-cols-5">
+          <BannerMetric icon={Headphones} label="Abertos" value="48" detail="+12% vs ontem" />
+          <BannerMetric icon={CheckCircle2} label="Finalizados" value="39" detail="+8% vs ontem" />
+          <BannerMetric icon={Clock3} label="Tempo medio" value="24 min" detail="-5 min vs ontem" />
+          <BannerMetric icon={Star} label="Satisfacao" value="4,8/5" detail="+0,3 vs ontem" />
+          <BannerMetric icon={Users} label="Em atendimento" value="5" detail="Agora" />
+        </div>
+      </section>
+
+      <section className="hidden">
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)] lg:items-stretch">
           {/* Esquerda: saudação + chips + busca */}
           <div className="min-w-0">

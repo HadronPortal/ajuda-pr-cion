@@ -1,4 +1,4 @@
-import { forwardRef, useMemo, useRef, useState } from "react";
+import { forwardRef, useMemo, useRef, useState, type ComponentType } from "react";
 import { toast } from "sonner";
 import {
   AlertCircle,
@@ -12,7 +12,6 @@ import {
   FileText,
   Folder,
   Globe,
-  History,
   Info,
   LayoutGrid,
   LockKeyhole,
@@ -74,6 +73,12 @@ import { TicketHistoryModal } from "./TicketHistoryModal";
 import { TicketNotesModal } from "./TicketNotesModal";
 import { TicketTimelineModal } from "./TicketTimelineModal";
 import { TicketChatPanel } from "./TicketChatPanel";
+import ticketAssumeIconUrl from "@/assets/ticket-assume.png?url";
+import ticketAttendIconUrl from "@/assets/ticket-attend.png?url";
+import ticketCloseIconUrl from "@/assets/ticket-close.png?url";
+import ticketHistoryIconUrl from "@/assets/ticket-history.png?url";
+import ticketStatusIconUrl from "@/assets/ticket-status.png?url";
+import ticketTimelineIconUrl from "@/assets/ticket-timeline.png?url";
 
 const statusTone: Record<TicketStatus, string> = {
   Atrasado: "bg-destructive/12 text-destructive border-destructive/20",
@@ -191,11 +196,29 @@ const timelineTone: Record<TicketEvent["kind"], string> = {
   closed: "bg-success/15 text-success",
 };
 
-type NavKey = "timeline";
+type IconComponent = ComponentType<{ className?: string }>;
 
-const navItems: { key: NavKey; label: string; icon: typeof Info }[] = [
-  { key: "timeline", label: "Timeline", icon: History },
-];
+function createMaskedTicketIcon(maskUrl: string): IconComponent {
+  return function MaskedTicketIcon({ className }) {
+    return (
+      <span
+        aria-hidden
+        className={cn("block bg-current", className)}
+        style={{
+          WebkitMask: `url(${maskUrl}) center / contain no-repeat`,
+          mask: `url(${maskUrl}) center / contain no-repeat`,
+        }}
+      />
+    );
+  };
+}
+
+const TicketHistoryIcon = createMaskedTicketIcon(ticketHistoryIconUrl);
+const TicketCloseIcon = createMaskedTicketIcon(ticketCloseIconUrl);
+const TicketStatusIcon = createMaskedTicketIcon(ticketStatusIconUrl);
+const TicketAssumeIcon = createMaskedTicketIcon(ticketAssumeIconUrl);
+const TicketAttendIcon = createMaskedTicketIcon(ticketAttendIconUrl);
+const TicketTimelineIcon = createMaskedTicketIcon(ticketTimelineIconUrl);
 
 function getModuleIcon(module: string, source?: string): typeof Info {
   const m = (module ?? "").toLowerCase();
@@ -370,15 +393,6 @@ export function TicketDetailSheet({
                 </button>
               </div>
 
-              <div className="border-b border-border p-2">
-                <SideItem
-                  icon={History}
-                  label="Timeline"
-                  collapsed={navCollapsed}
-                  onClick={() => setTimelineOpen(true)}
-                />
-              </div>
-
               <div className="flex-1 space-y-1 overflow-y-auto p-2">
                 {!navCollapsed && (
                   <p className="px-2 pb-1 pt-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
@@ -386,17 +400,16 @@ export function TicketDetailSheet({
                   </p>
                 )}
                 <SideItem
-                  icon={UserPlus}
-                  label="Assumir"
+                  icon={TicketHistoryIcon}
+                  label="Histórico"
                   collapsed={navCollapsed}
-                  onClick={handleAssume}
+                  onClick={() => setHistoryOpen(true)}
                 />
                 <SideItem
-                  icon={PlayCircle}
-                  label="Atender"
+                  icon={TicketCloseIcon}
+                  label="Encerrar"
                   collapsed={navCollapsed}
-                  onClick={handleAttend}
-                  highlight
+                  onClick={() => setCloseOpen(true)}
                 />
                 <Popover open={statusOpen} onOpenChange={setStatusOpen}>
                   <PopoverTrigger asChild>
@@ -406,7 +419,7 @@ export function TicketDetailSheet({
                       aria-label="Alterar status"
                       className={cn(sideItemClasses(false), navCollapsed && "md:justify-center md:px-0")}
                     >
-                      <ShieldCheck className="h-4 w-4 shrink-0" />
+                      <TicketStatusIcon className="h-4 w-4 shrink-0" />
                       <span className={cn("truncate", navCollapsed && "md:hidden")}>
                         Alterar status
                       </span>
@@ -435,16 +448,23 @@ export function TicketDetailSheet({
                   </PopoverContent>
                 </Popover>
                 <SideItem
-                  icon={CheckCircle2}
-                  label="Encerrar"
+                  icon={TicketAssumeIcon}
+                  label="Assumir chamado"
                   collapsed={navCollapsed}
-                  onClick={() => setCloseOpen(true)}
+                  onClick={handleAssume}
                 />
                 <SideItem
-                  icon={Folder}
-                  label="Histórico"
+                  icon={TicketAttendIcon}
+                  label="Atender"
                   collapsed={navCollapsed}
-                  onClick={() => setHistoryOpen(true)}
+                  onClick={handleAttend}
+                  highlight
+                />
+                <SideItem
+                  icon={TicketTimelineIcon}
+                  label="Timeline"
+                  collapsed={navCollapsed}
+                  onClick={() => setTimelineOpen(true)}
                 />
                 <SideItem
                   icon={MessageCircle}
@@ -475,16 +495,16 @@ export function TicketDetailSheet({
 
             {/* Mobile action bar (topo, rolável) */}
             <div className="flex shrink-0 items-center gap-2 overflow-x-auto border-b border-border bg-card px-3 py-2 md:hidden">
-              <MobileAction icon={History} label="Timeline" onClick={() => setTimelineOpen(true)} />
-              <MobileAction icon={UserPlus} label="Assumir" onClick={handleAssume} />
-              <MobileAction icon={PlayCircle} label="Atender" onClick={handleAttend} highlight />
+              <MobileAction icon={TicketHistoryIcon} label="Histórico" onClick={() => setHistoryOpen(true)} />
+              <MobileAction icon={TicketCloseIcon} label="Encerrar" onClick={() => setCloseOpen(true)} />
               <MobileAction
-                icon={ShieldCheck}
+                icon={TicketStatusIcon}
                 label="Status"
                 onClick={() => setStatusOpen((v) => !v)}
               />
-              <MobileAction icon={CheckCircle2} label="Encerrar" onClick={() => setCloseOpen(true)} />
-              <MobileAction icon={Folder} label="Histórico" onClick={() => setHistoryOpen(true)} />
+              <MobileAction icon={TicketAssumeIcon} label="Assumir" onClick={handleAssume} />
+              <MobileAction icon={TicketAttendIcon} label="Atender" onClick={handleAttend} highlight />
+              <MobileAction icon={TicketTimelineIcon} label="Timeline" onClick={() => setTimelineOpen(true)} />
               <MobileAction icon={MessageCircle} label="Chat" onClick={() => setChatOpen(true)} />
             </div>
 
@@ -999,7 +1019,7 @@ function SideItem({
   highlight,
   className,
 }: {
-  icon: typeof Info;
+  icon: IconComponent;
   label: string;
   collapsed: boolean;
   onClick: () => void;
@@ -1030,7 +1050,7 @@ function MobileAction({
   onClick,
   highlight,
 }: {
-  icon: typeof Info;
+  icon: IconComponent;
   label: string;
   onClick: () => void;
   highlight?: boolean;

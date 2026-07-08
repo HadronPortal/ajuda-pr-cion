@@ -1,5 +1,14 @@
 import { useEffect, useState } from "react";
-import { Activity, CheckCircle2, RefreshCw, AlertTriangle, XCircle } from "lucide-react";
+import { Activity, AlertTriangle, CheckCircle2, MapPin, RefreshCw, XCircle } from "lucide-react";
+import {
+  CartesianGrid,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import {
   Dialog,
   DialogContent,
@@ -15,6 +24,18 @@ import {
   type SefazServiceStatus,
   type SefazStatus,
 } from "@/lib/sefaz-status";
+
+const statusHistory = [
+  { time: "15:00", nfe: 94, nfce: 58, cte: 76, mdfe: 86 },
+  { time: "18:00", nfe: 78, nfce: 91, cte: 96, mdfe: 73 },
+  { time: "21:00", nfe: 85, nfce: 69, cte: 88, mdfe: 82 },
+  { time: "00:00", nfe: 88, nfce: 77, cte: 74, mdfe: 86 },
+  { time: "03:00", nfe: 72, nfce: 82, cte: 91, mdfe: 80 },
+  { time: "06:00", nfe: 81, nfce: 74, cte: 79, mdfe: 92 },
+  { time: "09:00", nfe: 96, nfce: 86, cte: 88, mdfe: 71 },
+  { time: "12:00", nfe: 84, nfce: 91, cte: 82, mdfe: 86 },
+  { time: "15:00", nfe: 90, nfce: 76, cte: 88, mdfe: 83 },
+];
 
 function StatusIcon({ status, className }: { status: SefazServiceStatus; className?: string }) {
   const Icon =
@@ -35,21 +56,21 @@ function ServiceCard({ svc }: { svc: SefazService }) {
   return (
     <div
       className={cn(
-        "flex min-w-0 items-start gap-2 rounded-xl border bg-white/95 px-2.5 py-2 dark:bg-[#20263d]/95",
+        "flex min-w-0 items-start gap-2 rounded-xl border bg-white/94 px-3 py-3 shadow-[0_10px_24px_rgba(25,29,51,0.08)] dark:bg-[#20263d]/95",
         tone.border,
       )}
     >
       <span
         className={cn(
-          "mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-md",
+          "mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg",
           tone.bg,
           tone.text,
         )}
       >
-        <StatusIcon status={svc.status} className="h-3.5 w-3.5" />
+        <StatusIcon status={svc.status} className="h-4 w-4" />
       </span>
       <div className="min-w-0 flex-1">
-        <p className="text-[12px] font-bold leading-none text-foreground">{svc.name}</p>
+        <p className="text-[13px] font-bold leading-none text-foreground">{svc.name}</p>
         <p className={cn("mt-1 text-[10.5px] font-semibold leading-none", tone.text)}>
           {svc.status}
         </p>
@@ -60,6 +81,15 @@ function ServiceCard({ svc }: { svc: SefazService }) {
         )}
       </div>
     </div>
+  );
+}
+
+function ChartLegendDot({ color, label }: { color: string; label: string }) {
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <span className="h-2 w-2 rounded-full" style={{ background: color }} />
+      {label}
+    </span>
   );
 }
 
@@ -89,43 +119,73 @@ export function SefazStatusPanel() {
 
   return (
     <>
-      <div className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur-md">
+      <div className="h-full min-h-[320px] rounded-2xl border border-white/14 bg-white/10 p-5 backdrop-blur-md">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <span className="grid h-8 w-8 place-items-center rounded-full bg-white/15 text-white">
-              <Activity className="h-4 w-4" />
+            <span className="grid h-10 w-10 place-items-center rounded-full bg-white/14 text-[#8ee8ff]">
+              <Activity className="h-5 w-5" />
             </span>
             <div className="min-w-0">
               <p className="text-[11px] font-semibold uppercase tracking-wider text-white/80">
                 Status SEFAZ
               </p>
-              <p className="text-[10.5px] text-white/60">
-                {data ? `Atualizado ${formatTime(data.updatedAt)}` : "Carregando..."}
+              <p className="text-[10.5px] text-white/70">
+                {data ? `Atualizado ha 2 min · ${formatTime(data.updatedAt)}` : "Carregando..."}
               </p>
             </div>
           </div>
-          <span
-            className={cn(
-              "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold",
-              tone.badge,
-            )}
-          >
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/18 px-3 py-1.5 text-[11px] font-bold text-white">
             <span className={cn("h-1.5 w-1.5 rounded-full", tone.dot)} />
-            {data?.generalStatus ?? "—"}
+            {data?.generalStatus ?? "-"}
           </span>
         </div>
 
-        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
           {(data?.services ?? []).map((s) => (
             <ServiceCard key={s.name} svc={s} />
           ))}
         </div>
 
-        {affectedUfs.length > 0 && (
-          <p className="mt-3 text-[11px] text-white/85">
-            UFs com instabilidade:{" "}
-            <span className="font-semibold text-white">{affectedUfs.join(", ")}</span>
+        <div className="mt-4">
+          <p className="mb-2 text-[11px] font-semibold text-white/86">
+            Historico de status (ultimas 24h)
           </p>
+          <div className="h-[118px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={statusHistory} margin={{ top: 6, right: 8, left: -24, bottom: 0 }}>
+                <CartesianGrid stroke="rgba(255,255,255,0.14)" strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="time" tickLine={false} axisLine={false} tick={{ fill: "rgba(255,255,255,0.68)", fontSize: 10 }} />
+                <YAxis tickLine={false} axisLine={false} tick={{ fill: "rgba(255,255,255,0.62)", fontSize: 10 }} domain={[0, 100]} ticks={[0, 25, 50, 75, 100]} width={30} />
+                <Tooltip
+                  contentStyle={{
+                    border: "0",
+                    borderRadius: 12,
+                    background: "rgba(25,29,51,0.94)",
+                    color: "#fff",
+                    fontSize: 11,
+                  }}
+                />
+                <Line type="monotone" dataKey="nfe" stroke="#55e3ad" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="nfce" stroke="#ffd04d" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="cte" stroke="#40d6ff" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="mdfe" stroke="#78ea72" strokeWidth={2} dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="mt-1 flex justify-center gap-4 text-[10px] font-semibold text-white/80">
+            <ChartLegendDot color="#55e3ad" label="NF-e" />
+            <ChartLegendDot color="#ffd04d" label="NFC-e" />
+            <ChartLegendDot color="#40d6ff" label="CT-e" />
+            <ChartLegendDot color="#78ea72" label="MDF-e" />
+          </div>
+        </div>
+
+        {affectedUfs.length > 0 && (
+          <div className="mt-4 flex items-center gap-2 rounded-xl bg-white/8 px-3 py-2 text-[11px] text-white/88">
+            <MapPin className="h-3.5 w-3.5 text-[#ffd04d]" />
+            UFs com instabilidade:{" "}
+            <span className="font-semibold text-[#ffe87d]">{affectedUfs.join(", ")}</span>
+          </div>
         )}
 
         <div className="mt-3 flex items-center justify-between gap-2">
@@ -152,11 +212,11 @@ export function SefazStatusPanel() {
         <DialogContent className="max-w-lg rounded-2xl border border-border bg-background p-6">
           <DialogHeader>
             <DialogTitle className="text-[16px] font-bold text-foreground">
-              Status SEFAZ — detalhes
+              Status SEFAZ - detalhes
             </DialogTitle>
             {data && (
               <p className="text-[12px] text-muted-foreground">
-                Última atualização: {data.updatedAt.toLocaleString("pt-BR")}
+                Ultima atualizacao: {data.updatedAt.toLocaleString("pt-BR")}
               </p>
             )}
           </DialogHeader>
@@ -185,12 +245,7 @@ export function SefazStatusPanel() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-2">
                         <p className="text-[13px] font-bold text-foreground">{svc.name}</p>
-                        <span
-                          className={cn(
-                            "rounded-full px-2 py-0.5 text-[11px] font-semibold",
-                            t.badge,
-                          )}
-                        >
+                        <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-semibold", t.badge)}>
                           {svc.status}
                         </span>
                       </div>
@@ -200,7 +255,7 @@ export function SefazStatusPanel() {
                         </p>
                       ) : (
                         <p className="mt-1 text-[11.5px] text-muted-foreground">
-                          Sem ocorrências no momento.
+                          Sem ocorrencias no momento.
                         </p>
                       )}
                     </div>
@@ -211,7 +266,7 @@ export function SefazStatusPanel() {
           )}
 
           <p className="mt-4 text-[11px] text-muted-foreground">
-            Dados atualmente mockados — integração com fonte oficial em breve.
+            Dados atualmente mockados - integracao com fonte oficial em breve.
           </p>
         </DialogContent>
       </Dialog>
