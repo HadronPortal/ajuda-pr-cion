@@ -715,6 +715,13 @@ export function TicketDetailSheet({
         ticket={ticket}
         historyItems={historyList}
       />
+
+      <TicketNotesModal
+        open={notesOpen}
+        onOpenChange={setNotesOpen}
+        notes={notes}
+        protocol={ticket.protocol}
+      />
     </>
   );
 }
