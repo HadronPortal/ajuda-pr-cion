@@ -48,7 +48,6 @@ import {
 } from "@/components/ui/chart";
 import {
   dailyTicketAnalytics,
-  supportTickets,
   ticketOperators,
   ticketStatuses,
   weeklyTicketAnalytics,
@@ -56,6 +55,7 @@ import {
   type TicketPriority,
   type TicketStatus,
 } from "@/lib/support-tickets-data";
+import { useTickets } from "@/lib/tickets-store";
 import { cn } from "@/lib/utils";
 import { TicketDetailSheet } from "@/components/tickets/TicketDetailSheet";
 
