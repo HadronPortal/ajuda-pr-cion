@@ -5,10 +5,8 @@ import {
   Building2,
   CalendarClock,
   CheckCircle2,
-  ChevronRight,
   Clock3,
   FileText,
-  FolderKanban,
   History,
   Info,
   LockKeyhole,
@@ -53,12 +51,11 @@ import {
 import {
   ticketsStore,
   useTicket,
-  useTicketEvents,
   useTicketHistory,
   type ClosurePayload,
-  type TicketEvent,
 } from "@/lib/tickets-store";
 import { currentUser } from "@/lib/mock-data";
+import { TicketHistoryModal } from "./TicketHistoryModal";
 
 const statusTone: Record<TicketStatus, string> = {
   Atrasado: "bg-destructive/12 text-destructive border-destructive/20",
@@ -229,27 +226,6 @@ const slaBarTone: Record<"ok" | "warn" | "late", string> = {
   late: "bg-destructive",
 };
 
-const timelineIcon: Record<TicketEvent["kind"], typeof Info> = {
-  created: MessageSquare,
-  attached: Paperclip,
-  assumed: UserPlus,
-  attend: PlayCircle,
-  status: ShieldCheck,
-  message: Send,
-  note: FileText,
-  closed: CheckCircle2,
-};
-
-const timelineTone: Record<TicketEvent["kind"], string> = {
-  created: "bg-primary/12 text-primary",
-  attached: "bg-muted text-foreground",
-  assumed: "bg-[#e7faf1] text-[#1f9860] dark:bg-[#14382b] dark:text-[#8ee8be]",
-  attend: "bg-[#fff1d6] text-[#b66a00] dark:bg-[#4d3516] dark:text-[#ffd28a]",
-  status: "bg-[#e8f3ff] text-[#246cb5] dark:bg-[#17314e] dark:text-[#9dcaff]",
-  message: "bg-[#f2eaff] text-[#7253bd] dark:bg-[#2e2549] dark:text-[#c7b8ff]",
-  note: "bg-muted text-foreground",
-  closed: "bg-success/15 text-success",
-};
 
 const clientStatusTone: Record<ClientMock["status"], string> = {
   Ativo: "bg-success/12 text-success border-success/20",
@@ -268,20 +244,18 @@ export function TicketDetailSheet({
   onOpenChange: (open: boolean) => void;
 }) {
   const ticket = useTicket(ticketId);
-  const events = useTicketEvents(ticketId);
   const historyList = useTicketHistory(ticketId);
 
   const [note, setNote] = useState("");
-  const [showAllHistory, setShowAllHistory] = useState(false);
   const [statusOpen, setStatusOpen] = useState(false);
   const [closeOpen, setCloseOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const mock = useMemo(() => (ticket ? buildMock(ticket) : null), [ticket]);
   const sla = useMemo(() => (ticket ? computeSla(ticket) : null), [ticket]);
 
   if (!ticket || !mock || !sla) return null;
 
-  const shownHistory = showAllHistory ? historyList : historyList.slice(0, 3);
   const isMine =
     ticket.owner === currentUser.operator || ticket.lockedBy === currentUser.operator;
 
@@ -479,145 +453,7 @@ export function TicketDetailSheet({
                 </div>
               </SectionCard>
 
-              {/* Histórico / Atendimentos do cliente */}
-              <SectionCard title="Histórico" icon={History} className="lg:col-span-2">
-                <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                      Status:
-                    </span>
-                    <Badge
-                      className={cn(
-                        "rounded-md border px-3 py-1 text-[12px] font-bold uppercase tracking-wide",
-                        statusTone[ticket.status],
-                      )}
-                    >
-                      {ticket.status}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[12px] font-semibold text-foreground">
-                      Atendimentos:
-                    </span>
-                    {historyList.length > 3 && (
-                      <button
-                        type="button"
-                        onClick={() => setShowAllHistory((v) => !v)}
-                        className="cursor-pointer text-[12px] font-semibold text-primary hover:underline"
-                      >
-                        {showAllHistory ? "Recolher" : "Ver todos"}
-                      </button>
-                    )}
-                  </div>
-                </div>
 
-                <ul className="divide-y divide-border rounded-xl border border-border bg-card">
-                  {shownHistory.length === 0 && (
-                    <li className="px-3 py-4 text-center text-[12px] text-muted-foreground">
-                      Sem atendimentos anteriores para este cliente.
-                    </li>
-                  )}
-                  {shownHistory.map((h) => (
-                    <li
-                      key={h.id}
-                      className="flex flex-wrap items-center gap-x-4 gap-y-2 px-3 py-3"
-                    >
-                      <div className="flex min-w-0 flex-1 items-center gap-2">
-                        <FileText className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                        <button
-                          type="button"
-                          className="cursor-pointer truncate text-[13px] font-bold uppercase tracking-wide text-primary hover:underline"
-                          onClick={() =>
-                            toast.info(h.protocol, {
-                              description: h.description,
-                            })
-                          }
-                        >
-                          {h.title}
-                        </button>
-                        <Badge
-                          className={cn(
-                            "shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase",
-                            statusTone[h.status],
-                          )}
-                        >
-                          {h.status}
-                        </Badge>
-                      </div>
-                      <div className="flex min-w-0 items-center gap-1.5 text-[11px] text-muted-foreground">
-                        <FolderKanban className="h-3 w-3" />
-                        <span className="truncate">{h.module}</span>
-                      </div>
-                      <Badge
-                        className={cn(
-                          "shrink-0 rounded-full border px-2 py-0.5 text-[10.5px] font-semibold",
-                          priorityTone[h.priority],
-                        )}
-                      >
-                        {h.priority}
-                      </Badge>
-                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-foreground">
-                        <UserRound className="h-3 w-3" />
-                        {h.operator}
-                      </span>
-                      <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
-                        <CalendarClock className="h-3 w-3" />
-                        {formatCompact(h.date)}
-                      </span>
-                      <span className="font-mono text-[10.5px] text-muted-foreground">
-                        ID {h.protocol}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          toast.info(`Abrir ${h.protocol}`, {
-                            description: "Integração com detalhe será feita pela API.",
-                          })
-                        }
-                        className="inline-flex cursor-pointer items-center gap-0.5 text-[11px] font-semibold text-primary hover:underline"
-                      >
-                        Ver chamado
-                        <ChevronRight className="h-3 w-3" />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </SectionCard>
-
-              {/* Timeline do chamado atual */}
-              <SectionCard title="Timeline" icon={History} className="lg:col-span-2">
-                <ol className="relative space-y-4 border-l border-border pl-5">
-                  {events.map((event) => {
-                    const Icon = timelineIcon[event.kind];
-                    return (
-                      <li key={event.id} className="relative">
-                        <span
-                          className={cn(
-                            "absolute -left-[30px] top-0 grid h-6 w-6 place-items-center rounded-full ring-4 ring-card",
-                            timelineTone[event.kind],
-                          )}
-                        >
-                          <Icon className="h-3 w-3" />
-                        </span>
-                        <div className="flex flex-wrap items-baseline justify-between gap-2">
-                          <p className="text-[13px] font-semibold text-foreground">
-                            {event.actor}{" "}
-                            <span className="text-[11px] font-normal text-muted-foreground">
-                              · {event.actorType}
-                            </span>
-                          </p>
-                          <span className="text-[11px] text-muted-foreground">
-                            {formatDateTime(event.when)}
-                          </span>
-                        </div>
-                        <p className="mt-0.5 text-[12.5px] text-muted-foreground">
-                          {event.description}
-                        </p>
-                      </li>
-                    );
-                  })}
-                </ol>
-              </SectionCard>
 
               <SectionCard title="Nota interna" icon={Send} className="lg:col-span-2">
                 <p className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-muted/60 px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
@@ -722,6 +558,16 @@ export function TicketDetailSheet({
                   <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" />
                   Encerrar
                 </Button>
+
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setHistoryOpen(true)}
+                  className="h-9 cursor-pointer rounded-lg px-3 text-[12px]"
+                >
+                  <History className="mr-1.5 h-3.5 w-3.5" />
+                  Histórico
+                </Button>
               </div>
 
               {isMine && (
@@ -740,6 +586,13 @@ export function TicketDetailSheet({
         onOpenChange={setCloseOpen}
         onConfirm={handleClose}
         ticket={ticket}
+      />
+
+      <TicketHistoryModal
+        open={historyOpen}
+        onOpenChange={setHistoryOpen}
+        ticket={ticket}
+        historyItems={historyList}
       />
     </>
   );

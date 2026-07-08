@@ -55,9 +55,10 @@ import {
   type TicketPriority,
   type TicketStatus,
 } from "@/lib/support-tickets-data";
-import { useTickets } from "@/lib/tickets-store";
+import { useTickets, useTicketHistory } from "@/lib/tickets-store";
 import { cn } from "@/lib/utils";
 import { TicketDetailSheet } from "@/components/tickets/TicketDetailSheet";
+import { TicketHistoryModal } from "@/components/tickets/TicketHistoryModal";
 
 export const Route = createFileRoute("/chamados")({
   head: () => ({
@@ -124,10 +125,17 @@ function TicketsPage() {
   const [filters, setFilters] = useState<Filters>(initialFilters);
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [historyTicketId, setHistoryTicketId] = useState<string | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const openTicketDetail = (ticket: SupportTicket) => {
     setSelectedTicketId(ticket.id);
     setDetailOpen(true);
+  };
+
+  const openTicketHistory = (ticket: SupportTicket) => {
+    setHistoryTicketId(ticket.id);
+    setHistoryOpen(true);
   };
 
   const filteredTickets = useMemo(() => {
@@ -332,7 +340,12 @@ function TicketsPage() {
       </div>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         {filteredTickets.map((ticket) => (
-          <TicketCard key={ticket.id} ticket={ticket} onOpen={openTicketDetail} />
+          <TicketCard
+            key={ticket.id}
+            ticket={ticket}
+            onOpen={openTicketDetail}
+            onHistory={openTicketHistory}
+          />
         ))}
       </div>
 
@@ -340,6 +353,13 @@ function TicketsPage() {
         ticketId={selectedTicketId}
         open={detailOpen}
         onOpenChange={setDetailOpen}
+      />
+
+      <HistoryModalHost
+        ticketId={historyTicketId}
+        open={historyOpen}
+        onOpenChange={setHistoryOpen}
+        tickets={supportTickets}
       />
     </AppShell>
   );
@@ -399,7 +419,15 @@ const slaTextTone: Record<"ok" | "warn" | "late", string> = {
   late: "text-destructive",
 };
 
-function TicketCard({ ticket, onOpen }: { ticket: SupportTicket; onOpen?: (ticket: SupportTicket) => void }) {
+function TicketCard({
+  ticket,
+  onOpen,
+  onHistory,
+}: {
+  ticket: SupportTicket;
+  onOpen?: (ticket: SupportTicket) => void;
+  onHistory?: (ticket: SupportTicket) => void;
+}) {
   const sla = computeSla(ticket);
   return (
     <Card className="flex min-w-0 flex-col gap-4 rounded-[16px] border border-border/70 bg-card p-5 shadow-[0_10px_28px_rgba(25,29,51,0.05)] transition hover:shadow-[0_14px_32px_rgba(25,29,51,0.09)]">
@@ -508,6 +536,10 @@ function TicketCard({ ticket, onOpen }: { ticket: SupportTicket; onOpen?: (ticke
           <Button
             variant="ghost"
             size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              onHistory?.(ticket);
+            }}
             className="h-8 cursor-pointer rounded-lg px-2 text-[12px] text-muted-foreground hover:text-foreground"
           >
             <History className="mr-1 h-3.5 w-3.5" />
@@ -516,6 +548,29 @@ function TicketCard({ ticket, onOpen }: { ticket: SupportTicket; onOpen?: (ticke
         </div>
       </div>
     </Card>
+  );
+}
+
+function HistoryModalHost({
+  ticketId,
+  open,
+  onOpenChange,
+  tickets,
+}: {
+  ticketId: string | null;
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  tickets: SupportTicket[];
+}) {
+  const historyItems = useTicketHistory(ticketId);
+  const ticket = ticketId ? (tickets.find((t) => t.id === ticketId) ?? null) : null;
+  return (
+    <TicketHistoryModal
+      open={open}
+      onOpenChange={onOpenChange}
+      ticket={ticket}
+      historyItems={historyItems}
+    />
   );
 }
 
