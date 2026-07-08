@@ -26,15 +26,15 @@ import {
 } from "@/lib/sefaz-status";
 
 const statusHistory = [
-  { time: "15:00", nfe: 94, nfce: 58, cte: 76, mdfe: 86 },
-  { time: "18:00", nfe: 78, nfce: 91, cte: 96, mdfe: 73 },
-  { time: "21:00", nfe: 85, nfce: 69, cte: 88, mdfe: 82 },
-  { time: "00:00", nfe: 88, nfce: 77, cte: 74, mdfe: 86 },
-  { time: "03:00", nfe: 72, nfce: 82, cte: 91, mdfe: 80 },
-  { time: "06:00", nfe: 81, nfce: 74, cte: 79, mdfe: 92 },
-  { time: "09:00", nfe: 96, nfce: 86, cte: 88, mdfe: 71 },
-  { time: "12:00", nfe: 84, nfce: 91, cte: 82, mdfe: 86 },
-  { time: "15:00", nfe: 90, nfce: 76, cte: 88, mdfe: 83 },
+  { time: "15:00", nfe: 82, nfce: 58, cte: 76, mdfe: 68 },
+  { time: "18:00", nfe: 68, nfce: 82, cte: 84, mdfe: 66 },
+  { time: "21:00", nfe: 69, nfce: 63, cte: 79, mdfe: 71 },
+  { time: "00:00", nfe: 74, nfce: 65, cte: 72, mdfe: 74 },
+  { time: "03:00", nfe: 70, nfce: 72, cte: 80, mdfe: 69 },
+  { time: "06:00", nfe: 76, nfce: 66, cte: 73, mdfe: 83 },
+  { time: "09:00", nfe: 81, nfce: 74, cte: 86, mdfe: 63 },
+  { time: "12:00", nfe: 76, nfce: 78, cte: 72, mdfe: 72 },
+  { time: "15:00", nfe: 78, nfce: 67, cte: 79, mdfe: 75 },
 ];
 
 function StatusIcon({ status, className }: { status: SefazServiceStatus; className?: string }) {
@@ -56,7 +56,7 @@ function ServiceCard({ svc }: { svc: SefazService }) {
   return (
     <div
       className={cn(
-        "flex min-w-0 items-start gap-2 rounded-xl border bg-white/94 px-3 py-3 shadow-[0_10px_24px_rgba(25,29,51,0.08)] dark:bg-[#20263d]/95",
+        "flex min-h-[66px] min-w-0 items-start gap-2.5 rounded-xl border bg-[#eef8ff]/95 px-3.5 py-3 shadow-[0_12px_26px_rgba(20,76,135,0.12)] dark:bg-[#eaf6ff]/95",
         tone.border,
       )}
     >
@@ -119,7 +119,10 @@ export function SefazStatusPanel() {
 
   return (
     <>
-      <div className="h-full min-h-[320px] rounded-2xl border border-white/14 bg-white/10 p-5 backdrop-blur-md">
+      <div className="relative h-full min-h-[356px] overflow-hidden rounded-2xl border border-white/14 bg-[linear-gradient(180deg,rgba(48,177,231,0.66)_0%,rgba(37,145,215,0.52)_54%,rgba(29,108,188,0.38)_100%)] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.16)] backdrop-blur-md">
+        <div className="pointer-events-none absolute -left-20 top-10 h-56 w-56 rounded-full bg-cyan-200/18 blur-3xl" />
+        <div className="pointer-events-none absolute bottom-0 right-0 h-72 w-72 rounded-full bg-blue-950/12 blur-3xl" />
+        <div className="relative z-10">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <span className="grid h-10 w-10 place-items-center rounded-full bg-white/14 text-[#8ee8ff]">
@@ -130,7 +133,7 @@ export function SefazStatusPanel() {
                 Status SEFAZ
               </p>
               <p className="text-[10.5px] text-white/70">
-                {data ? `Atualizado ha 2 min · ${formatTime(data.updatedAt)}` : "Carregando..."}
+                {data ? `Atualizado há 2 min · ${formatTime(data.updatedAt)}` : "Carregando..."}
               </p>
             </div>
           </div>
@@ -140,7 +143,7 @@ export function SefazStatusPanel() {
           </span>
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
           {(data?.services ?? []).map((s) => (
             <ServiceCard key={s.name} svc={s} />
           ))}
@@ -148,14 +151,14 @@ export function SefazStatusPanel() {
 
         <div className="mt-4">
           <p className="mb-2 text-[11px] font-semibold text-white/86">
-            Historico de status (ultimas 24h)
+            Histórico de status (últimas 24h)
           </p>
-          <div className="h-[118px]">
+          <div className="h-[132px]">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={statusHistory} margin={{ top: 6, right: 8, left: -24, bottom: 0 }}>
-                <CartesianGrid stroke="rgba(255,255,255,0.14)" strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="time" tickLine={false} axisLine={false} tick={{ fill: "rgba(255,255,255,0.68)", fontSize: 10 }} />
-                <YAxis tickLine={false} axisLine={false} tick={{ fill: "rgba(255,255,255,0.62)", fontSize: 10 }} domain={[0, 100]} ticks={[0, 25, 50, 75, 100]} width={30} />
+              <LineChart data={statusHistory} margin={{ top: 5, right: 8, left: -8, bottom: 2 }}>
+                <CartesianGrid stroke="rgba(255,255,255,0.14)" strokeDasharray="4 4" />
+                <XAxis dataKey="time" tickLine={false} axisLine={false} tick={{ fill: "rgba(255,255,255,0.72)", fontSize: 10 }} />
+                <YAxis tickFormatter={(v) => `${v}%`} tickLine={false} axisLine={false} tick={{ fill: "rgba(255,255,255,0.70)", fontSize: 10 }} domain={[0, 100]} ticks={[0, 25, 50, 75, 100]} width={34} />
                 <Tooltip
                   contentStyle={{
                     border: "0",
@@ -165,23 +168,23 @@ export function SefazStatusPanel() {
                     fontSize: 11,
                   }}
                 />
-                <Line type="monotone" dataKey="nfe" stroke="#55e3ad" strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="nfce" stroke="#ffd04d" strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="cte" stroke="#40d6ff" strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="mdfe" stroke="#78ea72" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="nfe" stroke="#55e3ad" strokeWidth={2.5} dot={false} />
+                <Line type="monotone" dataKey="nfce" stroke="#ffd04d" strokeWidth={2.5} dot={false} />
+                <Line type="monotone" dataKey="cte" stroke="#59d9ff" strokeWidth={2.5} dot={false} />
+                <Line type="monotone" dataKey="mdfe" stroke="#8cf45f" strokeWidth={2.5} dot={false} />
               </LineChart>
             </ResponsiveContainer>
           </div>
-          <div className="mt-1 flex justify-center gap-4 text-[10px] font-semibold text-white/80">
+          <div className="mt-1 flex justify-center gap-5 text-[10px] font-semibold text-white/82">
             <ChartLegendDot color="#55e3ad" label="NF-e" />
             <ChartLegendDot color="#ffd04d" label="NFC-e" />
-            <ChartLegendDot color="#40d6ff" label="CT-e" />
-            <ChartLegendDot color="#78ea72" label="MDF-e" />
+            <ChartLegendDot color="#59d9ff" label="CT-e" />
+            <ChartLegendDot color="#8cf45f" label="MDF-e" />
           </div>
         </div>
 
         {affectedUfs.length > 0 && (
-          <div className="mt-4 flex items-center gap-2 rounded-xl bg-white/8 px-3 py-2 text-[11px] text-white/88">
+          <div className="mt-4 flex items-center gap-2 rounded-xl bg-white/10 px-3 py-2 text-[11px] text-white/88 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
             <MapPin className="h-3.5 w-3.5 text-[#ffd04d]" />
             UFs com instabilidade:{" "}
             <span className="font-semibold text-[#ffe87d]">{affectedUfs.join(", ")}</span>
@@ -205,6 +208,7 @@ export function SefazStatusPanel() {
           >
             Ver detalhes
           </Button>
+        </div>
         </div>
       </div>
 

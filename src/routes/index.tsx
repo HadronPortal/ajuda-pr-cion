@@ -11,9 +11,6 @@ import {
   BarChart3,
   CheckCircle2,
   Clock3,
-  Headphones,
-  Star,
-  Users,
 } from "lucide-react";
 import { SefazStatusPanel } from "@/components/portal/SefazStatusPanel";
 import { AppShell } from "@/components/portal/AppShell";
@@ -78,56 +75,88 @@ const shortcuts = [
 ] as const;
 
 function TodaySummaryCard() {
-  const indicators = [
-    { label: "Abertos", value: "48", tone: "text-white" },
-    { label: "Finalizados", value: "39", tone: "text-[#64e7b6]" },
-    { label: "Em atendimento", value: "5", tone: "text-[#8ee8ff]" },
-    { label: "Reabertos", value: "2", tone: "text-[#ffd66b]" },
+  const bars = [
+    { label: "08-12h", value: 8, height: "42%" },
+    { label: "12-18h", value: 15, height: "82%" },
+    { label: "18-24h", value: 12, height: "68%" },
+    { label: "00-06h", value: 9, height: "50%" },
+    { label: "06-08h", value: 4, height: "28%" },
   ];
+
   return (
-    <div className="relative flex flex-col overflow-hidden rounded-2xl border border-white/14 bg-[linear-gradient(135deg,rgba(36,133,213,0.42),rgba(49,56,102,0.78))] p-4 backdrop-blur-md">
+    <div className="relative flex min-h-[356px] flex-col overflow-hidden rounded-2xl border border-white/14 bg-[radial-gradient(circle_at_32%_34%,rgba(71,186,255,0.28),transparent_34%),linear-gradient(137deg,rgba(42,132,210,0.58)_0%,rgba(45,58,155,0.74)_48%,rgba(42,34,120,0.84)_100%)] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.13)] backdrop-blur-md">
+      <div className="pointer-events-none absolute -bottom-14 left-8 h-32 w-64 rounded-full bg-cyan-300/10 blur-3xl" />
+      <div className="pointer-events-none absolute right-0 top-8 h-52 w-52 rounded-full bg-violet-300/12 blur-3xl" />
+
       <div className="flex items-center justify-between gap-4">
-        <p className="text-[11px] font-bold uppercase tracking-wider text-white/85">
+        <p className="text-[11px] font-bold uppercase tracking-wider text-white/86">
           Resumo de hoje
         </p>
-        <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-white/65">
+        <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-white/66">
           <BarChart3 className="h-3.5 w-3.5" />
           Volume
         </span>
       </div>
 
-      <div className="mt-3">
-        <p className="text-[12px] text-white/85">Hoje foram abertos</p>
-        <p className="mt-0.5 text-[24px] font-extrabold leading-none">48 chamados</p>
-        <p className="mt-1 text-[11px] font-semibold text-white/75">
+      <div className="relative z-10 mt-4">
+        <p className="text-[12px] text-white/84">Hoje foram abertos</p>
+        <p className="mt-1 text-[30px] font-extrabold leading-none tracking-normal md:text-[34px]">
+          48 chamados
+        </p>
+        <p className="mt-2 text-[12px] font-semibold text-white/76">
           39 foram finalizados pela equipe
         </p>
       </div>
 
-      <div className="mt-3 grid grid-cols-2 gap-2">
-        {indicators.map((i) => (
-          <div
-            key={i.label}
-            className="rounded-xl border border-white/10 bg-white/10 px-3 py-2"
-          >
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-white/65">
-              {i.label}
-            </p>
-            <p className={`mt-0.5 text-base font-extrabold leading-none ${i.tone}`}>
-              {i.value}
-            </p>
-          </div>
-        ))}
+      <div className="relative z-10 mt-4 h-[118px]">
+        <div className="pointer-events-none absolute inset-x-3 bottom-[38px] h-[52px] rounded-[50%] bg-cyan-300/10 blur-xl" />
+        <div className="absolute inset-x-0 bottom-8 h-px bg-white/10" />
+        <svg
+          aria-hidden
+          viewBox="0 0 340 104"
+          className="absolute inset-x-3 top-1 h-[86px] w-[calc(100%-24px)] overflow-visible"
+          preserveAspectRatio="none"
+        >
+          <path
+            d="M8 72 C42 58, 56 40, 86 30 C116 20, 136 48, 166 44 C196 40, 210 24, 236 32 C266 39, 280 66, 330 58"
+            fill="none"
+            stroke="rgba(143,206,255,0.48)"
+            strokeWidth="3"
+          />
+          <path
+            d="M8 74 C42 60, 56 42, 86 32 C116 22, 136 50, 166 46 C196 42, 210 26, 236 34 C266 41, 280 68, 330 60 L330 104 L8 104 Z"
+            fill="rgba(72,157,255,0.14)"
+          />
+        </svg>
+        <div className="relative flex h-full items-end justify-between gap-3 px-5">
+          {bars.map((bar) => (
+            <div key={bar.label} className="flex h-full flex-1 flex-col items-center justify-end">
+              <span className="mb-1 text-[12px] font-bold text-white">{bar.value}</span>
+              <span
+                className="w-full max-w-[44px] rounded-t-lg bg-[linear-gradient(180deg,#49d4ff_0%,#5a5cf7_100%)] shadow-[0_10px_22px_rgba(33,118,255,0.38)]"
+                style={{ height: bar.height }}
+              />
+              <span className="mt-2 whitespace-nowrap text-[10px] font-semibold text-white/74">
+                {bar.label}
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
 
-      <div className="mt-3 space-y-1.5">
+      <div className="relative z-10 mt-3 space-y-2">
         <SummaryProgress icon={CheckCircle2} label="Taxa de resolução" value="81%" />
         <SummaryProgress icon={Clock3} label="Tempo médio de resposta" value="24 min" />
+      </div>
+
+      <div className="relative z-10 mt-auto flex gap-1.5 pt-4">
+        <span className="h-1.5 w-8 rounded-full bg-white" />
+        <span className="h-1.5 w-1.5 rounded-full bg-white/45" />
+        <span className="h-1.5 w-1.5 rounded-full bg-white/45" />
       </div>
     </div>
   );
 }
-
 
 function SummaryProgress({
   icon: Icon,
@@ -151,31 +180,6 @@ function SummaryProgress({
       </div>
       <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/14">
         <div className="h-full w-[81%] rounded-full bg-gradient-to-r from-[#54e1a7] to-[#6bd9ff]" />
-      </div>
-    </div>
-  );
-}
-
-function BannerMetric({
-  icon: Icon,
-  label,
-  value,
-  detail,
-}: {
-  icon: typeof Headphones;
-  label: string;
-  value: string;
-  detail: string;
-}) {
-  return (
-    <div className="flex min-w-0 items-center gap-2.5 border-white/10 px-4 py-2.5 xl:border-r last:xl:border-r-0">
-      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-white/12 text-[#8ee8ff]">
-        <Icon className="h-4 w-4" />
-      </span>
-      <div className="min-w-0">
-        <p className="truncate text-[10.5px] font-semibold text-white/70">{label}</p>
-        <p className="mt-0.5 text-base font-extrabold leading-none text-white">{value}</p>
-        <p className="mt-0.5 truncate text-[10px] font-medium text-[#64e7b6]">{detail}</p>
       </div>
     </div>
   );
@@ -271,13 +275,6 @@ function HomePage() {
           <TodaySummaryCard />
         </div>
 
-        <div className="mt-3 grid overflow-hidden rounded-2xl border border-white/12 bg-white/10 backdrop-blur-md sm:grid-cols-2 xl:grid-cols-5">
-          <BannerMetric icon={Headphones} label="Abertos" value="48" detail="+12% vs ontem" />
-          <BannerMetric icon={CheckCircle2} label="Finalizados" value="39" detail="+8% vs ontem" />
-          <BannerMetric icon={Clock3} label="Tempo medio" value="24 min" detail="-5 min vs ontem" />
-          <BannerMetric icon={Star} label="Satisfacao" value="4,8/5" detail="+0,3 vs ontem" />
-          <BannerMetric icon={Users} label="Em atendimento" value="5" detail="Agora" />
-        </div>
       </section>
 
       <section className="hidden">
