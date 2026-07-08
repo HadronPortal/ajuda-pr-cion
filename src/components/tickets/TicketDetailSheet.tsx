@@ -62,6 +62,7 @@ import {
 import { currentUser } from "@/lib/mock-data";
 import { TicketHistoryModal } from "./TicketHistoryModal";
 import { TicketNotesModal } from "./TicketNotesModal";
+import { TicketTimelineModal } from "./TicketTimelineModal";
 
 const statusTone: Record<TicketStatus, string> = {
   Atrasado: "bg-destructive/12 text-destructive border-destructive/20",
