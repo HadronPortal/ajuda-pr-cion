@@ -5,11 +5,11 @@ import {
   BookOpen,
   GitBranch,
   KanbanSquare,
-  Search,
   Sparkles,
   Clock,
   Tag,
 } from "lucide-react";
+import { SefazStatusPanel } from "@/components/portal/SefazStatusPanel";
 import { AppShell } from "@/components/portal/AppShell";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
