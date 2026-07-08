@@ -142,24 +142,8 @@ function HomePage() {
     return () => clearInterval(id);
   }, [slides.length]);
 
-  const stats = [
-    { label: "chamados", value: personalTickets.length, tone: "bg-white/15" },
-    {
-      label: "em aberto",
-      value: personalTickets.filter((t) => t.status === "Em Aberto").length,
-      tone: "bg-white/15",
-    },
-    {
-      label: "atrasados",
-      value: personalTickets.filter((t) => t.status === "Atrasado").length,
-      tone: "bg-[#ff6b6b]/25",
-    },
-    {
-      label: "aguardando cliente",
-      value: personalTickets.filter((t) => t.status === "Aguardando cliente").length,
-      tone: "bg-[#ffcf5c]/25",
-    },
-  ];
+  const personalTicketsCount = personalTickets.length;
+  const personalTicketsLabel = personalTicketsCount === 1 ? "chamado" : "chamados";
 
   return (
     <AppShell>
