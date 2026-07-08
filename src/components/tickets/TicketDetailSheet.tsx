@@ -756,7 +756,7 @@ function CloseTicketDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-h-[90vh] w-[calc(100vw-24px)] max-w-[920px] overflow-y-auto rounded-2xl border border-border bg-background p-0 shadow-[0_30px_80px_rgba(0,0,0,0.45)] sm:w-[92vw] md:w-[92vw] lg:w-[920px] [&>button]:hidden"
+        className="max-h-[90vh] w-[calc(100vw-24px)] max-w-[960px] overflow-y-auto rounded-2xl border border-border bg-background p-0 shadow-[0_30px_80px_rgba(0,0,0,0.45)] sm:w-[92vw] md:w-[92vw] lg:h-auto lg:max-h-none lg:w-[960px] lg:overflow-visible [&>button]:hidden"
       >
         {/* Header */}
         <div className="flex items-start justify-between gap-3 border-b border-border px-6 py-5">
@@ -784,19 +784,19 @@ function CloseTicketDialog({
         </div>
 
         {/* Body */}
-        <div className="space-y-5 px-6 py-5">
+        <div className="space-y-4 px-6 py-4">
           {/* Solução aplicada */}
           <div>
-            <Label className="mb-2 flex items-center gap-1.5 text-[12.5px] font-semibold text-foreground">
+            <Label className="mb-1.5 flex items-center gap-1.5 text-[12.5px] font-semibold text-foreground">
               <MessageSquare className="h-3.5 w-3.5 text-primary" />
               Solução aplicada
             </Label>
             <textarea
               value={solution}
               onChange={(e) => setSolution(e.target.value)}
-              rows={5}
+              rows={3}
               placeholder="Descreva a solução ou o motivo do encerramento..."
-              className="w-full resize-none rounded-xl border border-border bg-background p-3 text-[13px] leading-relaxed outline-none transition focus:border-primary/40 focus:ring-2 focus:ring-ring"
+              className="min-h-[110px] w-full resize-none rounded-xl border border-border bg-background p-3 text-[13px] leading-relaxed outline-none transition focus:border-primary/40 focus:ring-2 focus:ring-ring"
             />
           </div>
 
@@ -899,7 +899,7 @@ function CloseTicketDialog({
         </div>
 
         {/* Footer */}
-        <DialogFooter className="gap-2 border-t border-border bg-muted/30 px-6 py-4 sm:gap-2">
+        <DialogFooter className="gap-2 border-t border-border bg-muted/30 px-6 py-3 sm:gap-2">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
