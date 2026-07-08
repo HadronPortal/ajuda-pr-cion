@@ -244,20 +244,18 @@ export function TicketDetailSheet({
   onOpenChange: (open: boolean) => void;
 }) {
   const ticket = useTicket(ticketId);
-  const events = useTicketEvents(ticketId);
   const historyList = useTicketHistory(ticketId);
 
   const [note, setNote] = useState("");
-  const [showAllHistory, setShowAllHistory] = useState(false);
   const [statusOpen, setStatusOpen] = useState(false);
   const [closeOpen, setCloseOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const mock = useMemo(() => (ticket ? buildMock(ticket) : null), [ticket]);
   const sla = useMemo(() => (ticket ? computeSla(ticket) : null), [ticket]);
 
   if (!ticket || !mock || !sla) return null;
 
-  const shownHistory = showAllHistory ? historyList : historyList.slice(0, 3);
   const isMine =
     ticket.owner === currentUser.operator || ticket.lockedBy === currentUser.operator;
 
