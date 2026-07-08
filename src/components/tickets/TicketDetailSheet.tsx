@@ -535,6 +535,14 @@ export function TicketDetailSheet({
         notes={notes}
         protocol={ticket.protocol}
       />
+
+      <TicketTimelineModal
+        open={timelineOpen}
+        onOpenChange={setTimelineOpen}
+        ticket={ticket}
+        events={timelineEvents}
+      />
+
     </>
   );
 }
