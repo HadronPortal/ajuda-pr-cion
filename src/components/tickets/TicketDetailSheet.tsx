@@ -359,7 +359,7 @@ export function TicketDetailSheet({
             <div ref={scrollRef} className="flex-1 min-w-0 overflow-y-auto bg-muted/30 px-5 py-5 md:px-6">
               {/* Resumo */}
               <Section
-                ref={(el) => (sectionRefs.current.resumo = el)}
+                ref={(el) => { sectionRefs.current.resumo = el; }}
                 title="Resumo do chamado"
                 icon={LayoutGrid}
               >
@@ -391,7 +391,7 @@ export function TicketDetailSheet({
               </Section>
 
               <Section
-                ref={(el) => (sectionRefs.current.detalhes = el)}
+                ref={(el) => { sectionRefs.current.detalhes = el; }}
                 title="Descrição do problema"
                 icon={FileText}
               >
@@ -400,7 +400,7 @@ export function TicketDetailSheet({
 
               <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                 <Section
-                  ref={(el) => (sectionRefs.current.cliente = el)}
+                  ref={(el) => { sectionRefs.current.cliente = el; }}
                   title="Cliente"
                   icon={Building2}
                   compact
@@ -414,7 +414,7 @@ export function TicketDetailSheet({
                 </Section>
 
                 <Section
-                  ref={(el) => (sectionRefs.current.contato = el)}
+                  ref={(el) => { sectionRefs.current.contato = el; }}
                   title="Contato"
                   icon={UserRound}
                   compact
@@ -461,7 +461,7 @@ export function TicketDetailSheet({
 
               {/* Timeline */}
               <Section
-                ref={(el) => (sectionRefs.current.timeline = el)}
+                ref={(el) => { sectionRefs.current.timeline = el; }}
                 title="Timeline"
                 icon={History}
               >
@@ -512,7 +512,7 @@ export function TicketDetailSheet({
 
               {/* Arquivos */}
               <Section
-                ref={(el) => (sectionRefs.current.arquivos = el)}
+                ref={(el) => { sectionRefs.current.arquivos = el; }}
                 title="Arquivos"
                 icon={Paperclip}
               >
@@ -542,7 +542,7 @@ export function TicketDetailSheet({
 
               {/* Histórico shortcut */}
               <Section
-                ref={(el) => (sectionRefs.current.historico = el)}
+                ref={(el) => { sectionRefs.current.historico = el; }}
                 title="Histórico do cliente"
                 icon={Folder}
               >
