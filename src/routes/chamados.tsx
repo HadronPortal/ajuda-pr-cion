@@ -340,7 +340,12 @@ function TicketsPage() {
       </div>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         {filteredTickets.map((ticket) => (
-          <TicketCard key={ticket.id} ticket={ticket} onOpen={openTicketDetail} />
+          <TicketCard
+            key={ticket.id}
+            ticket={ticket}
+            onOpen={openTicketDetail}
+            onHistory={openTicketHistory}
+          />
         ))}
       </div>
 
@@ -348,6 +353,13 @@ function TicketsPage() {
         ticketId={selectedTicketId}
         open={detailOpen}
         onOpenChange={setDetailOpen}
+      />
+
+      <HistoryModalHost
+        ticketId={historyTicketId}
+        open={historyOpen}
+        onOpenChange={setHistoryOpen}
+        tickets={supportTickets}
       />
     </AppShell>
   );
