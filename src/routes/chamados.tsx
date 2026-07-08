@@ -9,11 +9,14 @@ import {
   Cell,
   Pie,
   PieChart,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
 import {
   AlertTriangle,
+  ArrowRight,
   ArrowUpRight,
   CalendarClock,
   CheckCircle2,
@@ -21,11 +24,15 @@ import {
   FolderKanban,
   Headphones,
   History,
+  Layers,
   LockKeyhole,
   MessageSquarePlus,
+  MoreVertical,
   PhoneCall,
   Search,
   SlidersHorizontal,
+  TrendingDown,
+  TrendingUp,
   UserPlus,
   UserRound,
 } from "lucide-react";
@@ -145,9 +152,13 @@ function TicketsPage() {
   const openTickets = supportTickets.filter(
     (ticket) => !["Finalizado", "Cancelado"].includes(ticket.status),
   ).length;
+  const inProgressTickets = supportTickets.filter((ticket) => ticket.status === "Em andamento").length;
   const overdueTickets = supportTickets.filter((ticket) => ticket.status === "Atrasado").length;
   const portalTickets = supportTickets.filter((ticket) => ticket.source === "Portal do cliente").length;
   const finishedTickets = supportTickets.filter((ticket) => ticket.status === "Finalizado").length;
+  const resolutionRate = Math.round((finishedTickets / supportTickets.length) * 100);
+  const avgHandlingLabel = "01h 47min";
+  const slaMedio = 82;
 
   const statusDistribution = ticketStatuses
     .map((status) => ({
@@ -155,6 +166,24 @@ function TicketsPage() {
       total: supportTickets.filter((ticket) => ticket.status === status).length,
     }))
     .filter((item) => item.total > 0);
+
+  const sourceDistribution = (["Portal do cliente", "Telefone", "WhatsApp", "Email"] as const).map(
+    (source) => ({
+      source,
+      label: sourceLabels[source],
+      total: supportTickets.filter((ticket) => ticket.source === source).length,
+    }),
+  );
+
+  const moduleMap = new Map<string, number>();
+  supportTickets.forEach((ticket) => {
+    const key = ticket.module.split(" - ").pop() ?? ticket.module;
+    moduleMap.set(key, (moduleMap.get(key) ?? 0) + 1);
+  });
+  const moduleDistribution = Array.from(moduleMap.entries())
+    .map(([label, total]) => ({ label, total }))
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 5);
 
   return (
     <AppShell>
@@ -170,141 +199,63 @@ function TicketsPage() {
         }
       />
 
-      <section className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <MetricCard
-          label="Chamados abertos"
-          value={openTickets}
-          trend="+18 hoje"
-          icon={Headphones}
-          tone="bg-primary/12 text-primary"
-        />
-        <MetricCard
-          label="Atrasados"
-          value={overdueTickets}
-          trend="exigem retorno"
-          icon={AlertTriangle}
-          tone="bg-destructive/12 text-destructive"
-        />
-        <MetricCard
-          label="Criados pelo cliente"
-          value={portalTickets}
-          trend="novo fluxo do portal"
-          icon={UserRound}
-          tone="bg-[#e7faf1] text-[#1f9860]"
-        />
-        <MetricCard
-          label="Finalizados"
-          value={finishedTickets}
-          trend="ultimas 24h"
-          icon={CheckCircle2}
-          tone="bg-success/12 text-success"
-        />
-      </section>
+      <section className="mb-6 grid grid-cols-1 gap-6 xl:grid-cols-[1.1fr_1.1fr]">
+        <div className="space-y-6">
+          <TicketsHero openTickets={openTickets} overdueTickets={overdueTickets} />
+          <DailyVolumeCard />
+          <WeeklyBacklogCard />
+        </div>
 
-      <section className="mb-6 grid min-w-0 grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.3fr)_minmax(340px,0.7fr)]">
-        <Card className="min-w-0 rounded-[14px] border-0 bg-card p-5 shadow-[0_10px_28px_rgba(25,29,51,0.06)]">
-          <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <p className="text-base font-bold text-foreground">Volume por dia</p>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                Abertos, finalizados e atrasados na semana atual.
-              </p>
-            </div>
-            <Badge variant="secondary" className="rounded-full">Dia / semana</Badge>
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <SmallStatCard
+              title="Abertos"
+              value={String(openTickets)}
+              change="+18 hoje"
+              trend="up"
+              icon={Headphones}
+              accent="#0b97c4"
+            />
+            <SmallStatCard
+              title="Em andamento"
+              value={String(inProgressTickets)}
+              change="ativos"
+              trend="up"
+              icon={Clock3}
+              accent="#8d6bd8"
+            />
+            <SmallStatCard
+              title="Atrasados"
+              value={String(overdueTickets)}
+              change="revisar SLA"
+              trend="down"
+              icon={AlertTriangle}
+              accent="#fb5166"
+            />
+            <SmallStatCard
+              title="Finalizados"
+              value={String(finishedTickets)}
+              change="+8 hoje"
+              trend="up"
+              icon={CheckCircle2}
+              accent="#20bf6b"
+            />
           </div>
-          <ChartContainer config={chartConfig} className="h-[300px] w-full">
-            <AreaChart data={dailyTicketAnalytics} margin={{ left: -16, right: 10, top: 8 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="day" tickLine={false} axisLine={false} />
-              <YAxis tickLine={false} axisLine={false} width={36} />
-              <ChartTooltip content={<ChartTooltipContent />} />
-              <Area
-                dataKey="opened"
-                type="monotone"
-                stroke="var(--color-opened)"
-                fill="var(--color-opened)"
-                fillOpacity={0.16}
-                strokeWidth={2.5}
-              />
-              <Area
-                dataKey="finished"
-                type="monotone"
-                stroke="var(--color-finished)"
-                fill="var(--color-finished)"
-                fillOpacity={0.12}
-                strokeWidth={2.5}
-              />
-              <Area
-                dataKey="overdue"
-                type="monotone"
-                stroke="var(--color-overdue)"
-                fill="var(--color-overdue)"
-                fillOpacity={0.08}
-                strokeWidth={2}
-              />
-            </AreaChart>
-          </ChartContainer>
-        </Card>
 
-        <div className="grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-1">
-          <Card className="rounded-[14px] border-0 bg-card p-5 shadow-[0_10px_28px_rgba(25,29,51,0.06)]">
-            <p className="text-base font-bold text-foreground">Backlog semanal</p>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              Comparativo entre abertura, finalização e saldo.
-            </p>
-            <ChartContainer config={chartConfig} className="mt-3 h-[190px] w-full">
-              <BarChart data={weeklyTicketAnalytics} margin={{ left: -20, right: 0, top: 8 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="week" tickLine={false} axisLine={false} />
-                <YAxis tickLine={false} axisLine={false} width={34} />
-                <ChartTooltip content={<ChartTooltipContent />} />
-                <Bar dataKey="opened" fill="var(--color-opened)" radius={[6, 6, 0, 0]} />
-                <Bar dataKey="finished" fill="var(--color-finished)" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ChartContainer>
-          </Card>
+          <SlaProfileCard
+            slaMedio={slaMedio}
+            avgHandlingLabel={avgHandlingLabel}
+            resolutionRate={resolutionRate}
+            portalTickets={portalTickets}
+          />
 
-          <Card className="rounded-[14px] border-0 bg-card p-5 shadow-[0_10px_28px_rgba(25,29,51,0.06)]">
-            <p className="text-base font-bold text-foreground">Distribuicao por status</p>
-            <div className="mt-3 grid grid-cols-[132px_minmax(0,1fr)] items-center gap-3">
-              <ChartContainer config={chartConfig} className="h-[132px] w-[132px]">
-                <PieChart>
-                  <Pie
-                    data={statusDistribution}
-                    dataKey="total"
-                    nameKey="status"
-                    innerRadius={38}
-                    outerRadius={58}
-                    paddingAngle={3}
-                  >
-                    {statusDistribution.map((item, index) => (
-                      <Cell
-                        key={item.status}
-                        fill={[
-                          "var(--color-primary)",
-                          "var(--color-success)",
-                          "var(--color-destructive)",
-                          "var(--color-chart-2)",
-                          "var(--color-chart-4)",
-                        ][index % 5]}
-                      />
-                    ))}
-                  </Pie>
-                  <ChartTooltip content={<ChartTooltipContent nameKey="status" />} />
-                </PieChart>
-              </ChartContainer>
-              <div className="min-w-0 space-y-2">
-                {statusDistribution.slice(0, 5).map((item) => (
-                  <div key={item.status} className="flex min-w-0 items-center justify-between gap-2 text-xs">
-                    <span className="truncate text-muted-foreground">{item.status}</span>
-                    <span className="font-semibold text-foreground">{item.total}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </Card>
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <StatusCategoriesCard data={statusDistribution} />
+            <SourceModuleCard sources={sourceDistribution} modules={moduleDistribution} />
+          </div>
         </div>
       </section>
+
 
       <section className="mb-6 grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
         <Card className="rounded-[14px] border-0 bg-card p-4 shadow-[0_10px_28px_rgba(25,29,51,0.06)]">
@@ -595,4 +546,444 @@ function DateCell({ value, icon: Icon }: { value: string; icon: typeof CalendarC
   );
 }
 
+
+// ============= Analytics dashboard components (Chamados) =============
+
+function TicketsHero({
+  openTickets,
+  overdueTickets,
+}: {
+  openTickets: number;
+  overdueTickets: number;
+}) {
+  return (
+    <Card className="relative min-h-[230px] overflow-hidden rounded-[14px] border-0 bg-gradient-to-br from-[#0b97c4] via-[#0490d1] to-[#313866] p-7 text-white shadow-[0_18px_40px_rgba(11,151,196,0.22)]">
+      <div className="relative z-10 max-w-[360px]">
+        <p className="text-xs font-semibold uppercase tracking-wider text-white/70">
+          Central de chamados
+        </p>
+        <h2 className="mt-2 text-[24px] font-bold leading-tight">
+          {openTickets} chamados ativos no atendimento
+        </h2>
+        <p className="mt-3 text-sm leading-relaxed text-white/78">
+          {overdueTickets} atrasados exigem retorno imediato. Acompanhe SLA, produtividade e o
+          fluxo de origem em um só lugar.
+        </p>
+        <Button className="mt-6 rounded-full bg-white dark:bg-[#20263d] px-6 text-foreground hover:bg-white/90">
+          Ver painel completo <ArrowRight className="ml-2 h-4 w-4" />
+        </Button>
+      </div>
+      <div className="absolute right-6 top-8 hidden h-[160px] w-[200px] md:block">
+        <div className="absolute bottom-0 left-8 h-[86px] w-[130px] rounded-lg bg-white/75 shadow-xl" />
+        <div className="absolute bottom-9 left-3 h-[60px] w-[78px] rounded-xl bg-[#33c3e8] shadow-lg">
+          <div className="absolute left-3 top-3 flex h-8 items-end gap-1.5">
+            {[16, 26, 34, 50, 40, 60].map((h, i) => (
+              <span
+                key={i}
+                className="w-1.5 rounded-full bg-white dark:bg-[#20263d]"
+                style={{ height: h }}
+              />
+            ))}
+          </div>
+        </div>
+        <div className="absolute right-4 top-6 h-7 w-7 rounded-full border-[9px] border-[#61c8e8]" />
+        <div className="absolute bottom-16 right-6 h-3.5 w-3.5 rounded-full bg-[#ff8ecf]" />
+      </div>
+    </Card>
+  );
+}
+
+function DailyVolumeCard() {
+  return (
+    <Card className="rounded-[14px] border-0 bg-white dark:bg-[#20263d] p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
+      <div className="mb-5 flex items-center justify-between gap-4">
+        <div>
+          <h3 className="text-base font-bold text-foreground">Volume por dia</h3>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Abertos, finalizados e atrasados na semana atual.
+          </p>
+        </div>
+        <div className="flex rounded-full bg-primary/10 p-1 text-[11px] font-semibold text-muted-foreground">
+          {["Semana", "Mês", "Trim."].map((item) => (
+            <button
+              key={item}
+              className={cn(
+                "rounded-full px-3.5 py-1.5 transition",
+                item === "Semana" && "bg-white dark:bg-[#20263d] text-foreground shadow-sm",
+              )}
+            >
+              {item}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="mb-4 grid grid-cols-3 gap-3">
+        <StatLegend color="#0b97c4" label="Abertos" value={sumDaily("opened").toString()} />
+        <StatLegend color="#20bf6b" label="Finalizados" value={sumDaily("finished").toString()} />
+        <StatLegend color="#fb5166" label="Atrasados" value={sumDaily("overdue").toString()} />
+      </div>
+      <div className="h-[240px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={dailyTicketAnalytics} margin={{ top: 10, right: 10, left: -16, bottom: 0 }}>
+            <defs>
+              <linearGradient id="chamados-opened" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#0b97c4" stopOpacity={0.35} />
+                <stop offset="100%" stopColor="#0b97c4" stopOpacity={0} />
+              </linearGradient>
+              <linearGradient id="chamados-finished" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#20bf6b" stopOpacity={0.28} />
+                <stop offset="100%" stopColor="#20bf6b" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(139,145,173,0.18)" />
+            <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#8b91ad" }} />
+            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#8b91ad" }} width={30} />
+            <Tooltip
+              contentStyle={{
+                border: "0",
+                borderRadius: 12,
+                boxShadow: "0 14px 30px rgba(25,29,51,0.12)",
+                fontSize: 12,
+              }}
+            />
+            <Area type="monotone" dataKey="opened" stroke="#0b97c4" strokeWidth={3} fill="url(#chamados-opened)" />
+            <Area type="monotone" dataKey="finished" stroke="#20bf6b" strokeWidth={3} fill="url(#chamados-finished)" />
+            <Area type="monotone" dataKey="overdue" stroke="#fb5166" strokeWidth={2} fill="transparent" />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+    </Card>
+  );
+}
+
+function sumDaily(key: "opened" | "finished" | "overdue") {
+  return dailyTicketAnalytics.reduce((acc, item) => acc + item[key], 0);
+}
+
+function WeeklyBacklogCard() {
+  return (
+    <Card className="rounded-[14px] border-0 bg-white dark:bg-[#20263d] p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
+      <div className="mb-4 flex items-center justify-between">
+        <div>
+          <h3 className="text-base font-bold text-foreground">Backlog semanal</h3>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Evolução de abertos, finalizados e saldo em aberto.
+          </p>
+        </div>
+        <MoreVertical className="h-5 w-5 text-muted-foreground" />
+      </div>
+      <div className="h-[220px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={weeklyTicketAnalytics} margin={{ top: 10, right: 10, left: -18, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(139,145,173,0.18)" />
+            <XAxis dataKey="week" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#8b91ad" }} />
+            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#8b91ad" }} width={30} />
+            <Tooltip
+              contentStyle={{
+                border: "0",
+                borderRadius: 12,
+                boxShadow: "0 14px 30px rgba(25,29,51,0.12)",
+                fontSize: 12,
+              }}
+            />
+            <Bar dataKey="opened" fill="#8d6bd8" radius={[6, 6, 0, 0]} />
+            <Bar dataKey="finished" fill="#ff9f68" radius={[6, 6, 0, 0]} />
+            <Bar dataKey="backlog" fill="#ff5fc8" radius={[6, 6, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+      <div className="mt-3 flex flex-wrap items-center gap-5 text-xs font-semibold text-muted-foreground">
+        <LegendDot color="#8d6bd8" label="Abertos" />
+        <LegendDot color="#ff9f68" label="Finalizados" />
+        <LegendDot color="#ff5fc8" label="Saldo" />
+      </div>
+    </Card>
+  );
+}
+
+function LegendDot({ color, label }: { color: string; label: string }) {
+  return (
+    <span className="inline-flex items-center gap-2">
+      <span className="h-2.5 w-2.5 rounded-full" style={{ background: color }} />
+      {label}
+    </span>
+  );
+}
+
+function StatLegend({ color, label, value }: { color: string; label: string; value: string }) {
+  return (
+    <div className="flex items-center gap-2">
+      <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: color }} />
+      <div className="min-w-0">
+        <p className="text-lg font-bold leading-none text-foreground">{value}</p>
+        <p className="mt-1 truncate text-xs text-muted-foreground">{label}</p>
+      </div>
+    </div>
+  );
+}
+
+function SmallStatCard({
+  title,
+  value,
+  change,
+  trend,
+  icon: Icon,
+  accent,
+}: {
+  title: string;
+  value: string;
+  change?: string;
+  trend?: "up" | "down";
+  icon: typeof Headphones;
+  accent: string;
+}) {
+  return (
+    <Card className="min-h-[126px] rounded-[14px] border-0 bg-white dark:bg-[#20263d] p-5 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
+      <div className="flex h-full items-start justify-between gap-4">
+        <div className="min-w-0">
+          <p className="text-sm font-bold text-foreground">{title}</p>
+          <div className="mt-4 flex items-end gap-2">
+            <span className="text-3xl font-bold tabular-nums text-foreground">{value}</span>
+            {change && (
+              <span
+                className={cn(
+                  "mb-1 inline-flex items-center gap-1 text-xs font-semibold",
+                  trend === "down" ? "text-[#fb5166]" : "text-[#20bf6b]",
+                )}
+              >
+                {trend === "down" ? <TrendingDown className="h-3 w-3" /> : <TrendingUp className="h-3 w-3" />}
+                {change}
+              </span>
+            )}
+          </div>
+        </div>
+        <div
+          className="grid h-11 w-11 shrink-0 place-items-center rounded-xl"
+          style={{ background: `${accent}1f`, color: accent }}
+        >
+          <Icon className="h-5 w-5" />
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function SlaProfileCard({
+  slaMedio,
+  avgHandlingLabel,
+  resolutionRate,
+  portalTickets,
+}: {
+  slaMedio: number;
+  avgHandlingLabel: string;
+  resolutionRate: number;
+  portalTickets: number;
+}) {
+  return (
+    <Card className="rounded-[14px] border-0 bg-white dark:bg-[#20263d] p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
+      <div className="grid gap-6 md:grid-cols-[1fr_220px] md:items-center">
+        <div>
+          <h3 className="text-base font-bold text-foreground">Saúde do atendimento</h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Tempo médio, SLA e taxa de resolução consolidados.
+          </p>
+          <div className="mt-5 grid grid-cols-3 gap-3">
+            <InfoPill icon={Clock3} label="Tempo médio" value={avgHandlingLabel} />
+            <InfoPill icon={CheckCircle2} label="Resolução" value={`${resolutionRate}%`} />
+            <InfoPill icon={UserRound} label="Portal" value={String(portalTickets)} />
+          </div>
+        </div>
+        <Gauge value={slaMedio} />
+      </div>
+    </Card>
+  );
+}
+
+function InfoPill({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: typeof Headphones;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-xl bg-muted/40 p-3">
+      <Icon className="h-4 w-4 text-primary" />
+      <p className="mt-2 text-[11px] text-muted-foreground">{label}</p>
+      <p className="text-sm font-bold text-foreground">{value}</p>
+    </div>
+  );
+}
+
+function Gauge({ value }: { value: number }) {
+  const size = 220;
+  const cx = size / 2;
+  const cy = size / 2;
+  const r = 82;
+  const stroke = 20;
+  const progress = Math.max(0, Math.min(1, value / 100));
+  const circumference = Math.PI * r;
+  const dash = circumference * progress;
+  const angleDeg = -180 + 180 * progress;
+  const needleLength = r - 6;
+  const rad = (angleDeg * Math.PI) / 180;
+  const tipX = cx + needleLength * Math.cos(rad);
+  const tipY = cy + needleLength * Math.sin(rad);
+
+  return (
+    <div className="mx-auto flex w-full max-w-[220px] flex-col items-center">
+      <div className="relative w-full overflow-hidden" style={{ aspectRatio: "2 / 1" }}>
+        <svg viewBox={`0 0 ${size} ${size / 2 + 4}`} className="block h-auto w-full" aria-hidden="true">
+          <path
+            d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`}
+            fill="none"
+            stroke="rgba(139,145,173,0.22)"
+            strokeWidth={stroke}
+            strokeLinecap="round"
+          />
+          <path
+            d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`}
+            fill="none"
+            stroke="#0b97c4"
+            strokeWidth={stroke}
+            strokeLinecap="round"
+            strokeDasharray={`${dash} ${circumference}`}
+          />
+          <circle cx={cx} cy={cy} r={28} fill="rgba(11,151,196,0.14)" />
+          <circle cx={cx} cy={cy} r={16} fill="#0b97c4" />
+          <line x1={cx} y1={cy} x2={tipX} y2={tipY} stroke="#313866" strokeWidth={7} strokeLinecap="round" />
+          <circle cx={cx} cy={cy} r={4} fill="#ffffff" />
+        </svg>
+      </div>
+      <p className="mt-1 text-sm font-bold text-muted-foreground">
+        SLA médio <span className="text-[#20bf6b]">{value}%</span>
+      </p>
+    </div>
+  );
+}
+
+const statusChartColors = [
+  "#0b97c4",
+  "#8d6bd8",
+  "#ffd166",
+  "#ff9f68",
+  "#20bf6b",
+  "#fb5166",
+  "#33c3e8",
+  "#ff5fc8",
+  "#8b91ad",
+];
+
+function StatusCategoriesCard({
+  data,
+}: {
+  data: { status: TicketStatus; total: number }[];
+}) {
+  return (
+    <Card className="rounded-[14px] border-0 bg-white dark:bg-[#20263d] p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
+      <h3 className="text-base font-bold text-foreground">Chamados por status</h3>
+      <p className="mt-1 text-xs text-muted-foreground">Distribuição atual do funil.</p>
+      <div className="mt-4 h-[180px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie data={data} innerRadius={46} outerRadius={72} paddingAngle={2} dataKey="total" nameKey="status">
+              {data.map((entry, index) => (
+                <Cell key={entry.status} fill={statusChartColors[index % statusChartColors.length]} />
+              ))}
+            </Pie>
+            <Tooltip
+              contentStyle={{
+                border: "0",
+                borderRadius: 12,
+                boxShadow: "0 14px 30px rgba(25,29,51,0.12)",
+                fontSize: 12,
+              }}
+            />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
+      <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1.5">
+        {data.map((item, index) => (
+          <span key={item.status} className="inline-flex min-w-0 items-center gap-2 text-[11px] text-muted-foreground">
+            <span
+              className="h-2 w-2 shrink-0 rounded-full"
+              style={{ background: statusChartColors[index % statusChartColors.length] }}
+            />
+            <span className="truncate">{item.status}</span>
+            <span className="ml-auto font-semibold text-foreground">{item.total}</span>
+          </span>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
+function SourceModuleCard({
+  sources,
+  modules,
+}: {
+  sources: { source: string; label: string; total: number }[];
+  modules: { label: string; total: number }[];
+}) {
+  const sourceMax = Math.max(1, ...sources.map((s) => s.total));
+  const moduleMax = Math.max(1, ...modules.map((m) => m.total));
+  return (
+    <Card className="rounded-[14px] border-0 bg-white dark:bg-[#20263d] p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
+      <div className="flex items-start justify-between">
+        <div>
+          <h3 className="text-base font-bold text-foreground">Origem & Módulo</h3>
+          <p className="mt-1 text-xs text-muted-foreground">Canais e áreas mais acionadas.</p>
+        </div>
+        <MoreVertical className="h-5 w-5 text-muted-foreground" />
+      </div>
+
+      <div className="mt-4">
+        <p className="mb-2 inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+          <PhoneCall className="h-3 w-3" /> Origem
+        </p>
+        <div className="space-y-2">
+          {sources.map((item) => (
+            <BarRow key={item.source} label={item.label} value={item.total} max={sourceMax} color="#0b97c4" />
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-5">
+        <p className="mb-2 inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+          <Layers className="h-3 w-3" /> Módulo
+        </p>
+        <div className="space-y-2">
+          {modules.map((item) => (
+            <BarRow key={item.label} label={item.label} value={item.total} max={moduleMax} color="#8d6bd8" />
+          ))}
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function BarRow({
+  label,
+  value,
+  max,
+  color,
+}: {
+  label: string;
+  value: number;
+  max: number;
+  color: string;
+}) {
+  const pct = Math.round((value / max) * 100);
+  return (
+    <div className="grid grid-cols-[92px_minmax(0,1fr)_28px] items-center gap-3">
+      <span className="truncate text-[12px] font-medium text-foreground">{label}</span>
+      <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+        <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: color }} />
+      </div>
+      <span className="text-right text-[12px] font-semibold tabular-nums text-foreground">{value}</span>
+    </div>
+  );
+}
 
