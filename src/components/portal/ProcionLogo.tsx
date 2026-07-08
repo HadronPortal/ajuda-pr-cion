@@ -1,5 +1,5 @@
 import logoUrl from "@/assets/procion-menu-logo.png?url";
-import starUrl from "@/assets/procion-star.png?url";
+import collapsedStarUrl from "@/assets/procion-collapsed-star.png?url";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -9,14 +9,14 @@ type Props = {
 
 export function ProcionLogo({ variant = "full", className }: Props) {
   const isMark = variant === "mark";
-  const src = isMark ? starUrl : logoUrl;
+  const src = isMark ? collapsedStarUrl : logoUrl;
   return (
     <span
       role="img"
       aria-label="Prócion"
       className={cn(
         "block shrink-0 bg-current select-none",
-        isMark ? "h-9 w-9" : "h-12 w-[190px]",
+        isMark ? "h-12 w-14" : "h-12 w-[190px]",
         className,
       )}
       style={{
