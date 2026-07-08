@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   Area,
   AreaChart,
@@ -474,15 +474,16 @@ function TicketCard({ ticket, onOpen }: { ticket: SupportTicket; onOpen?: (ticke
           <PhoneCall className="h-3 w-3" />
           {sourceLabels[ticket.source]}
         </Chip>
-        <a
-          href={`/base-de-conhecimento?search=${encodeURIComponent(ticket.module)}`}
+        <Link
+          to="/base-de-conhecimento"
+          search={{ search: ticket.module }}
           onClick={(e) => e.stopPropagation()}
           className="inline-flex cursor-pointer items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground transition hover:bg-primary/10 hover:text-primary"
           title={`Buscar "${ticket.module}" na Base de Conhecimento`}
         >
           <FolderKanban className="h-3 w-3" />
           {ticket.module}
-        </a>
+        </Link>
       </div>
 
       <div className="flex items-center justify-between gap-2 border-t border-border/70 pt-3">
