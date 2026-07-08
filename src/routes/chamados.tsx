@@ -424,86 +424,163 @@ function MetricCard({
   );
 }
 
-function TableHead({ children }: { children: React.ReactNode }) {
-  return <th className="whitespace-nowrap px-2.5 py-2.5 text-left font-medium">{children}</th>;
+function computeSla(ticket: SupportTicket) {
+  const target = 24; // hours SLA
+  const openedAt = new Date(ticket.openedAt).getTime();
+  const now = new Date("2026-07-08T10:00:00").getTime();
+  const hours = Math.max(0, (now - openedAt) / 36e5);
+  const rawPct = ticket.status === "Atrasado" ? 100 : Math.min(100, (hours / target) * 100);
+  const pct = Math.round(rawPct);
+  let tone: "ok" | "warn" | "late" = "ok";
+  if (ticket.status === "Atrasado" || pct >= 90) tone = "late";
+  else if (pct >= 60) tone = "warn";
+  return { pct, tone };
 }
 
-function TicketRow({ ticket }: { ticket: SupportTicket }) {
+const slaBarTone: Record<"ok" | "warn" | "late", string> = {
+  ok: "bg-success",
+  warn: "bg-warning",
+  late: "bg-destructive",
+};
+
+const slaTextTone: Record<"ok" | "warn" | "late", string> = {
+  ok: "text-success",
+  warn: "text-warning-foreground",
+  late: "text-destructive",
+};
+
+function TicketCard({ ticket }: { ticket: SupportTicket }) {
+  const sla = computeSla(ticket);
   return (
-    <tr className="cursor-pointer transition hover:bg-muted/35">
-      <td className="px-2.5 py-2.5 align-top">
-        <div className="flex min-w-0 flex-col gap-1">
-          <Badge
-            className={cn(
-              "w-fit whitespace-nowrap rounded-full border px-1.5 py-0 text-[10px] leading-4",
-              statusTone[ticket.status],
-            )}
-          >
-            {ticket.status}
-          </Badge>
-          <span className="truncate font-mono text-[11px] font-semibold text-foreground">
+    <Card className="flex min-w-0 flex-col gap-4 rounded-[16px] border border-border/70 bg-card p-5 shadow-[0_10px_28px_rgba(25,29,51,0.05)] transition hover:shadow-[0_14px_32px_rgba(25,29,51,0.09)]">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="truncate text-[15px] font-bold leading-snug text-foreground">
+            {ticket.subject}
+          </p>
+          <p className="mt-1 truncate text-[12px] text-muted-foreground">
+            <span className="font-semibold text-foreground">{ticket.clientCode}</span>
+            {" · "}
+            {ticket.clientName}
+          </p>
+        </div>
+        <div className="flex shrink-0 flex-col items-end">
+          <span className="font-mono text-[11px] font-semibold text-foreground">
             {ticket.protocol}
           </span>
+          <span className="mt-0.5 text-[11px] text-muted-foreground">
+            {sourceLabels[ticket.source]}
+          </span>
         </div>
-      </td>
-      <td className="px-2.5 py-2.5 align-top">
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
         <Badge
           className={cn(
-            "whitespace-nowrap rounded-full px-1.5 py-0 text-[10px] leading-4",
-            priorityTone[ticket.priority],
+            "whitespace-nowrap rounded-full border px-2.5 py-0.5 text-[11px] font-semibold",
+            statusTone[ticket.status],
           )}
         >
-          {ticket.priority}
+          {ticket.status}
         </Badge>
-      </td>
-      <td className="whitespace-nowrap px-2.5 py-2.5 align-top text-[12px] text-muted-foreground">
-        <DateCell value={ticket.openedAt} icon={CalendarClock} />
-      </td>
-      <td className="whitespace-nowrap px-2.5 py-2.5 align-top text-[12px] text-muted-foreground">
-        <DateCell value={ticket.updatedAt} icon={Clock3} />
-      </td>
-      <td className="truncate px-2.5 py-2.5 align-top text-[12px] font-medium text-foreground">
-        {ticket.attendant}
-      </td>
-      <td className="px-2.5 py-2.5 align-top">
-        <div className="flex items-center gap-1.5">
-          <span className="truncate text-[12px] font-medium text-foreground">{ticket.owner}</span>
-          {ticket.lockedBy && (
-            <span
-              title={`Chamado ocupado por ${ticket.lockedBy}`}
-              className="shrink-0 text-warning-foreground"
-            >
-              <LockKeyhole className="h-3.5 w-3.5" />
-            </span>
-          )}
+        {ticket.lockedBy && (
+          <span className="inline-flex items-center gap-1 rounded-full bg-warning/15 px-2 py-0.5 text-[11px] font-medium text-warning-foreground">
+            <LockKeyhole className="h-3 w-3" />
+            Ocupado por {ticket.lockedBy}
+          </span>
+        )}
+      </div>
+
+      <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-[12px]">
+        <InfoRow label="Contato" value={ticket.contact} />
+        <InfoRow label="Modulo" value={ticket.module} />
+        <InfoRow label="Atendente" value={ticket.attendant} />
+        <InfoRow label="Responsavel" value={ticket.owner} />
+        <InfoRow
+          label="Registro"
+          value={<DateCell value={ticket.openedAt} icon={CalendarClock} />}
+        />
+        <InfoRow
+          label="Atualizado"
+          value={<DateCell value={ticket.updatedAt} icon={Clock3} />}
+        />
+      </dl>
+
+      <div>
+        <div className="mb-1 flex items-center justify-between text-[11px]">
+          <span className="font-medium text-muted-foreground">SLA</span>
+          <span className={cn("font-semibold", slaTextTone[sla.tone])}>{sla.pct}%</span>
         </div>
-      </td>
-      <td className="px-2.5 py-2.5 align-top">
-        <p className="truncate text-[12.5px] font-semibold text-foreground">
-          {ticket.clientCode} - {ticket.clientName}
-        </p>
-        <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+          <div
+            className={cn("h-full rounded-full transition-all", slaBarTone[sla.tone])}
+            style={{ width: `${sla.pct}%` }}
+          />
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-1.5">
+        <Chip className={priorityTone[ticket.priority]}>{ticket.priority}</Chip>
+        <Chip className="bg-primary/10 text-primary">
+          <PhoneCall className="h-3 w-3" />
           {sourceLabels[ticket.source]}
-        </p>
-      </td>
-      <td className="truncate px-2.5 py-2.5 align-top text-[12px] text-muted-foreground">
-        {ticket.contact}
-      </td>
-      <td className="px-2.5 py-2.5 align-top">
-        <p className="truncate text-[12.5px] font-medium text-foreground">{ticket.subject}</p>
-        <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{ticket.module}</p>
-      </td>
-      <td className="px-2 py-2.5 align-top">
+        </Chip>
+        <Chip className="bg-muted text-muted-foreground">
+          <FolderKanban className="h-3 w-3" />
+          {ticket.module}
+        </Chip>
+      </div>
+
+      <div className="flex items-center justify-between gap-2 border-t border-border/70 pt-3">
         <Button
-          variant="ghost"
           size="sm"
-          className="h-7 cursor-pointer rounded-lg px-2 text-[12px] text-primary hover:text-primary"
+          className="h-8 cursor-pointer rounded-lg px-3 text-[12px] shadow-[0_6px_14px_rgba(11,151,196,0.18)]"
         >
           Abrir
           <ArrowUpRight className="ml-0.5 h-3.5 w-3.5" />
         </Button>
-      </td>
-    </tr>
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 cursor-pointer rounded-lg px-2 text-[12px] text-muted-foreground hover:text-foreground"
+          >
+            <UserPlus className="mr-1 h-3.5 w-3.5" />
+            Assumir
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 cursor-pointer rounded-lg px-2 text-[12px] text-muted-foreground hover:text-foreground"
+          >
+            <History className="mr-1 h-3.5 w-3.5" />
+            Historico
+          </Button>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="min-w-0">
+      <dt className="text-[10.5px] uppercase tracking-wide text-muted-foreground">{label}</dt>
+      <dd className="mt-0.5 truncate text-[12.5px] font-medium text-foreground">{value}</dd>
+    </div>
+  );
+}
+
+function Chip({ className, children }: { className?: string; children: React.ReactNode }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 text-[11px] font-medium",
+        className,
+      )}
+    >
+      {children}
+    </span>
   );
 }
 
@@ -517,4 +594,5 @@ function DateCell({ value, icon: Icon }: { value: string; icon: typeof CalendarC
     </span>
   );
 }
+
 
