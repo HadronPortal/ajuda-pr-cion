@@ -43,11 +43,11 @@ export function sefazStatusTone(status: SefazServiceStatus) {
       };
     case "Atenção":
       return {
-        dot: "bg-amber-500",
-        text: "text-amber-600 dark:text-amber-400",
-        bg: "bg-amber-500/10",
-        border: "border-amber-500/30",
-        badge: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
+        dot: "bg-yellow-400",
+        text: "text-slate-800 dark:text-yellow-200",
+        bg: "bg-yellow-300/20",
+        border: "border-yellow-300/50",
+        badge: "bg-yellow-300/90 text-slate-900 dark:bg-yellow-300/80 dark:text-slate-900",
       };
     case "Instável":
       return {
