@@ -149,15 +149,12 @@ export function TicketHistoryModal({
               >
                 <div className="flex min-w-0 flex-1 items-center gap-2">
                   <FileText className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                  <button
-                    type="button"
-                    className="cursor-pointer truncate text-[13px] font-bold uppercase tracking-wide text-primary hover:underline"
-                    onClick={() =>
-                      toast.info(h.protocol, { description: h.description })
-                    }
+                  <span
+                    className="truncate text-[12.5px] font-semibold uppercase tracking-wide text-foreground"
+                    title={h.title}
                   >
                     {h.title}
-                  </button>
+                  </span>
                   <Badge
                     className={cn(
                       "shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase",
