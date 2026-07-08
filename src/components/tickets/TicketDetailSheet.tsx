@@ -320,18 +320,17 @@ export function TicketDetailSheet({
   const timeline = buildTimeline(ticket);
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent
-        side="right"
-        className="flex w-full flex-col gap-0 border-l border-border bg-background p-0 shadow-2xl sm:!max-w-none md:w-[720px] lg:w-[820px] xl:w-[860px]"
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+        className="flex max-h-[92vh] w-[calc(100vw-1rem)] max-w-none flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-background p-0 shadow-[0_30px_80px_rgba(0,0,0,0.35)] sm:w-[calc(100vw-2rem)] md:max-h-[88vh] md:w-[900px] lg:w-[1000px] xl:w-[1080px]"
       >
-        <SheetTitle className="sr-only">
+        <DialogTitle className="sr-only">
           Detalhes do chamado {ticket.protocol}
-        </SheetTitle>
+        </DialogTitle>
 
         {/* Fixed header */}
         <header className="shrink-0 border-b border-border bg-card px-5 py-4 md:px-6">
-          <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex flex-wrap items-start justify-between gap-3 pr-8">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="font-mono text-[12px] font-semibold text-muted-foreground">
@@ -388,38 +387,8 @@ export function TicketDetailSheet({
               style={{ width: `${sla.pct}%` }}
             />
           </div>
-
-          <div className="mt-4 flex flex-wrap items-center gap-2">
-            <Button size="sm" className="h-8 cursor-pointer rounded-lg px-3 text-[12px]">
-              <UserPlus className="mr-1 h-3.5 w-3.5" />
-              Assumir
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              className="h-8 cursor-pointer rounded-lg px-3 text-[12px]"
-            >
-              <ShieldCheck className="mr-1 h-3.5 w-3.5" />
-              Alterar status
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              className="h-8 cursor-pointer rounded-lg px-3 text-[12px]"
-            >
-              <CheckCircle2 className="mr-1 h-3.5 w-3.5" />
-              Encerrar
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-8 cursor-pointer rounded-lg px-3 text-[12px] text-muted-foreground hover:text-foreground"
-            >
-              <History className="mr-1 h-3.5 w-3.5" />
-              Histórico
-            </Button>
-          </div>
         </header>
+
 
         {/* Scrollable body */}
         <div className="flex-1 overflow-y-auto bg-muted/30 px-5 py-5 md:px-6">
