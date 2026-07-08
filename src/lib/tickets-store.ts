@@ -259,37 +259,22 @@ export const ticketsStore = {
     emit();
   },
 
-  addNote(id: string, note: string) {
+  addInternalNote(id: string, note: string) {
     const op = operator();
-    const ticket = tickets.find((t) => t.id === id);
-    updateTicket(id, {});
     const when = nowIso();
-    pushEvent(id, {
-      kind: "note",
-      when,
-      actor: op,
-      actorType: "suporte",
-      description: `Nota interna: ${note}`,
-    });
-    if (ticket) {
-      const entry: PastAttendance = {
-        id: `${id}-note-${nextEventId()}`,
-        title: "NOTA INTERNA",
-        status: ticket.status,
-        module: ticket.module,
-        priority: ticket.priority,
-        operator: op,
-        date: when,
-        protocol: ticket.protocol,
-        description: note,
-      };
-      history[id] = [entry, ...(history[id] ?? [])];
-    }
+    const entry: InternalNote = {
+      id: `note-${Date.now().toString(36)}-${++eventCounter}`,
+      operator: op,
+      createdAt: when,
+      text: note,
+    };
+    internalNotes[id] = [entry, ...(internalNotes[id] ?? [])];
+    updateTicket(id, {});
     emit();
   },
 
-  addInternalNote(id: string, note: string) {
-    this.addNote(id, note);
+  addNote(id: string, note: string) {
+    this.addInternalNote(id, note);
   },
 };
 
