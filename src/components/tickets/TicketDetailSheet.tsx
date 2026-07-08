@@ -842,3 +842,75 @@ function CompactInfo({
     </div>
   );
 }
+
+function sideItemClasses(highlight: boolean) {
+  return cn(
+    "group flex w-full cursor-pointer items-center gap-2 whitespace-nowrap rounded-lg px-2.5 py-2 text-left text-[12.5px] font-medium transition",
+    highlight
+      ? "bg-primary text-primary-foreground hover:bg-primary/90"
+      : "text-foreground hover:bg-accent",
+  );
+}
+
+function SideItem({
+  icon: Icon,
+  label,
+  collapsed,
+  onClick,
+  highlight,
+  className,
+}: {
+  icon: typeof Info;
+  label: string;
+  collapsed: boolean;
+  onClick: () => void;
+  highlight?: boolean;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={collapsed ? label : undefined}
+      aria-label={label}
+      className={cn(
+        sideItemClasses(!!highlight),
+        collapsed && "md:justify-center md:px-0",
+        className,
+      )}
+    >
+      <Icon className="h-4 w-4 shrink-0" />
+      <span className={cn("truncate", collapsed && "md:hidden")}>{label}</span>
+    </button>
+  );
+}
+
+function MobileAction({
+  icon: Icon,
+  label,
+  onClick,
+  highlight,
+}: {
+  icon: typeof Info;
+  label: string;
+  onClick: () => void;
+  highlight?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      className={cn(
+        "inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11.5px] font-semibold transition",
+        highlight
+          ? "border-primary bg-primary text-primary-foreground hover:bg-primary/90"
+          : "border-border bg-card text-foreground hover:bg-accent",
+      )}
+    >
+      <Icon className="h-3.5 w-3.5" />
+      <span>{label}</span>
+    </button>
+  );
+}
+
