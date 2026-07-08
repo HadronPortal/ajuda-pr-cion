@@ -160,15 +160,10 @@ function HomePage() {
             </h1>
 
             <div className="mt-4 flex flex-wrap gap-2">
-              {stats.map((s) => (
-                <span
-                  key={s.label}
-                  className={`inline-flex items-center gap-1.5 rounded-full ${s.tone} border border-white/15 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-sm`}
-                >
-                  <span className="text-sm font-bold">{s.value}</span>
-                  <span className="text-white/85">{s.label}</span>
-                </span>
-              ))}
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 border border-white/15 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-sm">
+                <span className="text-sm font-bold">{personalTicketsCount}</span>
+                <span className="text-white/85">{personalTicketsLabel}</span>
+              </span>
             </div>
 
             <form
