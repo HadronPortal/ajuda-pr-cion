@@ -277,7 +277,7 @@ export function TicketDetailSheet({
     if (!text) return;
     ticketsStore.addNote(ticket.id, text);
     setNote("");
-    toast.success("Nota interna registrada");
+    toast.success("Nota interna adicionada ao histórico");
   };
   const handleClose = (payload: ClosurePayload) => {
     ticketsStore.closeTicket(ticket.id, payload);
