@@ -1,8 +1,10 @@
+import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowRight,
   BookOpen,
   GitBranch,
+  Headset,
   KanbanSquare,
   Search,
   Sparkles,
@@ -12,6 +14,8 @@ import {
 import { AppShell } from "@/components/portal/AppShell";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { currentUser } from "@/lib/mock-data";
+import { supportTickets } from "@/lib/support-tickets-data";
 import { Badge } from "@/components/ui/badge";
 import { kbArticlesFull, kbCategoriesFull } from "@/lib/kb-data";
 import { versions } from "@/lib/mock-data";
@@ -77,6 +81,14 @@ function formatRelative(iso: string) {
   return d.toLocaleDateString("pt-BR");
 }
 
+function getGreeting(hour: number) {
+  if (hour >= 5 && hour < 12) return "Bom dia";
+  if (hour >= 12 && hour < 18) return "Boa tarde";
+  return "Boa noite";
+}
+
+const CURRENT_OPERATOR = "PRCSUZ";
+
 function HomePage() {
   const latestArticles = [...kbArticlesFull]
     .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
@@ -86,6 +98,20 @@ function HomePage() {
     kbCategoriesFull.map((c) => [c.id, c]),
   );
 
+  const [greeting, setGreeting] = useState(() => getGreeting(new Date().getHours()));
+  useEffect(() => {
+    const id = setInterval(() => setGreeting(getGreeting(new Date().getHours())), 60_000);
+    return () => clearInterval(id);
+  }, []);
+
+  const myTicketsCount = supportTickets.filter(
+    (t) =>
+      t.owner === CURRENT_OPERATOR ||
+      t.attendant === CURRENT_OPERATOR,
+  ).length;
+
+  const displayName = `PRC ${currentUser.name}`;
+
   return (
     <AppShell>
       {/* Hero + busca */}
@@ -94,26 +120,36 @@ function HomePage() {
           Portal Prócion
         </p>
         <h1 className="mt-2 max-w-2xl text-[26px] font-bold leading-tight md:text-[34px]">
-          Como podemos ajudar você hoje?
+          {greeting}, {displayName}
         </h1>
-        <p className="mt-3 max-w-xl text-sm text-white/80 md:text-base">
-          Pesquise na base de conhecimento, acompanhe versões e resolva demandas no Kanban.
-        </p>
 
-        <form
-          className="mt-6 flex w-full max-w-2xl items-center gap-2 rounded-full bg-white dark:bg-[#20263d] p-1.5 shadow-lg"
-          onSubmit={(e) => e.preventDefault()}
-        >
-          <Search className="ml-3 h-5 w-5 shrink-0 text-muted-foreground" />
-          <input
-            type="search"
-            placeholder="Buscar por artigos, erros, módulos..."
-            className="h-10 flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
-          />
-          <Button asChild className="rounded-full bg-[#191d33] px-5 text-white hover:bg-[#191d33]/90">
-            <Link to="/base-de-conhecimento">Buscar</Link>
-          </Button>
-        </form>
+        <div className="mt-6 flex w-full flex-col gap-3 lg:flex-row lg:items-center">
+          <form
+            className="flex w-full max-w-2xl items-center gap-2 rounded-full bg-white dark:bg-[#20263d] p-1.5 shadow-lg"
+            onSubmit={(e) => e.preventDefault()}
+          >
+            <Search className="ml-3 h-5 w-5 shrink-0 text-muted-foreground" />
+            <input
+              type="search"
+              placeholder="Buscar por artigos, erros, módulos..."
+              className="h-10 flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+            />
+            <Button asChild className="rounded-full bg-[#191d33] px-5 text-white hover:bg-[#191d33]/90">
+              <Link to="/base-de-conhecimento">Buscar</Link>
+            </Button>
+          </form>
+
+          <Link
+            to="/chamados"
+            className="inline-flex items-center gap-2 self-start rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium text-white shadow-sm backdrop-blur-sm transition hover:bg-white/15 lg:self-auto"
+          >
+            <Headset className="h-4 w-4 shrink-0" />
+            <span className="whitespace-nowrap">
+              Você tem <span className="font-bold">{myTicketsCount}</span>{" "}
+              {myTicketsCount === 1 ? "chamado" : "chamados"}
+            </span>
+          </Link>
+        </div>
       </section>
 
       {/* Atalhos */}
