@@ -310,7 +310,7 @@ export function TicketDetailSheet({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const [replyMode, setReplyMode] = useState<"cliente" | "interna">("cliente");
+  const [reply, setReplyText] = useState("");
   const [reply, setReply] = useState("");
 
   if (!ticket) return null;
