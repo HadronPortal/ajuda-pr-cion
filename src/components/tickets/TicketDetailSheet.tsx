@@ -899,7 +899,7 @@ function CloseTicketDialog({
         </div>
 
         {/* Footer */}
-        <DialogFooter className="gap-2 border-t border-border bg-muted/30 px-6 py-4 sm:gap-2">
+        <DialogFooter className="gap-2 border-t border-border bg-muted/30 px-6 py-3 sm:gap-2">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
