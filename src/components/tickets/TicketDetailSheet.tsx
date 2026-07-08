@@ -271,19 +271,31 @@ export function TicketDetailSheet({
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent
-          className="flex max-h-[90vh] w-[92vw] max-w-[1500px] flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-background p-0 shadow-[0_30px_80px_rgba(0,0,0,0.35)]"
+          className="grid max-h-none w-[92vw] max-w-[1500px] gap-4 border-0 bg-transparent p-0 shadow-none xl:grid-cols-[minmax(0,1fr)_360px] xl:gap-6 [&>button]:hidden"
         >
           <DialogTitle className="sr-only">
             Detalhes do chamado {ticket.protocol}
           </DialogTitle>
 
-          {/* Header */}
-          <header className="shrink-0 border-b border-border bg-card px-5 py-4 md:px-6">
+          {/* Painel esquerdo — Chamado */}
+          <div className="relative flex max-h-[90vh] min-h-0 flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-[0_30px_80px_rgba(0,0,0,0.35)]">
+            <button
+              type="button"
+              onClick={() => onOpenChange(false)}
+              aria-label="Fechar"
+              className="absolute right-3 top-3 z-10 grid h-8 w-8 cursor-pointer place-items-center rounded-md text-muted-foreground transition hover:bg-accent hover:text-foreground"
+            >
+              <X className="h-4 w-4" />
+            </button>
+
+            {/* Header */}
+            <header className="shrink-0 border-b border-border bg-card px-5 py-4 md:px-6">
             <div className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3 pr-8">
               <span
                 aria-hidden
                 className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary/12 text-primary ring-1 ring-primary/15"
               >
+
                 {(() => {
                   const Icon = getModuleIcon(ticket.module, ticket.source);
                   return <Icon className="h-5 w-5" />;
