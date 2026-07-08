@@ -456,7 +456,26 @@ export function TicketDetailSheet({
               <SectionCard title="Detalhes do chamado" icon={Info} className="lg:col-span-2">
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                   <Field icon={Tag} label="Assunto" value={ticket.subject} />
-                  <Field icon={FileText} label="Módulo" value={ticket.module} />
+                  <Field
+                    icon={FileText}
+                    label="Módulo"
+                    value={
+                      <span className="inline-flex w-full items-center justify-end gap-1.5">
+                        <span className="truncate">{ticket.module}</span>
+                        {notes.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => setNotesOpen(true)}
+                            title="Ver nota interna"
+                            aria-label="Ver nota interna"
+                            className="grid h-5 w-5 shrink-0 cursor-pointer place-items-center rounded-md bg-primary/10 text-primary transition hover:bg-primary/20"
+                          >
+                            <NotebookText className="h-3 w-3" />
+                          </button>
+                        )}
+                      </span>
+                    }
+                  />
                   <Field icon={Tag} label="Categoria" value={mock.category} />
                   <Field
                     icon={CalendarClock}
