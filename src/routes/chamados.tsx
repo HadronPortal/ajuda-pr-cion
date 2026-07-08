@@ -18,12 +18,15 @@ import {
   CalendarClock,
   CheckCircle2,
   Clock3,
+  FolderKanban,
   Headphones,
+  History,
   LockKeyhole,
   MessageSquarePlus,
   PhoneCall,
   Search,
   SlidersHorizontal,
+  UserPlus,
   UserRound,
 } from "lucide-react";
 import { AppShell, PageHeader } from "@/components/portal/AppShell";
