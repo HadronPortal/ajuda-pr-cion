@@ -32,6 +32,7 @@ import {
   UserRound,
   Users,
   Wallet,
+  X,
 } from "lucide-react";
 import {
   Dialog,
