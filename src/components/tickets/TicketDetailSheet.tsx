@@ -26,6 +26,7 @@ import {
   ReceiptText,
   Send,
   ShieldCheck,
+  Sparkles,
   Ticket as TicketIcon,
   UserCheck,
   UserPlus,
@@ -33,6 +34,7 @@ import {
   Users,
   Wallet,
   X,
+  XCircle,
 } from "lucide-react";
 import {
   Dialog,
@@ -50,7 +52,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+
 import { cn } from "@/lib/utils";
 import {
   ticketStatuses,
@@ -706,79 +708,198 @@ function CloseTicketDialog({
     setGenerateKbArticle(false);
   };
 
+  const closureOptions: {
+    value: ClosurePayload["type"];
+    title: string;
+    description: string;
+    icon: typeof CheckCircle2;
+    tone: "primary" | "danger" | "neutral";
+  }[] = [
+    {
+      value: "Resolvido",
+      title: "Resolvido",
+      description: "Problema solucionado com sucesso.",
+      icon: CheckCircle2,
+      tone: "primary",
+    },
+    {
+      value: "Sem retorno do cliente",
+      title: "Sem retorno do cliente",
+      description: "Cliente não retornou ao contato.",
+      icon: XCircle,
+      tone: "danger",
+    },
+    {
+      value: "Duplicado",
+      title: "Duplicado",
+      description: "Chamado duplicado ou já tratado.",
+      icon: Folder,
+      tone: "neutral",
+    },
+    {
+      value: "Cancelado",
+      title: "Cancelado",
+      description: "Encerrado sem continuidade.",
+      icon: AlertCircle,
+      tone: "neutral",
+    },
+  ];
+
+  const handleSubmit = () => {
+    if (!solution.trim()) {
+      toast.error("Informe a solução aplicada para encerrar o chamado.");
+      return;
+    }
+    submit();
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg rounded-2xl border border-border bg-background p-6">
-        <DialogHeader>
-          <DialogTitle className="text-[16px] font-bold text-foreground">
-            Encerrar chamado
-          </DialogTitle>
-          <p className="text-[12px] text-muted-foreground">
-            {ticket.protocol} · {ticket.clientName}
-          </p>
-        </DialogHeader>
+      <DialogContent
+        className="max-h-[90vh] w-[calc(100vw-1rem)] overflow-y-auto rounded-2xl border border-border bg-background p-0 shadow-[0_30px_80px_rgba(0,0,0,0.45)] sm:w-[calc(100vw-2rem)] md:w-[760px] lg:w-[820px] [&>button]:hidden"
+      >
+        {/* Header */}
+        <div className="flex items-start justify-between gap-3 border-b border-border px-6 py-5">
+          <div className="flex items-start gap-3">
+            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-primary/15 text-primary">
+              <CheckCircle2 className="h-5 w-5" />
+            </span>
+            <div className="min-w-0">
+              <DialogTitle className="text-[16px] font-bold text-foreground">
+                Encerrar chamado
+              </DialogTitle>
+              <p className="mt-0.5 truncate text-[12px] text-muted-foreground">
+                {ticket.protocol} · {ticket.clientName}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => onOpenChange(false)}
+            aria-label="Fechar"
+            className="grid h-8 w-8 shrink-0 cursor-pointer place-items-center rounded-lg border border-border text-muted-foreground transition hover:bg-accent hover:text-foreground"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
 
-        <div className="mt-2 space-y-4">
+        {/* Body */}
+        <div className="space-y-5 px-6 py-5">
+          {/* Solução aplicada */}
           <div>
-            <Label className="mb-1.5 block text-[12px] font-semibold text-foreground">
+            <Label className="mb-2 flex items-center gap-1.5 text-[12.5px] font-semibold text-foreground">
+              <MessageSquare className="h-3.5 w-3.5 text-primary" />
               Solução aplicada
             </Label>
             <textarea
               value={solution}
               onChange={(e) => setSolution(e.target.value)}
-              rows={4}
+              rows={5}
               placeholder="Descreva a solução ou o motivo do encerramento..."
-              className="w-full resize-none rounded-xl border border-border bg-background p-3 text-[13px] outline-none focus:ring-2 focus:ring-ring"
+              className="w-full resize-none rounded-xl border border-border bg-background p-3 text-[13px] leading-relaxed outline-none transition focus:border-primary/40 focus:ring-2 focus:ring-ring"
             />
           </div>
 
+          {/* Tipo de encerramento */}
           <div>
-            <Label className="mb-1.5 block text-[12px] font-semibold text-foreground">
+            <Label className="mb-2 block text-[12.5px] font-semibold text-foreground">
               Tipo de encerramento
             </Label>
-            <RadioGroup
-              value={type}
-              onValueChange={(v) => setType(v as ClosurePayload["type"])}
-              className="grid grid-cols-2 gap-2"
-            >
-              {(["Resolvido", "Duplicado", "Sem retorno do cliente", "Cancelado"] as const).map(
-                (opt) => (
-                  <label
-                    key={opt}
+            <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+              {closureOptions.map((opt) => {
+                const selected = type === opt.value;
+                const Icon = opt.icon;
+                const toneBg =
+                  opt.tone === "primary"
+                    ? "bg-primary/15 text-primary"
+                    : opt.tone === "danger"
+                      ? "bg-destructive/15 text-destructive"
+                      : "bg-muted text-muted-foreground";
+                return (
+                  <button
+                    type="button"
+                    key={opt.value}
+                    onClick={() => setType(opt.value)}
                     className={cn(
-                      "flex cursor-pointer items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-[12.5px] font-medium transition hover:border-primary/40",
-                      type === opt && "border-primary bg-primary/5 text-primary",
+                      "group flex cursor-pointer items-start gap-3 rounded-xl border bg-card px-3.5 py-3 text-left transition",
+                      selected
+                        ? "border-primary bg-primary/5 shadow-[0_0_0_1px_hsl(var(--primary)/0.4)]"
+                        : "border-border hover:border-primary/40",
                     )}
                   >
-                    <RadioGroupItem value={opt} className="cursor-pointer" />
-                    <span>{opt}</span>
-                  </label>
-                ),
-              )}
-            </RadioGroup>
+                    <span
+                      className={cn(
+                        "grid h-8 w-8 shrink-0 place-items-center rounded-full",
+                        toneBg,
+                      )}
+                    >
+                      <Icon className="h-4 w-4" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-[12.5px] font-semibold text-foreground">
+                        {opt.title}
+                      </span>
+                      <span className="mt-0.5 block text-[11.5px] leading-snug text-muted-foreground">
+                        {opt.description}
+                      </span>
+                    </span>
+                    <span
+                      className={cn(
+                        "mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded-full border transition",
+                        selected
+                          ? "border-primary bg-primary"
+                          : "border-border bg-background",
+                      )}
+                      aria-hidden
+                    >
+                      {selected && (
+                        <span className="h-1.5 w-1.5 rounded-full bg-primary-foreground" />
+                      )}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
+          {/* Opções adicionais */}
           <div className="space-y-2">
-            <label className="flex cursor-pointer items-center gap-2 text-[12.5px] text-foreground">
+            <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-card px-3.5 py-3 transition hover:border-primary/40">
               <Checkbox
                 checked={addToClientHistory}
                 onCheckedChange={(v) => setAddToClientHistory(v === true)}
-                className="cursor-pointer"
+                className="mt-0.5 cursor-pointer"
               />
-              Adicionar ao histórico do cliente
+              <span className="min-w-0 flex-1">
+                <span className="block text-[12.5px] font-semibold text-foreground">
+                  Adicionar ao histórico do cliente
+                </span>
+                <span className="mt-0.5 block text-[11.5px] leading-snug text-muted-foreground">
+                  O encerramento será registrado no histórico do cliente.
+                </span>
+              </span>
             </label>
-            <label className="flex cursor-pointer items-center gap-2 text-[12.5px] text-foreground">
+            <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-card px-3.5 py-3 transition hover:border-primary/40">
               <Checkbox
                 checked={generateKbArticle}
                 onCheckedChange={(v) => setGenerateKbArticle(v === true)}
-                className="cursor-pointer"
+                className="mt-0.5 cursor-pointer"
               />
-              Gerar artigo para base de conhecimento
+              <span className="min-w-0 flex-1">
+                <span className="flex items-center gap-1.5 text-[12.5px] font-semibold text-foreground">
+                  <Sparkles className="h-3.5 w-3.5 text-primary" />
+                  Sugerir artigo para base de conhecimento
+                </span>
+                <span className="mt-0.5 block text-[11.5px] leading-snug text-muted-foreground">
+                  Criar sugestão para documentar esta solução depois.
+                </span>
+              </span>
             </label>
           </div>
         </div>
 
-        <DialogFooter className="mt-4 gap-2 sm:gap-2">
+        {/* Footer */}
+        <DialogFooter className="gap-2 border-t border-border bg-muted/30 px-6 py-4 sm:gap-2">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
@@ -787,8 +908,7 @@ function CloseTicketDialog({
             Cancelar
           </Button>
           <Button
-            disabled={!solution.trim()}
-            onClick={submit}
+            onClick={handleSubmit}
             className="cursor-pointer rounded-lg"
           >
             <CheckCircle2 className="mr-1.5 h-4 w-4" />
