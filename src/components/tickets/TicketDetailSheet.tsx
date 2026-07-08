@@ -603,7 +603,7 @@ export function TicketDetailSheet({
               className="h-9 cursor-pointer rounded-lg px-3 text-[12px] shadow-[0_6px_14px_rgba(11,151,196,0.18)]"
             >
               <Send className="mr-1.5 h-3.5 w-3.5" />
-              Enviar resposta
+              Salvar nota
             </Button>
           </div>
         </footer>
