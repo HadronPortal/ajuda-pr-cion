@@ -296,6 +296,15 @@ export function useTicket(id: string | null | undefined): SupportTicket | null {
 
 const EMPTY_EVENTS: TicketEvent[] = [];
 const EMPTY_HISTORY: PastAttendance[] = [];
+const EMPTY_NOTES: InternalNote[] = [];
+
+export function useTicketNotes(id: string | null | undefined): InternalNote[] {
+  const getSnap = useCallback(
+    () => (id ? ticketsStore.getInternalNotes(id) : EMPTY_NOTES),
+    [id],
+  );
+  return useSyncExternalStore(ticketsStore.subscribe, getSnap, getSnap);
+}
 
 export function useTicketEvents(id: string | null | undefined): TicketEvent[] {
   const getSnap = useCallback(
