@@ -1,8 +1,10 @@
+import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowRight,
   BookOpen,
   GitBranch,
+  Headset,
   KanbanSquare,
   Search,
   Sparkles,
@@ -12,6 +14,8 @@ import {
 import { AppShell } from "@/components/portal/AppShell";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { currentUser } from "@/lib/mock-data";
+import { supportTickets } from "@/lib/support-tickets-data";
 import { Badge } from "@/components/ui/badge";
 import { kbArticlesFull, kbCategoriesFull } from "@/lib/kb-data";
 import { versions } from "@/lib/mock-data";
