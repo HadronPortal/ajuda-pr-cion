@@ -330,16 +330,16 @@ export function TicketDetailSheet({
           </header>
 
 
-          {/* Body with side nav + content */}
-          <div className="flex flex-1 min-h-0 flex-col md:flex-row">
-            {/* Side nav — apenas Timeline, retrátil */}
-            <nav
+          {/* Body: sidebar (menu + ações) | conteúdo | chat */}
+          <div className="flex flex-1 min-h-0 flex-col bg-muted/30 md:flex-row md:gap-4 md:p-4">
+            {/* Sidebar */}
+            <aside
               className={cn(
-                "shrink-0 border-b border-border bg-card px-2 py-2 transition-[width] duration-200 md:border-b-0 md:border-r md:py-4",
-                navCollapsed ? "md:w-[60px] md:px-2" : "md:w-[200px] md:px-2.5",
+                "hidden shrink-0 flex-col overflow-hidden rounded-2xl border border-border bg-card transition-[width] duration-200 md:flex",
+                navCollapsed ? "md:w-[64px]" : "md:w-[210px]",
               )}
             >
-              <div className="hidden md:mb-3 md:flex md:justify-end">
+              <div className="flex items-center justify-end border-b border-border p-2">
                 <button
                   type="button"
                   onClick={() => setNavCollapsed((v) => !v)}
@@ -354,34 +354,127 @@ export function TicketDetailSheet({
                   )}
                 </button>
               </div>
-              <ul className="flex gap-1 overflow-x-auto md:flex-col md:gap-0.5 md:overflow-visible">
-                {navItems.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <li key={item.key} className="shrink-0 md:shrink">
-                      <button
-                        type="button"
-                        onClick={() => setTimelineOpen(true)}
-                        title={navCollapsed ? item.label : undefined}
-                        aria-label={item.label}
-                        className={cn(
-                          "flex w-full cursor-pointer items-center gap-2 whitespace-nowrap rounded-lg py-2 text-left text-[12.5px] font-medium text-muted-foreground transition hover:bg-accent hover:text-foreground",
-                          navCollapsed ? "md:justify-center md:px-0" : "px-3",
-                          !navCollapsed && "px-3",
-                        )}
-                      >
-                        <Icon className="h-4 w-4 shrink-0" />
-                        <span className={cn(navCollapsed && "md:hidden")}>{item.label}</span>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            </nav>
 
+              <div className="border-b border-border p-2">
+                <SideItem
+                  icon={History}
+                  label="Timeline"
+                  collapsed={navCollapsed}
+                  onClick={() => setTimelineOpen(true)}
+                />
+              </div>
 
-            {/* Content */}
-            <div className="flex-1 min-w-0 overflow-y-auto bg-muted/30 px-5 py-5 md:px-6">
+              <div className="flex-1 space-y-1 overflow-y-auto p-2">
+                {!navCollapsed && (
+                  <p className="px-2 pb-1 pt-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    Ações
+                  </p>
+                )}
+                <SideItem
+                  icon={UserPlus}
+                  label="Assumir"
+                  collapsed={navCollapsed}
+                  onClick={handleAssume}
+                />
+                <SideItem
+                  icon={PlayCircle}
+                  label="Atender"
+                  collapsed={navCollapsed}
+                  onClick={handleAttend}
+                  highlight
+                />
+                <Popover open={statusOpen} onOpenChange={setStatusOpen}>
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      title={navCollapsed ? "Alterar status" : undefined}
+                      aria-label="Alterar status"
+                      className={cn(sideItemClasses(false), navCollapsed && "md:justify-center md:px-0")}
+                    >
+                      <ShieldCheck className="h-4 w-4 shrink-0" />
+                      <span className={cn("truncate", navCollapsed && "md:hidden")}>
+                        Alterar status
+                      </span>
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent side="right" align="start" className="w-56 p-1">
+                    <p className="px-2 pb-1 pt-2 text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">
+                      Novo status
+                    </p>
+                    <div className="max-h-72 overflow-auto">
+                      {ticketStatuses.map((s) => (
+                        <button
+                          key={s}
+                          type="button"
+                          onClick={() => handleStatus(s)}
+                          className={cn(
+                            "flex w-full cursor-pointer items-center justify-between rounded-md px-2 py-1.5 text-left text-[12.5px] transition hover:bg-accent",
+                            ticket.status === s && "bg-accent font-semibold",
+                          )}
+                        >
+                          <span>{s}</span>
+                          {ticket.status === s && <CheckCircle2 className="h-3.5 w-3.5 text-primary" />}
+                        </button>
+                      ))}
+                    </div>
+                  </PopoverContent>
+                </Popover>
+                <SideItem
+                  icon={CheckCircle2}
+                  label="Encerrar"
+                  collapsed={navCollapsed}
+                  onClick={() => setCloseOpen(true)}
+                />
+                <SideItem
+                  icon={Folder}
+                  label="Histórico"
+                  collapsed={navCollapsed}
+                  onClick={() => setHistoryOpen(true)}
+                />
+                <SideItem
+                  icon={MessageCircle}
+                  label="Chat"
+                  collapsed={navCollapsed}
+                  onClick={() => setChatOpen(true)}
+                  className="xl:hidden"
+                />
+              </div>
+
+              {isMine && (
+                <div className="border-t border-border p-2">
+                  <span
+                    className={cn(
+                      "flex items-center gap-1.5 rounded-lg bg-primary/10 px-2 py-1.5 text-[10.5px] font-semibold text-primary",
+                      navCollapsed && "md:justify-center md:px-0",
+                    )}
+                    title={`Atendendo: ${currentUser.operator}`}
+                  >
+                    <UserCheck className="h-3.5 w-3.5 shrink-0" />
+                    <span className={cn("truncate", navCollapsed && "md:hidden")}>
+                      {currentUser.operator}
+                    </span>
+                  </span>
+                </div>
+              )}
+            </aside>
+
+            {/* Mobile action bar (topo, rolável) */}
+            <div className="flex shrink-0 items-center gap-2 overflow-x-auto border-b border-border bg-card px-3 py-2 md:hidden">
+              <MobileAction icon={History} label="Timeline" onClick={() => setTimelineOpen(true)} />
+              <MobileAction icon={UserPlus} label="Assumir" onClick={handleAssume} />
+              <MobileAction icon={PlayCircle} label="Atender" onClick={handleAttend} highlight />
+              <MobileAction
+                icon={ShieldCheck}
+                label="Status"
+                onClick={() => setStatusOpen((v) => !v)}
+              />
+              <MobileAction icon={CheckCircle2} label="Encerrar" onClick={() => setCloseOpen(true)} />
+              <MobileAction icon={Folder} label="Histórico" onClick={() => setHistoryOpen(true)} />
+              <MobileAction icon={MessageCircle} label="Chat" onClick={() => setChatOpen(true)} />
+            </div>
+
+            {/* Main content */}
+            <div className="flex-1 min-w-0 overflow-y-auto rounded-2xl border border-border bg-background px-5 py-5 md:px-6">
               {/* Resumo */}
               <Section title="Resumo do chamado" icon={LayoutGrid}>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -510,86 +603,13 @@ export function TicketDetailSheet({
               <div className="h-2" />
             </div>
 
-            {/* Chat lateral direito — visível em telas grandes */}
+            {/* Chat lateral direito — painel destacado */}
             <TicketChatPanel
               ticket={ticket}
-              className="hidden xl:flex xl:w-[340px] 2xl:w-[360px]"
+              className="hidden overflow-hidden rounded-2xl border border-border xl:flex xl:w-[340px] 2xl:w-[360px]"
             />
           </div>
 
-
-          {/* Footer */}
-          <footer className="shrink-0 border-t border-border bg-card px-5 py-3 md:px-6">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex flex-wrap items-center gap-2">
-                <Button size="sm" variant="outline" onClick={handleAssume} className="h-9 cursor-pointer rounded-lg px-3 text-[12px]">
-                  <UserPlus className="mr-1.5 h-3.5 w-3.5" />
-                  Assumir
-                </Button>
-                <Button size="sm" onClick={handleAttend} className="h-9 cursor-pointer rounded-lg px-3 text-[12px]">
-                  <PlayCircle className="mr-1.5 h-3.5 w-3.5" />
-                  Atender
-                </Button>
-
-                <Popover open={statusOpen} onOpenChange={setStatusOpen}>
-                  <PopoverTrigger asChild>
-                    <Button size="sm" variant="outline" className="h-9 cursor-pointer rounded-lg px-3 text-[12px]">
-                      <ShieldCheck className="mr-1.5 h-3.5 w-3.5" />
-                      Alterar status
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent align="start" className="w-56 p-1">
-                    <p className="px-2 pb-1 pt-2 text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">
-                      Novo status
-                    </p>
-                    <div className="max-h-72 overflow-auto">
-                      {ticketStatuses.map((s) => (
-                        <button
-                          key={s}
-                          type="button"
-                          onClick={() => handleStatus(s)}
-                          className={cn(
-                            "flex w-full cursor-pointer items-center justify-between rounded-md px-2 py-1.5 text-left text-[12.5px] transition hover:bg-accent",
-                            ticket.status === s && "bg-accent font-semibold",
-                          )}
-                        >
-                          <span>{s}</span>
-                          {ticket.status === s && <CheckCircle2 className="h-3.5 w-3.5 text-primary" />}
-                        </button>
-                      ))}
-                    </div>
-                  </PopoverContent>
-                </Popover>
-
-                <Button size="sm" variant="outline" onClick={() => setCloseOpen(true)} className="h-9 cursor-pointer rounded-lg px-3 text-[12px]">
-                  <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" />
-                  Encerrar
-                </Button>
-
-                <Button size="sm" variant="outline" onClick={() => setHistoryOpen(true)} className="h-9 cursor-pointer rounded-lg px-3 text-[12px]">
-                  <History className="mr-1.5 h-3.5 w-3.5" />
-                  Histórico
-                </Button>
-
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setChatOpen(true)}
-                  className="h-9 cursor-pointer rounded-lg px-3 text-[12px] xl:hidden"
-                >
-                  <MessageCircle className="mr-1.5 h-3.5 w-3.5" />
-                  Chat
-                </Button>
-              </div>
-
-              {isMine && (
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-[11px] font-semibold text-primary">
-                  <UserCheck className="h-3 w-3" />
-                  Atendendo agora: {currentUser.operator}
-                </span>
-              )}
-            </div>
-          </footer>
         </DialogContent>
       </Dialog>
 
