@@ -26,6 +26,7 @@ import {
   ReceiptText,
   Send,
   ShieldCheck,
+  Sparkles,
   Ticket as TicketIcon,
   UserCheck,
   UserPlus,
@@ -33,6 +34,7 @@ import {
   Users,
   Wallet,
   X,
+  XCircle,
 } from "lucide-react";
 import {
   Dialog,
