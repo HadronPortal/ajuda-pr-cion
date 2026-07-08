@@ -56,6 +56,10 @@ const events: Record<string, TicketEvent[]> = {};
 const history: Record<string, PastAttendance[]> = {};
 const internalNotes: Record<string, InternalNote[]> = {};
 
+const EMPTY_EVENTS: TicketEvent[] = [];
+const EMPTY_HISTORY: PastAttendance[] = [];
+const EMPTY_NOTES: InternalNote[] = [];
+
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((l) => l());
 
@@ -199,9 +203,9 @@ export const ticketsStore = {
     };
   },
   getTickets: () => tickets,
-  getEvents: (id: string) => events[id] ?? [],
-  getHistory: (id: string) => history[id] ?? [],
-  getInternalNotes: (id: string) => internalNotes[id] ?? [],
+  getEvents: (id: string) => events[id] ?? EMPTY_EVENTS,
+  getHistory: (id: string) => history[id] ?? EMPTY_HISTORY,
+  getInternalNotes: (id: string) => internalNotes[id] ?? EMPTY_NOTES,
 
   assumeTicket(id: string) {
     const op = operator();
@@ -293,10 +297,6 @@ export function useTicket(id: string | null | undefined): SupportTicket | null {
   if (!id) return null;
   return all.find((t) => t.id === id) ?? null;
 }
-
-const EMPTY_EVENTS: TicketEvent[] = [];
-const EMPTY_HISTORY: PastAttendance[] = [];
-const EMPTY_NOTES: InternalNote[] = [];
 
 export function useTicketNotes(id: string | null | undefined): InternalNote[] {
   const getSnap = useCallback(
