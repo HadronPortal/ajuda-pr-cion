@@ -598,8 +598,52 @@ export function TicketDetailSheet({
 
           <div className="h-2" />
         </div>
-      </SheetContent>
-    </Sheet>
+
+        {/* Fixed footer */}
+        <footer className="shrink-0 border-t border-border bg-card px-5 py-3 md:px-6">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <Button size="sm" className="h-9 cursor-pointer rounded-lg px-3 text-[12px]">
+                <UserPlus className="mr-1.5 h-3.5 w-3.5" />
+                Assumir
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-9 cursor-pointer rounded-lg px-3 text-[12px]"
+              >
+                <ShieldCheck className="mr-1.5 h-3.5 w-3.5" />
+                Alterar status
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-9 cursor-pointer rounded-lg px-3 text-[12px]"
+              >
+                <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" />
+                Encerrar
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-9 cursor-pointer rounded-lg px-3 text-[12px] text-muted-foreground hover:text-foreground"
+              >
+                <History className="mr-1.5 h-3.5 w-3.5" />
+                Histórico
+              </Button>
+            </div>
+            <Button
+              size="sm"
+              disabled={!reply.trim()}
+              className="h-9 cursor-pointer rounded-lg px-3 text-[12px] shadow-[0_6px_14px_rgba(11,151,196,0.18)]"
+            >
+              <Send className="mr-1.5 h-3.5 w-3.5" />
+              Enviar resposta
+            </Button>
+          </div>
+        </footer>
+      </DialogContent>
+    </Dialog>
   );
 }
 
