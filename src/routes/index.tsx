@@ -4,7 +4,6 @@ import {
   ArrowRight,
   BookOpen,
   GitBranch,
-  Headset,
   KanbanSquare,
   Search,
   Sparkles,
@@ -104,51 +103,134 @@ function HomePage() {
     return () => clearInterval(id);
   }, []);
 
-  const myTicketsCount = supportTickets.filter(
-    (t) =>
-      t.owner === CURRENT_OPERATOR ||
-      t.attendant === CURRENT_OPERATOR,
-  ).length;
+  const myTickets = supportTickets.filter(
+    (t) => t.owner === CURRENT_OPERATOR || t.attendant === CURRENT_OPERATOR,
+  );
+  const myTicketsCount = myTickets.length;
+  const openCount = myTickets.filter((t) => t.status === "Em Aberto").length;
+  const overdueCount = myTickets.filter((t) => t.status === "Atrasado").length;
+  const waitingClientCount = myTickets.filter((t) => t.status === "Aguardando cliente").length;
 
   const displayName = `PRC ${currentUser.name}`;
 
+  const slides = [
+    {
+      eyebrow: "Volume",
+      primary: "Ontem foram abertos 48 chamados",
+      secondary: "39 foram finalizados pela equipe",
+    },
+    {
+      eyebrow: "Performance",
+      primary: "SLA médio: 82%",
+      secondary: "Tempo médio de atendimento: 1h42",
+    },
+    {
+      eyebrow: "Destaques",
+      primary: "Módulo mais acionado: Vendas - NFE",
+      secondary: "Cliente com maior volume: Coopertransc",
+    },
+  ];
+
+  const [slideIdx, setSlideIdx] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setSlideIdx((i) => (i + 1) % slides.length), 4500);
+    return () => clearInterval(id);
+  }, [slides.length]);
+
+  const stats = [
+    { label: "chamados", value: myTicketsCount, tone: "bg-white/15" },
+    { label: "em aberto", value: openCount, tone: "bg-white/15" },
+    { label: "atrasados", value: overdueCount, tone: "bg-[#ff6b6b]/25" },
+    { label: "aguardando cliente", value: waitingClientCount, tone: "bg-[#ffcf5c]/25" },
+  ];
+
   return (
     <AppShell>
-      {/* Hero + busca */}
-      <section className="mb-8 rounded-[18px] bg-gradient-to-br from-[#0b97c4] via-[#0490d1] to-[#313866] p-8 text-white shadow-[0_18px_40px_rgba(11,151,196,0.22)] md:p-12">
-        <p className="text-xs font-semibold uppercase tracking-wider text-white/80">
-          Portal Prócion
-        </p>
-        <h1 className="mt-2 max-w-2xl text-[26px] font-bold leading-tight md:text-[34px]">
-          {greeting}, {displayName}
-        </h1>
+      {/* Hero */}
+      <section className="mb-8 rounded-[18px] bg-gradient-to-br from-[#0b97c4] via-[#0490d1] to-[#313866] p-6 text-white shadow-[0_18px_40px_rgba(11,151,196,0.22)] md:p-10">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)] lg:items-stretch">
+          {/* Esquerda: saudação + chips + busca */}
+          <div className="min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-wider text-white/80">
+              Portal Prócion
+            </p>
+            <h1 className="mt-2 text-[24px] font-bold leading-tight md:text-[30px]">
+              {greeting}, {displayName}
+            </h1>
 
-        <div className="mt-6 flex w-full flex-col gap-3 lg:flex-row lg:items-center">
-          <form
-            className="flex w-full max-w-2xl items-center gap-2 rounded-full bg-white dark:bg-[#20263d] p-1.5 shadow-lg"
-            onSubmit={(e) => e.preventDefault()}
-          >
-            <Search className="ml-3 h-5 w-5 shrink-0 text-muted-foreground" />
-            <input
-              type="search"
-              placeholder="Buscar por artigos, erros, módulos..."
-              className="h-10 flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
-            />
-            <Button asChild className="rounded-full bg-[#191d33] px-5 text-white hover:bg-[#191d33]/90">
-              <Link to="/base-de-conhecimento">Buscar</Link>
-            </Button>
-          </form>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {stats.map((s) => (
+                <span
+                  key={s.label}
+                  className={`inline-flex items-center gap-1.5 rounded-full ${s.tone} border border-white/15 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-sm`}
+                >
+                  <span className="text-sm font-bold">{s.value}</span>
+                  <span className="text-white/85">{s.label}</span>
+                </span>
+              ))}
+            </div>
 
-          <Link
-            to="/chamados"
-            className="inline-flex items-center gap-2 self-start rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium text-white shadow-sm backdrop-blur-sm transition hover:bg-white/15 lg:self-auto"
-          >
-            <Headset className="h-4 w-4 shrink-0" />
-            <span className="whitespace-nowrap">
-              Você tem <span className="font-bold">{myTicketsCount}</span>{" "}
-              {myTicketsCount === 1 ? "chamado" : "chamados"}
-            </span>
-          </Link>
+            <form
+              className="mt-5 flex w-full max-w-2xl items-center gap-2 rounded-full bg-white dark:bg-[#20263d] p-1.5 shadow-lg"
+              onSubmit={(e) => e.preventDefault()}
+            >
+              <Search className="ml-3 h-5 w-5 shrink-0 text-muted-foreground" />
+              <input
+                type="search"
+                placeholder="Buscar por artigos, erros, módulos..."
+                className="h-10 flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
+              />
+              <Button asChild className="rounded-full bg-[#191d33] px-5 text-white hover:bg-[#191d33]/90">
+                <Link to="/base-de-conhecimento">Buscar</Link>
+              </Button>
+            </form>
+          </div>
+
+          {/* Direita: carrossel */}
+          <div className="min-w-0">
+            <div className="relative h-full min-h-[180px] overflow-hidden rounded-2xl border border-white/15 bg-white/10 p-5 backdrop-blur-md">
+              <div className="flex items-center justify-between">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-white/80">
+                  Resumo de ontem
+                </p>
+                <span className="text-[10px] font-medium text-white/60">
+                  {slides[slideIdx].eyebrow}
+                </span>
+              </div>
+
+              <div className="relative mt-4">
+                {slides.map((s, i) => (
+                  <div
+                    key={i}
+                    className={`transition-all duration-700 ease-out ${
+                      i === slideIdx
+                        ? "relative opacity-100 translate-y-0"
+                        : "pointer-events-none absolute inset-0 opacity-0 translate-y-2"
+                    }`}
+                  >
+                    <p className="text-lg font-semibold leading-snug text-white md:text-xl">
+                      {s.primary}
+                    </p>
+                    <p className="mt-2 text-sm text-white/80">{s.secondary}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="absolute bottom-4 left-5 flex gap-1.5">
+                {slides.map((_, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    aria-label={`Slide ${i + 1}`}
+                    onClick={() => setSlideIdx(i)}
+                    className={`h-1.5 rounded-full transition-all ${
+                      i === slideIdx ? "w-6 bg-white" : "w-1.5 bg-white/40 hover:bg-white/60"
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
