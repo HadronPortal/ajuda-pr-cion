@@ -573,11 +573,6 @@ function HistoryModalHost({
     />
   );
 }
-        </div>
-      </div>
-    </Card>
-  );
-}
 
 function InfoRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
