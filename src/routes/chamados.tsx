@@ -372,56 +372,22 @@ function TicketsPage() {
         </Card>
       </section>
 
-      <Card className="overflow-hidden rounded-[14px] border-0 bg-card shadow-[0_10px_28px_rgba(25,29,51,0.06)]">
-        <div className="border-b border-border px-5 py-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="text-base font-bold text-foreground">Fila de suporte</p>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                {filteredTickets.length} chamado(s) exibidos com os filtros atuais.
-              </p>
-            </div>
-            <Badge variant="secondary" className="rounded-full">
-              CRM lado suporte
-            </Badge>
-          </div>
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="text-base font-bold text-foreground">Fila de suporte</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {filteredTickets.length} chamado(s) exibidos com os filtros atuais.
+          </p>
         </div>
-        <div className="app-scrollbar overflow-x-auto">
-          <table className="w-full min-w-[920px] table-fixed text-[13px]">
-            <colgroup>
-              <col className="w-[136px]" />
-              <col className="w-[54px]" />
-              <col className="w-[92px]" />
-              <col className="w-[92px]" />
-              <col className="w-[84px]" />
-              <col className="w-[96px]" />
-              <col />
-              <col className="w-[110px]" />
-              <col />
-              <col className="w-[74px]" />
-            </colgroup>
-            <thead className="bg-muted/50 text-[11px] uppercase text-muted-foreground">
-              <tr>
-                <TableHead>Status/ID</TableHead>
-                <TableHead>P</TableHead>
-                <TableHead>Registro</TableHead>
-                <TableHead>Atualizado</TableHead>
-                <TableHead>Atendente</TableHead>
-                <TableHead>Responsavel</TableHead>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Contato</TableHead>
-                <TableHead>Assunto</TableHead>
-                <TableHead>Acoes</TableHead>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {filteredTickets.map((ticket) => (
-                <TicketRow key={ticket.id} ticket={ticket} />
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Card>
+        <Badge variant="secondary" className="rounded-full">
+          CRM lado suporte
+        </Badge>
+      </div>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {filteredTickets.map((ticket) => (
+          <TicketCard key={ticket.id} ticket={ticket} />
+        ))}
+      </div>
     </AppShell>
   );
 }
