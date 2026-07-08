@@ -558,6 +558,16 @@ export function TicketDetailSheet({
                   <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" />
                   Encerrar
                 </Button>
+
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setHistoryOpen(true)}
+                  className="h-9 cursor-pointer rounded-lg px-3 text-[12px]"
+                >
+                  <History className="mr-1.5 h-3.5 w-3.5" />
+                  Histórico
+                </Button>
               </div>
 
               {isMine && (
@@ -576,6 +586,13 @@ export function TicketDetailSheet({
         onOpenChange={setCloseOpen}
         onConfirm={handleClose}
         ticket={ticket}
+      />
+
+      <TicketHistoryModal
+        open={historyOpen}
+        onOpenChange={setHistoryOpen}
+        ticket={ticket}
+        historyItems={historyList}
       />
     </>
   );
