@@ -13,6 +13,7 @@ import {
   ChevronLeft,
   ChevronRight,
   MessageSquare,
+  MessagesSquare,
 } from "lucide-react";
 import type { ComponentType } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -54,6 +55,7 @@ const UserMenuIcon = createMaskedMenuIcon(userIconUrl);
 
 const nav: NavItem[] = [
   { to: "/", label: "Dashboard", icon: DashboardMenuIcon, exact: true },
+  { to: "/chamados", label: "Chamados", icon: MessagesSquare },
   { to: "/base-de-conhecimento", label: "Base", icon: BaseMenuIcon },
   { to: "/atualizacoes", label: "Atualizações", icon: UpdatesMenuIcon },
   { to: "/versoes", label: "Versões", icon: VersionsMenuIcon },
