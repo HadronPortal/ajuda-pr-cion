@@ -78,9 +78,14 @@ const shortcuts = [
 ] as const;
 
 function TodaySummaryCard() {
-  const bars = [8, 15, 12, 9, 4];
+  const indicators = [
+    { label: "Abertos", value: "48", tone: "text-white" },
+    { label: "Finalizados", value: "39", tone: "text-[#64e7b6]" },
+    { label: "Em atendimento", value: "5", tone: "text-[#8ee8ff]" },
+    { label: "Reabertos", value: "2", tone: "text-[#ffd66b]" },
+  ];
   return (
-    <div className="relative flex min-h-[320px] flex-col overflow-hidden rounded-2xl border border-white/14 bg-[linear-gradient(135deg,rgba(36,133,213,0.42),rgba(49,56,102,0.78))] p-5 backdrop-blur-md">
+    <div className="relative flex flex-col overflow-hidden rounded-2xl border border-white/14 bg-[linear-gradient(135deg,rgba(36,133,213,0.42),rgba(49,56,102,0.78))] p-5 backdrop-blur-md">
       <div className="flex items-center justify-between gap-4">
         <p className="text-[11px] font-bold uppercase tracking-wider text-white/85">
           Resumo de hoje
@@ -91,42 +96,38 @@ function TodaySummaryCard() {
         </span>
       </div>
 
-      <div className="mt-5">
-        <p className="text-[13px] text-white/88">Hoje foram abertos</p>
-        <p className="mt-0.5 text-3xl font-extrabold leading-none">48 chamados</p>
-        <p className="mt-2 text-[12px] font-semibold text-white/80">
+      <div className="mt-4">
+        <p className="text-[12px] text-white/85">Hoje foram abertos</p>
+        <p className="mt-0.5 text-[26px] font-extrabold leading-none">48 chamados</p>
+        <p className="mt-1.5 text-[11px] font-semibold text-white/75">
           39 foram finalizados pela equipe
         </p>
       </div>
 
-      <div className="mt-5 flex h-[92px] items-end gap-3">
-        {bars.map((value, index) => (
-          <div key={index} className="flex flex-1 flex-col items-center gap-1.5">
-            <span className="text-[11px] font-bold text-white">{value}</span>
-            <div
-              className="w-full rounded-t-lg bg-gradient-to-b from-[#5ed7ff] to-[#5655ed] shadow-[0_10px_24px_rgba(47,118,255,0.3)]"
-              style={{ height: `${28 + value * 3}px` }}
-            />
-            <span className="text-[9px] font-semibold text-white/65">
-              {["08-12h", "12-18h", "18-24h", "00-06h", "06-08h"][index]}
-            </span>
+      <div className="mt-4 grid grid-cols-2 gap-2">
+        {indicators.map((i) => (
+          <div
+            key={i.label}
+            className="rounded-xl border border-white/10 bg-white/10 px-3 py-2.5"
+          >
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-white/65">
+              {i.label}
+            </p>
+            <p className={`mt-1 text-lg font-extrabold leading-none ${i.tone}`}>
+              {i.value}
+            </p>
           </div>
         ))}
       </div>
 
-      <div className="mt-5 space-y-2">
-        <SummaryProgress icon={CheckCircle2} label="Taxa de resolucao" value="81%" />
-        <SummaryProgress icon={Clock3} label="Tempo medio de resposta" value="24 min" />
-      </div>
-
-      <div className="mt-auto flex gap-1.5 pt-4">
-        <span className="h-1.5 w-7 rounded-full bg-white" />
-        <span className="h-1.5 w-1.5 rounded-full bg-white/40" />
-        <span className="h-1.5 w-1.5 rounded-full bg-white/40" />
+      <div className="mt-4 space-y-2">
+        <SummaryProgress icon={CheckCircle2} label="Taxa de resolução" value="81%" />
+        <SummaryProgress icon={Clock3} label="Tempo médio de resposta" value="24 min" />
       </div>
     </div>
   );
 }
+
 
 function SummaryProgress({
   icon: Icon,
