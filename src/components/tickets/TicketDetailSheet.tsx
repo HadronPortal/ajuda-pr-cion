@@ -526,45 +526,19 @@ export function TicketDetailSheet({
             </SectionCard>
 
             <SectionCard
-              title="Adicionar resposta"
+              title="Nota interna"
               icon={Send}
               className="lg:col-span-2"
             >
-              <div className="mb-3 inline-flex rounded-lg border border-border bg-muted/40 p-0.5">
-                <button
-                  type="button"
-                  onClick={() => setReplyMode("cliente")}
-                  className={cn(
-                    "cursor-pointer rounded-md px-3 py-1.5 text-[12px] font-semibold transition",
-                    replyMode === "cliente"
-                      ? "bg-background text-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  Mensagem para cliente
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setReplyMode("interna")}
-                  className={cn(
-                    "cursor-pointer rounded-md px-3 py-1.5 text-[12px] font-semibold transition",
-                    replyMode === "interna"
-                      ? "bg-background text-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  Nota interna
-                </button>
-              </div>
+              <p className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-muted/60 px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
+                <AlertCircle className="h-3 w-3" />
+                Visível somente para o time de suporte
+              </p>
               <textarea
                 value={reply}
                 onChange={(e) => setReply(e.target.value)}
                 rows={4}
-                placeholder={
-                  replyMode === "cliente"
-                    ? "Escreva a mensagem que será enviada ao cliente..."
-                    : "Registre uma nota interna visível apenas para a equipe..."
-                }
+                placeholder="Escreva uma nota interna sobre este atendimento..."
                 className="w-full resize-none rounded-xl border border-border bg-background p-3 text-[13px] outline-none focus:ring-2 focus:ring-ring"
               />
               <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
@@ -576,22 +550,14 @@ export function TicketDetailSheet({
                   <Paperclip className="mr-1.5 h-3.5 w-3.5" />
                   Anexar arquivo
                 </Button>
-                <div className="flex items-center gap-2">
-                  {replyMode === "interna" && (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground">
-                      <AlertCircle className="h-3 w-3" />
-                      Visível somente para o time
-                    </span>
-                  )}
-                  <Button
-                    size="sm"
-                    disabled={!reply.trim()}
-                    className="h-9 cursor-pointer rounded-lg text-[12px]"
-                  >
-                    <Send className="mr-1.5 h-3.5 w-3.5" />
-                    Enviar resposta
-                  </Button>
-                </div>
+                <Button
+                  size="sm"
+                  disabled={!reply.trim()}
+                  className="h-9 cursor-pointer rounded-lg text-[12px]"
+                >
+                  <Send className="mr-1.5 h-3.5 w-3.5" />
+                  Salvar nota
+                </Button>
               </div>
             </SectionCard>
           </div>
