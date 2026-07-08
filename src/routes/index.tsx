@@ -168,14 +168,14 @@ function BannerMetric({
   detail: string;
 }) {
   return (
-    <div className="flex min-w-0 items-center gap-3 border-white/10 px-5 py-4 xl:border-r last:xl:border-r-0">
-      <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-white/12 text-[#8ee8ff]">
-        <Icon className="h-5 w-5" />
+    <div className="flex min-w-0 items-center gap-2.5 border-white/10 px-4 py-2.5 xl:border-r last:xl:border-r-0">
+      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-white/12 text-[#8ee8ff]">
+        <Icon className="h-4 w-4" />
       </span>
       <div className="min-w-0">
-        <p className="truncate text-[11px] font-semibold text-white/70">{label}</p>
-        <p className="mt-0.5 text-xl font-extrabold leading-none text-white">{value}</p>
-        <p className="mt-1 truncate text-[10px] font-medium text-[#64e7b6]">{detail}</p>
+        <p className="truncate text-[10.5px] font-semibold text-white/70">{label}</p>
+        <p className="mt-0.5 text-base font-extrabold leading-none text-white">{value}</p>
+        <p className="mt-0.5 truncate text-[10px] font-medium text-[#64e7b6]">{detail}</p>
       </div>
     </div>
   );
