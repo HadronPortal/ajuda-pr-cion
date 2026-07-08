@@ -387,8 +387,20 @@ function TicketsPage() {
           </div>
         </div>
         <div className="app-scrollbar overflow-x-auto">
-          <table className="w-full min-w-[1080px] text-sm">
-            <thead className="bg-muted/50 text-xs uppercase text-muted-foreground">
+          <table className="w-full min-w-[920px] table-fixed text-[13px]">
+            <colgroup>
+              <col className="w-[136px]" />
+              <col className="w-[54px]" />
+              <col className="w-[92px]" />
+              <col className="w-[92px]" />
+              <col className="w-[84px]" />
+              <col className="w-[96px]" />
+              <col />
+              <col className="w-[110px]" />
+              <col />
+              <col className="w-[74px]" />
+            </colgroup>
+            <thead className="bg-muted/50 text-[11px] uppercase text-muted-foreground">
               <tr>
                 <TableHead>Status/ID</TableHead>
                 <TableHead>P</TableHead>
@@ -444,57 +456,82 @@ function MetricCard({
 }
 
 function TableHead({ children }: { children: React.ReactNode }) {
-  return <th className="whitespace-nowrap px-4 py-3 text-left font-medium">{children}</th>;
+  return <th className="whitespace-nowrap px-2.5 py-2.5 text-left font-medium">{children}</th>;
 }
 
 function TicketRow({ ticket }: { ticket: SupportTicket }) {
   return (
-    <tr className="transition hover:bg-muted/35">
-      <td className="px-4 py-3 align-top">
+    <tr className="cursor-pointer transition hover:bg-muted/35">
+      <td className="px-2.5 py-2.5 align-top">
         <div className="flex min-w-0 flex-col gap-1">
-          <Badge className={cn("w-fit rounded-full border text-[10px]", statusTone[ticket.status])}>
+          <Badge
+            className={cn(
+              "w-fit whitespace-nowrap rounded-full border px-1.5 py-0 text-[10px] leading-4",
+              statusTone[ticket.status],
+            )}
+          >
             {ticket.status}
           </Badge>
-          <span className="font-mono text-xs font-semibold text-foreground">{ticket.protocol}</span>
+          <span className="truncate font-mono text-[11px] font-semibold text-foreground">
+            {ticket.protocol}
+          </span>
         </div>
       </td>
-      <td className="px-4 py-3 align-top">
-        <Badge className={cn("rounded-full text-[10px]", priorityTone[ticket.priority])}>
+      <td className="px-2.5 py-2.5 align-top">
+        <Badge
+          className={cn(
+            "whitespace-nowrap rounded-full px-1.5 py-0 text-[10px] leading-4",
+            priorityTone[ticket.priority],
+          )}
+        >
           {ticket.priority}
         </Badge>
       </td>
-      <td className="whitespace-nowrap px-4 py-3 align-top text-muted-foreground">
+      <td className="whitespace-nowrap px-2.5 py-2.5 align-top text-[12px] text-muted-foreground">
         <DateCell value={ticket.openedAt} icon={CalendarClock} />
       </td>
-      <td className="whitespace-nowrap px-4 py-3 align-top text-muted-foreground">
+      <td className="whitespace-nowrap px-2.5 py-2.5 align-top text-[12px] text-muted-foreground">
         <DateCell value={ticket.updatedAt} icon={Clock3} />
       </td>
-      <td className="px-4 py-3 align-top font-medium text-foreground">{ticket.attendant}</td>
-      <td className="px-4 py-3 align-top">
-        <div className="flex items-center gap-2">
-          <span className="font-medium text-foreground">{ticket.owner}</span>
+      <td className="truncate px-2.5 py-2.5 align-top text-[12px] font-medium text-foreground">
+        {ticket.attendant}
+      </td>
+      <td className="px-2.5 py-2.5 align-top">
+        <div className="flex items-center gap-1.5">
+          <span className="truncate text-[12px] font-medium text-foreground">{ticket.owner}</span>
           {ticket.lockedBy && (
-            <span title={`Chamado ocupado por ${ticket.lockedBy}`} className="text-warning-foreground">
+            <span
+              title={`Chamado ocupado por ${ticket.lockedBy}`}
+              className="shrink-0 text-warning-foreground"
+            >
               <LockKeyhole className="h-3.5 w-3.5" />
             </span>
           )}
         </div>
       </td>
-      <td className="max-w-[240px] px-4 py-3 align-top">
-        <p className="truncate font-semibold text-foreground">
+      <td className="px-2.5 py-2.5 align-top">
+        <p className="truncate text-[12.5px] font-semibold text-foreground">
           {ticket.clientCode} - {ticket.clientName}
         </p>
-        <p className="mt-1 text-xs text-muted-foreground">{sourceLabels[ticket.source]}</p>
+        <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
+          {sourceLabels[ticket.source]}
+        </p>
       </td>
-      <td className="px-4 py-3 align-top text-muted-foreground">{ticket.contact}</td>
-      <td className="max-w-[260px] px-4 py-3 align-top">
-        <p className="truncate font-medium text-foreground">{ticket.subject}</p>
-        <p className="mt-1 truncate text-xs text-muted-foreground">{ticket.module}</p>
+      <td className="truncate px-2.5 py-2.5 align-top text-[12px] text-muted-foreground">
+        {ticket.contact}
       </td>
-      <td className="px-4 py-3 align-top">
-        <Button variant="ghost" size="sm" className="cursor-pointer rounded-xl text-primary hover:text-primary">
+      <td className="px-2.5 py-2.5 align-top">
+        <p className="truncate text-[12.5px] font-medium text-foreground">{ticket.subject}</p>
+        <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{ticket.module}</p>
+      </td>
+      <td className="px-2 py-2.5 align-top">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-7 cursor-pointer rounded-lg px-2 text-[12px] text-primary hover:text-primary"
+        >
           Abrir
-          <ArrowUpRight className="ml-1 h-3.5 w-3.5" />
+          <ArrowUpRight className="ml-0.5 h-3.5 w-3.5" />
         </Button>
       </td>
     </tr>
@@ -504,10 +541,11 @@ function TicketRow({ ticket }: { ticket: SupportTicket }) {
 function DateCell({ value, icon: Icon }: { value: string; icon: typeof CalendarClock }) {
   const date = new Date(value);
   return (
-    <span className="inline-flex items-center gap-1.5">
-      <Icon className="h-3.5 w-3.5" />
+    <span className="inline-flex items-center gap-1 whitespace-nowrap">
+      <Icon className="h-3 w-3" />
       {date.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}{" "}
       {date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
     </span>
   );
 }
+
