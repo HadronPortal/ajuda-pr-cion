@@ -4,7 +4,6 @@ import {
   ArrowRight,
   BookOpen,
   GitBranch,
-  Headset,
   KanbanSquare,
   Search,
   Sparkles,
