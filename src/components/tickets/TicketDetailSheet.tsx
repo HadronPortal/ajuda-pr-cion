@@ -616,14 +616,17 @@ export function TicketDetailSheet({
               <div className="h-2" />
             </div>
 
-            {/* Chat lateral direito — painel destacado */}
-            <TicketChatPanel
-              ticket={ticket}
-              className="hidden overflow-hidden rounded-2xl border border-border xl:flex xl:w-[340px] 2xl:w-[360px]"
-            />
           </div>
+          {/* fim painel esquerdo */}
+
+          {/* Painel direito — Chat (card separado) */}
+          <TicketChatPanel
+            ticket={ticket}
+            className="hidden max-h-[90vh] overflow-hidden rounded-2xl border border-border shadow-[0_30px_80px_rgba(0,0,0,0.35)] xl:flex"
+          />
 
         </DialogContent>
+
       </Dialog>
 
       <CloseTicketDialog
