@@ -258,20 +258,20 @@ function HomePage() {
   return (
     <AppShell>
       {/* Hero */}
-      <section className="mb-8 overflow-hidden rounded-[18px] bg-[radial-gradient(circle_at_20%_10%,rgba(51,195,232,0.42),transparent_34%),linear-gradient(135deg,#0c9fd4_0%,#087ee0_42%,#263276_100%)] p-5 text-white shadow-[0_22px_54px_rgba(11,151,196,0.28)] md:p-7">
-        <div className="mb-4">
+      <section className="mb-6 overflow-hidden rounded-[18px] bg-[radial-gradient(circle_at_20%_10%,rgba(51,195,232,0.42),transparent_34%),linear-gradient(135deg,#0c9fd4_0%,#087ee0_42%,#263276_100%)] p-4 text-white shadow-[0_22px_54px_rgba(11,151,196,0.28)] md:p-5">
+        <div className="mb-3">
           <p className="text-sm font-light leading-none text-white/85">{greeting},</p>
           <h1 className="mt-1.5 text-[20px] font-bold leading-none tracking-normal md:text-[24px]">
             {displayName} <span className="text-[16px] md:text-[18px]">👋</span>
           </h1>
         </div>
 
-        <div className="grid gap-4 xl:grid-cols-[minmax(0,1.75fr)_minmax(360px,0.95fr)]">
+        <div className="grid gap-3 xl:grid-cols-[minmax(0,1.75fr)_minmax(360px,0.95fr)]">
           <SefazStatusPanel />
           <TodaySummaryCard />
         </div>
 
-        <div className="mt-4 grid overflow-hidden rounded-2xl border border-white/12 bg-white/10 backdrop-blur-md sm:grid-cols-2 xl:grid-cols-5">
+        <div className="mt-3 grid overflow-hidden rounded-2xl border border-white/12 bg-white/10 backdrop-blur-md sm:grid-cols-2 xl:grid-cols-5">
           <BannerMetric icon={Headphones} label="Abertos" value="48" detail="+12% vs ontem" />
           <BannerMetric icon={CheckCircle2} label="Finalizados" value="39" detail="+8% vs ontem" />
           <BannerMetric icon={Clock3} label="Tempo medio" value="24 min" detail="-5 min vs ontem" />
