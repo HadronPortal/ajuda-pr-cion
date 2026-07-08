@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
   Search,
   SearchX,
@@ -11,11 +11,13 @@ import {
   Sparkles,
   RefreshCw,
   ArrowRight,
+  X,
 } from "lucide-react";
 import { AppShell, PageHeader } from "@/components/portal/AppShell";
 import { EmptyState } from "@/components/portal/EmptyState";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
   kbArticlesFull,
@@ -24,6 +26,8 @@ import {
   getCategory,
   type KbCategoryId,
 } from "@/lib/kb-data";
+
+type KbSearch = { search?: string };
 
 export const Route = createFileRoute("/base-de-conhecimento/")({
   head: () => ({
@@ -35,6 +39,9 @@ export const Route = createFileRoute("/base-de-conhecimento/")({
           "Manuais, guias, erros e correções, legislação e novidades da Prócion Sistemas.",
       },
     ],
+  }),
+  validateSearch: (raw: Record<string, unknown>): KbSearch => ({
+    search: typeof raw.search === "string" ? raw.search : undefined,
   }),
   component: KbIndexPage,
 });
@@ -57,9 +64,24 @@ function formatDate(iso: string) {
   });
 }
 
+function tokenize(input: string): string[] {
+  return input
+    .toLowerCase()
+    .split(/[^\p{L}\p{N}]+/u)
+    .map((t) => t.trim())
+    .filter((t) => t.length >= 3);
+}
+
 function KbIndexPage() {
-  const [query, setQuery] = useState("");
+  const search = Route.useSearch();
+  const navigate = useNavigate({ from: Route.fullPath });
+  const [query, setQuery] = useState(search.search ?? "");
   const [activeCategory, setActiveCategory] = useState<KbCategoryId | "all">("all");
+
+  // Sync query state when URL param changes (chip click from other page)
+  useEffect(() => {
+    setQuery(search.search ?? "");
+  }, [search.search]);
 
   const countByCategory = useMemo(() => {
     const c: Record<string, number> = {};
@@ -67,19 +89,36 @@ function KbIndexPage() {
     return c;
   }, []);
 
+  const trimmed = query.trim();
+  const tokens = useMemo(() => tokenize(trimmed), [trimmed]);
+  const hasSearch = trimmed.length > 0;
+
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
     return kbArticlesFull.filter((a) => {
       if (activeCategory !== "all" && a.category !== activeCategory) return false;
-      if (!q) return true;
-      return (
-        a.title.toLowerCase().includes(q) ||
-        a.summary.toLowerCase().includes(q) ||
-        a.module.toLowerCase().includes(q) ||
-        a.tags.some((t) => t.toLowerCase().includes(q))
-      );
+      if (!hasSearch) return true;
+
+      const haystack = [
+        a.title,
+        a.summary,
+        a.module,
+        getCategory(a.category).name,
+        a.tags.join(" "),
+      ]
+        .join(" ")
+        .toLowerCase();
+
+      const fullPhrase = trimmed.toLowerCase();
+      if (haystack.includes(fullPhrase)) return true;
+      // Fallback: match any meaningful token
+      return tokens.some((t) => haystack.includes(t));
     });
-  }, [query, activeCategory]);
+  }, [activeCategory, hasSearch, trimmed, tokens]);
+
+  const clearSearch = () => {
+    setQuery("");
+    navigate({ search: {} as KbSearch, replace: true });
+  };
 
   return (
     <AppShell>
@@ -97,10 +136,45 @@ function KbIndexPage() {
             onChange={(e) => setQuery(e.target.value)}
             type="search"
             placeholder="Pesquisar por título, tag, módulo..."
-            className="w-full h-11 pl-9 pr-3 rounded-lg border border-border bg-background text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            className="w-full h-11 pl-9 pr-10 rounded-lg border border-border bg-background text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
           />
+          {hasSearch && (
+            <button
+              type="button"
+              onClick={clearSearch}
+              aria-label="Limpar busca"
+              className="absolute right-2 top-1/2 -translate-y-1/2 grid h-7 w-7 cursor-pointer place-items-center rounded-md text-muted-foreground transition hover:bg-muted hover:text-foreground"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
       </Card>
+
+      {hasSearch && (
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3">
+          <div className="min-w-0">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-primary/80">
+              Resultados para
+            </p>
+            <p className="truncate text-sm font-semibold text-foreground">
+              “{trimmed}”
+              <span className="ml-2 text-xs font-normal text-muted-foreground">
+                {filtered.length} artigo(s)
+              </span>
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={clearSearch}
+            className="h-8 cursor-pointer rounded-lg text-[12px]"
+          >
+            <X className="mr-1 h-3.5 w-3.5" />
+            Limpar filtro
+          </Button>
+        </div>
+      )}
 
       <section className="mb-8">
         <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
@@ -135,9 +209,11 @@ function KbIndexPage() {
       <section>
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold">
-            {activeCategory === "all"
-              ? "Todos os artigos"
-              : getCategory(activeCategory).name}
+            {hasSearch
+              ? "Artigos relacionados"
+              : activeCategory === "all"
+                ? "Todos os artigos"
+                : getCategory(activeCategory).name}
             <span className="ml-2 text-sm font-normal text-muted-foreground">
               ({filtered.length})
             </span>
@@ -148,7 +224,7 @@ function KbIndexPage() {
           <EmptyState
             icon={SearchX}
             title="Nenhum artigo encontrado"
-            description="Tente ajustar a busca ou selecionar outra categoria. Você também pode abrir a paleta de comandos com ⌘K para navegar mais rápido."
+            description="Tente ajustar a busca, remover o filtro ou selecionar outra categoria."
           />
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -225,7 +301,7 @@ function CategoryPill({
     <button
       onClick={onClick}
       className={cn(
-        "flex items-center gap-2 rounded-lg border px-3 py-2.5 text-left transition-all",
+        "flex items-center gap-2 rounded-lg border px-3 py-2.5 text-left transition-all cursor-pointer",
         active
           ? "border-primary bg-primary/5 shadow-sm"
           : "border-border bg-card hover:border-primary/30",
