@@ -44,9 +44,17 @@ export type ClosurePayload = {
   generateKbArticle: boolean;
 };
 
+export type InternalNote = {
+  id: string;
+  operator: string;
+  createdAt: string;
+  text: string;
+};
+
 let tickets: SupportTicket[] = supportTickets.map((t) => ({ ...t }));
 const events: Record<string, TicketEvent[]> = {};
 const history: Record<string, PastAttendance[]> = {};
+const internalNotes: Record<string, InternalNote[]> = {};
 
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((l) => l());
