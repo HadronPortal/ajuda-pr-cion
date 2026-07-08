@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { forwardRef, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   AlertCircle,
@@ -7,8 +7,11 @@ import {
   CheckCircle2,
   Clock3,
   FileText,
+  Folder,
+  Gauge,
   History,
   Info,
+  LayoutGrid,
   LockKeyhole,
   Mail,
   MapPin,
@@ -19,7 +22,6 @@ import {
   PlayCircle,
   Send,
   ShieldCheck,
-  Tag,
   UserCheck,
   UserPlus,
   UserRound,
@@ -38,7 +40,6 @@ import {
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -92,71 +93,12 @@ const sourceLabels: Record<SupportTicket["source"], string> = {
   Email: "Email",
 };
 
-type ClientMock = {
-  cnpj: string;
-  city: string;
-  uf: string;
-  phone: string;
-  email: string;
-  status: "Ativo" | "Pendente" | "Bloqueado" | "Inativo";
-  setup: string;
-  lastContact: string;
-  commercialOwner: string;
-};
-
-type ContactMock = {
-  phone: string;
-  email: string;
-  role: string;
-  preference: "WhatsApp" | "Telefone" | "Email";
-};
-
 const cities = [
-  ["São Paulo", "SP"],
-  ["Campinas", "SP"],
-  ["Belo Horizonte", "MG"],
-  ["Curitiba", "PR"],
-  ["Porto Alegre", "RS"],
-  ["Goiânia", "GO"],
-  ["Recife", "PE"],
-  ["Fortaleza", "CE"],
+  ["São Paulo", "SP"], ["Campinas", "SP"], ["Belo Horizonte", "MG"],
+  ["Curitiba", "PR"], ["Porto Alegre", "RS"], ["Goiânia", "GO"],
+  ["Recife", "PE"], ["Fortaleza", "CE"],
 ];
-const setups = [
-  "Hadron Web 4.2.1",
-  "Prócion ERP 12.8",
-  "Prócion ERP 12.7",
-  "Hadron Desktop 3.9",
-  "Prócion Cloud 2.4",
-];
-const clientStatuses: ClientMock["status"][] = [
-  "Ativo",
-  "Ativo",
-  "Ativo",
-  "Pendente",
-  "Bloqueado",
-  "Inativo",
-];
-const contactRoles = [
-  "Financeiro",
-  "TI / Sistemas",
-  "Compras",
-  "Comercial",
-  "Fiscal",
-  "Diretoria",
-];
-const commercialOwners = [
-  "Carlos Menezes",
-  "Priscila Duarte",
-  "Rafael Antunes",
-  "Juliana Prado",
-];
-const categoryByModule: Record<string, string> = {
-  "Vendas - NFE": "Emissão fiscal",
-  "Basico - Terceiros": "Cadastro",
-  "Hadron Web": "Treinamento",
-  Estoque: "Relatórios",
-  Financeiro: "Movimentação",
-};
+const contactRoles = ["Financeiro", "TI / Sistemas", "Compras", "Comercial", "Fiscal", "Diretoria"];
 
 function hashString(input: string) {
   let hash = 0;
@@ -169,47 +111,25 @@ function buildMock(ticket: SupportTicket) {
   const [city, uf] = cities[h % cities.length];
   const phoneA = 3000 + (h % 6999);
   const phoneB = 1000 + ((h >> 3) % 8999);
-  const cnpj = `${10 + (h % 89)}.${100 + ((h >> 2) % 899)}.${100 + ((h >> 5) % 899)}/0001-${10 + ((h >> 7) % 89)}`;
   return {
-    category: categoryByModule[ticket.module] ?? "Atendimento",
     description:
       "Cliente relata dificuldade recorrente ao executar a operação descrita no assunto. Solicita análise do time de suporte e retorno com orientação técnica ou correção do comportamento identificado.",
-    client: {
-      cnpj,
-      city,
-      uf,
-      phone: `(${11 + (h % 88)}) 9${phoneA}-${phoneB}`,
-      email: `contato@${ticket.clientCode.toLowerCase()}.com.br`,
-      status: clientStatuses[h % clientStatuses.length],
-      setup: setups[h % setups.length],
-      lastContact: ticket.updatedAt,
-      commercialOwner: commercialOwners[h % commercialOwners.length],
-    } as ClientMock,
-    contactDetails: {
-      phone: `(${11 + ((h >> 1) % 88)}) 9${phoneB}-${phoneA}`,
-      email: `${ticket.contact.split(" ")[0]?.toLowerCase() ?? "contato"}@${ticket.clientCode.toLowerCase()}.com.br`,
-      role: contactRoles[h % contactRoles.length],
-      preference: (["WhatsApp", "Telefone", "Email"] as const)[h % 3],
-    } as ContactMock,
+    city, uf,
+    clientPhone: `(${11 + (h % 88)}) 9${phoneA}-${phoneB}`,
+    contactPhone: `(${11 + ((h >> 1) % 88)}) 9${phoneB}-${phoneA}`,
+    contactRole: contactRoles[h % contactRoles.length],
+    files: [
+      { name: "print-erro.png", size: "182 KB" },
+      { name: "log-operacao.txt", size: "24 KB" },
+    ],
   };
 }
 
 function formatDateTime(iso: string) {
   return new Date(iso).toLocaleString("pt-BR", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
+    day: "2-digit", month: "short", year: "numeric",
+    hour: "2-digit", minute: "2-digit",
   });
-}
-
-function formatCompact(iso: string) {
-  const d = new Date(iso);
-  return `${d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit" })} ${d.toLocaleTimeString(
-    "pt-BR",
-    { hour: "2-digit", minute: "2-digit" },
-  )}`;
 }
 
 function computeSla(ticket: SupportTicket) {
@@ -229,6 +149,12 @@ const slaBarTone: Record<"ok" | "warn" | "late", string> = {
   ok: "bg-success",
   warn: "bg-warning",
   late: "bg-destructive",
+};
+
+const slaTextTone: Record<"ok" | "warn" | "late", string> = {
+  ok: "text-success",
+  warn: "text-warning-foreground",
+  late: "text-destructive",
 };
 
 const timelineIcon: Record<TicketEvent["kind"], typeof Info> = {
@@ -253,12 +179,17 @@ const timelineTone: Record<TicketEvent["kind"], string> = {
   closed: "bg-success/15 text-success",
 };
 
-const clientStatusTone: Record<ClientMock["status"], string> = {
-  Ativo: "bg-success/12 text-success border-success/20",
-  Pendente: "bg-warning/16 text-warning-foreground border-warning/30",
-  Bloqueado: "bg-destructive/12 text-destructive border-destructive/20",
-  Inativo: "bg-muted text-muted-foreground border-border",
-};
+type NavKey = "resumo" | "cliente" | "contato" | "detalhes" | "timeline" | "arquivos" | "historico";
+
+const navItems: { key: NavKey; label: string; icon: typeof Info }[] = [
+  { key: "resumo", label: "Resumo", icon: LayoutGrid },
+  { key: "cliente", label: "Cliente", icon: Building2 },
+  { key: "contato", label: "Contato", icon: UserRound },
+  { key: "detalhes", label: "Detalhes", icon: Info },
+  { key: "timeline", label: "Timeline", icon: History },
+  { key: "arquivos", label: "Arquivos", icon: Paperclip },
+  { key: "historico", label: "Histórico", icon: Folder },
+];
 
 export function TicketDetailSheet({
   ticketId,
@@ -280,6 +211,13 @@ export function TicketDetailSheet({
   const [historyOpen, setHistoryOpen] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
   const [showAllTimeline, setShowAllTimeline] = useState(false);
+  const [activeNav, setActiveNav] = useState<NavKey>("resumo");
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const sectionRefs = useRef<Record<NavKey, HTMLElement | null>>({
+    resumo: null, cliente: null, contato: null, detalhes: null,
+    timeline: null, arquivos: null, historico: null,
+  });
 
   const mock = useMemo(() => (ticket ? buildMock(ticket) : null), [ticket]);
   const sla = useMemo(() => (ticket ? computeSla(ticket) : null), [ticket]);
@@ -294,6 +232,15 @@ export function TicketDetailSheet({
 
   const isMine =
     ticket.owner === currentUser.operator || ticket.lockedBy === currentUser.operator;
+
+  const scrollTo = (key: NavKey) => {
+    setActiveNav(key);
+    const el = sectionRefs.current[key];
+    const container = scrollRef.current;
+    if (el && container) {
+      container.scrollTo({ top: el.offsetTop - 12, behavior: "smooth" });
+    }
+  };
 
   const handleAssume = () => {
     ticketsStore.assumeTicket(ticket.id);
@@ -325,51 +272,39 @@ export function TicketDetailSheet({
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent
-          className="flex max-h-[92vh] w-[calc(100vw-1rem)] max-w-none flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-background p-0 shadow-[0_30px_80px_rgba(0,0,0,0.35)] sm:w-[calc(100vw-2rem)] md:max-h-[88vh] md:w-[900px] lg:w-[1000px] xl:w-[1080px]"
+          className="flex max-h-[92vh] w-[calc(100vw-1rem)] max-w-none flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-background p-0 shadow-[0_30px_80px_rgba(0,0,0,0.35)] sm:w-[calc(100vw-2rem)] md:max-h-[88vh] md:w-[960px] lg:w-[1080px] xl:w-[1140px]"
         >
           <DialogTitle className="sr-only">
             Detalhes do chamado {ticket.protocol}
           </DialogTitle>
 
-          {/* Fixed header */}
+          {/* Header */}
           <header className="shrink-0 border-b border-border bg-card px-5 py-4 md:px-6">
-            <div className="flex flex-wrap items-start justify-between gap-3 pr-8">
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-mono text-[12px] font-semibold text-muted-foreground">
-                    {ticket.protocol}
-                  </span>
-                  <span className="text-[12px] text-muted-foreground">·</span>
-                  <span className="text-[12px] text-muted-foreground">
-                    {sourceLabels[ticket.source]}
-                  </span>
-                </div>
-                <h2 className="mt-1 truncate text-[17px] font-bold leading-snug text-foreground">
-                  {ticket.subject}
-                </h2>
-                <p className="mt-0.5 truncate text-[12px] text-muted-foreground">
-                  <span className="font-semibold text-foreground">{ticket.clientCode}</span>
-                  {" · "}
-                  {ticket.clientName}
-                </p>
+            <div className="min-w-0 pr-8">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-mono text-[12px] font-semibold text-muted-foreground">
+                  {ticket.protocol}
+                </span>
+                <span className="text-[12px] text-muted-foreground">·</span>
+                <span className="text-[12px] text-muted-foreground">
+                  {sourceLabels[ticket.source]}
+                </span>
               </div>
+              <h2 className="mt-1 truncate text-[18px] font-bold leading-snug text-foreground">
+                {ticket.subject}
+              </h2>
+              <p className="mt-0.5 truncate text-[12.5px] text-muted-foreground">
+                <span className="font-semibold text-foreground">{ticket.clientCode}</span>
+                {" · "}
+                {ticket.clientName}
+              </p>
             </div>
 
             <div className="mt-3 flex flex-wrap items-center gap-2">
-              <Badge
-                className={cn(
-                  "rounded-full border px-2.5 py-0.5 text-[11px] font-semibold",
-                  statusTone[ticket.status],
-                )}
-              >
+              <Badge className={cn("rounded-full border px-2.5 py-0.5 text-[11px] font-semibold", statusTone[ticket.status])}>
                 {ticket.status}
               </Badge>
-              <Badge
-                className={cn(
-                  "rounded-full border px-2.5 py-0.5 text-[11px] font-semibold",
-                  priorityTone[ticket.priority],
-                )}
-              >
+              <Badge className={cn("rounded-full border px-2.5 py-0.5 text-[11px] font-semibold", priorityTone[ticket.priority])}>
                 Prioridade {ticket.priority}
               </Badge>
               <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/50 px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
@@ -383,135 +318,153 @@ export function TicketDetailSheet({
                 </span>
               )}
             </div>
-
-            <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-muted">
-              <div
-                className={cn("h-full rounded-full transition-all", slaBarTone[sla.tone])}
-                style={{ width: `${sla.pct}%` }}
-              />
-            </div>
           </header>
 
-          {/* Scrollable body */}
-          <div className="flex-1 overflow-y-auto bg-muted/30 px-5 py-5 md:px-6">
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-              <SectionCard title="Cliente" icon={Building2}>
-                <div className="mb-3 flex items-center justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="truncate text-[14px] font-bold text-foreground">
-                      {ticket.clientName}
-                    </p>
-                    <p className="text-[11px] text-muted-foreground">
-                      Código {ticket.clientCode}
-                    </p>
-                  </div>
-                  <Badge
-                    className={cn(
-                      "shrink-0 rounded-full border px-2 py-0.5 text-[10.5px] font-semibold",
-                      clientStatusTone[mock.client.status],
-                    )}
-                  >
-                    {mock.client.status}
-                  </Badge>
-                </div>
-                <dl className="grid grid-cols-1 gap-2 text-[12px]">
-                  <Field icon={FileText} label="CNPJ" value={mock.client.cnpj} mono />
-                  <Field
-                    icon={MapPin}
-                    label="Cidade"
-                    value={`${mock.client.city} - ${mock.client.uf}`}
-                  />
-                  <Field icon={Phone} label="Telefone" value={mock.client.phone} />
-                  <Field icon={Mail} label="Email" value={mock.client.email} />
-                  <Field icon={Tag} label="Setup" value={mock.client.setup} />
-                  <Field
-                    icon={Clock3}
-                    label="Último contato"
-                    value={formatDateTime(mock.client.lastContact)}
-                  />
-                  <Field
-                    icon={UserRound}
-                    label="Comercial"
-                    value={mock.client.commercialOwner}
-                  />
-                </dl>
-              </SectionCard>
-
-              <SectionCard title="Contato" icon={UserRound}>
-                <p className="text-[14px] font-bold text-foreground">{ticket.contact}</p>
-                <p className="mb-3 text-[11px] text-muted-foreground">
-                  {mock.contactDetails.role}
-                </p>
-                <dl className="grid grid-cols-1 gap-2 text-[12px]">
-                  <Field icon={Phone} label="Telefone" value={mock.contactDetails.phone} />
-                  <Field icon={Mail} label="Email" value={mock.contactDetails.email} />
-                  <Field
-                    icon={MessageSquare}
-                    label="Retorno preferido"
-                    value={mock.contactDetails.preference}
-                  />
-                </dl>
-              </SectionCard>
-
-              <SectionCard title="Detalhes do chamado" icon={Info} className="lg:col-span-2">
-                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                  <Field icon={Tag} label="Assunto" value={ticket.subject} />
-                  <Field
-                    icon={FileText}
-                    label="Módulo"
-                    value={
-                      <span className="inline-flex w-full items-center justify-end gap-1.5">
-                        <span className="truncate">{ticket.module}</span>
-                        {notes.length > 0 && (
-                          <button
-                            type="button"
-                            onClick={() => setNotesOpen(true)}
-                            title="Ver nota interna"
-                            aria-label="Ver nota interna"
-                            className="grid h-5 w-5 shrink-0 cursor-pointer place-items-center rounded-md bg-primary/10 text-primary transition hover:bg-primary/20"
-                          >
-                            <NotebookText className="h-3 w-3" />
-                          </button>
+          {/* Body with side nav + content */}
+          <div className="flex flex-1 min-h-0 flex-col md:flex-row">
+            {/* Side nav */}
+            <nav className="shrink-0 border-b border-border bg-card px-2 py-2 md:w-[190px] md:border-b-0 md:border-r md:px-2.5 md:py-4">
+              <ul className="flex gap-1 overflow-x-auto md:flex-col md:gap-0.5 md:overflow-visible">
+                {navItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = activeNav === item.key;
+                  return (
+                    <li key={item.key} className="shrink-0 md:shrink">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (item.key === "historico") {
+                            setHistoryOpen(true);
+                            return;
+                          }
+                          scrollTo(item.key);
+                        }}
+                        className={cn(
+                          "flex w-full cursor-pointer items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-left text-[12.5px] font-medium transition",
+                          isActive
+                            ? "bg-primary/10 text-primary"
+                            : "text-muted-foreground hover:bg-accent hover:text-foreground",
                         )}
+                      >
+                        <Icon className="h-4 w-4 shrink-0" />
+                        <span>{item.label}</span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </nav>
+
+            {/* Content */}
+            <div ref={scrollRef} className="flex-1 min-w-0 overflow-y-auto bg-muted/30 px-5 py-5 md:px-6">
+              {/* Resumo */}
+              <Section
+                ref={(el) => { sectionRefs.current.resumo = el; }}
+                title="Resumo do chamado"
+                icon={LayoutGrid}
+              >
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  <MiniStat label="Status">
+                    <Badge className={cn("rounded-full border px-2.5 py-0.5 text-[11.5px] font-semibold", statusTone[ticket.status])}>
+                      {ticket.status}
+                    </Badge>
+                  </MiniStat>
+                  <MiniStat label="Prioridade">
+                    <Badge className={cn("rounded-full border px-2.5 py-0.5 text-[11.5px] font-semibold", priorityTone[ticket.priority])}>
+                      {ticket.priority}
+                    </Badge>
+                  </MiniStat>
+                  <MiniStat label="SLA">
+                    <div className="flex items-center gap-2">
+                      <span className={cn("text-[22px] font-bold leading-none", slaTextTone[sla.tone])}>
+                        {sla.pct}%
                       </span>
-                    }
-                  />
-                  <Field icon={Tag} label="Categoria" value={mock.category} />
-                  <Field
-                    icon={CalendarClock}
-                    label="Abertura"
-                    value={formatDateTime(ticket.openedAt)}
-                  />
-                  <Field
-                    icon={Clock3}
-                    label="Última atualização"
-                    value={formatDateTime(ticket.updatedAt)}
-                  />
-                  <Field icon={UserRound} label="Atendente inicial" value={ticket.attendant} />
-                  <Field
-                    icon={UserRound}
-                    label="Responsável atual"
-                    value={
-                      ticket.lockedBy
-                        ? `${ticket.owner} · Atendendo agora: ${ticket.lockedBy}`
-                        : ticket.owner
-                    }
-                  />
+                      <div className="flex-1">
+                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                          <div className={cn("h-full rounded-full transition-all", slaBarTone[sla.tone])} style={{ width: `${sla.pct}%` }} />
+                        </div>
+                        <p className="mt-1 text-[10.5px] text-muted-foreground">{sla.hours}h decorridas</p>
+                      </div>
+                    </div>
+                  </MiniStat>
                 </div>
-                <div className="mt-4 rounded-xl border border-border bg-muted/40 p-3">
-                  <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                    Descrição do problema
+              </Section>
+
+              <Section
+                ref={(el) => { sectionRefs.current.detalhes = el; }}
+                title="Descrição do problema"
+                icon={FileText}
+              >
+                <p className="text-[13px] leading-relaxed text-foreground">{mock.description}</p>
+              </Section>
+
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                <Section
+                  ref={(el) => { sectionRefs.current.cliente = el; }}
+                  title="Cliente"
+                  icon={Building2}
+                  compact
+                >
+                  <p className="text-[13.5px] font-bold text-foreground truncate">{ticket.clientName}</p>
+                  <p className="mt-0.5 text-[11.5px] text-muted-foreground">
+                    <MapPin className="mr-1 inline h-3 w-3" />
+                    {mock.city} - {mock.uf}
                   </p>
-                  <p className="text-[13px] leading-relaxed text-foreground">
-                    {mock.description}
+                  <p className="mt-0.5 text-[11px] text-muted-foreground">Código {ticket.clientCode}</p>
+                </Section>
+
+                <Section
+                  ref={(el) => { sectionRefs.current.contato = el; }}
+                  title="Contato"
+                  icon={UserRound}
+                  compact
+                >
+                  <p className="text-[13.5px] font-bold text-foreground truncate">{ticket.contact}</p>
+                  <p className="mt-0.5 text-[11.5px] text-muted-foreground">{mock.contactRole}</p>
+                  <p className="mt-0.5 inline-flex items-center gap-1 text-[11.5px] text-muted-foreground">
+                    <Phone className="h-3 w-3" />
+                    {mock.contactPhone}
                   </p>
-                </div>
-              </SectionCard>
+                </Section>
 
+                <Section title="Módulo" icon={Folder} compact>
+                  <div className="flex items-center gap-1.5">
+                    <p className="truncate text-[13.5px] font-bold text-foreground">{ticket.module}</p>
+                    {notes.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setNotesOpen(true)}
+                        title={`Ver ${notes.length} nota(s) interna(s)`}
+                        aria-label="Ver notas internas"
+                        className="grid h-5 w-5 shrink-0 cursor-pointer place-items-center rounded-md bg-primary/10 text-primary transition hover:bg-primary/20"
+                      >
+                        <NotebookText className="h-3 w-3" />
+                      </button>
+                    )}
+                  </div>
+                  <p className="mt-0.5 text-[11.5px] text-muted-foreground">Origem: {sourceLabels[ticket.source]}</p>
+                  {notes.length > 0 && (
+                    <p className="mt-0.5 text-[11px] text-primary">{notes.length} nota(s) interna(s)</p>
+                  )}
+                </Section>
+              </div>
 
+              <div className="mt-3 grid grid-cols-1 gap-3 rounded-2xl border border-border bg-card p-3 sm:grid-cols-3">
+                <CompactInfo icon={CalendarClock} label="Abertura" value={formatDateTime(ticket.openedAt)} />
+                <CompactInfo icon={Clock3} label="Última atualização" value={formatDateTime(ticket.updatedAt)} />
+                <CompactInfo
+                  icon={UserRound}
+                  label="Responsável atual"
+                  value={ticket.lockedBy ? `${ticket.owner} · ${ticket.lockedBy}` : ticket.owner}
+                />
+              </div>
 
-
-              <SectionCard title="Timeline" icon={History} className="lg:col-span-2">
+              {/* Timeline */}
+              <Section
+                ref={(el) => { sectionRefs.current.timeline = el; }}
+                title="Timeline"
+                icon={History}
+              >
                 {timelineShown.length === 0 ? (
                   <p className="py-4 text-center text-[12px] text-muted-foreground">
                     Nenhum evento registrado ainda.
@@ -523,12 +476,7 @@ export function TicketDetailSheet({
                         const Icon = timelineIcon[event.kind];
                         return (
                           <li key={event.id} className="relative">
-                            <span
-                              className={cn(
-                                "absolute -left-[30px] top-0 grid h-6 w-6 place-items-center rounded-full ring-4 ring-card",
-                                timelineTone[event.kind],
-                              )}
-                            >
+                            <span className={cn("absolute -left-[30px] top-0 grid h-6 w-6 place-items-center rounded-full ring-4 ring-card", timelineTone[event.kind])}>
                               <Icon className="h-3 w-3" />
                             </span>
                             <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -542,9 +490,7 @@ export function TicketDetailSheet({
                                 {formatDateTime(event.when)}
                               </span>
                             </div>
-                            <p className="mt-0.5 text-[12.5px] text-muted-foreground">
-                              {event.description}
-                            </p>
+                            <p className="mt-0.5 text-[12.5px] text-muted-foreground">{event.description}</p>
                           </li>
                         );
                       })}
@@ -562,9 +508,62 @@ export function TicketDetailSheet({
                     )}
                   </>
                 )}
-              </SectionCard>
+              </Section>
 
-              <SectionCard title="Nota interna" icon={NotebookText} className="lg:col-span-2">
+              {/* Arquivos */}
+              <Section
+                ref={(el) => { sectionRefs.current.arquivos = el; }}
+                title="Arquivos"
+                icon={Paperclip}
+              >
+                {mock.files.length === 0 ? (
+                  <p className="py-4 text-center text-[12px] text-muted-foreground">
+                    Nenhum arquivo anexado.
+                  </p>
+                ) : (
+                  <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    {mock.files.map((f) => (
+                      <li
+                        key={f.name}
+                        className="flex items-center gap-2 rounded-lg border border-border bg-background/60 px-3 py-2"
+                      >
+                        <span className="grid h-8 w-8 place-items-center rounded-md bg-primary/10 text-primary">
+                          <FileText className="h-4 w-4" />
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-[12.5px] font-semibold text-foreground">{f.name}</p>
+                          <p className="text-[10.5px] text-muted-foreground">{f.size}</p>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </Section>
+
+              {/* Histórico shortcut */}
+              <Section
+                ref={(el) => { sectionRefs.current.historico = el; }}
+                title="Histórico do cliente"
+                icon={Folder}
+              >
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-[12.5px] text-muted-foreground">
+                    {historyList.length} atendimento(s) anteriores relacionados a este cliente.
+                  </p>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setHistoryOpen(true)}
+                    className="h-8 cursor-pointer rounded-lg text-[12px]"
+                  >
+                    <History className="mr-1.5 h-3.5 w-3.5" />
+                    Abrir histórico
+                  </Button>
+                </div>
+              </Section>
+
+              {/* Nota interna */}
+              <Section title="Nota interna" icon={NotebookText}>
                 <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                   <p className="inline-flex items-center gap-1.5 rounded-full bg-muted/60 px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
                     <AlertCircle className="h-3 w-3" />
@@ -584,19 +583,11 @@ export function TicketDetailSheet({
                 <textarea
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
-                  rows={4}
+                  rows={3}
                   placeholder="Escreva uma nota interna sobre este atendimento..."
                   className="w-full resize-none rounded-xl border border-border bg-background p-3 text-[13px] outline-none focus:ring-2 focus:ring-ring"
                 />
-                <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-9 cursor-pointer rounded-lg text-[12px]"
-                  >
-                    <Paperclip className="mr-1.5 h-3.5 w-3.5" />
-                    Anexar arquivo
-                  </Button>
+                <div className="mt-3 flex justify-end">
                   <Button
                     size="sm"
                     disabled={!note.trim()}
@@ -607,40 +598,28 @@ export function TicketDetailSheet({
                     Salvar nota
                   </Button>
                 </div>
-              </SectionCard>
+              </Section>
+
+              <div className="h-2" />
             </div>
-            <div className="h-2" />
           </div>
 
-          {/* Fixed footer */}
+          {/* Footer */}
           <footer className="shrink-0 border-t border-border bg-card px-5 py-3 md:px-6">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex flex-wrap items-center gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={handleAssume}
-                  className="h-9 cursor-pointer rounded-lg px-3 text-[12px]"
-                >
+                <Button size="sm" variant="outline" onClick={handleAssume} className="h-9 cursor-pointer rounded-lg px-3 text-[12px]">
                   <UserPlus className="mr-1.5 h-3.5 w-3.5" />
                   Assumir
                 </Button>
-                <Button
-                  size="sm"
-                  onClick={handleAttend}
-                  className="h-9 cursor-pointer rounded-lg px-3 text-[12px]"
-                >
+                <Button size="sm" onClick={handleAttend} className="h-9 cursor-pointer rounded-lg px-3 text-[12px]">
                   <PlayCircle className="mr-1.5 h-3.5 w-3.5" />
                   Atender
                 </Button>
 
                 <Popover open={statusOpen} onOpenChange={setStatusOpen}>
                   <PopoverTrigger asChild>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-9 cursor-pointer rounded-lg px-3 text-[12px]"
-                    >
+                    <Button size="sm" variant="outline" className="h-9 cursor-pointer rounded-lg px-3 text-[12px]">
                       <ShieldCheck className="mr-1.5 h-3.5 w-3.5" />
                       Alterar status
                     </Button>
@@ -661,31 +640,19 @@ export function TicketDetailSheet({
                           )}
                         >
                           <span>{s}</span>
-                          {ticket.status === s && (
-                            <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
-                          )}
+                          {ticket.status === s && <CheckCircle2 className="h-3.5 w-3.5 text-primary" />}
                         </button>
                       ))}
                     </div>
                   </PopoverContent>
                 </Popover>
 
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setCloseOpen(true)}
-                  className="h-9 cursor-pointer rounded-lg px-3 text-[12px]"
-                >
+                <Button size="sm" variant="outline" onClick={() => setCloseOpen(true)} className="h-9 cursor-pointer rounded-lg px-3 text-[12px]">
                   <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" />
                   Encerrar
                 </Button>
 
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setHistoryOpen(true)}
-                  className="h-9 cursor-pointer rounded-lg px-3 text-[12px]"
-                >
+                <Button size="sm" variant="outline" onClick={() => setHistoryOpen(true)} className="h-9 cursor-pointer rounded-lg px-3 text-[12px]">
                   <History className="mr-1.5 h-3.5 w-3.5" />
                   Histórico
                 </Button>
@@ -849,60 +816,64 @@ function CloseTicketDialog({
   );
 }
 
-function SectionCard({
-  title,
-  icon: Icon,
-  children,
-  className,
-}: {
-  title: string;
-  icon: typeof Info;
-  children: React.ReactNode;
-  className?: string;
-}) {
+const Section = forwardRef<
+  HTMLElement,
+  {
+    title: string;
+    icon: typeof Info;
+    children: React.ReactNode;
+    compact?: boolean;
+  }
+>(function Section({ title, icon: Icon, children, compact }, ref) {
   return (
-    <Card
+    <section
+      ref={ref}
       className={cn(
-        "rounded-2xl border border-border bg-card p-4 shadow-[0_6px_18px_rgba(25,29,51,0.04)]",
-        className,
+        "mb-3 rounded-2xl border border-border bg-card shadow-[0_6px_18px_rgba(25,29,51,0.04)]",
+        compact ? "p-3" : "p-4",
       )}
     >
-      <div className="mb-3 flex items-center gap-2">
-        <span className="grid h-7 w-7 place-items-center rounded-lg bg-primary/10 text-primary">
+      <div className={cn("mb-2 flex items-center gap-2", compact && "mb-1.5")}>
+        <span className="grid h-6 w-6 place-items-center rounded-md bg-primary/10 text-primary">
           <Icon className="h-3.5 w-3.5" />
         </span>
-        <h3 className="text-[13px] font-bold text-foreground">{title}</h3>
+        <h3 className={cn("font-bold text-foreground", compact ? "text-[12px]" : "text-[13px]")}>
+          {title}
+        </h3>
       </div>
       {children}
-    </Card>
+    </section>
+  );
+});
+
+
+function MiniStat({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="rounded-xl border border-border bg-background/60 p-3">
+      <p className="mb-1.5 text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">
+        {label}
+      </p>
+      <div>{children}</div>
+    </div>
   );
 }
 
-function Field({
+function CompactInfo({
   icon: Icon,
   label,
   value,
-  mono,
 }: {
   icon: typeof Info;
   label: string;
   value: React.ReactNode;
-  mono?: boolean;
 }) {
   return (
-    <div className="flex items-start justify-between gap-3 border-b border-border/60 pb-2 last:border-none last:pb-0">
-      <div className="flex min-w-0 items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
-        <Icon className="h-3 w-3 shrink-0" />
-        <span className="truncate">{label}</span>
-      </div>
-      <div
-        className={cn(
-          "min-w-0 truncate text-right text-[12.5px] font-medium text-foreground",
-          mono && "font-mono",
-        )}
-      >
-        {value}
-      </div>
+    <div className="min-w-0">
+      <p className="mb-1 inline-flex items-center gap-1 text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">
+        <Icon className="h-3 w-3" />
+        {label}
+      </p>
+      <p className="truncate text-[12.5px] font-semibold text-foreground">{value}</p>
     </div>
   );
 }
