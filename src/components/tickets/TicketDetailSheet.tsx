@@ -299,29 +299,17 @@ export function TicketDetailSheet({
 
           {/* Body with side nav + content */}
           <div className="flex flex-1 min-h-0 flex-col md:flex-row">
-            {/* Side nav */}
-            <nav className="shrink-0 border-b border-border bg-card px-2 py-2 md:w-[190px] md:border-b-0 md:border-r md:px-2.5 md:py-4">
+            {/* Side nav — apenas Timeline */}
+            <nav className="shrink-0 border-b border-border bg-card px-2 py-2 md:w-[160px] md:border-b-0 md:border-r md:px-2.5 md:py-4">
               <ul className="flex gap-1 overflow-x-auto md:flex-col md:gap-0.5 md:overflow-visible">
                 {navItems.map((item) => {
                   const Icon = item.icon;
-                  const isActive = activeNav === item.key;
                   return (
                     <li key={item.key} className="shrink-0 md:shrink">
                       <button
                         type="button"
-                        onClick={() => {
-                          if (item.key === "historico") {
-                            setHistoryOpen(true);
-                            return;
-                          }
-                          scrollTo(item.key);
-                        }}
-                        className={cn(
-                          "flex w-full cursor-pointer items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-left text-[12.5px] font-medium transition",
-                          isActive
-                            ? "bg-primary/10 text-primary"
-                            : "text-muted-foreground hover:bg-accent hover:text-foreground",
-                        )}
+                        onClick={() => setTimelineOpen(true)}
+                        className="flex w-full cursor-pointer items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-left text-[12.5px] font-medium text-muted-foreground transition hover:bg-accent hover:text-foreground"
                       >
                         <Icon className="h-4 w-4 shrink-0" />
                         <span>{item.label}</span>
@@ -333,13 +321,9 @@ export function TicketDetailSheet({
             </nav>
 
             {/* Content */}
-            <div ref={scrollRef} className="flex-1 min-w-0 overflow-y-auto bg-muted/30 px-5 py-5 md:px-6">
+            <div className="flex-1 min-w-0 overflow-y-auto bg-muted/30 px-5 py-5 md:px-6">
               {/* Resumo */}
-              <Section
-                ref={(el) => { sectionRefs.current.resumo = el; }}
-                title="Resumo do chamado"
-                icon={LayoutGrid}
-              >
+              <Section title="Resumo do chamado" icon={LayoutGrid}>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                   <MiniStat label="Status">
                     <Badge className={cn("rounded-full border px-2.5 py-0.5 text-[11.5px] font-semibold", statusTone[ticket.status])}>
@@ -367,21 +351,12 @@ export function TicketDetailSheet({
                 </div>
               </Section>
 
-              <Section
-                ref={(el) => { sectionRefs.current.detalhes = el; }}
-                title="Descrição do problema"
-                icon={FileText}
-              >
+              <Section title="Descrição do problema" icon={FileText}>
                 <p className="text-[13px] leading-relaxed text-foreground">{mock.description}</p>
               </Section>
 
               <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-                <Section
-                  ref={(el) => { sectionRefs.current.cliente = el; }}
-                  title="Cliente"
-                  icon={Building2}
-                  compact
-                >
+                <Section title="Cliente" icon={Building2} compact>
                   <p className="text-[13.5px] font-bold text-foreground truncate">{ticket.clientName}</p>
                   <p className="mt-0.5 text-[11.5px] text-muted-foreground">
                     <MapPin className="mr-1 inline h-3 w-3" />
@@ -390,12 +365,7 @@ export function TicketDetailSheet({
                   <p className="mt-0.5 text-[11px] text-muted-foreground">Código {ticket.clientCode}</p>
                 </Section>
 
-                <Section
-                  ref={(el) => { sectionRefs.current.contato = el; }}
-                  title="Contato"
-                  icon={UserRound}
-                  compact
-                >
+                <Section title="Contato" icon={UserRound} compact>
                   <p className="text-[13.5px] font-bold text-foreground truncate">{ticket.contact}</p>
                   <p className="mt-0.5 text-[11.5px] text-muted-foreground">{mock.contactRole}</p>
                   <p className="mt-0.5 inline-flex items-center gap-1 text-[11.5px] text-muted-foreground">
@@ -436,108 +406,7 @@ export function TicketDetailSheet({
                 />
               </div>
 
-              {/* Timeline */}
-              <Section
-                ref={(el) => { sectionRefs.current.timeline = el; }}
-                title="Timeline"
-                icon={History}
-              >
-                {timelineShown.length === 0 ? (
-                  <p className="py-4 text-center text-[12px] text-muted-foreground">
-                    Nenhum evento registrado ainda.
-                  </p>
-                ) : (
-                  <>
-                    <ol className="relative space-y-4 border-l border-border pl-5">
-                      {timelineShown.map((event) => {
-                        const Icon = timelineIcon[event.kind];
-                        return (
-                          <li key={event.id} className="relative">
-                            <span className={cn("absolute -left-[30px] top-0 grid h-6 w-6 place-items-center rounded-full ring-4 ring-card", timelineTone[event.kind])}>
-                              <Icon className="h-3 w-3" />
-                            </span>
-                            <div className="flex flex-wrap items-baseline justify-between gap-2">
-                              <p className="text-[13px] font-semibold text-foreground">
-                                {event.actor}{" "}
-                                <span className="text-[11px] font-normal text-muted-foreground">
-                                  · {event.actorType}
-                                </span>
-                              </p>
-                              <span className="text-[11px] text-muted-foreground">
-                                {formatDateTime(event.when)}
-                              </span>
-                            </div>
-                            <p className="mt-0.5 text-[12.5px] text-muted-foreground">{event.description}</p>
-                          </li>
-                        );
-                      })}
-                    </ol>
-                    {timelineSorted.length > 5 && (
-                      <div className="mt-3 flex justify-center">
-                        <button
-                          type="button"
-                          onClick={() => setShowAllTimeline((v) => !v)}
-                          className="cursor-pointer text-[12px] font-semibold text-primary hover:underline"
-                        >
-                          {showAllTimeline ? "Ver menos" : `Ver mais (${timelineSorted.length - 5})`}
-                        </button>
-                      </div>
-                    )}
-                  </>
-                )}
-              </Section>
 
-              {/* Arquivos */}
-              <Section
-                ref={(el) => { sectionRefs.current.arquivos = el; }}
-                title="Arquivos"
-                icon={Paperclip}
-              >
-                {mock.files.length === 0 ? (
-                  <p className="py-4 text-center text-[12px] text-muted-foreground">
-                    Nenhum arquivo anexado.
-                  </p>
-                ) : (
-                  <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                    {mock.files.map((f) => (
-                      <li
-                        key={f.name}
-                        className="flex items-center gap-2 rounded-lg border border-border bg-background/60 px-3 py-2"
-                      >
-                        <span className="grid h-8 w-8 place-items-center rounded-md bg-primary/10 text-primary">
-                          <FileText className="h-4 w-4" />
-                        </span>
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-[12.5px] font-semibold text-foreground">{f.name}</p>
-                          <p className="text-[10.5px] text-muted-foreground">{f.size}</p>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </Section>
-
-              {/* Histórico shortcut */}
-              <Section
-                ref={(el) => { sectionRefs.current.historico = el; }}
-                title="Histórico do cliente"
-                icon={Folder}
-              >
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="text-[12.5px] text-muted-foreground">
-                    {historyList.length} atendimento(s) anteriores relacionados a este cliente.
-                  </p>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setHistoryOpen(true)}
-                    className="h-8 cursor-pointer rounded-lg text-[12px]"
-                  >
-                    <History className="mr-1.5 h-3.5 w-3.5" />
-                    Abrir histórico
-                  </Button>
-                </div>
-              </Section>
 
               {/* Nota interna */}
               <Section title="Nota interna" icon={NotebookText}>
