@@ -617,7 +617,10 @@ export function TicketDetailSheet({
             </div>
 
           </div>
+          {/* fim body wrapper */}
+          </div>
           {/* fim painel esquerdo */}
+
 
           {/* Painel direito — Chat (card separado) */}
           <TicketChatPanel
