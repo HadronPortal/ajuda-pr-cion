@@ -816,21 +816,16 @@ function CloseTicketDialog({
   );
 }
 
-const Section = (function () {
-  const Cmp = (
-    {
-      title,
-      icon: Icon,
-      children,
-      compact,
-    }: {
-      title: string;
-      icon: typeof Info;
-      children: React.ReactNode;
-      compact?: boolean;
-    },
-    ref: React.Ref<HTMLElement>,
-  ) => (
+const Section = forwardRef<
+  HTMLElement,
+  {
+    title: string;
+    icon: typeof Info;
+    children: React.ReactNode;
+    compact?: boolean;
+  }
+>(function Section({ title, icon: Icon, children, compact }, ref) {
+  return (
     <section
       ref={ref}
       className={cn(
@@ -849,11 +844,8 @@ const Section = (function () {
       {children}
     </section>
   );
-  return Object.assign(
-    (require("react") as typeof import("react")).forwardRef(Cmp),
-    {},
-  );
-})();
+});
+
 
 function MiniStat({ label, children }: { label: string; children: React.ReactNode }) {
   return (
