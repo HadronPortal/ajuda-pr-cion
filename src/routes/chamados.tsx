@@ -120,12 +120,13 @@ const initialFilters: Filters = {
 };
 
 function TicketsPage() {
+  const supportTickets = useTickets();
   const [filters, setFilters] = useState<Filters>(initialFilters);
-  const [selectedTicket, setSelectedTicket] = useState<SupportTicket | null>(null);
+  const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
 
   const openTicketDetail = (ticket: SupportTicket) => {
-    setSelectedTicket(ticket);
+    setSelectedTicketId(ticket.id);
     setDetailOpen(true);
   };
 
@@ -155,7 +156,7 @@ function TicketsPage() {
         .toLowerCase()
         .includes(query);
     });
-  }, [filters]);
+  }, [filters, supportTickets]);
 
   const openTickets = supportTickets.filter(
     (ticket) => !["Finalizado", "Cancelado"].includes(ticket.status),
