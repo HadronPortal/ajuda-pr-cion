@@ -254,6 +254,9 @@ export function TicketDetailSheet({
   const [timelineOpen, setTimelineOpen] = useState(false);
   const [navCollapsed, setNavCollapsed] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
+  const [activeAction, setActiveAction] = useState<
+    "historico" | "encerrar" | "status" | "assumir" | "atender" | "timeline" | "chat"
+  >("atender");
 
   const mock = useMemo(() => (ticket ? buildMock(ticket) : null), [ticket]);
   const sla = useMemo(() => (ticket ? computeSla(ticket) : null), [ticket]);
@@ -403,13 +406,21 @@ export function TicketDetailSheet({
                   icon={TicketHistoryIcon}
                   label="Histórico"
                   collapsed={navCollapsed}
-                  onClick={() => setHistoryOpen(true)}
+                  active={activeAction === "historico"}
+                  onClick={() => {
+                    setActiveAction("historico");
+                    setHistoryOpen(true);
+                  }}
                 />
                 <SideItem
                   icon={TicketCloseIcon}
                   label="Encerrar"
                   collapsed={navCollapsed}
-                  onClick={() => setCloseOpen(true)}
+                  active={activeAction === "encerrar"}
+                  onClick={() => {
+                    setActiveAction("encerrar");
+                    setCloseOpen(true);
+                  }}
                 />
                 <Popover open={statusOpen} onOpenChange={setStatusOpen}>
                   <PopoverTrigger asChild>
@@ -417,9 +428,13 @@ export function TicketDetailSheet({
                       type="button"
                       title={navCollapsed ? "Alterar status" : undefined}
                       aria-label="Alterar status"
-                      className={cn(sideItemClasses(false), navCollapsed && "md:justify-center md:px-0")}
+                      onClick={() => setActiveAction("status")}
+                      className={cn(
+                        sideItemClasses(activeAction === "status"),
+                        navCollapsed && "md:justify-center md:px-0",
+                      )}
                     >
-                      <TicketStatusIcon className="h-4 w-4 shrink-0" />
+                      <TicketStatusIcon className="h-5 w-5 shrink-0" />
                       <span className={cn("truncate", navCollapsed && "md:hidden")}>
                         Alterar status
                       </span>
@@ -451,29 +466,45 @@ export function TicketDetailSheet({
                   icon={TicketAssumeIcon}
                   label="Assumir chamado"
                   collapsed={navCollapsed}
-                  onClick={handleAssume}
+                  active={activeAction === "assumir"}
+                  onClick={() => {
+                    setActiveAction("assumir");
+                    handleAssume();
+                  }}
                 />
                 <SideItem
                   icon={TicketAttendIcon}
                   label="Atender"
                   collapsed={navCollapsed}
-                  onClick={handleAttend}
-                  highlight
+                  active={activeAction === "atender"}
+                  onClick={() => {
+                    setActiveAction("atender");
+                    handleAttend();
+                  }}
                 />
                 <SideItem
                   icon={TicketTimelineIcon}
                   label="Timeline"
                   collapsed={navCollapsed}
-                  onClick={() => setTimelineOpen(true)}
+                  active={activeAction === "timeline"}
+                  onClick={() => {
+                    setActiveAction("timeline");
+                    setTimelineOpen(true);
+                  }}
                 />
                 <SideItem
                   icon={MessageCircle}
                   label="Chat"
                   collapsed={navCollapsed}
-                  onClick={() => setChatOpen(true)}
+                  active={activeAction === "chat"}
+                  onClick={() => {
+                    setActiveAction("chat");
+                    setChatOpen(true);
+                  }}
                   className="xl:hidden"
                 />
               </div>
+
 
               {isMine && (
                 <div className="border-t border-border p-2">
@@ -1016,14 +1047,14 @@ function SideItem({
   label,
   collapsed,
   onClick,
-  highlight,
+  active,
   className,
 }: {
   icon: IconComponent;
   label: string;
   collapsed: boolean;
   onClick: () => void;
-  highlight?: boolean;
+  active?: boolean;
   className?: string;
 }) {
   return (
@@ -1032,13 +1063,14 @@ function SideItem({
       onClick={onClick}
       title={collapsed ? label : undefined}
       aria-label={label}
+      aria-pressed={!!active}
       className={cn(
-        sideItemClasses(!!highlight),
+        sideItemClasses(!!active),
         collapsed && "md:justify-center md:px-0",
         className,
       )}
     >
-      <Icon className="h-4 w-4 shrink-0" />
+      <Icon className="h-5 w-5 shrink-0" />
       <span className={cn("truncate", collapsed && "md:hidden")}>{label}</span>
     </button>
   );

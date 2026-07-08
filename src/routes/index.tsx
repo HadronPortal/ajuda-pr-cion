@@ -85,7 +85,7 @@ function TodaySummaryCard() {
     { label: "Reabertos", value: "2", tone: "text-[#ffd66b]" },
   ];
   return (
-    <div className="relative flex flex-col overflow-hidden rounded-2xl border border-white/14 bg-[linear-gradient(135deg,rgba(36,133,213,0.42),rgba(49,56,102,0.78))] p-5 backdrop-blur-md">
+    <div className="relative flex flex-col overflow-hidden rounded-2xl border border-white/14 bg-[linear-gradient(135deg,rgba(36,133,213,0.42),rgba(49,56,102,0.78))] p-4 backdrop-blur-md">
       <div className="flex items-center justify-between gap-4">
         <p className="text-[11px] font-bold uppercase tracking-wider text-white/85">
           Resumo de hoje
@@ -96,31 +96,31 @@ function TodaySummaryCard() {
         </span>
       </div>
 
-      <div className="mt-4">
+      <div className="mt-3">
         <p className="text-[12px] text-white/85">Hoje foram abertos</p>
-        <p className="mt-0.5 text-[26px] font-extrabold leading-none">48 chamados</p>
-        <p className="mt-1.5 text-[11px] font-semibold text-white/75">
+        <p className="mt-0.5 text-[24px] font-extrabold leading-none">48 chamados</p>
+        <p className="mt-1 text-[11px] font-semibold text-white/75">
           39 foram finalizados pela equipe
         </p>
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-2">
+      <div className="mt-3 grid grid-cols-2 gap-2">
         {indicators.map((i) => (
           <div
             key={i.label}
-            className="rounded-xl border border-white/10 bg-white/10 px-3 py-2.5"
+            className="rounded-xl border border-white/10 bg-white/10 px-3 py-2"
           >
             <p className="text-[10px] font-semibold uppercase tracking-wider text-white/65">
               {i.label}
             </p>
-            <p className={`mt-1 text-lg font-extrabold leading-none ${i.tone}`}>
+            <p className={`mt-0.5 text-base font-extrabold leading-none ${i.tone}`}>
               {i.value}
             </p>
           </div>
         ))}
       </div>
 
-      <div className="mt-4 space-y-2">
+      <div className="mt-3 space-y-1.5">
         <SummaryProgress icon={CheckCircle2} label="Taxa de resolução" value="81%" />
         <SummaryProgress icon={Clock3} label="Tempo médio de resposta" value="24 min" />
       </div>
@@ -168,14 +168,14 @@ function BannerMetric({
   detail: string;
 }) {
   return (
-    <div className="flex min-w-0 items-center gap-3 border-white/10 px-5 py-4 xl:border-r last:xl:border-r-0">
-      <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-white/12 text-[#8ee8ff]">
-        <Icon className="h-5 w-5" />
+    <div className="flex min-w-0 items-center gap-2.5 border-white/10 px-4 py-2.5 xl:border-r last:xl:border-r-0">
+      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-white/12 text-[#8ee8ff]">
+        <Icon className="h-4 w-4" />
       </span>
       <div className="min-w-0">
-        <p className="truncate text-[11px] font-semibold text-white/70">{label}</p>
-        <p className="mt-0.5 text-xl font-extrabold leading-none text-white">{value}</p>
-        <p className="mt-1 truncate text-[10px] font-medium text-[#64e7b6]">{detail}</p>
+        <p className="truncate text-[10.5px] font-semibold text-white/70">{label}</p>
+        <p className="mt-0.5 text-base font-extrabold leading-none text-white">{value}</p>
+        <p className="mt-0.5 truncate text-[10px] font-medium text-[#64e7b6]">{detail}</p>
       </div>
     </div>
   );
@@ -258,20 +258,20 @@ function HomePage() {
   return (
     <AppShell>
       {/* Hero */}
-      <section className="mb-8 overflow-hidden rounded-[18px] bg-[radial-gradient(circle_at_20%_10%,rgba(51,195,232,0.42),transparent_34%),linear-gradient(135deg,#0c9fd4_0%,#087ee0_42%,#263276_100%)] p-5 text-white shadow-[0_22px_54px_rgba(11,151,196,0.28)] md:p-7">
-        <div className="mb-4">
+      <section className="mb-6 overflow-hidden rounded-[18px] bg-[radial-gradient(circle_at_20%_10%,rgba(51,195,232,0.42),transparent_34%),linear-gradient(135deg,#0c9fd4_0%,#087ee0_42%,#263276_100%)] p-4 text-white shadow-[0_22px_54px_rgba(11,151,196,0.28)] md:p-5">
+        <div className="mb-3">
           <p className="text-sm font-light leading-none text-white/85">{greeting},</p>
           <h1 className="mt-1.5 text-[20px] font-bold leading-none tracking-normal md:text-[24px]">
             {displayName} <span className="text-[16px] md:text-[18px]">👋</span>
           </h1>
         </div>
 
-        <div className="grid gap-4 xl:grid-cols-[minmax(0,1.75fr)_minmax(360px,0.95fr)]">
+        <div className="grid gap-3 xl:grid-cols-[minmax(0,1.75fr)_minmax(360px,0.95fr)]">
           <SefazStatusPanel />
           <TodaySummaryCard />
         </div>
 
-        <div className="mt-4 grid overflow-hidden rounded-2xl border border-white/12 bg-white/10 backdrop-blur-md sm:grid-cols-2 xl:grid-cols-5">
+        <div className="mt-3 grid overflow-hidden rounded-2xl border border-white/12 bg-white/10 backdrop-blur-md sm:grid-cols-2 xl:grid-cols-5">
           <BannerMetric icon={Headphones} label="Abertos" value="48" detail="+12% vs ontem" />
           <BannerMetric icon={CheckCircle2} label="Finalizados" value="39" detail="+8% vs ontem" />
           <BannerMetric icon={Clock3} label="Tempo medio" value="24 min" detail="-5 min vs ontem" />
