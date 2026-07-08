@@ -756,7 +756,7 @@ function CloseTicketDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="max-h-[90vh] w-[calc(100vw-24px)] max-w-[920px] overflow-y-auto rounded-2xl border border-border bg-background p-0 shadow-[0_30px_80px_rgba(0,0,0,0.45)] sm:w-[92vw] md:w-[92vw] lg:w-[920px] [&>button]:hidden"
+        className="max-h-[90vh] w-[calc(100vw-24px)] max-w-[960px] overflow-y-auto rounded-2xl border border-border bg-background p-0 shadow-[0_30px_80px_rgba(0,0,0,0.45)] sm:w-[92vw] md:w-[92vw] lg:h-auto lg:max-h-none lg:w-[960px] lg:overflow-visible [&>button]:hidden"
       >
         {/* Header */}
         <div className="flex items-start justify-between gap-3 border-b border-border px-6 py-5">
