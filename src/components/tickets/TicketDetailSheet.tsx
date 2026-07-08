@@ -621,6 +621,19 @@ export function TicketDetailSheet({
         events={timelineEvents}
       />
 
+      {/* Chat como modal para notebook/mobile */}
+      <Dialog open={chatOpen} onOpenChange={setChatOpen}>
+        <DialogContent className="flex h-[85vh] max-h-[85vh] w-[calc(100vw-1rem)] max-w-md flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-background p-0 sm:w-[420px]">
+          <DialogTitle className="sr-only">Chat com o cliente</DialogTitle>
+          <TicketChatPanel
+            ticket={ticket}
+            className="flex-1 border-l-0"
+            onClose={() => setChatOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
+
+
     </>
   );
 }
