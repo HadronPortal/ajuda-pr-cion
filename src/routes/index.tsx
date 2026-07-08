@@ -15,6 +15,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { currentUser } from "@/lib/mock-data";
 import { supportTickets } from "@/lib/support-tickets-data";
+import { getTicketsForCurrentUser } from "@/lib/tickets-scope";
 import { Badge } from "@/components/ui/badge";
 import { kbArticlesFull, kbCategoriesFull } from "@/lib/kb-data";
 import { versions } from "@/lib/mock-data";
@@ -86,8 +87,6 @@ function getGreeting(hour: number) {
   return "Boa noite";
 }
 
-const CURRENT_OPERATOR = "PRCSUZ";
-
 function HomePage() {
   const latestArticles = [...kbArticlesFull]
     .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
@@ -103,9 +102,7 @@ function HomePage() {
     return () => clearInterval(id);
   }, []);
 
-  const myTickets = supportTickets.filter(
-    (t) => t.owner === CURRENT_OPERATOR || t.attendant === CURRENT_OPERATOR,
-  );
+  const myTickets = getTicketsForCurrentUser(supportTickets, currentUser);
   const myTicketsCount = myTickets.length;
   const openCount = myTickets.filter((t) => t.status === "Em Aberto").length;
   const overdueCount = myTickets.filter((t) => t.status === "Atrasado").length;

@@ -3,6 +3,7 @@ export const currentUser = {
   email: "ana.ribeiro@procion.com.br",
   role: "Analista de Suporte",
   initials: "AR",
+  operator: "PRCMAR",
 };
 
 export const shortcuts = [
