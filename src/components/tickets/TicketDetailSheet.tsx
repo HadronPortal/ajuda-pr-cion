@@ -13,6 +13,7 @@ import {
   Mail,
   MapPin,
   MessageSquare,
+  NotebookText,
   Paperclip,
   Phone,
   PlayCircle,
@@ -51,11 +52,15 @@ import {
 import {
   ticketsStore,
   useTicket,
+  useTicketEvents,
   useTicketHistory,
+  useTicketNotes,
   type ClosurePayload,
+  type TicketEvent,
 } from "@/lib/tickets-store";
 import { currentUser } from "@/lib/mock-data";
 import { TicketHistoryModal } from "./TicketHistoryModal";
+import { TicketNotesModal } from "./TicketNotesModal";
 
 const statusTone: Record<TicketStatus, string> = {
   Atrasado: "bg-destructive/12 text-destructive border-destructive/20",
