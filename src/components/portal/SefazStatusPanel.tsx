@@ -198,7 +198,21 @@ export function SefazStatusPanel() {
                 <Line type="monotone" dataKey="mdfe" stroke="#8cf45f" strokeWidth={2.5} dot={false} />
               </ComposedChart>
             </ResponsiveContainer>
-          </div>
+        </div>
+
+        {(() => {
+          const ufs = data
+            ? Array.from(new Set(data.services.flatMap((s) => s.affectedUf ?? [])))
+            : [];
+          if (ufs.length === 0) return null;
+          return (
+            <div className="mt-3 flex items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-[11.5px] text-white/90">
+              <MapPin className="h-3.5 w-3.5 shrink-0 text-[#ffd04d]" />
+              <span className="font-semibold">UFs com instabilidade:</span>
+              <span className="truncate">{ufs.join(", ")}</span>
+            </div>
+          );
+        })()}
           <div className="mt-1 flex justify-center gap-5 text-[10px] font-semibold text-white/82">
             <ChartLegendDot color="#55e3ad" label="NF-e" />
             <ChartLegendDot color="#ffd04d" label="NFC-e" />
