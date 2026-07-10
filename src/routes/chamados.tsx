@@ -211,9 +211,11 @@ function TicketsPage() {
         description="CRM de suporte para acompanhar abertura, atendimento, atrasos e produtividade dos chamados."
         breadcrumbs={[{ label: "Chamados" }]}
         actions={
-          <Button size="sm" className="rounded-xl shadow-[0_10px_22px_rgba(11,151,196,0.18)]">
-            <MessageSquarePlus className="mr-1.5 h-4 w-4" />
-            Novo chamado
+          <Button asChild size="sm" className="rounded-xl shadow-[0_10px_22px_rgba(11,151,196,0.18)]">
+            <Link to="/chamados/novo">
+              <MessageSquarePlus className="mr-1.5 h-4 w-4" />
+              Novo chamado
+            </Link>
           </Button>
         }
       />

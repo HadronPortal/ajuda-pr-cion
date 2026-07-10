@@ -51,6 +51,17 @@ export type InternalNote = {
   text: string;
 };
 
+export type CreateTicketInput = {
+  priority: SupportTicket["priority"];
+  clientCode: string;
+  clientName: string;
+  contact: string;
+  subject: string;
+  module: string;
+  source: SupportTicket["source"];
+  description: string;
+};
+
 let tickets: SupportTicket[] = supportTickets.map((t) => ({ ...t }));
 const events: Record<string, TicketEvent[]> = {};
 const history: Record<string, PastAttendance[]> = {};
@@ -67,6 +78,13 @@ let eventCounter = 0;
 const nextEventId = () => `evt-${Date.now().toString(36)}-${++eventCounter}`;
 
 const nowIso = () => new Date().toISOString();
+
+function nextTicketSequence() {
+  const sequences = tickets
+    .map((ticket) => Number(ticket.protocol.replace(/\D/g, "")))
+    .filter(Number.isFinite);
+  return Math.max(1780000000, ...sequences) + 1;
+}
 
 function addMinutes(iso: string, minutes: number) {
   const d = new Date(iso);
@@ -206,6 +224,42 @@ export const ticketsStore = {
   getEvents: (id: string) => events[id] ?? EMPTY_EVENTS,
   getHistory: (id: string) => history[id] ?? EMPTY_HISTORY,
   getInternalNotes: (id: string) => internalNotes[id] ?? EMPTY_NOTES,
+
+  createTicket(input: CreateTicketInput) {
+    const when = nowIso();
+    const sequence = nextTicketSequence();
+    const ticket: SupportTicket = {
+      id: `ticket-${Date.now().toString(36)}-${++eventCounter}`,
+      protocol: `PRC-${sequence}`,
+      status: "Em Aberto",
+      priority: input.priority,
+      openedAt: when,
+      updatedAt: when,
+      attendant: operator(),
+      owner: "Sem responsável",
+      clientCode: input.clientCode.trim().toUpperCase(),
+      clientName: input.clientName.trim(),
+      contact: input.contact.trim(),
+      subject: input.subject.trim(),
+      module: input.module.trim(),
+      source: input.source,
+    };
+
+    tickets = [ticket, ...tickets];
+    events[ticket.id] = [
+      {
+        id: nextEventId(),
+        kind: "created",
+        when,
+        actor: input.contact.trim(),
+        actorType: "cliente",
+        description: `Chamado aberto via ${input.source}. ${input.description.trim()}`.trim(),
+      },
+    ];
+    history[ticket.id] = [];
+    emit();
+    return ticket;
+  },
 
   assumeTicket(id: string) {
     const op = operator();
