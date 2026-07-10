@@ -774,16 +774,6 @@ function TicketsListView({
             </dl>
             <div className="mt-2 flex items-center justify-end gap-1 border-t border-border/60 pt-2">
               <Button
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onOpen(ticket);
-                }}
-                className="h-7 cursor-pointer rounded-md px-2 text-[11px]"
-              >
-                Abrir
-              </Button>
-              <Button
                 variant="ghost"
                 size="sm"
                 onClick={(e) => handleAssume(ticket, e)}
