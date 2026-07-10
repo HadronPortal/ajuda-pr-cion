@@ -692,9 +692,17 @@ function TicketsHero({
           {overdueTickets} atrasados exigem retorno imediato. Acompanhe SLA, produtividade e o
           fluxo de origem em um só lugar.
         </p>
-        <Button className="mt-6 rounded-full bg-white dark:bg-[#20263d] px-6 text-foreground hover:bg-white/90">
+        <Button
+          onClick={() =>
+            document
+              .getElementById("analytics-detalhado")
+              ?.scrollIntoView({ behavior: "smooth", block: "start" })
+          }
+          className="mt-6 rounded-full bg-white dark:bg-[#20263d] px-6 text-foreground hover:bg-white/90"
+        >
           Ver painel completo <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
+
       </div>
       <div className="absolute right-6 top-8 hidden h-[160px] w-[200px] md:block">
         <div className="absolute bottom-0 left-8 h-[86px] w-[130px] rounded-lg bg-white/75 shadow-xl" />
