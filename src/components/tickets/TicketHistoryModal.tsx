@@ -91,6 +91,7 @@ export function TicketHistoryModal({
   historyItems: PastAttendance[];
 }) {
   const [showAll, setShowAll] = useState(false);
+  const [selected, setSelected] = useState<PastAttendance | null>(null);
 
   if (!ticket) return null;
 
