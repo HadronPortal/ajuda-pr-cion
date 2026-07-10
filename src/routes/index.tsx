@@ -278,15 +278,15 @@ function TodaySummaryCard() {
   }, []);
 
   return (
-    <div className="relative flex h-[440px] flex-col overflow-hidden rounded-2xl border border-white/14 bg-[radial-gradient(circle_at_32%_34%,rgba(71,186,255,0.28),transparent_34%),linear-gradient(137deg,rgba(42,132,210,0.58)_0%,rgba(45,58,155,0.74)_48%,rgba(42,34,120,0.84)_100%)] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.13)] backdrop-blur-md">
+    <div className="relative flex h-[440px] min-h-[440px] max-h-[440px] flex-col overflow-hidden rounded-2xl border border-white/14 bg-[radial-gradient(circle_at_32%_34%,rgba(71,186,255,0.28),transparent_34%),linear-gradient(137deg,rgba(42,132,210,0.58)_0%,rgba(45,58,155,0.74)_48%,rgba(42,34,120,0.84)_100%)] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.13)] backdrop-blur-md">
       <div className="pointer-events-none absolute -bottom-14 left-8 h-32 w-64 rounded-full bg-cyan-300/10 blur-3xl" />
       <div className="pointer-events-none absolute right-0 top-8 h-52 w-52 rounded-full bg-violet-300/12 blur-3xl" />
 
-      <div className="relative z-10 flex-1 overflow-hidden">
+      <div className="relative z-10 min-h-0 flex-1 overflow-hidden">
         {SLIDES.map((s, i) => (
           <div
             key={s.key}
-            className={`absolute inset-5 bottom-10 flex flex-col ${i === idx ? "opacity-100" : "pointer-events-none opacity-0"}`}
+            className={`absolute inset-0 flex h-full flex-col overflow-hidden transition-opacity duration-300 ${i === idx ? "opacity-100" : "pointer-events-none opacity-0"}`}
             aria-hidden={i !== idx}
           >
             {s.render()}
@@ -294,7 +294,7 @@ function TodaySummaryCard() {
         ))}
       </div>
 
-      <div className="relative z-10 mt-auto flex gap-1.5 pt-4">
+      <div className="relative z-10 mt-auto flex shrink-0 gap-1.5 pt-4">
         {SLIDES.map((s, i) => (
           <button
             key={s.key}
@@ -333,17 +333,17 @@ function SummaryProgress({
         ? "from-[#ffd166] to-[#ff9f45]"
         : "from-[#54e1a7] to-[#6bd9ff]";
   return (
-    <div className="rounded-xl border border-white/10 bg-white/10 px-3 py-2">
+    <div className="rounded-xl border border-white/10 bg-white/10 px-3 py-1.5">
       <div className="flex items-center justify-between gap-3 text-[11px] font-semibold">
         <span className="inline-flex items-center gap-2 text-white/86">
-          <span className={`grid h-5 w-5 place-items-center rounded-full bg-white/12 ${iconColor}`}>
+          <span className={`grid h-4 w-4 shrink-0 place-items-center rounded-full bg-white/12 ${iconColor}`}>
             <Icon className="h-3 w-3" />
           </span>
           {label}
         </span>
         <span className={valueColor}>{value}</span>
       </div>
-      <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/14">
+      <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-white/14">
         <div className={`h-full w-[81%] rounded-full bg-gradient-to-r ${barGrad}`} />
       </div>
     </div>
