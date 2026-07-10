@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   Area,
@@ -24,7 +24,9 @@ import {
   FolderKanban,
   Headphones,
   History,
+  LayoutGrid,
   Layers,
+  List as ListIcon,
   LockKeyhole,
   MessageSquarePlus,
   MoreVertical,
