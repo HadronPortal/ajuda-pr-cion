@@ -1,6 +1,6 @@
 export type Priority = "Baixa" | "Média" | "Alta" | "Crítica";
 export type CardType = "Suporte" | "Melhoria" | "Bug" | "Implantação" | "Documentação";
-export type ColumnId = "a-fazer" | "em-andamento" | "concluido" | "arquivado";
+export type ColumnId = "a-fazer" | "em-andamento" | "concluido" | "homologacao" | "arquivado";
 
 export type KanbanMember = {
   id: string;
@@ -56,10 +56,11 @@ export const kanbanMembers: KanbanMember[] = [
 ];
 
 export const kanbanColumnsDef: KanbanColumn[] = [
-  { id: "a-fazer", title: "A Fazer" },
-  { id: "em-andamento", title: "Em Andamento" },
-  { id: "concluido", title: "Concluido" },
-  { id: "arquivado", title: "Arquivado" },
+  { id: "a-fazer", title: "Novo chamado" },
+  { id: "em-andamento", title: "Em atendimento" },
+  { id: "concluido", title: "Aguardando cliente" },
+  { id: "homologacao", title: "Em homologacao" },
+  { id: "arquivado", title: "Finalizado" },
 ];
 
 

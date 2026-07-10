@@ -1,17 +1,17 @@
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import { CirclePlus } from "lucide-react";
+import { MoreVertical, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { KanbanCardItem } from "./KanbanCard";
 import type { KanbanCard, KanbanColumn } from "@/lib/kanban-data";
 
-const columnTints: Record<string, string> = {
-  "a-fazer": "bg-sky-50/70 dark:bg-sky-500/5",
-  "em-andamento": "bg-amber-50/70 dark:bg-amber-400/5",
-  concluido: "bg-emerald-50/70 dark:bg-emerald-500/5",
-  arquivado: "bg-violet-50/50 dark:bg-violet-500/5",
+const columnMeta: Record<string, { dot: string; text: string }> = {
+  "a-fazer": { dot: "bg-sky-400", text: "text-sky-300" },
+  "em-andamento": { dot: "bg-amber-400", text: "text-amber-300" },
+  concluido: { dot: "bg-blue-400", text: "text-blue-300" },
+  homologacao: { dot: "bg-violet-400", text: "text-violet-300" },
+  arquivado: { dot: "bg-emerald-400", text: "text-emerald-300" },
 };
-
 
 export function KanbanColumnView({
   column,
@@ -30,40 +30,32 @@ export function KanbanColumnView({
     id: column.id,
     data: { type: "column", columnId: column.id },
   });
+  const meta = columnMeta[column.id] ?? columnMeta["a-fazer"];
 
   return (
-    <section
-      className={cn(
-        "relative flex min-h-[610px] w-full min-w-0 shrink-0 flex-col rounded-2xl px-3 py-3 md:w-[318px] md:min-w-[318px] md:mx-1.5 md:px-4 md:py-4",
-        columnTints[column.id] ?? "bg-muted/40",
-      )}
-    >
-      <div className="mb-4 flex h-9 items-center justify-between">
+    <section className="relative flex min-h-[470px] w-[200px] shrink-0 flex-col rounded-xl border border-white/7 bg-white/[0.045] p-2.5 shadow-[0_18px_40px_rgba(0,0,0,0.16)]">
+      <div className="mb-3 flex h-7 items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2">
-          <h2 className="truncate text-[13px] font-bold text-[#8c91b1]">{column.title}</h2>
-          <span className="grid h-5 min-w-5 place-items-center rounded-full bg-[#f2f4fa] px-1.5 text-[10px] font-bold text-[#9298b5]">
+          <span className={cn("h-2 w-2 shrink-0 rounded-full", meta.dot)} />
+          <h2 className={cn("truncate text-[11px] font-black", meta.text)}>{column.title}</h2>
+          <span className="grid h-5 min-w-5 place-items-center rounded-full bg-white/8 px-1.5 text-[10px] font-black text-slate-300">
             {cards.length}
           </span>
         </div>
-        <button
-          onClick={() => onAddCard(column.id)}
-          className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg px-1.5 py-1 text-[11px] font-semibold text-foreground transition hover:bg-accent hover:text-primary"
-          aria-label="Adicionar tarefa"
-        >
-          <CirclePlus className="h-3.5 w-3.5" />
-          Nova tarefa
+        <button className="grid h-6 w-6 cursor-pointer place-items-center rounded-md text-slate-500 transition hover:bg-white/7 hover:text-white">
+          <MoreVertical className="h-3.5 w-3.5" />
         </button>
       </div>
 
       <div
         ref={setNodeRef}
         className={cn(
-          "flex-1 overflow-visible rounded-xl border border-dashed border-transparent transition-colors",
-          isOver && "border-primary/40 bg-primary/5",
+          "flex-1 rounded-lg border border-dashed border-transparent transition-colors",
+          isOver && "border-primary/50 bg-primary/10",
         )}
       >
         <SortableContext items={cards.map((c) => c.id)} strategy={verticalListSortingStrategy}>
-          <div className="space-y-4 overflow-visible">
+          <div className="space-y-2.5">
             {cards.map((c) => (
               <KanbanCardItem
                 key={c.id}
@@ -75,14 +67,13 @@ export function KanbanColumnView({
           </div>
         </SortableContext>
 
-        {cards.length === 0 && (
-          <button
-            onClick={() => onAddCard(column.id)}
-            className="mt-1 flex min-h-[150px] w-full cursor-pointer items-center justify-center rounded-xl border border-dashed border-[#e7ebf4] text-xs font-semibold text-muted-foreground transition hover:border-primary/35 hover:bg-accent/50 hover:text-primary"
-          >
-            Criar primeiro card
-          </button>
-        )}
+        <button
+          onClick={() => onAddCard(column.id)}
+          className="mt-2 flex h-9 w-full cursor-pointer items-center justify-center gap-1.5 rounded-lg text-[11px] font-medium text-slate-400 transition hover:bg-white/7 hover:text-white"
+        >
+          <Plus className="h-3 w-3" />
+          Adicionar tarefa
+        </button>
       </div>
     </section>
   );

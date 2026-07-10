@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import {
   DndContext,
   DragOverlay,
@@ -12,11 +12,16 @@ import {
   type DragOverEvent,
 } from "@dnd-kit/core";
 import {
+  BarChart3,
+  Bell,
+  BriefcaseBusiness,
+  CheckCircle2,
+  Clock3,
+  Filter,
   Plus,
   Search,
   SlidersHorizontal,
-  X,
-  ChevronDown,
+  UserRound,
 } from "lucide-react";
 import { AppShell } from "@/components/portal/AppShell";
 import { kanbanStore, useKanbanCards } from "@/lib/kanban-store";
@@ -55,23 +60,16 @@ import {
 export const Route = createFileRoute("/kanban")({
   head: () => ({
     meta: [
-      { title: "Kanban Prócion — Gestão visual de demandas" },
+      { title: "Kanban de Chamados - Procion" },
       {
         name: "description",
         content:
-          "Quadro Kanban para organizar demandas, suporte, implantação e melhorias da Prócion Sistemas.",
+          "Quadro Kanban escuro para organizar demandas, suporte, implantacao e melhorias da Procion Sistemas.",
       },
     ],
   }),
   component: KanbanPage,
 });
-
-const boards = [
-  { id: "geral", name: "Quadro Geral" },
-  { id: "suporte", name: "Suporte & Atendimento" },
-  { id: "implantacao", name: "Implantação" },
-  { id: "produto", name: "Produto & Melhorias" },
-];
 
 type Filters = {
   client: string;
@@ -94,7 +92,6 @@ function KanbanPage() {
   const setCards = kanbanStore.setCards;
   const [query, setQuery] = useState("");
   const [filters, setFilters] = useState<Filters>(emptyFilters);
-  const [activeBoard, setActiveBoard] = useState(boards[0].id);
   const [activeCard, setActiveCard] = useState<KanbanCard | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerMode, setDrawerMode] = useState<"edit" | "create">("edit");
@@ -103,7 +100,6 @@ function KanbanPage() {
   const [mobileColumn, setMobileColumn] = useState<ColumnId>("a-fazer");
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
-
   const activeFilterCount = Object.values(filters).filter((v) => v !== "all").length;
 
   const filteredCards = useMemo(() => {
@@ -135,6 +131,15 @@ function KanbanPage() {
       (grouped[c.columnId] ?? grouped["a-fazer"]).push(c);
     }
     return grouped;
+  }, [filteredCards]);
+
+  const priorityStats = useMemo(() => {
+    const count = (name: string) => filteredCards.filter((c) => c.priority.toLowerCase().includes(name)).length;
+    return [
+      { label: "Alta", value: count("alta"), color: "bg-rose-400" },
+      { label: "Media", value: filteredCards.filter((c) => c.priority.toLowerCase().includes("dia")).length, color: "bg-amber-400" },
+      { label: "Baixa", value: count("baixa"), color: "bg-emerald-400" },
+    ];
   }, [filteredCards]);
 
   const handleDragStart = (e: DragStartEvent) => {
@@ -246,207 +251,84 @@ function KanbanPage() {
 
   return (
     <AppShell>
-      {/* Board header */}
-      <div className="mb-5 space-y-4">
-        <div className="grid grid-cols-1 items-center gap-3 sm:flex sm:flex-wrap sm:justify-between">
-          <div className="min-w-0 flex items-center gap-3">
-            <div>
-              <p className="text-xs font-semibold text-primary">Kanban Prócion</p>
-              <div className="flex items-center gap-2 min-w-0">
-                <h1 className="text-[26px] font-bold tracking-tight text-foreground truncate">
-                  {boards.find((b) => b.id === activeBoard)?.name}
-                </h1>
-              </div>
+      <div className="min-h-[calc(100vh-92px)] rounded-[18px] border border-white/8 bg-[#050c18] p-5 text-slate-100 shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
+        <div className="mb-5 flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+          <div>
+            <h1 className="text-[22px] font-black tracking-tight text-white">Kanban de Chamados</h1>
+            <p className="mt-1 text-xs font-medium text-slate-400">Gestao inteligente de chamados e projetos</p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="relative h-11 w-full sm:w-[300px]">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                type="search"
+                placeholder="Buscar chamados..."
+                className="h-full w-full rounded-lg border border-white/8 bg-white/[0.035] pl-10 pr-10 text-xs text-slate-200 outline-none transition placeholder:text-slate-500 focus:border-primary/50 focus:bg-white/[0.055]"
+              />
+              <Search className="absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-500" />
             </div>
-          </div>
 
-          <div className="grid w-full min-w-0 max-w-full shrink-0 grid-cols-1 items-center gap-2 md:flex md:w-auto md:justify-start md:gap-3">
-            <div className="hidden md:flex -space-x-2">
-              {kanbanMembers.slice(0, 5).map((m) => (
-                <Avatar key={m.id} className="h-8 w-8 ring-2 ring-background">
-                  <AvatarFallback className={cn("text-[10px] font-semibold", m.color)}>
-                    {m.initials}
-                  </AvatarFallback>
-                </Avatar>
-              ))}
-              <div className="grid h-8 w-8 place-items-center rounded-full bg-muted text-[10px] font-medium text-muted-foreground ring-2 ring-background">
-                +{Math.max(0, kanbanMembers.length - 5)}
-              </div>
-            </div>
-            <Button asChild size="sm" variant="outline" className="w-full min-w-0 rounded-xl border-border bg-white dark:bg-[#20263d] px-2 text-xs md:w-auto md:px-3 md:text-sm">
-              <Link to="/kanban-dashboard">Dashboard</Link>
-            </Button>
-            <Button size="sm" onClick={() => handleNewCard()} className="w-full min-w-0 rounded-xl px-2 text-xs shadow-[0_10px_22px_rgba(11,151,196,0.18)] md:w-auto md:px-3 md:text-sm">
-              <Plus className="h-4 w-4 mr-1" />
-              <span className="md:hidden">Novo</span>
-              <span className="hidden md:inline">Novo card</span>
-            </Button>
-          </div>
-        </div>
-
-        {/* Toolbar */}
-        <div className="grid grid-cols-1 md:grid-cols-[auto_1fr_auto] gap-3 items-center rounded-2xl border border-border bg-white dark:bg-[#20263d] p-3 shadow-[0_10px_30px_rgba(25,29,51,0.025)]">
-          <Select value={activeBoard} onValueChange={setActiveBoard}>
-            <SelectTrigger className="w-full cursor-pointer rounded-xl border-border bg-muted/40 md:w-[240px]">
-              <SelectValue placeholder={boards.find((b) => b.id === activeBoard)?.name ?? "Quadro Geral"} />
-            </SelectTrigger>
-            <SelectContent>
-              {boards.map((b) => (
-                <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              type="search"
-              placeholder="Buscar por título, cliente, módulo, tag ou ID..."
-              className="w-full h-10 pl-9 pr-3 rounded-xl border border-border bg-muted/40 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-            />
-          </div>
-
-          <div className="flex items-center gap-2">
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className="rounded-xl border-border bg-white dark:bg-[#20263d]">
-                  <SlidersHorizontal className="h-4 w-4 mr-1.5" />
+                <Button variant="outline" className="h-11 cursor-pointer rounded-lg border-white/8 bg-white/[0.035] px-4 text-xs text-slate-200 hover:bg-white/10 hover:text-white">
+                  <Filter className="mr-2 h-4 w-4" />
                   Filtros
-                  {activeFilterCount > 0 && (
-                    <Badge className="ml-2 h-5 min-w-5 px-1 bg-primary text-primary-foreground">
-                      {activeFilterCount}
-                    </Badge>
-                  )}
-                  <ChevronDown className="h-3 w-3 ml-1 opacity-60" />
+                  {activeFilterCount > 0 && <Badge className="ml-2 h-5 min-w-5 bg-primary text-[10px]">{activeFilterCount}</Badge>}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-80 p-4" align="end">
-                <div className="flex items-center justify-between mb-3">
+                <div className="mb-3 flex items-center justify-between">
                   <p className="text-sm font-semibold">Filtros</p>
                   {activeFilterCount > 0 && (
-                    <button
-                      onClick={clearFilters}
-                      className="inline-flex cursor-pointer items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-                    >
-                      <X className="h-3 w-3" /> Limpar
+                    <button onClick={clearFilters} className="cursor-pointer text-xs text-muted-foreground hover:text-foreground">
+                      Limpar
                     </button>
                   )}
                 </div>
                 <div className="space-y-3">
-                  <FilterSelect
-                    label="Cliente"
-                    value={filters.client}
-                    onChange={(v) => setFilters({ ...filters, client: v })}
-                    options={[
-                      { value: "all", label: "Todos" },
-                      { value: "Interno", label: "Interno" },
-                      ...kanbanClients.map((c) => ({ value: c, label: c })),
-                    ]}
-                  />
-                  <FilterSelect
-                    label="Responsável"
-                    value={filters.assignee}
-                    onChange={(v) => setFilters({ ...filters, assignee: v })}
-                    options={[
-                      { value: "all", label: "Todos" },
-                      ...kanbanMembers.map((m) => ({ value: m.id, label: m.name })),
-                    ]}
-                  />
-                  <FilterSelect
-                    label="Prioridade"
-                    value={filters.priority}
-                    onChange={(v) => setFilters({ ...filters, priority: v as Priority | "all" })}
-                    options={[
-                      { value: "all", label: "Todas" },
-                      ...priorities.map((p) => ({ value: p, label: p })),
-                    ]}
-                  />
-                  <FilterSelect
-                    label="Tipo"
-                    value={filters.type}
-                    onChange={(v) => setFilters({ ...filters, type: v as CardType | "all" })}
-                    options={[
-                      { value: "all", label: "Todos" },
-                      ...cardTypes.map((t) => ({ value: t, label: t })),
-                    ]}
-                  />
-                  <FilterSelect
-                    label="Status"
-                    value={filters.status}
-                    onChange={(v) => setFilters({ ...filters, status: v })}
-                    options={[
-                      { value: "all", label: "Todos" },
-                      ...kanbanColumnsDef.map((c) => ({ value: c.id, label: c.title })),
-                    ]}
-                  />
+                  <FilterSelect label="Cliente" value={filters.client} onChange={(v) => setFilters({ ...filters, client: v })} options={[{ value: "all", label: "Todos" }, { value: "Interno", label: "Interno" }, ...kanbanClients.map((c) => ({ value: c, label: c }))]} />
+                  <FilterSelect label="Responsavel" value={filters.assignee} onChange={(v) => setFilters({ ...filters, assignee: v })} options={[{ value: "all", label: "Todos" }, ...kanbanMembers.map((m) => ({ value: m.id, label: m.name }))]} />
+                  <FilterSelect label="Prioridade" value={filters.priority} onChange={(v) => setFilters({ ...filters, priority: v as Priority | "all" })} options={[{ value: "all", label: "Todas" }, ...priorities.map((p) => ({ value: p, label: p }))]} />
+                  <FilterSelect label="Tipo" value={filters.type} onChange={(v) => setFilters({ ...filters, type: v as CardType | "all" })} options={[{ value: "all", label: "Todos" }, ...cardTypes.map((t) => ({ value: t, label: t }))]} />
+                  <FilterSelect label="Status" value={filters.status} onChange={(v) => setFilters({ ...filters, status: v })} options={[{ value: "all", label: "Todos" }, ...kanbanColumnsDef.map((c) => ({ value: c.id, label: c.title }))]} />
                 </div>
               </PopoverContent>
             </Popover>
+
+            <button className="grid h-11 w-11 cursor-pointer place-items-center rounded-lg border border-white/8 bg-white/[0.035] text-slate-300 transition hover:bg-white/10 hover:text-white">
+              <BarChart3 className="h-4 w-4" />
+            </button>
+            <button className="relative grid h-11 w-11 cursor-pointer place-items-center rounded-lg border border-white/8 bg-white/[0.035] text-slate-300 transition hover:bg-white/10 hover:text-white">
+              <Bell className="h-4 w-4" />
+              <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-rose-500 px-1 text-[10px] font-black text-white">3</span>
+            </button>
+            <Button onClick={() => handleNewCard()} className="h-11 rounded-lg bg-violet-600 px-5 text-xs font-bold text-white shadow-[0_12px_28px_rgba(124,58,237,0.28)] hover:bg-violet-500">
+              <Plus className="mr-2 h-4 w-4" />
+              Novo chamado
+            </Button>
           </div>
         </div>
 
-        {activeFilterCount > 0 && (
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs text-muted-foreground">Ativos:</span>
-            {Object.entries(filters).map(([k, v]) => {
-              if (v === "all") return null;
-              const label =
-                k === "assignee"
-                  ? kanbanMembers.find((m) => m.id === v)?.name ?? v
-                  : k === "status"
-                    ? kanbanColumnsDef.find((c) => c.id === v)?.title ?? v
-                    : v;
-              return (
-                <Badge
-                  key={k}
-                  variant="secondary"
-                  className="gap-1 pr-1 text-[11px]"
-                >
-                  {label}
-                  <button
-                    onClick={() => setFilters({ ...filters, [k]: "all" })}
-                    className="ml-0.5 cursor-pointer rounded p-0.5 hover:bg-muted-foreground/10"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              );
-            })}
-          </div>
-        )}
-      </div>
+        <div className="mb-5 grid gap-4 md:grid-cols-2 xl:grid-cols-[1fr_1fr_1fr_1.65fr]">
+          <MetricCard icon={BriefcaseBusiness} label="Abertos" value="48" delta="+12%" color="blue" />
+          <MetricCard icon={Clock3} label="Em andamento" value="15" delta="+8%" color="amber" />
+          <MetricCard icon={UserRound} label="Aguardando" value="9" delta="-4%" color="violet" negative />
+          <MetricCard icon={CheckCircle2} label="Concluido hoje" value="24" delta="+16%" color="emerald" wide />
+        </div>
 
-      {/* Mobile column tabs */}
-      <div className="md:hidden mb-3 max-w-full overflow-hidden">
-        <Tabs value={mobileColumn} onValueChange={(v) => setMobileColumn(v as ColumnId)}>
-          <TabsList className="w-full max-w-full h-auto flex overflow-x-auto justify-start">
-            {kanbanColumnsDef.map((c) => (
-              <TabsTrigger key={c.id} value={c.id} className="cursor-pointer whitespace-nowrap text-xs">
-                {c.title}
-                <span className="ml-1.5 text-[10px] px-1.5 py-0.5 rounded bg-muted-foreground/10">
-                  {cardsByColumn[c.id].length}
-                </span>
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
-      </div>
-
-      {/* Board */}
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCorners}
-        onDragStart={handleDragStart}
-        onDragOver={handleDragOver}
-        onDragEnd={handleDragEnd}
-      >
-        {/* Desktop / tablet: horizontal scroll */}
-        <div className="hidden md:block">
-          <div className="rounded-[14px] border border-border bg-white dark:bg-[#20263d] p-4 shadow-[0_16px_40px_rgba(25,29,51,0.035)]">
-            <div className="overflow-x-auto kanban-scrollbar snap-x snap-mandatory rounded-xl border border-dashed border-border px-0 py-4">
-              <div className="flex min-w-max gap-0">
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCorners}
+          onDragStart={handleDragStart}
+          onDragOver={handleDragOver}
+          onDragEnd={handleDragEnd}
+        >
+          <div className="hidden gap-4 xl:grid xl:grid-cols-[minmax(0,1fr)_230px]">
+            <div className="overflow-x-auto kanban-scrollbar">
+              <div className="flex min-w-max gap-3 pb-2">
                 {kanbanColumnsDef.map((col) => (
                   <KanbanColumnView
                     key={col.id}
@@ -459,29 +341,41 @@ function KanbanPage() {
                 ))}
               </div>
             </div>
+            <KanbanSidePanel priorityStats={priorityStats} />
           </div>
-        </div>
 
-        {/* Mobile: single column via tabs */}
-        <div className="md:hidden">
-          {kanbanColumnsDef
-            .filter((c) => c.id === mobileColumn)
-            .map((col) => (
-              <KanbanColumnView
-                key={col.id}
-                column={col}
-                cards={cardsByColumn[col.id]}
-                onCardClick={openCard}
-                onArchiveCard={handleArchiveCard}
-                onAddCard={handleNewCard}
-              />
-            ))}
-        </div>
+          <div className="xl:hidden">
+            <Tabs value={mobileColumn} onValueChange={(v) => setMobileColumn(v as ColumnId)}>
+              <TabsList className="mb-3 flex h-auto w-full justify-start overflow-x-auto rounded-xl bg-white/6 p-1">
+                {kanbanColumnsDef.map((c) => (
+                  <TabsTrigger key={c.id} value={c.id} className="cursor-pointer whitespace-nowrap text-xs text-slate-300 data-[state=active]:bg-white/10 data-[state=active]:text-white">
+                    {c.title}
+                    <span className="ml-1.5 rounded bg-white/10 px-1.5 py-0.5 text-[10px]">
+                      {cardsByColumn[c.id].length}
+                    </span>
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+            {kanbanColumnsDef
+              .filter((c) => c.id === mobileColumn)
+              .map((col) => (
+                <KanbanColumnView
+                  key={col.id}
+                  column={col}
+                  cards={cardsByColumn[col.id]}
+                  onCardClick={openCard}
+                  onArchiveCard={handleArchiveCard}
+                  onAddCard={handleNewCard}
+                />
+              ))}
+          </div>
 
-        <DragOverlay>
-          {activeCard && <KanbanCardItem card={activeCard} overlay />}
-        </DragOverlay>
-      </DndContext>
+          <DragOverlay>
+            {activeCard && <KanbanCardItem card={activeCard} overlay />}
+          </DragOverlay>
+        </DndContext>
+      </div>
 
       <KanbanCardDrawer
         open={drawerOpen}
@@ -493,6 +387,125 @@ function KanbanPage() {
         onDelete={handleDelete}
       />
     </AppShell>
+  );
+}
+
+function MetricCard({
+  icon: Icon,
+  label,
+  value,
+  delta,
+  color,
+  negative,
+  wide,
+}: {
+  icon: typeof BriefcaseBusiness;
+  label: string;
+  value: string;
+  delta: string;
+  color: "blue" | "amber" | "violet" | "emerald";
+  negative?: boolean;
+  wide?: boolean;
+}) {
+  const tones = {
+    blue: "bg-blue-500 text-blue-200",
+    amber: "bg-amber-500 text-amber-200",
+    violet: "bg-violet-500 text-violet-200",
+    emerald: "bg-emerald-500 text-emerald-200",
+  };
+
+  return (
+    <div className={cn("rounded-xl border border-white/8 bg-white/[0.045] p-4 shadow-[0_18px_40px_rgba(0,0,0,0.16)]", wide && "xl:pr-8")}>
+      <div className="flex items-center gap-3">
+        <div className={cn("grid h-11 w-11 place-items-center rounded-xl bg-opacity-25", tones[color])}>
+          <Icon className="h-5 w-5 text-white" />
+        </div>
+        <div>
+          <p className="text-[11px] font-medium text-slate-400">{label}</p>
+          <div className="mt-1 flex items-end gap-3">
+            <span className="text-3xl font-black leading-none text-white">{value}</span>
+            <span className={cn("pb-1 text-xs font-bold", negative ? "text-rose-400" : "text-emerald-400")}>{delta}</span>
+          </div>
+        </div>
+      </div>
+      <MiniSpark color={color} />
+    </div>
+  );
+}
+
+function MiniSpark({ color }: { color: "blue" | "amber" | "violet" | "emerald" }) {
+  const stroke = {
+    blue: "#248cff",
+    amber: "#f59e0b",
+    violet: "#a855f7",
+    emerald: "#22c55e",
+  }[color];
+
+  return (
+    <svg className="mt-4 h-8 w-full overflow-visible" viewBox="0 0 160 32" fill="none" preserveAspectRatio="none">
+      <path d="M2 24 C20 18 30 19 43 12 C56 23 74 25 91 20 C110 15 121 7 138 13 C147 17 153 15 158 12" stroke={stroke} strokeWidth="2.5" />
+      <path d="M2 29 C28 25 50 25 75 24 C106 22 132 20 158 18" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+    </svg>
+  );
+}
+
+function KanbanSidePanel({ priorityStats }: { priorityStats: { label: string; value: number; color: string }[] }) {
+  return (
+    <aside className="space-y-3">
+      <div className="rounded-xl border border-white/8 bg-white/[0.045] p-4 shadow-[0_18px_40px_rgba(0,0,0,0.16)]">
+        <div className="mb-4 flex items-center justify-between">
+          <p className="text-sm font-black text-white">Resumo geral</p>
+          <button className="rounded-lg border border-white/8 bg-white/5 px-3 py-1 text-[11px] font-semibold text-slate-300">Hoje</button>
+        </div>
+        <p className="mb-3 text-[11px] font-bold text-slate-300">Chamados por prioridade</p>
+        <div className="flex items-center gap-4">
+          <div className="relative h-20 w-20 rounded-full bg-[conic-gradient(#f43f5e_0_37%,#f59e0b_37%_70%,#22c55e_70%_100%)]">
+            <div className="absolute inset-3 rounded-full bg-[#0c1422]" />
+          </div>
+          <div className="flex-1 space-y-2">
+            {priorityStats.map((p) => (
+              <div key={p.label} className="flex items-center justify-between gap-2 text-[11px]">
+                <span className="flex items-center gap-2 text-slate-300"><span className={cn("h-2 w-2 rounded-full", p.color)} />{p.label}</span>
+                <span className="font-bold text-slate-400">{p.value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-white/8 bg-white/[0.045] p-4 shadow-[0_18px_40px_rgba(0,0,0,0.16)]">
+        <p className="text-sm font-black text-white">SLA por periodo</p>
+        <div className="mt-3">
+          <p className="text-3xl font-black text-white">81%</p>
+          <p className="text-xs font-bold text-emerald-400">+5% vs ontem</p>
+        </div>
+        <svg className="mt-4 h-20 w-full" viewBox="0 0 220 80" fill="none" preserveAspectRatio="none">
+          <path d="M2 58 L38 45 L74 25 L110 51 L146 34 L182 39 L218 22" stroke="#168cff" strokeWidth="3" />
+          {[2, 38, 74, 110, 146, 182, 218].map((x, index) => (
+            <circle key={x} cx={x} cy={[58, 45, 25, 51, 34, 39, 22][index]} r="3.5" fill="#168cff" />
+          ))}
+        </svg>
+        <div className="mt-1 flex justify-between text-[10px] font-semibold text-slate-500">
+          <span>00h</span><span>06h</span><span>12h</span><span>18h</span><span>24h</span>
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-white/8 bg-white/[0.045] p-4 shadow-[0_18px_40px_rgba(0,0,0,0.16)]">
+        <p className="mb-4 text-sm font-black text-white">Atendentes online</p>
+        {kanbanMembers.slice(0, 3).map((m, index) => (
+          <div key={m.id} className="mb-3 flex items-center gap-3 last:mb-0">
+            <Avatar className="h-8 w-8 border border-white/10">
+              <AvatarFallback className={cn("text-[10px] font-black", m.color)}>{m.initials}</AvatarFallback>
+            </Avatar>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-xs font-bold text-slate-200">{m.name}</p>
+            </div>
+            <span className="text-[10px] font-bold text-emerald-400">{index === 2 ? "Disponivel" : "Atendendo"}</span>
+          </div>
+        ))}
+        <p className="mt-4 text-[11px] font-semibold text-slate-500">+ 3 online</p>
+      </div>
+    </aside>
   );
 }
 
