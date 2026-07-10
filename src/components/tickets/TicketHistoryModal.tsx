@@ -5,9 +5,7 @@ import {
   ChevronRight,
   FileText,
   Folder,
-  Headset,
   History,
-  Plus,
   UserRound,
   X,
 } from "lucide-react";
@@ -17,7 +15,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type {
   SupportTicket,
