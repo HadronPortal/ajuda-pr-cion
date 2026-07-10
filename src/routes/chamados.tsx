@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useLocation } from "@tanstack/react-router";
 import {
   Area,
   AreaChart,
@@ -123,6 +123,11 @@ const initialFilters: Filters = {
 };
 
 function TicketsPage() {
+  const location = useLocation();
+  if (location.pathname !== "/chamados") {
+    return <Outlet />;
+  }
+
   const supportTickets = useTickets();
   const [filters, setFilters] = useState<Filters>(initialFilters);
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
