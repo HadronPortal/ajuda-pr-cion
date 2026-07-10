@@ -307,24 +307,36 @@ function SummaryProgress({
   icon: Icon,
   label,
   value,
+  tone = "ok",
 }: {
   icon: typeof CheckCircle2;
   label: string;
   value: string;
+  tone?: "ok" | "warn" | "danger";
 }) {
+  const iconColor =
+    tone === "danger" ? "text-[#ff8a8a]" : tone === "warn" ? "text-[#ffd166]" : "text-[#68e7bd]";
+  const valueColor =
+    tone === "danger" ? "text-[#ff8a8a]" : tone === "warn" ? "text-[#ffd166]" : "text-[#8ee8ff]";
+  const barGrad =
+    tone === "danger"
+      ? "from-[#ff8a8a] to-[#ff5470]"
+      : tone === "warn"
+        ? "from-[#ffd166] to-[#ff9f45]"
+        : "from-[#54e1a7] to-[#6bd9ff]";
   return (
     <div className="rounded-xl border border-white/10 bg-white/10 px-3 py-2">
       <div className="flex items-center justify-between gap-3 text-[11px] font-semibold">
         <span className="inline-flex items-center gap-2 text-white/86">
-          <span className="grid h-5 w-5 place-items-center rounded-full bg-white/12 text-[#68e7bd]">
+          <span className={`grid h-5 w-5 place-items-center rounded-full bg-white/12 ${iconColor}`}>
             <Icon className="h-3 w-3" />
           </span>
           {label}
         </span>
-        <span className="text-[#8ee8ff]">{value}</span>
+        <span className={valueColor}>{value}</span>
       </div>
       <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/14">
-        <div className="h-full w-[81%] rounded-full bg-gradient-to-r from-[#54e1a7] to-[#6bd9ff]" />
+        <div className={`h-full w-[81%] rounded-full bg-gradient-to-r ${barGrad}`} />
       </div>
     </div>
   );
