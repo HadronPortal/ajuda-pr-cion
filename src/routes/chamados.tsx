@@ -510,32 +510,24 @@ function TicketCard({
         </div>
       </div>
 
-      {/* Middle: info grid + SLA gauge */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-stretch">
-        <dl className="grid min-w-0 flex-1 grid-cols-2 gap-x-3 gap-y-2 text-[12px]">
-          <InfoRow icon={UserRound} label="Contato" value={ticket.contact} />
-          <InfoRow icon={Layers} label="Módulo" value={ticket.module} />
-          <InfoRow icon={Headphones} label="Atendente" value={ticket.attendant} />
-          <InfoRow icon={UserPlus} label="Responsável" value={ticket.owner} />
-          <InfoRow
-            icon={CalendarClock}
-            label="Registro"
-            value={formatDateTime(ticket.openedAt)}
-          />
-          <InfoRow
-            icon={Clock3}
-            label="Atualizado"
-            value={formatDateTime(ticket.updatedAt)}
-          />
-        </dl>
+      {/* Middle: info grid */}
+      <dl className="grid min-w-0 grid-cols-1 gap-x-4 gap-y-2 text-[12px] sm:grid-cols-2 lg:grid-cols-3">
+        <InfoRow icon={UserRound} label="Contato" value={ticket.contact} />
+        <InfoRow icon={Layers} label="Módulo" value={ticket.module} />
+        <InfoRow icon={Headphones} label="Atendente" value={ticket.attendant} />
+        <InfoRow icon={UserPlus} label="Responsável" value={ticket.owner} />
+        <InfoRow
+          icon={CalendarClock}
+          label="Registro"
+          value={formatDateTime(ticket.openedAt)}
+        />
+        <InfoRow
+          icon={Clock3}
+          label="Atualizado"
+          value={formatDateTime(ticket.updatedAt)}
+        />
+      </dl>
 
-        <div className="flex shrink-0 flex-col items-center justify-center gap-1 rounded-xl border border-border/60 bg-muted/40 px-3 py-2 sm:w-[118px]">
-          <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-            SLA
-          </span>
-          <SlaGauge pct={sla.pct} tone={sla.tone} />
-        </div>
-      </div>
 
       {/* Chips */}
       <div className="flex flex-wrap items-center gap-1.5">
