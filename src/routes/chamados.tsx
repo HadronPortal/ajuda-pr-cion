@@ -111,15 +111,13 @@ const sourceLabels = {
 
 type Filters = {
   status: string;
-  operator: string;
-  dateType: string;
+  priority: string;
   query: string;
 };
 
 const initialFilters: Filters = {
   status: "Todos",
-  operator: "Todos",
-  dateType: "Registro",
+  priority: "Todas",
   query: "",
 };
 
