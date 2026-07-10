@@ -389,9 +389,6 @@ function MetricCard({
 }
 
 const sourceIcons: Record<SupportTicket["source"], typeof PhoneCall> = {
-
-
-const sourceIcons: Record<SupportTicket["source"], typeof PhoneCall> = {
   Telefone: PhoneCall,
   "Portal do cliente": MessageSquarePlus,
   WhatsApp: MessageSquarePlus,
