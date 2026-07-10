@@ -298,12 +298,7 @@ export function TicketHistoryModal({
                     {/* Botão Ver chamado */}
                     <button
                       type="button"
-                      onClick={() =>
-                        toast.info(`Abrir ${h.protocol}`, {
-                          description:
-                            "Integração com detalhe será feita pela API.",
-                        })
-                      }
+                      onClick={() => setSelected(h)}
                       className="inline-flex cursor-pointer items-center justify-center gap-1 rounded-lg bg-primary/10 px-3 py-1.5 text-[11.5px] font-semibold text-primary transition hover:bg-primary/20 md:justify-self-end"
                     >
                       Ver chamado
