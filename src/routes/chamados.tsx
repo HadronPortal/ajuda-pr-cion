@@ -388,31 +388,6 @@ function MetricCard({
   );
 }
 
-function computeSla(ticket: SupportTicket) {
-  const target = 24; // hours SLA
-  const openedAt = new Date(ticket.openedAt).getTime();
-  const now = new Date("2026-07-08T10:00:00").getTime();
-  const hours = Math.max(0, (now - openedAt) / 36e5);
-  const rawPct = ticket.status === "Atrasado" ? 100 : Math.min(100, (hours / target) * 100);
-  const pct = Math.round(rawPct);
-  let tone: "ok" | "warn" | "late" = "ok";
-  if (ticket.status === "Atrasado" || pct >= 90) tone = "late";
-  else if (pct >= 60) tone = "warn";
-  return { pct, tone };
-}
-
-const slaBarTone: Record<"ok" | "warn" | "late", string> = {
-  ok: "bg-success",
-  warn: "bg-warning",
-  late: "bg-destructive",
-};
-
-const slaTextTone: Record<"ok" | "warn" | "late", string> = {
-  ok: "text-success",
-  warn: "text-warning-foreground",
-  late: "text-destructive",
-};
-
 const sourceIcons: Record<SupportTicket["source"], typeof PhoneCall> = {
   Telefone: PhoneCall,
   "Portal do cliente": MessageSquarePlus,
@@ -420,43 +395,6 @@ const sourceIcons: Record<SupportTicket["source"], typeof PhoneCall> = {
   Email: MessageSquarePlus,
 };
 
-const slaGaugeStroke: Record<"ok" | "warn" | "late", string> = {
-  ok: "stroke-success",
-  warn: "stroke-warning",
-  late: "stroke-destructive",
-};
-
-function SlaGauge({ pct, tone }: { pct: number; tone: "ok" | "warn" | "late" }) {
-  // Semicircle: path from (10,50) arc to (90,50), radius 40.
-  const circumference = Math.PI * 40; // ~125.66
-  const dash = (pct / 100) * circumference;
-  return (
-    <div className="relative flex h-[68px] w-[100px] items-end justify-center">
-      <svg viewBox="0 0 100 58" className="h-full w-full overflow-visible">
-        <path
-          d="M10 50 A40 40 0 0 1 90 50"
-          fill="none"
-          strokeWidth={9}
-          strokeLinecap="round"
-          className="stroke-muted"
-        />
-        <path
-          d="M10 50 A40 40 0 0 1 90 50"
-          fill="none"
-          strokeWidth={9}
-          strokeLinecap="round"
-          strokeDasharray={`${dash} ${circumference}`}
-          className={cn("transition-all", slaGaugeStroke[tone])}
-        />
-      </svg>
-      <div className="pointer-events-none absolute inset-x-0 bottom-1 flex justify-center">
-        <span className={cn("text-[15px] font-bold leading-none", slaTextTone[tone])}>
-          {pct}%
-        </span>
-      </div>
-    </div>
-  );
-}
 
 function TicketCard({
   ticket,
@@ -467,7 +405,7 @@ function TicketCard({
   onOpen?: (ticket: SupportTicket) => void;
   onHistory?: (ticket: SupportTicket) => void;
 }) {
-  const sla = computeSla(ticket);
+  
   const SourceIcon = sourceIcons[ticket.source] ?? PhoneCall;
 
   const handleAssume = (e: React.MouseEvent) => {
@@ -510,32 +448,24 @@ function TicketCard({
         </div>
       </div>
 
-      {/* Middle: info grid + SLA gauge */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-stretch">
-        <dl className="grid min-w-0 flex-1 grid-cols-2 gap-x-3 gap-y-2 text-[12px]">
-          <InfoRow icon={UserRound} label="Contato" value={ticket.contact} />
-          <InfoRow icon={Layers} label="Módulo" value={ticket.module} />
-          <InfoRow icon={Headphones} label="Atendente" value={ticket.attendant} />
-          <InfoRow icon={UserPlus} label="Responsável" value={ticket.owner} />
-          <InfoRow
-            icon={CalendarClock}
-            label="Registro"
-            value={formatDateTime(ticket.openedAt)}
-          />
-          <InfoRow
-            icon={Clock3}
-            label="Atualizado"
-            value={formatDateTime(ticket.updatedAt)}
-          />
-        </dl>
+      {/* Middle: info grid */}
+      <dl className="grid min-w-0 grid-cols-1 gap-x-4 gap-y-2 text-[12px] sm:grid-cols-2 lg:grid-cols-3">
+        <InfoRow icon={UserRound} label="Contato" value={ticket.contact} />
+        <InfoRow icon={Layers} label="Módulo" value={ticket.module} />
+        <InfoRow icon={Headphones} label="Atendente" value={ticket.attendant} />
+        <InfoRow icon={UserPlus} label="Responsável" value={ticket.owner} />
+        <InfoRow
+          icon={CalendarClock}
+          label="Registro"
+          value={formatDateTime(ticket.openedAt)}
+        />
+        <InfoRow
+          icon={Clock3}
+          label="Atualizado"
+          value={formatDateTime(ticket.updatedAt)}
+        />
+      </dl>
 
-        <div className="flex shrink-0 flex-col items-center justify-center gap-1 rounded-xl border border-border/60 bg-muted/40 px-3 py-2 sm:w-[118px]">
-          <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-            SLA
-          </span>
-          <SlaGauge pct={sla.pct} tone={sla.tone} />
-        </div>
-      </div>
 
       {/* Chips */}
       <div className="flex flex-wrap items-center gap-1.5">
@@ -692,16 +622,6 @@ function TicketsHero({
           {overdueTickets} atrasados exigem retorno imediato. Acompanhe SLA, produtividade e o
           fluxo de origem em um só lugar.
         </p>
-        <Button
-          onClick={() =>
-            document
-              .getElementById("analytics-detalhado")
-              ?.scrollIntoView({ behavior: "smooth", block: "start" })
-          }
-          className="mt-6 rounded-full bg-white dark:bg-[#20263d] px-6 text-foreground hover:bg-white/90"
-        >
-          Ver painel completo <ArrowRight className="ml-2 h-4 w-4" />
-        </Button>
 
       </div>
       <div className="absolute right-6 top-8 hidden h-[160px] w-[200px] md:block">
