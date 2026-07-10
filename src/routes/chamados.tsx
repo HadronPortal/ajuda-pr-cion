@@ -131,6 +131,13 @@ function TicketsPage() {
   const [detailOpen, setDetailOpen] = useState(false);
   const [historyTicketId, setHistoryTicketId] = useState<string | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<"grid" | "list">(() => {
+    if (typeof window === "undefined") return "grid";
+    return (localStorage.getItem("chamados:viewMode") as "grid" | "list") ?? "grid";
+  });
+  useEffect(() => {
+    if (typeof window !== "undefined") localStorage.setItem("chamados:viewMode", viewMode);
+  }, [viewMode]);
 
   const openTicketDetail = (ticket: SupportTicket) => {
     setSelectedTicketId(ticket.id);
@@ -333,20 +340,62 @@ function TicketsPage() {
             {filteredTickets.length} chamado(s) exibidos com os filtros atuais.
           </p>
         </div>
-        <Badge variant="secondary" className="rounded-full">
-          CRM lado suporte
-        </Badge>
+        <div className="flex items-center gap-2">
+          <div className="inline-flex items-center rounded-lg border border-border bg-card p-0.5">
+            <button
+              type="button"
+              onClick={() => setViewMode("grid")}
+              aria-pressed={viewMode === "grid"}
+              aria-label="Visualização em grade"
+              className={cn(
+                "inline-flex h-7 items-center gap-1.5 rounded-md px-2.5 text-[12px] font-semibold transition",
+                viewMode === "grid"
+                  ? "bg-primary/12 text-primary"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              <LayoutGrid className="h-3.5 w-3.5" />
+              Grid
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("list")}
+              aria-pressed={viewMode === "list"}
+              aria-label="Visualização em lista"
+              className={cn(
+                "inline-flex h-7 items-center gap-1.5 rounded-md px-2.5 text-[12px] font-semibold transition",
+                viewMode === "list"
+                  ? "bg-primary/12 text-primary"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              <ListIcon className="h-3.5 w-3.5" />
+              Lista
+            </button>
+          </div>
+          <Badge variant="secondary" className="rounded-full">
+            CRM lado suporte
+          </Badge>
+        </div>
       </div>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {filteredTickets.map((ticket) => (
-          <TicketCard
-            key={ticket.id}
-            ticket={ticket}
-            onOpen={openTicketDetail}
-            onHistory={openTicketHistory}
-          />
-        ))}
-      </div>
+      {viewMode === "grid" ? (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {filteredTickets.map((ticket) => (
+            <TicketCard
+              key={ticket.id}
+              ticket={ticket}
+              onOpen={openTicketDetail}
+              onHistory={openTicketHistory}
+            />
+          ))}
+        </div>
+      ) : (
+        <TicketsListView
+          tickets={filteredTickets}
+          onOpen={openTicketDetail}
+          onHistory={openTicketHistory}
+        />
+      )}
 
       <TicketDetailSheet
         ticketId={selectedTicketId}
