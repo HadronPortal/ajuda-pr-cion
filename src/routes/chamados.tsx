@@ -58,6 +58,7 @@ import {
 const ticketPriorities: TicketPriority[] = ["Alta", "Media", "Baixa"];
 import { useTickets, useTicketHistory, ticketsStore } from "@/lib/tickets-store";
 import { FileText } from "lucide-react";
+import { getModuleIcon } from "@/lib/ticket-icons";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { TicketDetailSheet } from "@/components/tickets/TicketDetailSheet";
@@ -419,9 +420,14 @@ function TicketCard({
       {/* Top: icon + title + client / protocol + status */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-start gap-3">
-          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary/12 text-primary">
-            <FileText className="h-5 w-5" />
-          </div>
+          {(() => {
+            const ModuleIcon = getModuleIcon(ticket.module, ticket.source, ticket.subject);
+            return (
+              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary/12 text-primary">
+                <ModuleIcon className="h-5 w-5" />
+              </div>
+            );
+          })()}
           <div className="min-w-0">
             <p className="truncate text-[14px] font-bold leading-snug text-foreground">
               {ticket.subject}

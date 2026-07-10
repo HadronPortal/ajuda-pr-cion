@@ -220,16 +220,8 @@ const TicketAssumeIcon = createMaskedTicketIcon(ticketAssumeIconUrl);
 const TicketAttendIcon = createMaskedTicketIcon(ticketAttendIconUrl);
 const TicketTimelineIcon = createMaskedTicketIcon(ticketTimelineIconUrl);
 
-function getModuleIcon(module: string, source?: string): typeof Info {
-  const m = (module ?? "").toLowerCase();
-  const s = (source ?? "").toLowerCase();
-  if (/nfe|nota|fiscal/.test(m)) return ReceiptText;
-  if (/financ|conta|caixa|banco/.test(m)) return Wallet;
-  if (/terceiros|cadastro|cliente|fornecedor/.test(m)) return Users;
-  if (/estoque|produto/.test(m)) return Boxes;
-  if (/hadron|web|portal/.test(m) || s.includes("portal")) return Globe;
-  return TicketIcon;
-}
+import { getModuleIcon } from "@/lib/ticket-icons";
+
 
 
 export function TicketDetailSheet({
@@ -325,7 +317,7 @@ export function TicketDetailSheet({
               >
 
                 {(() => {
-                  const Icon = getModuleIcon(ticket.module, ticket.source);
+                  const Icon = getModuleIcon(ticket.module, ticket.source, ticket.subject);
                   return <Icon className="h-5 w-5" />;
                 })()}
               </span>

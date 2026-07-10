@@ -178,27 +178,23 @@ export function PastAttendanceDetailModal({
           Detalhes do atendimento {attendance.protocol}
         </DialogTitle>
 
-        {/* Header */}
-        <header className="relative shrink-0 overflow-hidden border-b border-border bg-gradient-to-br from-success/15 via-success/8 to-success/5 px-5 py-5 md:px-7 md:py-6 dark:from-success/25 dark:via-success/12 dark:to-success/5">
-          <CheckCircle2
-            aria-hidden
-            className="pointer-events-none absolute -right-6 -top-6 h-40 w-40 text-success/10 dark:text-success/15"
-          />
+        {/* Header limpo em fundo branco */}
+        <header className="relative shrink-0 border-b border-border bg-card px-5 py-4 md:px-7 md:py-5">
           <button
             type="button"
             onClick={() => onOpenChange(false)}
             aria-label="Fechar"
-            className="absolute right-3 top-3 z-10 grid h-8 w-8 cursor-pointer place-items-center rounded-md text-muted-foreground transition hover:bg-background/60 hover:text-foreground"
+            className="absolute right-3 top-3 z-10 grid h-8 w-8 cursor-pointer place-items-center rounded-md text-muted-foreground transition hover:bg-accent hover:text-foreground"
           >
             <X className="h-4 w-4" />
           </button>
 
-          <div className="relative flex flex-wrap items-start gap-4 pr-10">
+          <div className="flex flex-wrap items-start gap-3 pr-10">
             <span
               aria-hidden
-              className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-success/15 text-success ring-1 ring-success/25 shadow-sm"
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-success/12 text-success"
             >
-              <History className="h-6 w-6" />
+              <History className="h-5 w-5" />
             </span>
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
@@ -217,11 +213,11 @@ export function PastAttendanceDetailModal({
                   {attendance.priority}
                 </Badge>
               </div>
-              <h2 className="mt-1.5 text-[22px] font-bold leading-tight text-foreground">
+              <h2 className="mt-1 text-[18px] font-bold leading-tight text-foreground">
                 {attendance.title}
               </h2>
               {ticket && (
-                <p className="mt-1 truncate text-[12.5px] text-muted-foreground">
+                <p className="mt-0.5 truncate text-[12px] text-muted-foreground">
                   <span className="font-semibold text-foreground">
                     {ticket.clientCode}
                   </span>
@@ -246,6 +242,7 @@ export function PastAttendanceDetailModal({
             </div>
           </div>
         </header>
+
 
         {/* Body */}
         <div className="flex-1 space-y-5 overflow-y-auto bg-muted/30 px-4 py-5 md:px-6">
