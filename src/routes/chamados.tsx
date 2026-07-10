@@ -48,13 +48,14 @@ import {
 } from "@/components/ui/chart";
 import {
   dailyTicketAnalytics,
-  ticketOperators,
   ticketStatuses,
   weeklyTicketAnalytics,
   type SupportTicket,
   type TicketPriority,
   type TicketStatus,
 } from "@/lib/support-tickets-data";
+
+const ticketPriorities: TicketPriority[] = ["Alta", "Media", "Baixa"];
 import { useTickets, useTicketHistory, ticketsStore } from "@/lib/tickets-store";
 import { FileText } from "lucide-react";
 import { toast } from "sonner";
