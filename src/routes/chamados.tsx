@@ -24,6 +24,7 @@ import {
   FolderKanban,
   Headphones,
   History,
+  ChevronRight,
   LayoutGrid,
   Layers,
   List as ListIcon,
@@ -223,15 +224,21 @@ function TicketsPage() {
         title="Chamados"
         description="CRM de suporte para acompanhar abertura, atendimento, atrasos e produtividade dos chamados."
         breadcrumbs={[{ label: "Chamados" }]}
-        actions={
-          <Button asChild size="sm" className="rounded-xl shadow-[0_10px_22px_rgba(11,151,196,0.18)]">
-            <Link to="/chamados/novo">
-              <MessageSquarePlus className="mr-1.5 h-4 w-4" />
-              Novo chamado
-            </Link>
-          </Button>
-        }
       />
+
+      <Link
+        to="/chamados/novo"
+        aria-label="Novo chamado"
+        title="Novo chamado"
+        className="group fixed bottom-6 right-6 z-40 inline-grid h-14 w-14 cursor-pointer place-items-center rounded-2xl bg-primary text-primary-foreground shadow-[0_14px_32px_rgba(11,151,196,0.35)] transition-transform hover:-translate-y-0.5 hover:shadow-[0_18px_38px_rgba(11,151,196,0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 md:bottom-8 md:right-8"
+      >
+        <MessageSquarePlus className="h-6 w-6" />
+        <span className="pointer-events-none absolute right-full top-1/2 mr-2 -translate-y-1/2 whitespace-nowrap rounded-md bg-foreground px-2 py-1 text-xs font-semibold text-background opacity-0 shadow-md transition-opacity group-hover:opacity-100">
+          Novo chamado
+        </span>
+      </Link>
+
+
 
       <section className="mb-6 grid grid-cols-1 gap-6 xl:grid-cols-[1.1fr_1.1fr]">
         <div className="space-y-6">
@@ -358,10 +365,10 @@ function TicketsPage() {
               aria-pressed={viewMode === "grid"}
               aria-label="Visualização em grade"
               className={cn(
-                "inline-flex h-7 items-center gap-1.5 rounded-md px-2.5 text-[12px] font-semibold transition",
+                "inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-md px-2.5 text-[12px] font-semibold transition",
                 viewMode === "grid"
                   ? "bg-primary/12 text-primary"
-                  : "text-muted-foreground hover:text-foreground",
+                  : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
               )}
             >
               <LayoutGrid className="h-3.5 w-3.5" />
@@ -373,10 +380,10 @@ function TicketsPage() {
               aria-pressed={viewMode === "list"}
               aria-label="Visualização em lista"
               className={cn(
-                "inline-flex h-7 items-center gap-1.5 rounded-md px-2.5 text-[12px] font-semibold transition",
+                "inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-md px-2.5 text-[12px] font-semibold transition",
                 viewMode === "list"
                   ? "bg-primary/12 text-primary"
-                  : "text-muted-foreground hover:text-foreground",
+                  : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
               )}
             >
               <ListIcon className="h-3.5 w-3.5" />
@@ -629,22 +636,34 @@ function TicketsListView({
     <>
       {/* Desktop table */}
       <Card className="hidden overflow-hidden rounded-2xl border border-border/60 bg-card shadow-[0_8px_22px_rgba(25,29,51,0.05)] lg:block">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[1100px] text-[12.5px]">
-            <thead className="bg-muted/40 text-[11px] uppercase tracking-wide text-muted-foreground">
+        <div className="w-full">
+          <table className="w-full table-fixed text-[12px]">
+            <colgroup>
+              <col style={{ width: "160px" }} />
+              <col style={{ width: "104px" }} />
+              <col />
+              <col />
+              <col />
+              <col />
+              <col />
+              <col />
+              <col style={{ width: "108px" }} />
+              <col style={{ width: "108px" }} />
+              <col style={{ width: "28px" }} />
+            </colgroup>
+            <thead className="bg-muted/40 text-[10.5px] uppercase tracking-wide text-muted-foreground">
               <tr>
-                <th className="px-3 py-2.5 text-left font-semibold">Status</th>
-                <th className="px-3 py-2.5 text-left font-semibold">Prio</th>
-                <th className="px-3 py-2.5 text-left font-semibold">Protocolo</th>
-                <th className="px-3 py-2.5 text-left font-semibold">Cliente</th>
-                <th className="px-3 py-2.5 text-left font-semibold">Contato</th>
-                <th className="px-3 py-2.5 text-left font-semibold">Assunto</th>
-                <th className="px-3 py-2.5 text-left font-semibold">Módulo</th>
-                <th className="px-3 py-2.5 text-left font-semibold">Atendente</th>
-                <th className="px-3 py-2.5 text-left font-semibold">Responsável</th>
-                <th className="px-3 py-2.5 text-left font-semibold">Registro</th>
-                <th className="px-3 py-2.5 text-left font-semibold">Atualizado</th>
-                <th className="px-3 py-2.5 text-right font-semibold">Ações</th>
+                <th className="px-2 py-2 text-left font-semibold">Status</th>
+                <th className="px-2 py-2 text-left font-semibold">Prioridade</th>
+                <th className="px-2 py-2 text-left font-semibold">Cliente</th>
+                <th className="px-2 py-2 text-left font-semibold">Contato</th>
+                <th className="px-2 py-2 text-left font-semibold">Assunto</th>
+                <th className="px-2 py-2 text-left font-semibold">Módulo</th>
+                <th className="px-2 py-2 text-left font-semibold">Atendente</th>
+                <th className="px-2 py-2 text-left font-semibold">Responsável</th>
+                <th className="px-2 py-2 text-left font-semibold">Registro</th>
+                <th className="px-2 py-2 text-left font-semibold">Atualizado</th>
+                <th className="px-2 py-2" aria-label="Abrir" />
               </tr>
             </thead>
             <tbody>
@@ -654,20 +673,25 @@ function TicketsListView({
                   className="cursor-pointer border-t border-border/60 transition hover:bg-accent/40"
                   onClick={() => onOpen(ticket)}
                 >
-                  <td className="px-3 py-2.5">
-                    <Badge
-                      className={cn(
-                        "whitespace-nowrap rounded-full border px-2 py-0.5 text-[10.5px] font-semibold",
-                        statusTone[ticket.status],
-                      )}
-                    >
-                      {ticket.status}
-                    </Badge>
+                  <td className="px-2 py-2 align-top">
+                    <div className="flex flex-col items-start gap-1">
+                      <Badge
+                        className={cn(
+                          "inline-flex w-[136px] justify-center whitespace-nowrap rounded-full border px-2 py-0.5 text-[10px] font-semibold",
+                          statusTone[ticket.status],
+                        )}
+                      >
+                        {ticket.status}
+                      </Badge>
+                      <span className="font-mono text-[10px] leading-tight text-muted-foreground">
+                        {ticket.protocol}
+                      </span>
+                    </div>
                   </td>
-                  <td className="px-3 py-2.5">
+                  <td className="px-2 py-2 align-top">
                     <span
                       className={cn(
-                        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10.5px] font-semibold",
+                        "inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-semibold",
                         priorityTone[ticket.priority],
                       )}
                     >
@@ -675,67 +699,33 @@ function TicketsListView({
                       {ticket.priority}
                     </span>
                   </td>
-                  <td className="px-3 py-2.5 font-mono text-[11px] text-muted-foreground">
-                    {ticket.protocol}
-                  </td>
-                  <td className="max-w-[180px] px-3 py-2.5">
+                  <td className="px-2 py-2 align-top">
                     <div className="truncate font-semibold text-foreground">{ticket.clientCode}</div>
                     <div className="truncate text-[11px] text-muted-foreground">{ticket.clientName}</div>
                   </td>
-                  <td className="max-w-[140px] truncate px-3 py-2.5 text-muted-foreground">
+                  <td className="truncate px-2 py-2 align-top text-muted-foreground">
                     {ticket.contact}
                   </td>
-                  <td className="max-w-[220px] truncate px-3 py-2.5 font-medium text-foreground">
-                    {ticket.subject}
+                  <td className="px-2 py-2 align-top font-medium text-foreground">
+                    <span className="line-clamp-2 break-words">{ticket.subject}</span>
                   </td>
-                  <td className="max-w-[180px] truncate px-3 py-2.5 text-muted-foreground">
+                  <td className="truncate px-2 py-2 align-top text-muted-foreground">
                     {ticket.module}
                   </td>
-                  <td className="px-3 py-2.5 text-muted-foreground">{ticket.attendant}</td>
-                  <td className="px-3 py-2.5 text-muted-foreground">{ticket.owner}</td>
-                  <td className="whitespace-nowrap px-3 py-2.5 text-muted-foreground">
+                  <td className="truncate px-2 py-2 align-top text-muted-foreground">{ticket.attendant}</td>
+                  <td className="truncate px-2 py-2 align-top text-muted-foreground">{ticket.owner}</td>
+                  <td className="whitespace-nowrap px-2 py-2 align-top text-[11px] text-muted-foreground">
                     {formatDateTime(ticket.openedAt)}
                   </td>
-                  <td className="whitespace-nowrap px-3 py-2.5 text-muted-foreground">
+                  <td className="whitespace-nowrap px-2 py-2 align-top text-[11px] text-muted-foreground">
                     {formatDateTime(ticket.updatedAt)}
                   </td>
-                  <td className="px-3 py-2.5">
-                    <div className="flex items-center justify-end gap-1">
-                      <Button
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onOpen(ticket);
-                        }}
-                        className="h-7 cursor-pointer rounded-md px-2 text-[11px]"
-                      >
-                        Abrir
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => handleAssume(ticket, e)}
-                        className="h-7 cursor-pointer rounded-md px-2 text-[11px] text-muted-foreground hover:text-foreground"
-                      >
-                        <UserPlus className="mr-1 h-3 w-3" />
-                        Assumir
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onHistory(ticket);
-                        }}
-                        className="h-7 cursor-pointer rounded-md px-2 text-[11px] text-muted-foreground hover:text-foreground"
-                      >
-                        <History className="mr-1 h-3 w-3" />
-                        Histórico
-                      </Button>
-                    </div>
+                  <td className="px-2 py-2 text-right align-top text-muted-foreground">
+                    <ChevronRight className="ml-auto h-4 w-4" />
                   </td>
                 </tr>
               ))}
+
             </tbody>
           </table>
         </div>
@@ -790,16 +780,6 @@ function TicketsListView({
               <div className="truncate"><span className="font-semibold text-foreground">Atual.:</span> {formatDateTime(ticket.updatedAt)}</div>
             </dl>
             <div className="mt-2 flex items-center justify-end gap-1 border-t border-border/60 pt-2">
-              <Button
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onOpen(ticket);
-                }}
-                className="h-7 cursor-pointer rounded-md px-2 text-[11px]"
-              >
-                Abrir
-              </Button>
               <Button
                 variant="ghost"
                 size="sm"
