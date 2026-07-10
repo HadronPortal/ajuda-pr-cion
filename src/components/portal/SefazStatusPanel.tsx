@@ -156,7 +156,20 @@ export function SefazStatusPanel() {
           </p>
           <div className="h-[132px]">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={statusHistory} margin={{ top: 5, right: 8, left: -8, bottom: 2 }}>
+              <ComposedChart data={statusHistory} margin={{ top: 5, right: 8, left: -8, bottom: 2 }}>
+                <defs>
+                  {[
+                    { id: "fillNfe", color: "#55e3ad" },
+                    { id: "fillNfce", color: "#ffd04d" },
+                    { id: "fillCte", color: "#59d9ff" },
+                    { id: "fillMdfe", color: "#8cf45f" },
+                  ].map((g) => (
+                    <linearGradient key={g.id} id={g.id} x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={g.color} stopOpacity={0.45} />
+                      <stop offset="100%" stopColor={g.color} stopOpacity={0} />
+                    </linearGradient>
+                  ))}
+                </defs>
                 <CartesianGrid stroke="rgba(255,255,255,0.14)" strokeDasharray="4 4" />
                 <XAxis dataKey="time" tickLine={false} axisLine={false} tick={{ fill: "rgba(255,255,255,0.72)", fontSize: 10 }} />
                 <YAxis tickFormatter={(v) => `${v}%`} tickLine={false} axisLine={false} tick={{ fill: "rgba(255,255,255,0.70)", fontSize: 10 }} domain={[0, 100]} ticks={[0, 25, 50, 75, 100]} width={34} />
@@ -169,11 +182,15 @@ export function SefazStatusPanel() {
                     fontSize: 11,
                   }}
                 />
+                <Area type="monotone" dataKey="nfe" stroke="none" fill="url(#fillNfe)" isAnimationActive={false} activeDot={false} />
+                <Area type="monotone" dataKey="nfce" stroke="none" fill="url(#fillNfce)" isAnimationActive={false} activeDot={false} />
+                <Area type="monotone" dataKey="cte" stroke="none" fill="url(#fillCte)" isAnimationActive={false} activeDot={false} />
+                <Area type="monotone" dataKey="mdfe" stroke="none" fill="url(#fillMdfe)" isAnimationActive={false} activeDot={false} />
                 <Line type="monotone" dataKey="nfe" stroke="#55e3ad" strokeWidth={2.5} dot={false} />
                 <Line type="monotone" dataKey="nfce" stroke="#ffd04d" strokeWidth={2.5} dot={false} />
                 <Line type="monotone" dataKey="cte" stroke="#59d9ff" strokeWidth={2.5} dot={false} />
                 <Line type="monotone" dataKey="mdfe" stroke="#8cf45f" strokeWidth={2.5} dot={false} />
-              </LineChart>
+              </ComposedChart>
             </ResponsiveContainer>
           </div>
           <div className="mt-1 flex justify-center gap-5 text-[10px] font-semibold text-white/82">
