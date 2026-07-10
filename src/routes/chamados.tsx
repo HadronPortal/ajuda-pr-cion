@@ -630,22 +630,36 @@ function TicketsListView({
     <>
       {/* Desktop table */}
       <Card className="hidden overflow-hidden rounded-2xl border border-border/60 bg-card shadow-[0_8px_22px_rgba(25,29,51,0.05)] lg:block">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[1100px] text-[12.5px]">
-            <thead className="bg-muted/40 text-[11px] uppercase tracking-wide text-muted-foreground">
+        <div className="w-full">
+          <table className="w-full table-fixed text-[12px]">
+            <colgroup>
+              <col style={{ width: "150px" }} />
+              <col style={{ width: "72px" }} />
+              <col style={{ width: "104px" }} />
+              <col />
+              <col />
+              <col />
+              <col />
+              <col />
+              <col />
+              <col style={{ width: "112px" }} />
+              <col style={{ width: "112px" }} />
+              <col style={{ width: "28px" }} />
+            </colgroup>
+            <thead className="bg-muted/40 text-[10.5px] uppercase tracking-wide text-muted-foreground">
               <tr>
-                <th className="px-3 py-2.5 text-left font-semibold">Status</th>
-                <th className="px-3 py-2.5 text-left font-semibold">Prio</th>
-                <th className="px-3 py-2.5 text-left font-semibold">Protocolo</th>
-                <th className="px-3 py-2.5 text-left font-semibold">Cliente</th>
-                <th className="px-3 py-2.5 text-left font-semibold">Contato</th>
-                <th className="px-3 py-2.5 text-left font-semibold">Assunto</th>
-                <th className="px-3 py-2.5 text-left font-semibold">Módulo</th>
-                <th className="px-3 py-2.5 text-left font-semibold">Atendente</th>
-                <th className="px-3 py-2.5 text-left font-semibold">Responsável</th>
-                <th className="px-3 py-2.5 text-left font-semibold">Registro</th>
-                <th className="px-3 py-2.5 text-left font-semibold">Atualizado</th>
-                <th className="px-3 py-2.5 text-right font-semibold">Ações</th>
+                <th className="px-2 py-2 text-left font-semibold">Status</th>
+                <th className="px-2 py-2 text-left font-semibold">Prio</th>
+                <th className="px-2 py-2 text-left font-semibold">Protocolo</th>
+                <th className="px-2 py-2 text-left font-semibold">Cliente</th>
+                <th className="px-2 py-2 text-left font-semibold">Contato</th>
+                <th className="px-2 py-2 text-left font-semibold">Assunto</th>
+                <th className="px-2 py-2 text-left font-semibold">Módulo</th>
+                <th className="px-2 py-2 text-left font-semibold">Atendente</th>
+                <th className="px-2 py-2 text-left font-semibold">Responsável</th>
+                <th className="px-2 py-2 text-left font-semibold">Registro</th>
+                <th className="px-2 py-2 text-left font-semibold">Atualizado</th>
+                <th className="px-2 py-2" aria-label="Abrir" />
               </tr>
             </thead>
             <tbody>
@@ -655,20 +669,20 @@ function TicketsListView({
                   className="cursor-pointer border-t border-border/60 transition hover:bg-accent/40"
                   onClick={() => onOpen(ticket)}
                 >
-                  <td className="px-3 py-2.5">
+                  <td className="px-2 py-2">
                     <Badge
                       className={cn(
-                        "whitespace-nowrap rounded-full border px-2 py-0.5 text-[10.5px] font-semibold",
+                        "inline-flex w-[136px] justify-center whitespace-nowrap rounded-full border px-2 py-0.5 text-[10px] font-semibold",
                         statusTone[ticket.status],
                       )}
                     >
                       {ticket.status}
                     </Badge>
                   </td>
-                  <td className="px-3 py-2.5">
+                  <td className="px-2 py-2">
                     <span
                       className={cn(
-                        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10.5px] font-semibold",
+                        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold",
                         priorityTone[ticket.priority],
                       )}
                     >
@@ -676,64 +690,32 @@ function TicketsListView({
                       {ticket.priority}
                     </span>
                   </td>
-                  <td className="px-3 py-2.5 font-mono text-[11px] text-muted-foreground">
+                  <td className="px-2 py-2 font-mono text-[11px] text-muted-foreground">
                     {ticket.protocol}
                   </td>
-                  <td className="max-w-[180px] px-3 py-2.5">
+                  <td className="px-2 py-2">
                     <div className="truncate font-semibold text-foreground">{ticket.clientCode}</div>
                     <div className="truncate text-[11px] text-muted-foreground">{ticket.clientName}</div>
                   </td>
-                  <td className="max-w-[140px] truncate px-3 py-2.5 text-muted-foreground">
+                  <td className="truncate px-2 py-2 text-muted-foreground">
                     {ticket.contact}
                   </td>
-                  <td className="max-w-[220px] truncate px-3 py-2.5 font-medium text-foreground">
+                  <td className="truncate px-2 py-2 font-medium text-foreground">
                     {ticket.subject}
                   </td>
-                  <td className="max-w-[180px] truncate px-3 py-2.5 text-muted-foreground">
+                  <td className="truncate px-2 py-2 text-muted-foreground">
                     {ticket.module}
                   </td>
-                  <td className="px-3 py-2.5 text-muted-foreground">{ticket.attendant}</td>
-                  <td className="px-3 py-2.5 text-muted-foreground">{ticket.owner}</td>
-                  <td className="whitespace-nowrap px-3 py-2.5 text-muted-foreground">
+                  <td className="truncate px-2 py-2 text-muted-foreground">{ticket.attendant}</td>
+                  <td className="truncate px-2 py-2 text-muted-foreground">{ticket.owner}</td>
+                  <td className="whitespace-nowrap px-2 py-2 text-[11px] text-muted-foreground">
                     {formatDateTime(ticket.openedAt)}
                   </td>
-                  <td className="whitespace-nowrap px-3 py-2.5 text-muted-foreground">
+                  <td className="whitespace-nowrap px-2 py-2 text-[11px] text-muted-foreground">
                     {formatDateTime(ticket.updatedAt)}
                   </td>
-                  <td className="px-3 py-2.5">
-                    <div className="flex items-center justify-end gap-1">
-                      <Button
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onOpen(ticket);
-                        }}
-                        className="h-7 cursor-pointer rounded-md px-2 text-[11px]"
-                      >
-                        Abrir
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => handleAssume(ticket, e)}
-                        className="h-7 cursor-pointer rounded-md px-2 text-[11px] text-muted-foreground hover:text-foreground"
-                      >
-                        <UserPlus className="mr-1 h-3 w-3" />
-                        Assumir
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onHistory(ticket);
-                        }}
-                        className="h-7 cursor-pointer rounded-md px-2 text-[11px] text-muted-foreground hover:text-foreground"
-                      >
-                        <History className="mr-1 h-3 w-3" />
-                        Histórico
-                      </Button>
-                    </div>
+                  <td className="px-2 py-2 text-right text-muted-foreground">
+                    <ChevronRight className="ml-auto h-4 w-4" />
                   </td>
                 </tr>
               ))}
