@@ -11,6 +11,8 @@ import {
   BarChart3,
   CheckCircle2,
   Clock3,
+  AlertTriangle,
+  Users,
 } from "lucide-react";
 import { SefazStatusPanel } from "@/components/portal/SefazStatusPanel";
 import { AppShell } from "@/components/portal/AppShell";
