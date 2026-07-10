@@ -1,13 +1,25 @@
-import { useState } from "react";
-import { HelpCircle, Menu, Search, Command as CommandIcon } from "lucide-react";
+import { useEffect, useState } from "react";
+import { HelpCircle, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CommandPalette } from "./CommandPalette";
 import { NotificationsPopover } from "./NotificationsPopover";
 import { UserMenu } from "./UserMenu";
 import { ThemeToggle } from "./ThemeToggle";
+import { currentUser } from "@/lib/mock-data";
+
+function getGreeting(hour: number) {
+  if (hour >= 5 && hour < 12) return "Bom dia";
+  if (hour >= 12 && hour < 18) return "Boa tarde";
+  return "Boa noite";
+}
 
 export function AppHeader() {
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [greeting, setGreeting] = useState(() => getGreeting(new Date().getHours()));
+  useEffect(() => {
+    const id = setInterval(() => setGreeting(getGreeting(new Date().getHours())), 60_000);
+    return () => clearInterval(id);
+  }, []);
 
   return (
     <header className="sticky top-0 z-20 h-16 border-b border-border bg-background/85 backdrop-blur-xl">
@@ -21,20 +33,11 @@ export function AppHeader() {
           <Menu className="h-5 w-5" />
         </Button>
 
-        <div className="flex-1 max-w-xl">
-          <button
-            type="button"
-            onClick={() => setPaletteOpen(true)}
-            className="group w-full h-10 flex items-center gap-2 pl-3 pr-2 rounded-xl border border-border bg-card text-sm text-muted-foreground shadow-sm hover:border-primary/40 hover:bg-card transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            <Search className="h-4 w-4 shrink-0" />
-            <span className="flex-1 text-left truncate">
-              Buscar em manuais, artigos, versões...
-            </span>
-            <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded border border-border bg-muted text-[10px] font-mono text-muted-foreground group-hover:border-primary/30 transition">
-              <CommandIcon className="h-3 w-3" />K
-            </kbd>
-          </button>
+        <div className="flex-1 min-w-0">
+          <p className="truncate text-[15px] font-semibold text-foreground">
+            <span className="text-muted-foreground font-normal">{greeting}, </span>
+            PRC {currentUser.name}
+          </p>
         </div>
 
         <div className="ml-auto hidden items-center gap-1 sm:flex">
