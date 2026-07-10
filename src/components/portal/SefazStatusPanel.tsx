@@ -114,9 +114,6 @@ export function SefazStatusPanel() {
   }, []);
 
   const tone = data ? sefazStatusTone(data.generalStatus) : sefazStatusTone("Normal");
-  const affectedUfs = data
-    ? Array.from(new Set(data.services.flatMap((s) => s.affectedUf ?? [])))
-    : [];
 
   return (
     <>
