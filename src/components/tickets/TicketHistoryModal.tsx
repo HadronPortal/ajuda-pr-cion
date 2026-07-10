@@ -106,34 +106,29 @@ export function TicketHistoryModal({
           Histórico do chamado {ticket.protocol}
         </DialogTitle>
 
-        {/* Header com fundo azul suave e watermark */}
-        <header className="relative shrink-0 overflow-hidden border-b border-border bg-gradient-to-br from-primary/15 via-primary/8 to-primary/5 px-5 py-5 md:px-7 md:py-6 dark:from-primary/25 dark:via-primary/12 dark:to-primary/5">
-          <History
-            aria-hidden
-            className="pointer-events-none absolute -right-6 -top-6 h-40 w-40 text-primary/10 dark:text-primary/15"
-          />
-
+        {/* Header limpo em fundo branco */}
+        <header className="relative shrink-0 border-b border-border bg-card px-5 py-4 md:px-7 md:py-5">
           <button
             type="button"
             onClick={() => onOpenChange(false)}
             aria-label="Fechar"
-            className="absolute right-3 top-3 z-10 grid h-8 w-8 cursor-pointer place-items-center rounded-md text-muted-foreground transition hover:bg-background/60 hover:text-foreground"
+            className="absolute right-3 top-3 z-10 grid h-8 w-8 cursor-pointer place-items-center rounded-md text-muted-foreground transition hover:bg-accent hover:text-foreground"
           >
             <X className="h-4 w-4" />
           </button>
 
-          <div className="relative flex flex-wrap items-start gap-4 pr-10">
+          <div className="flex flex-wrap items-start gap-3 pr-10">
             <span
               aria-hidden
-              className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-primary/15 text-primary ring-1 ring-primary/25 shadow-sm"
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary"
             >
-              <History className="h-6 w-6" />
+              <History className="h-5 w-5" />
             </span>
             <div className="min-w-0 flex-1">
-              <h2 className="text-[22px] font-bold leading-tight text-foreground">
+              <h2 className="text-[18px] font-bold leading-tight text-foreground">
                 Histórico
               </h2>
-              <p className="mt-1 truncate text-[12.5px] text-muted-foreground">
+              <p className="mt-0.5 truncate text-[12px] text-muted-foreground">
                 <span className="font-mono font-semibold text-foreground">
                   {ticket.protocol}
                 </span>
@@ -145,13 +140,10 @@ export function TicketHistoryModal({
                 {ticket.clientName}
               </p>
 
-              <div className="mt-3 flex flex-wrap items-center gap-2">
-                <span className="text-[10.5px] font-bold uppercase tracking-wider text-muted-foreground">
-                  Status
-                </span>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
                 <Badge
                   className={cn(
-                    "rounded-md border px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide",
+                    "rounded-md border px-2 py-0.5 text-[10.5px] font-bold uppercase tracking-wide",
                     statusTone[ticket.status],
                   )}
                 >
@@ -161,6 +153,7 @@ export function TicketHistoryModal({
             </div>
           </div>
         </header>
+
 
         {/* Corpo */}
         <div className="flex-1 overflow-y-auto bg-muted/30 px-4 py-5 md:px-6">
