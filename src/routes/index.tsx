@@ -152,12 +152,6 @@ function ResumoHojeSlide() {
 }
 
 function SlaSlide() {
-  const bars = [
-    { label: "Crítica", value: 3, height: "88%", tone: "from-[#ff8a8a] to-[#ff5470]" },
-    { label: "Alta", value: 4, height: "68%", tone: "from-[#ffd166] to-[#ff9f45]" },
-    { label: "Média", value: 6, height: "48%", tone: "from-[#8ee8ff] to-[#5a5cf7]" },
-    { label: "Baixa", value: 9, height: "32%", tone: "from-[#8ee8ff] to-[#5a5cf7]" },
-  ];
   return (
     <>
       <div className="flex items-center justify-between gap-4">
@@ -180,25 +174,7 @@ function SlaSlide() {
         </p>
       </div>
 
-      <div className="relative z-10 mt-4 h-[118px]">
-        <div className="absolute inset-x-0 bottom-8 h-px bg-white/10" />
-        <div className="relative flex h-full items-end justify-between gap-3 px-5">
-          {bars.map((bar) => (
-            <div key={bar.label} className="flex h-full flex-1 flex-col items-center justify-end">
-              <span className="mb-1 text-[12px] font-bold text-white">{bar.value}</span>
-              <span
-                className={`w-full max-w-[44px] rounded-t-lg bg-gradient-to-b ${bar.tone} shadow-[0_10px_22px_rgba(33,118,255,0.32)]`}
-                style={{ height: bar.height }}
-              />
-              <span className="mt-2 whitespace-nowrap text-[10px] font-semibold text-white/74">
-                {bar.label}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="relative z-10 mt-3 space-y-2">
+      <div className="relative z-10 mt-5 space-y-2">
         <SummaryProgress icon={CheckCircle2} label="Dentro do SLA" value="86%" tone="ok" />
         <SummaryProgress icon={AlertTriangle} label="Atrasados" value="3 chamados" tone="danger" />
         <SummaryProgress icon={Clock3} label="Próximo SLA vence em" value="42 min" tone="warn" />
