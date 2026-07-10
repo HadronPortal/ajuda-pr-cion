@@ -201,13 +201,6 @@ export function SefazStatusPanel() {
           </div>
         </div>
 
-        {affectedUfs.length > 0 && (
-          <div className="mt-4 flex items-center gap-2 rounded-xl bg-white/10 px-3 py-2 text-[11px] text-white/88 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
-            <MapPin className="h-3.5 w-3.5 text-[#ffd04d]" />
-            UFs com instabilidade:{" "}
-            <span className="font-semibold text-[#ffe87d]">{affectedUfs.join(", ")}</span>
-          </div>
-        )}
 
         <div className="mt-3 flex items-center justify-between gap-2">
           <button
