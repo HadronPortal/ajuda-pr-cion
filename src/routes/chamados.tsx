@@ -224,15 +224,17 @@ function TicketsPage() {
         title="Chamados"
         description="CRM de suporte para acompanhar abertura, atendimento, atrasos e produtividade dos chamados."
         breadcrumbs={[{ label: "Chamados" }]}
-        actions={
-          <Button asChild size="sm" className="rounded-xl shadow-[0_10px_22px_rgba(11,151,196,0.18)]">
-            <Link to="/chamados/novo">
-              <MessageSquarePlus className="mr-1.5 h-4 w-4" />
-              Novo chamado
-            </Link>
-          </Button>
-        }
       />
+
+      <Link
+        to="/chamados/novo"
+        aria-label="Novo chamado"
+        className="fixed bottom-6 right-6 z-40 inline-flex h-12 cursor-pointer items-center gap-2 rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-[0_14px_32px_rgba(11,151,196,0.35)] transition-transform hover:-translate-y-0.5 hover:shadow-[0_18px_38px_rgba(11,151,196,0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 md:bottom-8 md:right-8"
+      >
+        <MessageSquarePlus className="h-5 w-5" />
+        Novo chamado
+      </Link>
+
 
       <section className="mb-6 grid grid-cols-1 gap-6 xl:grid-cols-[1.1fr_1.1fr]">
         <div className="space-y-6">
