@@ -388,29 +388,10 @@ function MetricCard({
   );
 }
 
-function computeSla(ticket: SupportTicket) {
-  const target = 24; // hours SLA
-  const openedAt = new Date(ticket.openedAt).getTime();
-  const now = new Date("2026-07-08T10:00:00").getTime();
-  const hours = Math.max(0, (now - openedAt) / 36e5);
-  const rawPct = ticket.status === "Atrasado" ? 100 : Math.min(100, (hours / target) * 100);
-  const pct = Math.round(rawPct);
-  let tone: "ok" | "warn" | "late" = "ok";
-  if (ticket.status === "Atrasado" || pct >= 90) tone = "late";
-  else if (pct >= 60) tone = "warn";
-  return { pct, tone };
-}
-
 const slaBarTone: Record<"ok" | "warn" | "late", string> = {
   ok: "bg-success",
   warn: "bg-warning",
   late: "bg-destructive",
-};
-
-const slaTextTone: Record<"ok" | "warn" | "late", string> = {
-  ok: "text-success",
-  warn: "text-warning-foreground",
-  late: "text-destructive",
 };
 
 const sourceIcons: Record<SupportTicket["source"], typeof PhoneCall> = {
@@ -420,43 +401,6 @@ const sourceIcons: Record<SupportTicket["source"], typeof PhoneCall> = {
   Email: MessageSquarePlus,
 };
 
-const slaGaugeStroke: Record<"ok" | "warn" | "late", string> = {
-  ok: "stroke-success",
-  warn: "stroke-warning",
-  late: "stroke-destructive",
-};
-
-function SlaGauge({ pct, tone }: { pct: number; tone: "ok" | "warn" | "late" }) {
-  // Semicircle: path from (10,50) arc to (90,50), radius 40.
-  const circumference = Math.PI * 40; // ~125.66
-  const dash = (pct / 100) * circumference;
-  return (
-    <div className="relative flex h-[68px] w-[100px] items-end justify-center">
-      <svg viewBox="0 0 100 58" className="h-full w-full overflow-visible">
-        <path
-          d="M10 50 A40 40 0 0 1 90 50"
-          fill="none"
-          strokeWidth={9}
-          strokeLinecap="round"
-          className="stroke-muted"
-        />
-        <path
-          d="M10 50 A40 40 0 0 1 90 50"
-          fill="none"
-          strokeWidth={9}
-          strokeLinecap="round"
-          strokeDasharray={`${dash} ${circumference}`}
-          className={cn("transition-all", slaGaugeStroke[tone])}
-        />
-      </svg>
-      <div className="pointer-events-none absolute inset-x-0 bottom-1 flex justify-center">
-        <span className={cn("text-[15px] font-bold leading-none", slaTextTone[tone])}>
-          {pct}%
-        </span>
-      </div>
-    </div>
-  );
-}
 
 function TicketCard({
   ticket,
