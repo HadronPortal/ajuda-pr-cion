@@ -592,6 +592,233 @@ function TicketCard({
   );
 }
 
+function TicketsListView({
+  tickets,
+  onOpen,
+  onHistory,
+}: {
+  tickets: SupportTicket[];
+  onOpen: (ticket: SupportTicket) => void;
+  onHistory: (ticket: SupportTicket) => void;
+}) {
+  if (tickets.length === 0) {
+    return (
+      <Card className="rounded-2xl border border-border/60 bg-card p-8 text-center text-sm text-muted-foreground">
+        Nenhum chamado encontrado com os filtros atuais.
+      </Card>
+    );
+  }
+
+  const handleAssume = (ticket: SupportTicket, e: React.MouseEvent) => {
+    e.stopPropagation();
+    ticketsStore.assumeTicket(ticket.id);
+    toast.success(`Chamado ${ticket.protocol} assumido.`);
+  };
+
+  return (
+    <>
+      {/* Desktop table */}
+      <Card className="hidden overflow-hidden rounded-2xl border border-border/60 bg-card shadow-[0_8px_22px_rgba(25,29,51,0.05)] lg:block">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[1100px] text-[12.5px]">
+            <thead className="bg-muted/40 text-[11px] uppercase tracking-wide text-muted-foreground">
+              <tr>
+                <th className="px-3 py-2.5 text-left font-semibold">Status</th>
+                <th className="px-3 py-2.5 text-left font-semibold">Prio</th>
+                <th className="px-3 py-2.5 text-left font-semibold">Protocolo</th>
+                <th className="px-3 py-2.5 text-left font-semibold">Cliente</th>
+                <th className="px-3 py-2.5 text-left font-semibold">Contato</th>
+                <th className="px-3 py-2.5 text-left font-semibold">Assunto</th>
+                <th className="px-3 py-2.5 text-left font-semibold">Módulo</th>
+                <th className="px-3 py-2.5 text-left font-semibold">Atendente</th>
+                <th className="px-3 py-2.5 text-left font-semibold">Responsável</th>
+                <th className="px-3 py-2.5 text-left font-semibold">Registro</th>
+                <th className="px-3 py-2.5 text-left font-semibold">Atualizado</th>
+                <th className="px-3 py-2.5 text-right font-semibold">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {tickets.map((ticket) => (
+                <tr
+                  key={ticket.id}
+                  className="cursor-pointer border-t border-border/60 transition hover:bg-accent/40"
+                  onClick={() => onOpen(ticket)}
+                >
+                  <td className="px-3 py-2.5">
+                    <Badge
+                      className={cn(
+                        "whitespace-nowrap rounded-full border px-2 py-0.5 text-[10.5px] font-semibold",
+                        statusTone[ticket.status],
+                      )}
+                    >
+                      {ticket.status}
+                    </Badge>
+                  </td>
+                  <td className="px-3 py-2.5">
+                    <span
+                      className={cn(
+                        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10.5px] font-semibold",
+                        priorityTone[ticket.priority],
+                      )}
+                    >
+                      <AlertTriangle className="h-3 w-3" />
+                      {ticket.priority}
+                    </span>
+                  </td>
+                  <td className="px-3 py-2.5 font-mono text-[11px] text-muted-foreground">
+                    {ticket.protocol}
+                  </td>
+                  <td className="max-w-[180px] px-3 py-2.5">
+                    <div className="truncate font-semibold text-foreground">{ticket.clientCode}</div>
+                    <div className="truncate text-[11px] text-muted-foreground">{ticket.clientName}</div>
+                  </td>
+                  <td className="max-w-[140px] truncate px-3 py-2.5 text-muted-foreground">
+                    {ticket.contact}
+                  </td>
+                  <td className="max-w-[220px] truncate px-3 py-2.5 font-medium text-foreground">
+                    {ticket.subject}
+                  </td>
+                  <td className="max-w-[180px] truncate px-3 py-2.5 text-muted-foreground">
+                    {ticket.module}
+                  </td>
+                  <td className="px-3 py-2.5 text-muted-foreground">{ticket.attendant}</td>
+                  <td className="px-3 py-2.5 text-muted-foreground">{ticket.owner}</td>
+                  <td className="whitespace-nowrap px-3 py-2.5 text-muted-foreground">
+                    {formatDateTime(ticket.openedAt)}
+                  </td>
+                  <td className="whitespace-nowrap px-3 py-2.5 text-muted-foreground">
+                    {formatDateTime(ticket.updatedAt)}
+                  </td>
+                  <td className="px-3 py-2.5">
+                    <div className="flex items-center justify-end gap-1">
+                      <Button
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onOpen(ticket);
+                        }}
+                        className="h-7 cursor-pointer rounded-md px-2 text-[11px]"
+                      >
+                        Abrir
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => handleAssume(ticket, e)}
+                        className="h-7 cursor-pointer rounded-md px-2 text-[11px] text-muted-foreground hover:text-foreground"
+                      >
+                        <UserPlus className="mr-1 h-3 w-3" />
+                        Assumir
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onHistory(ticket);
+                        }}
+                        className="h-7 cursor-pointer rounded-md px-2 text-[11px] text-muted-foreground hover:text-foreground"
+                      >
+                        <History className="mr-1 h-3 w-3" />
+                        Histórico
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
+      {/* Mobile stacked list */}
+      <div className="space-y-2 lg:hidden">
+        {tickets.map((ticket) => (
+          <Card
+            key={ticket.id}
+            onClick={() => onOpen(ticket)}
+            className="cursor-pointer rounded-xl border border-border/60 bg-card p-3 shadow-[0_6px_16px_rgba(25,29,51,0.04)] transition hover:shadow-[0_10px_20px_rgba(25,29,51,0.08)]"
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <Badge
+                    className={cn(
+                      "rounded-full border px-2 py-0.5 text-[10px] font-semibold",
+                      statusTone[ticket.status],
+                    )}
+                  >
+                    {ticket.status}
+                  </Badge>
+                  <span
+                    className={cn(
+                      "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold",
+                      priorityTone[ticket.priority],
+                    )}
+                  >
+                    <AlertTriangle className="h-2.5 w-2.5" />
+                    {ticket.priority}
+                  </span>
+                  <span className="font-mono text-[10px] text-muted-foreground">
+                    {ticket.protocol}
+                  </span>
+                </div>
+                <p className="mt-1.5 truncate text-[13px] font-bold text-foreground">
+                  {ticket.subject}
+                </p>
+                <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
+                  <span className="font-semibold text-foreground">{ticket.clientCode}</span> ·{" "}
+                  {ticket.clientName}
+                </p>
+              </div>
+            </div>
+            <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+              <div className="truncate"><span className="font-semibold text-foreground">Contato:</span> {ticket.contact}</div>
+              <div className="truncate"><span className="font-semibold text-foreground">Atendente:</span> {ticket.attendant}</div>
+              <div className="col-span-2 truncate"><span className="font-semibold text-foreground">Módulo:</span> {ticket.module}</div>
+              <div className="truncate"><span className="font-semibold text-foreground">Resp.:</span> {ticket.owner}</div>
+              <div className="truncate"><span className="font-semibold text-foreground">Atual.:</span> {formatDateTime(ticket.updatedAt)}</div>
+            </dl>
+            <div className="mt-2 flex items-center justify-end gap-1 border-t border-border/60 pt-2">
+              <Button
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onOpen(ticket);
+                }}
+                className="h-7 cursor-pointer rounded-md px-2 text-[11px]"
+              >
+                Abrir
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => handleAssume(ticket, e)}
+                className="h-7 cursor-pointer rounded-md px-2 text-[11px] text-muted-foreground"
+              >
+                <UserPlus className="mr-1 h-3 w-3" />
+                Assumir
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onHistory(ticket);
+                }}
+                className="h-7 cursor-pointer rounded-md px-2 text-[11px] text-muted-foreground"
+              >
+                <History className="mr-1 h-3 w-3" />
+                Histórico
+              </Button>
+            </div>
+          </Card>
+        ))}
+      </div>
+    </>
+  );
+}
+
 function HistoryModalHost({
   ticketId,
   open,
