@@ -633,8 +633,7 @@ function TicketsListView({
         <div className="w-full">
           <table className="w-full table-fixed text-[12px]">
             <colgroup>
-              <col style={{ width: "150px" }} />
-              <col style={{ width: "72px" }} />
+              <col style={{ width: "160px" }} />
               <col style={{ width: "104px" }} />
               <col />
               <col />
@@ -642,15 +641,14 @@ function TicketsListView({
               <col />
               <col />
               <col />
-              <col style={{ width: "112px" }} />
-              <col style={{ width: "112px" }} />
+              <col style={{ width: "108px" }} />
+              <col style={{ width: "108px" }} />
               <col style={{ width: "28px" }} />
             </colgroup>
             <thead className="bg-muted/40 text-[10.5px] uppercase tracking-wide text-muted-foreground">
               <tr>
                 <th className="px-2 py-2 text-left font-semibold">Status</th>
-                <th className="px-2 py-2 text-left font-semibold">Prio</th>
-                <th className="px-2 py-2 text-left font-semibold">Protocolo</th>
+                <th className="px-2 py-2 text-left font-semibold">Prioridade</th>
                 <th className="px-2 py-2 text-left font-semibold">Cliente</th>
                 <th className="px-2 py-2 text-left font-semibold">Contato</th>
                 <th className="px-2 py-2 text-left font-semibold">Assunto</th>
@@ -669,20 +667,25 @@ function TicketsListView({
                   className="cursor-pointer border-t border-border/60 transition hover:bg-accent/40"
                   onClick={() => onOpen(ticket)}
                 >
-                  <td className="px-2 py-2">
-                    <Badge
-                      className={cn(
-                        "inline-flex w-[136px] justify-center whitespace-nowrap rounded-full border px-2 py-0.5 text-[10px] font-semibold",
-                        statusTone[ticket.status],
-                      )}
-                    >
-                      {ticket.status}
-                    </Badge>
+                  <td className="px-2 py-2 align-top">
+                    <div className="flex flex-col items-start gap-1">
+                      <Badge
+                        className={cn(
+                          "inline-flex w-[136px] justify-center whitespace-nowrap rounded-full border px-2 py-0.5 text-[10px] font-semibold",
+                          statusTone[ticket.status],
+                        )}
+                      >
+                        {ticket.status}
+                      </Badge>
+                      <span className="font-mono text-[10px] leading-tight text-muted-foreground">
+                        {ticket.protocol}
+                      </span>
+                    </div>
                   </td>
-                  <td className="px-2 py-2">
+                  <td className="px-2 py-2 align-top">
                     <span
                       className={cn(
-                        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold",
+                        "inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-semibold",
                         priorityTone[ticket.priority],
                       )}
                     >
@@ -690,35 +693,33 @@ function TicketsListView({
                       {ticket.priority}
                     </span>
                   </td>
-                  <td className="px-2 py-2 font-mono text-[11px] text-muted-foreground">
-                    {ticket.protocol}
-                  </td>
-                  <td className="px-2 py-2">
+                  <td className="px-2 py-2 align-top">
                     <div className="truncate font-semibold text-foreground">{ticket.clientCode}</div>
                     <div className="truncate text-[11px] text-muted-foreground">{ticket.clientName}</div>
                   </td>
-                  <td className="truncate px-2 py-2 text-muted-foreground">
+                  <td className="truncate px-2 py-2 align-top text-muted-foreground">
                     {ticket.contact}
                   </td>
-                  <td className="truncate px-2 py-2 font-medium text-foreground">
-                    {ticket.subject}
+                  <td className="px-2 py-2 align-top font-medium text-foreground">
+                    <span className="line-clamp-2 break-words">{ticket.subject}</span>
                   </td>
-                  <td className="truncate px-2 py-2 text-muted-foreground">
+                  <td className="truncate px-2 py-2 align-top text-muted-foreground">
                     {ticket.module}
                   </td>
-                  <td className="truncate px-2 py-2 text-muted-foreground">{ticket.attendant}</td>
-                  <td className="truncate px-2 py-2 text-muted-foreground">{ticket.owner}</td>
-                  <td className="whitespace-nowrap px-2 py-2 text-[11px] text-muted-foreground">
+                  <td className="truncate px-2 py-2 align-top text-muted-foreground">{ticket.attendant}</td>
+                  <td className="truncate px-2 py-2 align-top text-muted-foreground">{ticket.owner}</td>
+                  <td className="whitespace-nowrap px-2 py-2 align-top text-[11px] text-muted-foreground">
                     {formatDateTime(ticket.openedAt)}
                   </td>
-                  <td className="whitespace-nowrap px-2 py-2 text-[11px] text-muted-foreground">
+                  <td className="whitespace-nowrap px-2 py-2 align-top text-[11px] text-muted-foreground">
                     {formatDateTime(ticket.updatedAt)}
                   </td>
-                  <td className="px-2 py-2 text-right text-muted-foreground">
+                  <td className="px-2 py-2 text-right align-top text-muted-foreground">
                     <ChevronRight className="ml-auto h-4 w-4" />
                   </td>
                 </tr>
               ))}
+
             </tbody>
           </table>
         </div>
