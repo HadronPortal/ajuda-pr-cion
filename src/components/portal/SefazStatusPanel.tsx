@@ -154,9 +154,9 @@ export function SefazStatusPanel() {
           <p className="mb-2 text-[11px] font-semibold text-white/86">
             Histórico de status (últimas 24h)
           </p>
-          <div className="h-[132px]">
+          <div className="h-[132px] overflow-visible">
             <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={statusHistory} margin={{ top: 5, right: 8, left: -8, bottom: 2 }}>
+              <ComposedChart data={statusHistory} margin={{ top: 12, right: 12, left: 12, bottom: 8 }}>
                 <defs>
                   {[
                     { id: "fillNfe", color: "#55e3ad" },
