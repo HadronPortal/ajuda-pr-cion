@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Activity, AlertTriangle, CheckCircle2, MapPin, RefreshCw, XCircle } from "lucide-react";
+import { Activity, AlertTriangle, CheckCircle2, RefreshCw, XCircle } from "lucide-react";
 import {
   Area,
   CartesianGrid,
