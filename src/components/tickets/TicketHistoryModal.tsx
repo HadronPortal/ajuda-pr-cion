@@ -313,6 +313,12 @@ export function TicketHistoryModal({
         </div>
 
       </DialogContent>
+      <PastAttendanceDetailModal
+        open={selected !== null}
+        onOpenChange={(v) => !v && setSelected(null)}
+        attendance={selected}
+        ticket={ticket}
+      />
     </Dialog>
   );
 }
