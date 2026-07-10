@@ -24,6 +24,7 @@ import {
   FolderKanban,
   Headphones,
   History,
+  ChevronRight,
   LayoutGrid,
   Layers,
   List as ListIcon,
