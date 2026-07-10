@@ -141,10 +141,19 @@ export function SefazStatusPanel() {
           </span>
         </div>
 
-        <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {(data?.services ?? []).map((s) => (
-            <ServiceCard key={s.name} svc={s} />
-          ))}
+        <div className="mt-4 flex flex-wrap gap-1.5">
+          {(data?.services ?? []).map((s) => {
+            const t = sefazStatusTone(s.status);
+            return (
+              <span
+                key={s.name}
+                className="inline-flex items-center gap-1.5 rounded-full bg-white/12 px-2.5 py-1 text-[10.5px] font-semibold text-white"
+              >
+                <span className={cn("h-1.5 w-1.5 rounded-full", t.dot)} />
+                {s.name}
+              </span>
+            );
+          })}
         </div>
 
         <div className="mt-4">
