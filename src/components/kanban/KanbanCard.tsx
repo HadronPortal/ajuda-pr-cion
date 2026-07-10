@@ -135,6 +135,13 @@ export function KanbanCardItem({
     <div
       ref={setNodeRef}
       style={style}
+      className={cn(
+        "group/card relative z-0 h-[300px] transition-[z-index] hover:z-50",
+        isDragging && !overlay && "opacity-40",
+        overlay && "z-50",
+      )}
+    >
+      <div
       {...attributes}
       {...listeners}
       onClick={(e) => {
@@ -143,9 +150,8 @@ export function KanbanCardItem({
         onClick?.();
       }}
       className={cn(
-        "group relative flex h-[340px] cursor-pointer flex-col overflow-hidden rounded-[16px] border border-slate-200/80 bg-white p-4 shadow-[0_14px_30px_rgba(15,23,42,0.075)] transition-[transform,border-color,box-shadow] duration-300 ease-out will-change-transform dark:border-white/10 dark:bg-[#24212d] dark:shadow-[0_18px_42px_rgba(0,0,0,0.24)]",
-        "hover:-translate-y-3 hover:border-primary/25 hover:shadow-[0_28px_50px_rgba(15,23,42,0.15)] dark:hover:shadow-[0_30px_56px_rgba(0,0,0,0.34)]",
-        isDragging && !overlay && "opacity-40",
+        "group absolute inset-x-0 top-0 z-0 flex h-[300px] cursor-pointer flex-col overflow-hidden rounded-[16px] border border-slate-200/80 bg-white p-4 shadow-[0_14px_30px_rgba(15,23,42,0.075)] transition-[height,transform,border-color,box-shadow] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform dark:border-white/10 dark:bg-[#24212d] dark:shadow-[0_18px_42px_rgba(0,0,0,0.24)]",
+        "hover:z-50 hover:h-[388px] hover:-translate-y-4 hover:border-primary/25 hover:shadow-[0_30px_56px_rgba(15,23,42,0.16)] dark:hover:shadow-[0_32px_60px_rgba(0,0,0,0.36)]",
         overlay && "shadow-2xl",
       )}
     >
@@ -282,6 +288,7 @@ export function KanbanCardItem({
             </span>
           )}
         </div>
+      </div>
       </div>
     </div>
   );
