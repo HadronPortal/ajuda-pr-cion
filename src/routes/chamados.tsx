@@ -388,11 +388,8 @@ function MetricCard({
   );
 }
 
-const slaBarTone: Record<"ok" | "warn" | "late", string> = {
-  ok: "bg-success",
-  warn: "bg-warning",
-  late: "bg-destructive",
-};
+const sourceIcons: Record<SupportTicket["source"], typeof PhoneCall> = {
+
 
 const sourceIcons: Record<SupportTicket["source"], typeof PhoneCall> = {
   Telefone: PhoneCall,
