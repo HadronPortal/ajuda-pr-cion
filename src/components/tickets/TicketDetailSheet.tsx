@@ -317,7 +317,7 @@ export function TicketDetailSheet({
               >
 
                 {(() => {
-                  const Icon = getModuleIcon(ticket.module, ticket.source);
+                  const Icon = getModuleIcon(ticket.module, ticket.source, ticket.subject);
                   return <Icon className="h-5 w-5" />;
                 })()}
               </span>
