@@ -269,57 +269,53 @@ function TicketsPage() {
       </section>
 
 
-      <Card className="mb-6 rounded-[14px] border-0 bg-card p-3 shadow-[0_10px_28px_rgba(25,29,51,0.06)]">
-        <div className="flex flex-col gap-2.5 md:flex-row md:flex-wrap md:items-center xl:flex-nowrap">
-          <select
-            value={filters.status}
-            onChange={(event) => setFilters((prev) => ({ ...prev, status: event.target.value }))}
-            className="h-10 w-full shrink-0 cursor-pointer rounded-xl border border-border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring md:w-[160px]"
-          >
-            <option>Todos</option>
-            {ticketStatuses.map((status) => (
-              <option key={status}>{status}</option>
-            ))}
-          </select>
-          <select
-            value={filters.operator}
-            onChange={(event) => setFilters((prev) => ({ ...prev, operator: event.target.value }))}
-            className="h-10 w-full shrink-0 cursor-pointer rounded-xl border border-border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring md:w-[160px]"
-          >
-            <option>Todos</option>
-            {ticketOperators.map((operator) => (
-              <option key={operator}>{operator}</option>
-            ))}
-          </select>
-          <select
-            value={filters.dateType}
-            onChange={(event) => setFilters((prev) => ({ ...prev, dateType: event.target.value }))}
-            className="h-10 w-full shrink-0 cursor-pointer rounded-xl border border-border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring md:w-[150px]"
-          >
-            <option>Registro</option>
-            <option>Atualizado</option>
-          </select>
-          <div className="relative w-full min-w-[240px] flex-1 md:basis-full xl:basis-0">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+      <Card className="mb-6 rounded-2xl border border-border/60 bg-card p-3 shadow-[0_8px_22px_rgba(25,29,51,0.05)]">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <div className="relative order-1 min-w-0 flex-1 sm:order-none">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <input
               value={filters.query}
               onChange={(event) => setFilters((prev) => ({ ...prev, query: event.target.value }))}
               type="search"
               placeholder="Buscar por cliente, protocolo, assunto, contato..."
-              className="h-10 w-full rounded-xl border border-border bg-background pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+              className="h-9 w-full rounded-lg border border-border bg-background pl-9 pr-3 text-sm outline-none transition focus:ring-2 focus:ring-ring"
             />
           </div>
-          <Button
-            type="button"
-            variant="outline"
-            className="h-10 w-full shrink-0 cursor-pointer rounded-xl md:w-auto"
-            onClick={() => setFilters(initialFilters)}
-          >
-            <SlidersHorizontal className="mr-1.5 h-4 w-4" />
-            Limpar
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <select
+              value={filters.status}
+              onChange={(event) => setFilters((prev) => ({ ...prev, status: event.target.value }))}
+              className="h-9 cursor-pointer rounded-lg border border-border bg-background px-2.5 pr-7 text-[13px] outline-none focus:ring-2 focus:ring-ring sm:w-[150px]"
+            >
+              <option>Todos</option>
+              {ticketStatuses.map((status) => (
+                <option key={status}>{status}</option>
+              ))}
+            </select>
+            <select
+              value={filters.priority}
+              onChange={(event) => setFilters((prev) => ({ ...prev, priority: event.target.value }))}
+              className="h-9 cursor-pointer rounded-lg border border-border bg-background px-2.5 pr-7 text-[13px] outline-none focus:ring-2 focus:ring-ring sm:w-[130px]"
+            >
+              <option>Todas</option>
+              {ticketPriorities.map((priority) => (
+                <option key={priority}>{priority}</option>
+              ))}
+            </select>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-9 shrink-0 cursor-pointer rounded-lg px-3 text-[13px] text-muted-foreground hover:text-foreground"
+              onClick={() => setFilters(initialFilters)}
+            >
+              <SlidersHorizontal className="mr-1.5 h-3.5 w-3.5" />
+              Limpar
+            </Button>
+          </div>
         </div>
       </Card>
+
 
 
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
