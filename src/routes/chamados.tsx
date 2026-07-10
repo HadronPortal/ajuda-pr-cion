@@ -143,13 +143,7 @@ function TicketsPage() {
     const query = filters.query.trim().toLowerCase();
     return supportTickets.filter((ticket) => {
       if (filters.status !== "Todos" && ticket.status !== filters.status) return false;
-      if (
-        filters.operator !== "Todos" &&
-        ticket.owner !== filters.operator &&
-        ticket.attendant !== filters.operator
-      ) {
-        return false;
-      }
+      if (filters.priority !== "Todas" && ticket.priority !== filters.priority) return false;
       if (!query) return true;
       return [
         ticket.protocol,
