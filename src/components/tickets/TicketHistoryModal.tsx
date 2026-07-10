@@ -5,9 +5,7 @@ import {
   ChevronRight,
   FileText,
   Folder,
-  Headset,
   History,
-  Plus,
   UserRound,
   X,
 } from "lucide-react";
@@ -17,7 +15,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type {
   SupportTicket,
@@ -319,37 +316,6 @@ export function TicketHistoryModal({
           )}
         </div>
 
-        {/* Rodapé de ajuda */}
-        <footer className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-border bg-card px-5 py-3 md:px-6">
-          <div className="flex min-w-0 items-center gap-3">
-            <span
-              aria-hidden
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/15"
-            >
-              <Headset className="h-4 w-4" />
-            </span>
-            <div className="min-w-0">
-              <p className="text-[12.5px] font-bold text-foreground">
-                Precisa de mais ajuda?
-              </p>
-              <p className="truncate text-[11px] text-muted-foreground">
-                Caso não encontre o que precisa, entre em contato com o suporte.
-              </p>
-            </div>
-          </div>
-          <Button
-            size="sm"
-            onClick={() =>
-              toast.info("Abrir novo chamado", {
-                description: "Fluxo de novo chamado será integrado em breve.",
-              })
-            }
-            className="h-9 cursor-pointer gap-1.5 rounded-lg bg-primary/15 text-[12px] font-semibold text-primary shadow-none hover:bg-primary/25"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            Abrir novo chamado
-          </Button>
-        </footer>
       </DialogContent>
     </Dialog>
   );
