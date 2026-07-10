@@ -229,11 +229,15 @@ function TicketsPage() {
       <Link
         to="/chamados/novo"
         aria-label="Novo chamado"
-        className="fixed bottom-6 right-6 z-40 inline-flex h-12 cursor-pointer items-center gap-2 rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-[0_14px_32px_rgba(11,151,196,0.35)] transition-transform hover:-translate-y-0.5 hover:shadow-[0_18px_38px_rgba(11,151,196,0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 md:bottom-8 md:right-8"
+        title="Novo chamado"
+        className="group fixed bottom-6 right-6 z-40 inline-grid h-14 w-14 cursor-pointer place-items-center rounded-2xl bg-primary text-primary-foreground shadow-[0_14px_32px_rgba(11,151,196,0.35)] transition-transform hover:-translate-y-0.5 hover:shadow-[0_18px_38px_rgba(11,151,196,0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 md:bottom-8 md:right-8"
       >
-        <MessageSquarePlus className="h-5 w-5" />
-        Novo chamado
+        <MessageSquarePlus className="h-6 w-6" />
+        <span className="pointer-events-none absolute right-full top-1/2 mr-2 -translate-y-1/2 whitespace-nowrap rounded-md bg-foreground px-2 py-1 text-xs font-semibold text-background opacity-0 shadow-md transition-opacity group-hover:opacity-100">
+          Novo chamado
+        </span>
       </Link>
+
 
 
       <section className="mb-6 grid grid-cols-1 gap-6 xl:grid-cols-[1.1fr_1.1fr]">
