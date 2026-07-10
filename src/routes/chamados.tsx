@@ -411,7 +411,7 @@ function TicketCard({
   onOpen?: (ticket: SupportTicket) => void;
   onHistory?: (ticket: SupportTicket) => void;
 }) {
-  void computeSla;
+  
   const SourceIcon = sourceIcons[ticket.source] ?? PhoneCall;
 
   const handleAssume = (e: React.MouseEvent) => {
