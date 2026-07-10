@@ -149,10 +149,10 @@ export function KanbanCardItem({
         onClick?.();
       }}
       className={cn(
-        "group relative isolate cursor-pointer overflow-hidden rounded-[18px] border border-white/70 bg-white/86 p-4 shadow-[0_18px_38px_rgba(15,23,42,0.08)] backdrop-blur-xl transition-all duration-300 dark:border-white/10 dark:bg-[#1e263d]/88 dark:shadow-[0_18px_42px_rgba(0,0,0,0.22)]",
+        "group relative isolate flex h-[356px] cursor-pointer flex-col overflow-hidden rounded-[18px] border border-white/70 bg-white/86 p-4 shadow-[0_18px_38px_rgba(15,23,42,0.08)] backdrop-blur-xl transition-all duration-300 ease-out dark:border-white/10 dark:bg-[#1e263d]/88 dark:shadow-[0_18px_42px_rgba(0,0,0,0.22)]",
         "before:absolute before:inset-x-4 before:top-0 before:h-px before:bg-white/80 before:content-[''] dark:before:bg-white/20",
         "after:absolute after:-right-14 after:-top-14 after:h-32 after:w-32 after:rounded-full after:bg-primary/10 after:blur-2xl after:transition group-hover:after:scale-125 dark:after:bg-cyan-300/10",
-        "hover:-translate-y-1 hover:rotate-[0.35deg] hover:border-primary/25",
+        "hover:-translate-y-3 hover:scale-[1.015] hover:rotate-[0.45deg] hover:border-primary/25",
         priority.glow,
         isDragging && !overlay && "opacity-40",
         overlay && "rotate-2 scale-[1.02] shadow-2xl",
@@ -207,12 +207,12 @@ export function KanbanCardItem({
         </DropdownMenu>
       </div>
 
-      <div className="mb-4 grid grid-cols-[1fr_auto] items-center gap-3 rounded-2xl border border-slate-200/65 bg-white/62 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] dark:border-white/10 dark:bg-white/[0.045]">
+      <div className="mb-4 rounded-2xl border border-slate-200/65 bg-white/62 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] dark:border-white/10 dark:bg-white/[0.045]">
         <div className="min-w-0">
           <div className="mb-2 flex items-center justify-between gap-2">
             <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-muted-foreground">
               <Gauge className="h-3.5 w-3.5 text-primary" />
-              AvanÃ§o
+              Avanço
             </span>
             <span className="text-[12px] font-black tabular-nums text-foreground">
               {progress}%
@@ -225,16 +225,9 @@ export function KanbanCardItem({
             />
           </div>
         </div>
-
-        <div className="grid h-14 w-14 place-items-center rounded-2xl bg-slate-950 text-white shadow-[0_12px_28px_rgba(15,23,42,0.22)] dark:bg-white dark:text-slate-950">
-          <div className="text-center leading-none">
-            <div className="text-base font-black tabular-nums">{syntheticDone}</div>
-            <div className="mt-1 text-[9px] font-bold text-white/65 dark:text-slate-500">/{syntheticTotal}</div>
-          </div>
-        </div>
       </div>
 
-      <div className="mb-4 flex flex-wrap gap-1.5">
+      <div className="mb-4 flex h-[62px] flex-wrap content-start gap-1.5 overflow-hidden">
         <span className={cn("inline-flex h-7 items-center gap-1.5 rounded-full px-2.5 text-[10.5px] font-bold ring-1", typeTone[card.type])}>
           <Sparkles className="h-3 w-3" />
           {card.type}
@@ -271,7 +264,7 @@ export function KanbanCardItem({
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-3 border-t border-slate-200/70 pt-3 dark:border-white/10">
+      <div className="mt-auto flex items-center justify-between gap-3 border-t border-slate-200/70 pt-3 dark:border-white/10">
         <div className="flex -space-x-2">
           {shownAssignees.map((m) => (
             <Avatar key={m.id} className="h-8 w-8 border-2 border-white shadow-sm dark:border-[#1e263d]">
