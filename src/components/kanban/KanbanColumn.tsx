@@ -34,7 +34,7 @@ export function KanbanColumnView({
   return (
     <section
       className={cn(
-        "flex min-h-[610px] w-full min-w-0 shrink-0 flex-col rounded-2xl px-3 py-3 md:w-[318px] md:min-w-[318px] md:mx-1.5 md:px-4 md:py-4",
+        "relative flex min-h-[610px] w-full min-w-0 shrink-0 flex-col rounded-2xl px-3 py-3 md:w-[318px] md:min-w-[318px] md:mx-1.5 md:px-4 md:py-4",
         columnTints[column.id] ?? "bg-muted/40",
       )}
     >
@@ -58,12 +58,12 @@ export function KanbanColumnView({
       <div
         ref={setNodeRef}
         className={cn(
-          "flex-1 rounded-xl border border-dashed border-transparent transition-colors",
+          "flex-1 overflow-visible rounded-xl border border-dashed border-transparent transition-colors",
           isOver && "border-primary/40 bg-primary/5",
         )}
       >
         <SortableContext items={cards.map((c) => c.id)} strategy={verticalListSortingStrategy}>
-          <div className="space-y-4">
+          <div className="space-y-4 overflow-visible">
             {cards.map((c) => (
               <KanbanCardItem
                 key={c.id}
