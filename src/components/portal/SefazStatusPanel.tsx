@@ -27,16 +27,25 @@ import {
 } from "@/lib/sefaz-status";
 
 const statusHistory = [
-  { time: "15:00", nfe: 82, nfce: 58, cte: 76, mdfe: 68 },
-  { time: "18:00", nfe: 68, nfce: 82, cte: 84, mdfe: 66 },
-  { time: "21:00", nfe: 69, nfce: 63, cte: 79, mdfe: 71 },
-  { time: "00:00", nfe: 74, nfce: 65, cte: 72, mdfe: 74 },
-  { time: "03:00", nfe: 70, nfce: 72, cte: 80, mdfe: 69 },
-  { time: "06:00", nfe: 76, nfce: 66, cte: 73, mdfe: 83 },
-  { time: "09:00", nfe: 81, nfce: 74, cte: 86, mdfe: 63 },
-  { time: "12:00", nfe: 76, nfce: 78, cte: 72, mdfe: 72 },
-  { time: "15:00", nfe: 78, nfce: 67, cte: 79, mdfe: 75 },
+  { time: "15:00", nfe: 82, nfce: 74, cte: 78, mdfe: 72 },
+  { time: "16:30", nfe: 79, nfce: 61, cte: 84, mdfe: 68 },
+  { time: "18:00", nfe: 84, nfce: 48, cte: 71, mdfe: 74 },
+  { time: "19:30", nfe: 77, nfce: 88, cte: 65, mdfe: 70 },
+  { time: "21:00", nfe: 81, nfce: 42, cte: 82, mdfe: 66 },
+  { time: "22:30", nfe: 86, nfce: 70, cte: 74, mdfe: 78 },
+  { time: "00:00", nfe: 80, nfce: 55, cte: 88, mdfe: 71 },
+  { time: "01:30", nfe: 83, nfce: 92, cte: 62, mdfe: 75 },
+  { time: "03:00", nfe: 78, nfce: 46, cte: 79, mdfe: 68 },
+  { time: "04:30", nfe: 85, nfce: 68, cte: 86, mdfe: 73 },
+  { time: "06:00", nfe: 80, nfce: 38, cte: 70, mdfe: 77 },
+  { time: "07:30", nfe: 87, nfce: 82, cte: 83, mdfe: 65 },
+  { time: "09:00", nfe: 82, nfce: 58, cte: 66, mdfe: 79 },
+  { time: "10:30", nfe: 78, nfce: 90, cte: 81, mdfe: 69 },
+  { time: "12:00", nfe: 84, nfce: 52, cte: 74, mdfe: 76 },
+  { time: "13:30", nfe: 81, nfce: 76, cte: 87, mdfe: 71 },
+  { time: "15:00", nfe: 85, nfce: 64, cte: 72, mdfe: 74 },
 ];
+
 
 function StatusIcon({ status, className }: { status: SefazServiceStatus; className?: string }) {
   const Icon =
