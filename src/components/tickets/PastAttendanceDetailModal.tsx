@@ -328,38 +328,43 @@ export function PastAttendanceDetailModal({
             <h3 className="mb-3 text-[12.5px] font-bold uppercase tracking-wider text-foreground">
               Timeline
             </h3>
-            <ol className="relative space-y-3 pl-6">
+            <ol className="relative space-y-3">
               <span
                 aria-hidden
-                className="absolute left-[11px] top-1 bottom-1 w-px bg-border"
+                className="absolute left-4 top-2 bottom-2 w-px bg-border"
               />
               {timeline.map((step, idx) => {
                 const Icon = step.icon;
                 const isLast = idx === timeline.length - 1;
                 return (
-                  <li key={step.label} className="relative">
+                  <li
+                    key={step.label}
+                    className="relative grid grid-cols-[32px_1fr] items-start gap-3"
+                  >
                     <span
                       aria-hidden
                       className={cn(
-                        "absolute -left-6 top-0 grid h-6 w-6 place-items-center rounded-full ring-2 ring-card",
+                        "relative z-10 grid h-8 w-8 shrink-0 place-items-center rounded-full ring-2 ring-card",
                         isLast
                           ? "bg-success text-success-foreground"
                           : "bg-primary/12 text-primary",
                       )}
                     >
-                      <Icon className="h-3 w-3" />
+                      <Icon className="h-3.5 w-3.5" />
                     </span>
-                    <div className="flex flex-wrap items-baseline justify-between gap-2">
-                      <p className="text-[12.5px] font-semibold text-foreground">
-                        {step.label}
-                      </p>
-                      <p className="text-[11px] text-muted-foreground">
-                        {formatDateTime(step.when)}
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-baseline justify-between gap-2">
+                        <p className="text-[12.5px] font-semibold text-foreground">
+                          {step.label}
+                        </p>
+                        <p className="text-[11px] text-muted-foreground">
+                          {formatDateTime(step.when)}
+                        </p>
+                      </div>
+                      <p className="text-[11.5px] text-muted-foreground">
+                        {step.actor}
                       </p>
                     </div>
-                    <p className="text-[11.5px] text-muted-foreground">
-                      {step.actor}
-                    </p>
                   </li>
                 );
               })}
