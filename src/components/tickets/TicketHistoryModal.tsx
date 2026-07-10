@@ -1,13 +1,11 @@
 import { useState } from "react";
-import { toast } from "sonner";
+import { PastAttendanceDetailModal } from "./PastAttendanceDetailModal";
 import {
   CalendarClock,
   ChevronRight,
   FileText,
   Folder,
-  Headset,
   History,
-  Plus,
   UserRound,
   X,
 } from "lucide-react";
@@ -17,7 +15,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type {
   SupportTicket,
@@ -94,6 +91,7 @@ export function TicketHistoryModal({
   historyItems: PastAttendance[];
 }) {
   const [showAll, setShowAll] = useState(false);
+  const [selected, setSelected] = useState<PastAttendance | null>(null);
 
   if (!ticket) return null;
 
@@ -108,34 +106,29 @@ export function TicketHistoryModal({
           Histórico do chamado {ticket.protocol}
         </DialogTitle>
 
-        {/* Header com fundo azul suave e watermark */}
-        <header className="relative shrink-0 overflow-hidden border-b border-border bg-gradient-to-br from-primary/15 via-primary/8 to-primary/5 px-5 py-5 md:px-7 md:py-6 dark:from-primary/25 dark:via-primary/12 dark:to-primary/5">
-          <History
-            aria-hidden
-            className="pointer-events-none absolute -right-6 -top-6 h-40 w-40 text-primary/10 dark:text-primary/15"
-          />
-
+        {/* Header limpo em fundo branco */}
+        <header className="relative shrink-0 border-b border-border bg-card px-5 py-4 md:px-7 md:py-5">
           <button
             type="button"
             onClick={() => onOpenChange(false)}
             aria-label="Fechar"
-            className="absolute right-3 top-3 z-10 grid h-8 w-8 cursor-pointer place-items-center rounded-md text-muted-foreground transition hover:bg-background/60 hover:text-foreground"
+            className="absolute right-3 top-3 z-10 grid h-8 w-8 cursor-pointer place-items-center rounded-md text-muted-foreground transition hover:bg-accent hover:text-foreground"
           >
             <X className="h-4 w-4" />
           </button>
 
-          <div className="relative flex flex-wrap items-start gap-4 pr-10">
+          <div className="flex flex-wrap items-start gap-3 pr-10">
             <span
               aria-hidden
-              className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-primary/15 text-primary ring-1 ring-primary/25 shadow-sm"
+              className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary"
             >
-              <History className="h-6 w-6" />
+              <History className="h-5 w-5" />
             </span>
             <div className="min-w-0 flex-1">
-              <h2 className="text-[22px] font-bold leading-tight text-foreground">
+              <h2 className="text-[18px] font-bold leading-tight text-foreground">
                 Histórico
               </h2>
-              <p className="mt-1 truncate text-[12.5px] text-muted-foreground">
+              <p className="mt-0.5 truncate text-[12px] text-muted-foreground">
                 <span className="font-mono font-semibold text-foreground">
                   {ticket.protocol}
                 </span>
@@ -147,13 +140,10 @@ export function TicketHistoryModal({
                 {ticket.clientName}
               </p>
 
-              <div className="mt-3 flex flex-wrap items-center gap-2">
-                <span className="text-[10.5px] font-bold uppercase tracking-wider text-muted-foreground">
-                  Status
-                </span>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
                 <Badge
                   className={cn(
-                    "rounded-md border px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide",
+                    "rounded-md border px-2 py-0.5 text-[10.5px] font-bold uppercase tracking-wide",
                     statusTone[ticket.status],
                   )}
                 >
@@ -163,6 +153,7 @@ export function TicketHistoryModal({
             </div>
           </div>
         </header>
+
 
         {/* Corpo */}
         <div className="flex-1 overflow-y-auto bg-muted/30 px-4 py-5 md:px-6">
@@ -301,12 +292,7 @@ export function TicketHistoryModal({
                     {/* Botão Ver chamado */}
                     <button
                       type="button"
-                      onClick={() =>
-                        toast.info(`Abrir ${h.protocol}`, {
-                          description:
-                            "Integração com detalhe será feita pela API.",
-                        })
-                      }
+                      onClick={() => setSelected(h)}
                       className="inline-flex cursor-pointer items-center justify-center gap-1 rounded-lg bg-primary/10 px-3 py-1.5 text-[11.5px] font-semibold text-primary transition hover:bg-primary/20 md:justify-self-end"
                     >
                       Ver chamado
@@ -319,38 +305,13 @@ export function TicketHistoryModal({
           )}
         </div>
 
-        {/* Rodapé de ajuda */}
-        <footer className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-border bg-card px-5 py-3 md:px-6">
-          <div className="flex min-w-0 items-center gap-3">
-            <span
-              aria-hidden
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/15"
-            >
-              <Headset className="h-4 w-4" />
-            </span>
-            <div className="min-w-0">
-              <p className="text-[12.5px] font-bold text-foreground">
-                Precisa de mais ajuda?
-              </p>
-              <p className="truncate text-[11px] text-muted-foreground">
-                Caso não encontre o que precisa, entre em contato com o suporte.
-              </p>
-            </div>
-          </div>
-          <Button
-            size="sm"
-            onClick={() =>
-              toast.info("Abrir novo chamado", {
-                description: "Fluxo de novo chamado será integrado em breve.",
-              })
-            }
-            className="h-9 cursor-pointer gap-1.5 rounded-lg bg-primary/15 text-[12px] font-semibold text-primary shadow-none hover:bg-primary/25"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            Abrir novo chamado
-          </Button>
-        </footer>
       </DialogContent>
+      <PastAttendanceDetailModal
+        open={selected !== null}
+        onOpenChange={(v) => !v && setSelected(null)}
+        attendance={selected}
+        ticket={ticket}
+      />
     </Dialog>
   );
 }

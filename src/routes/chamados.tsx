@@ -48,15 +48,17 @@ import {
 } from "@/components/ui/chart";
 import {
   dailyTicketAnalytics,
-  ticketOperators,
   ticketStatuses,
   weeklyTicketAnalytics,
   type SupportTicket,
   type TicketPriority,
   type TicketStatus,
 } from "@/lib/support-tickets-data";
+
+const ticketPriorities: TicketPriority[] = ["Alta", "Media", "Baixa"];
 import { useTickets, useTicketHistory, ticketsStore } from "@/lib/tickets-store";
 import { FileText } from "lucide-react";
+import { getModuleIcon } from "@/lib/ticket-icons";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { TicketDetailSheet } from "@/components/tickets/TicketDetailSheet";
@@ -110,15 +112,13 @@ const sourceLabels = {
 
 type Filters = {
   status: string;
-  operator: string;
-  dateType: string;
+  priority: string;
   query: string;
 };
 
 const initialFilters: Filters = {
   status: "Todos",
-  operator: "Todos",
-  dateType: "Registro",
+  priority: "Todas",
   query: "",
 };
 
@@ -144,13 +144,7 @@ function TicketsPage() {
     const query = filters.query.trim().toLowerCase();
     return supportTickets.filter((ticket) => {
       if (filters.status !== "Todos" && ticket.status !== filters.status) return false;
-      if (
-        filters.operator !== "Todos" &&
-        ticket.owner !== filters.operator &&
-        ticket.attendant !== filters.operator
-      ) {
-        return false;
-      }
+      if (filters.priority !== "Todas" && ticket.priority !== filters.priority) return false;
       if (!query) return true;
       return [
         ticket.protocol,
@@ -223,9 +217,12 @@ function TicketsPage() {
       <section className="mb-6 grid grid-cols-1 gap-6 xl:grid-cols-[1.1fr_1.1fr]">
         <div className="space-y-6">
           <TicketsHero openTickets={openTickets} overdueTickets={overdueTickets} />
-          <DailyVolumeCard />
-          <WeeklyBacklogCard />
+          <div id="analytics-detalhado" className="scroll-mt-24 space-y-6">
+            <DailyVolumeCard />
+            <WeeklyBacklogCard />
+          </div>
         </div>
+
 
         <div className="space-y-6">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -278,57 +275,53 @@ function TicketsPage() {
       </section>
 
 
-      <Card className="mb-6 rounded-[14px] border-0 bg-card p-3 shadow-[0_10px_28px_rgba(25,29,51,0.06)]">
-        <div className="flex flex-col gap-2.5 md:flex-row md:flex-wrap md:items-center xl:flex-nowrap">
-          <select
-            value={filters.status}
-            onChange={(event) => setFilters((prev) => ({ ...prev, status: event.target.value }))}
-            className="h-10 w-full shrink-0 cursor-pointer rounded-xl border border-border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring md:w-[160px]"
-          >
-            <option>Todos</option>
-            {ticketStatuses.map((status) => (
-              <option key={status}>{status}</option>
-            ))}
-          </select>
-          <select
-            value={filters.operator}
-            onChange={(event) => setFilters((prev) => ({ ...prev, operator: event.target.value }))}
-            className="h-10 w-full shrink-0 cursor-pointer rounded-xl border border-border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring md:w-[160px]"
-          >
-            <option>Todos</option>
-            {ticketOperators.map((operator) => (
-              <option key={operator}>{operator}</option>
-            ))}
-          </select>
-          <select
-            value={filters.dateType}
-            onChange={(event) => setFilters((prev) => ({ ...prev, dateType: event.target.value }))}
-            className="h-10 w-full shrink-0 cursor-pointer rounded-xl border border-border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring md:w-[150px]"
-          >
-            <option>Registro</option>
-            <option>Atualizado</option>
-          </select>
-          <div className="relative w-full min-w-[240px] flex-1 md:basis-full xl:basis-0">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+      <Card className="mb-6 rounded-2xl border border-border/60 bg-card p-3 shadow-[0_8px_22px_rgba(25,29,51,0.05)]">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <div className="relative order-1 min-w-0 flex-1 sm:order-none">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <input
               value={filters.query}
               onChange={(event) => setFilters((prev) => ({ ...prev, query: event.target.value }))}
               type="search"
               placeholder="Buscar por cliente, protocolo, assunto, contato..."
-              className="h-10 w-full rounded-xl border border-border bg-background pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+              className="h-9 w-full rounded-lg border border-border bg-background pl-9 pr-3 text-sm outline-none transition focus:ring-2 focus:ring-ring"
             />
           </div>
-          <Button
-            type="button"
-            variant="outline"
-            className="h-10 w-full shrink-0 cursor-pointer rounded-xl md:w-auto"
-            onClick={() => setFilters(initialFilters)}
-          >
-            <SlidersHorizontal className="mr-1.5 h-4 w-4" />
-            Limpar
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <select
+              value={filters.status}
+              onChange={(event) => setFilters((prev) => ({ ...prev, status: event.target.value }))}
+              className="h-9 cursor-pointer rounded-lg border border-border bg-background px-2.5 pr-7 text-[13px] outline-none focus:ring-2 focus:ring-ring sm:w-[150px]"
+            >
+              <option>Todos</option>
+              {ticketStatuses.map((status) => (
+                <option key={status}>{status}</option>
+              ))}
+            </select>
+            <select
+              value={filters.priority}
+              onChange={(event) => setFilters((prev) => ({ ...prev, priority: event.target.value }))}
+              className="h-9 cursor-pointer rounded-lg border border-border bg-background px-2.5 pr-7 text-[13px] outline-none focus:ring-2 focus:ring-ring sm:w-[130px]"
+            >
+              <option>Todas</option>
+              {ticketPriorities.map((priority) => (
+                <option key={priority}>{priority}</option>
+              ))}
+            </select>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-9 shrink-0 cursor-pointer rounded-lg px-3 text-[13px] text-muted-foreground hover:text-foreground"
+              onClick={() => setFilters(initialFilters)}
+            >
+              <SlidersHorizontal className="mr-1.5 h-3.5 w-3.5" />
+              Limpar
+            </Button>
+          </div>
         </div>
       </Card>
+
 
 
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
@@ -398,31 +391,6 @@ function MetricCard({
   );
 }
 
-function computeSla(ticket: SupportTicket) {
-  const target = 24; // hours SLA
-  const openedAt = new Date(ticket.openedAt).getTime();
-  const now = new Date("2026-07-08T10:00:00").getTime();
-  const hours = Math.max(0, (now - openedAt) / 36e5);
-  const rawPct = ticket.status === "Atrasado" ? 100 : Math.min(100, (hours / target) * 100);
-  const pct = Math.round(rawPct);
-  let tone: "ok" | "warn" | "late" = "ok";
-  if (ticket.status === "Atrasado" || pct >= 90) tone = "late";
-  else if (pct >= 60) tone = "warn";
-  return { pct, tone };
-}
-
-const slaBarTone: Record<"ok" | "warn" | "late", string> = {
-  ok: "bg-success",
-  warn: "bg-warning",
-  late: "bg-destructive",
-};
-
-const slaTextTone: Record<"ok" | "warn" | "late", string> = {
-  ok: "text-success",
-  warn: "text-warning-foreground",
-  late: "text-destructive",
-};
-
 const sourceIcons: Record<SupportTicket["source"], typeof PhoneCall> = {
   Telefone: PhoneCall,
   "Portal do cliente": MessageSquarePlus,
@@ -430,43 +398,6 @@ const sourceIcons: Record<SupportTicket["source"], typeof PhoneCall> = {
   Email: MessageSquarePlus,
 };
 
-const slaGaugeStroke: Record<"ok" | "warn" | "late", string> = {
-  ok: "stroke-success",
-  warn: "stroke-warning",
-  late: "stroke-destructive",
-};
-
-function SlaGauge({ pct, tone }: { pct: number; tone: "ok" | "warn" | "late" }) {
-  // Semicircle: path from (10,50) arc to (90,50), radius 40.
-  const circumference = Math.PI * 40; // ~125.66
-  const dash = (pct / 100) * circumference;
-  return (
-    <div className="relative flex h-[68px] w-[100px] items-end justify-center">
-      <svg viewBox="0 0 100 58" className="h-full w-full overflow-visible">
-        <path
-          d="M10 50 A40 40 0 0 1 90 50"
-          fill="none"
-          strokeWidth={9}
-          strokeLinecap="round"
-          className="stroke-muted"
-        />
-        <path
-          d="M10 50 A40 40 0 0 1 90 50"
-          fill="none"
-          strokeWidth={9}
-          strokeLinecap="round"
-          strokeDasharray={`${dash} ${circumference}`}
-          className={cn("transition-all", slaGaugeStroke[tone])}
-        />
-      </svg>
-      <div className="pointer-events-none absolute inset-x-0 bottom-1 flex justify-center">
-        <span className={cn("text-[15px] font-bold leading-none", slaTextTone[tone])}>
-          {pct}%
-        </span>
-      </div>
-    </div>
-  );
-}
 
 function TicketCard({
   ticket,
@@ -477,7 +408,7 @@ function TicketCard({
   onOpen?: (ticket: SupportTicket) => void;
   onHistory?: (ticket: SupportTicket) => void;
 }) {
-  const sla = computeSla(ticket);
+  
   const SourceIcon = sourceIcons[ticket.source] ?? PhoneCall;
 
   const handleAssume = (e: React.MouseEvent) => {
@@ -491,9 +422,14 @@ function TicketCard({
       {/* Top: icon + title + client / protocol + status */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-start gap-3">
-          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary/12 text-primary">
-            <FileText className="h-5 w-5" />
-          </div>
+          {(() => {
+            const ModuleIcon = getModuleIcon(ticket.module, ticket.source, ticket.subject);
+            return (
+              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary/12 text-primary">
+                <ModuleIcon className="h-5 w-5" />
+              </div>
+            );
+          })()}
           <div className="min-w-0">
             <p className="truncate text-[14px] font-bold leading-snug text-foreground">
               {ticket.subject}
@@ -520,32 +456,24 @@ function TicketCard({
         </div>
       </div>
 
-      {/* Middle: info grid + SLA gauge */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-stretch">
-        <dl className="grid min-w-0 flex-1 grid-cols-2 gap-x-3 gap-y-2 text-[12px]">
-          <InfoRow icon={UserRound} label="Contato" value={ticket.contact} />
-          <InfoRow icon={Layers} label="Módulo" value={ticket.module} />
-          <InfoRow icon={Headphones} label="Atendente" value={ticket.attendant} />
-          <InfoRow icon={UserPlus} label="Responsável" value={ticket.owner} />
-          <InfoRow
-            icon={CalendarClock}
-            label="Registro"
-            value={formatDateTime(ticket.openedAt)}
-          />
-          <InfoRow
-            icon={Clock3}
-            label="Atualizado"
-            value={formatDateTime(ticket.updatedAt)}
-          />
-        </dl>
+      {/* Middle: info grid */}
+      <dl className="grid min-w-0 grid-cols-1 gap-x-4 gap-y-2 text-[12px] sm:grid-cols-2 lg:grid-cols-3">
+        <InfoRow icon={UserRound} label="Contato" value={ticket.contact} />
+        <InfoRow icon={Layers} label="Módulo" value={ticket.module} />
+        <InfoRow icon={Headphones} label="Atendente" value={ticket.attendant} />
+        <InfoRow icon={UserPlus} label="Responsável" value={ticket.owner} />
+        <InfoRow
+          icon={CalendarClock}
+          label="Registro"
+          value={formatDateTime(ticket.openedAt)}
+        />
+        <InfoRow
+          icon={Clock3}
+          label="Atualizado"
+          value={formatDateTime(ticket.updatedAt)}
+        />
+      </dl>
 
-        <div className="flex shrink-0 flex-col items-center justify-center gap-1 rounded-xl border border-border/60 bg-muted/40 px-3 py-2 sm:w-[118px]">
-          <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-            SLA
-          </span>
-          <SlaGauge pct={sla.pct} tone={sla.tone} />
-        </div>
-      </div>
 
       {/* Chips */}
       <div className="flex flex-wrap items-center gap-1.5">
@@ -702,9 +630,7 @@ function TicketsHero({
           {overdueTickets} atrasados exigem retorno imediato. Acompanhe SLA, produtividade e o
           fluxo de origem em um só lugar.
         </p>
-        <Button className="mt-6 rounded-full bg-white dark:bg-[#20263d] px-6 text-foreground hover:bg-white/90">
-          Ver painel completo <ArrowRight className="ml-2 h-4 w-4" />
-        </Button>
+
       </div>
       <div className="absolute right-6 top-8 hidden h-[160px] w-[200px] md:block">
         <div className="absolute bottom-0 left-8 h-[86px] w-[130px] rounded-lg bg-white/75 shadow-xl" />
@@ -757,7 +683,7 @@ function DailyVolumeCard() {
       </div>
       <div className="h-[240px]">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={dailyTicketAnalytics} margin={{ top: 10, right: 10, left: -16, bottom: 0 }}>
+          <AreaChart data={dailyTicketAnalytics} margin={{ top: 16, right: 16, left: 8, bottom: 8 }}>
             <defs>
               <linearGradient id="chamados-opened" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="#0b97c4" stopOpacity={0.35} />
@@ -770,7 +696,7 @@ function DailyVolumeCard() {
             </defs>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(139,145,173,0.18)" />
             <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#8b91ad" }} />
-            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#8b91ad" }} width={30} />
+            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#8b91ad" }} width={40} />
             <Tooltip
               contentStyle={{
                 border: "0",
@@ -807,10 +733,10 @@ function WeeklyBacklogCard() {
       </div>
       <div className="h-[220px]">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={weeklyTicketAnalytics} margin={{ top: 10, right: 10, left: -18, bottom: 0 }}>
+          <BarChart data={weeklyTicketAnalytics} margin={{ top: 16, right: 16, left: 8, bottom: 8 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(139,145,173,0.18)" />
             <XAxis dataKey="week" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#8b91ad" }} />
-            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#8b91ad" }} width={30} />
+            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#8b91ad" }} width={40} />
             <Tooltip
               contentStyle={{
                 border: "0",

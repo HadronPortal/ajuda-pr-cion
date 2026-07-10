@@ -11,6 +11,8 @@ import {
   BarChart3,
   CheckCircle2,
   Clock3,
+  AlertTriangle,
+  Users,
 } from "lucide-react";
 import { SefazStatusPanel } from "@/components/portal/SefazStatusPanel";
 import { AppShell } from "@/components/portal/AppShell";
@@ -74,7 +76,7 @@ const shortcuts = [
   },
 ] as const;
 
-function TodaySummaryCard() {
+function ResumoHojeSlide() {
   const bars = [
     { label: "08-12h", value: 8, height: "42%" },
     { label: "12-18h", value: 15, height: "82%" },
@@ -84,10 +86,7 @@ function TodaySummaryCard() {
   ];
 
   return (
-    <div className="relative flex min-h-[356px] flex-col overflow-hidden rounded-2xl border border-white/14 bg-[radial-gradient(circle_at_32%_34%,rgba(71,186,255,0.28),transparent_34%),linear-gradient(137deg,rgba(42,132,210,0.58)_0%,rgba(45,58,155,0.74)_48%,rgba(42,34,120,0.84)_100%)] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.13)] backdrop-blur-md">
-      <div className="pointer-events-none absolute -bottom-14 left-8 h-32 w-64 rounded-full bg-cyan-300/10 blur-3xl" />
-      <div className="pointer-events-none absolute right-0 top-8 h-52 w-52 rounded-full bg-violet-300/12 blur-3xl" />
-
+    <>
       <div className="flex items-center justify-between gap-4">
         <p className="text-[11px] font-bold uppercase tracking-wider text-white/86">
           Resumo de hoje
@@ -148,11 +147,141 @@ function TodaySummaryCard() {
         <SummaryProgress icon={CheckCircle2} label="Taxa de resolução" value="81%" />
         <SummaryProgress icon={Clock3} label="Tempo médio de resposta" value="24 min" />
       </div>
+    </>
+  );
+}
 
-      <div className="relative z-10 mt-auto flex gap-1.5 pt-4">
-        <span className="h-1.5 w-8 rounded-full bg-white" />
-        <span className="h-1.5 w-1.5 rounded-full bg-white/45" />
-        <span className="h-1.5 w-1.5 rounded-full bg-white/45" />
+function SlaSlide() {
+  return (
+    <>
+      <div className="flex items-center justify-between gap-4">
+        <p className="text-[11px] font-bold uppercase tracking-wider text-white/86">
+          SLA e atrasos
+        </p>
+        <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-white/66">
+          <AlertTriangle className="h-3.5 w-3.5" />
+          Prioridade
+        </span>
+      </div>
+
+      <div className="relative z-10 mt-4">
+        <p className="text-[12px] text-white/84">Chamados em risco</p>
+        <p className="mt-1 text-[30px] font-extrabold leading-none tracking-normal md:text-[34px]">
+          7 chamados <span className="text-[#ffd166]">em risco</span>
+        </p>
+        <p className="mt-2 text-[12px] font-semibold text-white/76">
+          3 já ultrapassaram o SLA
+        </p>
+      </div>
+
+      <div className="relative z-10 mt-5 space-y-2">
+        <SummaryProgress icon={CheckCircle2} label="Dentro do SLA" value="86%" tone="ok" />
+        <SummaryProgress icon={AlertTriangle} label="Atrasados" value="3 chamados" tone="danger" />
+        <SummaryProgress icon={Clock3} label="Próximo SLA vence em" value="42 min" tone="warn" />
+      </div>
+    </>
+  );
+}
+
+function FilaSlide() {
+  const rows = [
+    { label: "Ana Ribeiro", value: 3, width: "60%" },
+    { label: "PRCSUZ", value: 4, width: "80%" },
+    { label: "PRCMAR", value: 5, width: "100%" },
+    { label: "Sem responsável", value: 2, width: "40%", muted: true },
+  ];
+  return (
+    <>
+      <div className="flex items-center justify-between gap-4">
+        <p className="text-[11px] font-bold uppercase tracking-wider text-white/86">
+          Fila de atendimento
+        </p>
+        <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-white/66">
+          <Users className="h-3.5 w-3.5" />
+          Por atendente
+        </span>
+      </div>
+
+      <div className="relative z-10 mt-4">
+        <p className="text-[12px] text-white/84">Em atendimento agora</p>
+        <p className="mt-1 text-[30px] font-extrabold leading-none tracking-normal md:text-[34px]">
+          5 em atendimento
+        </p>
+        <p className="mt-2 text-[12px] font-semibold text-white/76">
+          12 aguardando primeira resposta
+        </p>
+      </div>
+
+      <div className="relative z-10 mt-4 space-y-1.5">
+        {rows.map((r) => (
+          <div key={r.label} className="flex items-center gap-3">
+            <span className="w-[110px] shrink-0 truncate text-[11px] font-semibold text-white/85">
+              {r.label}
+            </span>
+            <div className="relative h-2 flex-1 overflow-hidden rounded-full bg-white/12">
+              <div
+                className={`h-full rounded-full ${
+                  r.muted
+                    ? "bg-white/30"
+                    : "bg-[linear-gradient(90deg,#49d4ff_0%,#5a5cf7_100%)]"
+                }`}
+                style={{ width: r.width }}
+              />
+            </div>
+            <span className="w-6 text-right text-[11px] font-bold text-white">{r.value}</span>
+          </div>
+        ))}
+      </div>
+
+      <div className="relative z-10 mt-3">
+        <SummaryProgress icon={Clock3} label="Maior espera" value="1h18" tone="warn" />
+      </div>
+    </>
+  );
+}
+
+const SLIDES = [
+  { key: "resumo", render: () => <ResumoHojeSlide /> },
+  { key: "sla", render: () => <SlaSlide /> },
+  { key: "fila", render: () => <FilaSlide /> },
+];
+
+function TodaySummaryCard() {
+  const [idx, setIdx] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setIdx((i) => (i + 1) % SLIDES.length), 6500);
+    return () => clearInterval(id);
+  }, []);
+
+  return (
+    <div className="relative flex h-[440px] min-h-[440px] max-h-[440px] flex-col overflow-hidden rounded-2xl border border-white/14 bg-[radial-gradient(circle_at_32%_34%,rgba(71,186,255,0.28),transparent_34%),linear-gradient(137deg,rgba(42,132,210,0.58)_0%,rgba(45,58,155,0.74)_48%,rgba(42,34,120,0.84)_100%)] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.13)] backdrop-blur-md">
+      <div className="pointer-events-none absolute -bottom-14 left-8 h-32 w-64 rounded-full bg-cyan-300/10 blur-3xl" />
+      <div className="pointer-events-none absolute right-0 top-8 h-52 w-52 rounded-full bg-violet-300/12 blur-3xl" />
+
+      <div className="relative z-10 min-h-0 flex-1 overflow-hidden">
+        {SLIDES.map((s, i) => (
+          <div
+            key={s.key}
+            className={`absolute inset-0 flex h-full flex-col overflow-hidden transition-opacity duration-300 ${i === idx ? "opacity-100" : "pointer-events-none opacity-0"}`}
+            aria-hidden={i !== idx}
+          >
+            {s.render()}
+          </div>
+        ))}
+      </div>
+
+      <div className="relative z-10 mt-auto flex shrink-0 gap-1.5 pt-4">
+        {SLIDES.map((s, i) => (
+          <button
+            key={s.key}
+            type="button"
+            aria-label={`Slide ${i + 1}`}
+            onClick={() => setIdx(i)}
+            className={`h-1.5 rounded-full transition-all ${
+              i === idx ? "w-8 bg-white" : "w-1.5 bg-white/45 hover:bg-white/70"
+            }`}
+          />
+        ))}
       </div>
     </div>
   );
@@ -162,24 +291,36 @@ function SummaryProgress({
   icon: Icon,
   label,
   value,
+  tone = "ok",
 }: {
   icon: typeof CheckCircle2;
   label: string;
   value: string;
+  tone?: "ok" | "warn" | "danger";
 }) {
+  const iconColor =
+    tone === "danger" ? "text-[#ff8a8a]" : tone === "warn" ? "text-[#ffd166]" : "text-[#68e7bd]";
+  const valueColor =
+    tone === "danger" ? "text-[#ff8a8a]" : tone === "warn" ? "text-[#ffd166]" : "text-[#8ee8ff]";
+  const barGrad =
+    tone === "danger"
+      ? "from-[#ff8a8a] to-[#ff5470]"
+      : tone === "warn"
+        ? "from-[#ffd166] to-[#ff9f45]"
+        : "from-[#54e1a7] to-[#6bd9ff]";
   return (
-    <div className="rounded-xl border border-white/10 bg-white/10 px-3 py-2">
+    <div className="rounded-xl border border-white/10 bg-white/10 px-3 py-1.5">
       <div className="flex items-center justify-between gap-3 text-[11px] font-semibold">
         <span className="inline-flex items-center gap-2 text-white/86">
-          <span className="grid h-5 w-5 place-items-center rounded-full bg-white/12 text-[#68e7bd]">
+          <span className={`grid h-4 w-4 shrink-0 place-items-center rounded-full bg-white/12 ${iconColor}`}>
             <Icon className="h-3 w-3" />
           </span>
           {label}
         </span>
-        <span className="text-[#8ee8ff]">{value}</span>
+        <span className={valueColor}>{value}</span>
       </div>
-      <div className="mt-2 h-1 overflow-hidden rounded-full bg-white/14">
-        <div className="h-full w-[81%] rounded-full bg-gradient-to-r from-[#54e1a7] to-[#6bd9ff]" />
+      <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-white/14">
+        <div className={`h-full w-[81%] rounded-full bg-gradient-to-r ${barGrad}`} />
       </div>
     </div>
   );
@@ -263,13 +404,6 @@ function HomePage() {
     <AppShell>
       {/* Hero */}
       <section className="mb-6 overflow-hidden rounded-[18px] bg-[radial-gradient(circle_at_20%_10%,rgba(51,195,232,0.42),transparent_34%),linear-gradient(135deg,#0c9fd4_0%,#087ee0_42%,#263276_100%)] p-4 text-white shadow-[0_22px_54px_rgba(11,151,196,0.28)] md:p-5">
-        <div className="mb-3">
-          <p className="text-sm font-light leading-none text-white/85">{greeting},</p>
-          <h1 className="mt-1.5 text-[20px] font-bold leading-none tracking-normal md:text-[24px]">
-            {displayName} <span className="text-[16px] md:text-[18px]">👋</span>
-          </h1>
-        </div>
-
         <div className="grid gap-3 xl:grid-cols-[minmax(0,1.75fr)_minmax(360px,0.95fr)]">
           <SefazStatusPanel />
           <TodaySummaryCard />

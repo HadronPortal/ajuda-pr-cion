@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { Activity, AlertTriangle, CheckCircle2, MapPin, RefreshCw, XCircle } from "lucide-react";
 import {
+  Area,
   CartesianGrid,
+  ComposedChart,
   Line,
-  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -113,9 +114,6 @@ export function SefazStatusPanel() {
   }, []);
 
   const tone = data ? sefazStatusTone(data.generalStatus) : sefazStatusTone("Normal");
-  const affectedUfs = data
-    ? Array.from(new Set(data.services.flatMap((s) => s.affectedUf ?? [])))
-    : [];
 
   return (
     <>
@@ -143,22 +141,44 @@ export function SefazStatusPanel() {
           </span>
         </div>
 
-        <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {(data?.services ?? []).map((s) => (
-            <ServiceCard key={s.name} svc={s} />
-          ))}
+        <div className="mt-4 flex flex-wrap gap-1.5">
+          {(data?.services ?? []).map((s) => {
+            const t = sefazStatusTone(s.status);
+            return (
+              <span
+                key={s.name}
+                className="inline-flex items-center gap-1.5 rounded-full bg-white/12 px-2.5 py-1 text-[10.5px] font-semibold text-white"
+              >
+                <span className={cn("h-1.5 w-1.5 rounded-full", t.dot)} />
+                {s.name}
+              </span>
+            );
+          })}
         </div>
 
         <div className="mt-4">
           <p className="mb-2 text-[11px] font-semibold text-white/86">
             Histórico de status (últimas 24h)
           </p>
-          <div className="h-[132px]">
+          <div className="h-[132px] overflow-visible">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={statusHistory} margin={{ top: 5, right: 8, left: -8, bottom: 2 }}>
+              <ComposedChart data={statusHistory} margin={{ top: 12, right: 12, left: 12, bottom: 8 }}>
+                <defs>
+                  {[
+                    { id: "fillNfe", color: "#55e3ad" },
+                    { id: "fillNfce", color: "#ffd04d" },
+                    { id: "fillCte", color: "#59d9ff" },
+                    { id: "fillMdfe", color: "#8cf45f" },
+                  ].map((g) => (
+                    <linearGradient key={g.id} id={g.id} x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={g.color} stopOpacity={0.45} />
+                      <stop offset="100%" stopColor={g.color} stopOpacity={0} />
+                    </linearGradient>
+                  ))}
+                </defs>
                 <CartesianGrid stroke="rgba(255,255,255,0.14)" strokeDasharray="4 4" />
                 <XAxis dataKey="time" tickLine={false} axisLine={false} tick={{ fill: "rgba(255,255,255,0.72)", fontSize: 10 }} />
-                <YAxis tickFormatter={(v) => `${v}%`} tickLine={false} axisLine={false} tick={{ fill: "rgba(255,255,255,0.70)", fontSize: 10 }} domain={[0, 100]} ticks={[0, 25, 50, 75, 100]} width={34} />
+                <YAxis tickFormatter={(v) => `${v}%`} tickLine={false} axisLine={false} tick={{ fill: "rgba(255,255,255,0.70)", fontSize: 10 }} domain={[0, 100]} ticks={[0, 25, 50, 75, 100]} width={44} />
                 <Tooltip
                   contentStyle={{
                     border: "0",
@@ -168,13 +188,31 @@ export function SefazStatusPanel() {
                     fontSize: 11,
                   }}
                 />
+                <Area type="monotone" dataKey="nfe" stroke="none" fill="url(#fillNfe)" isAnimationActive={false} activeDot={false} />
+                <Area type="monotone" dataKey="nfce" stroke="none" fill="url(#fillNfce)" isAnimationActive={false} activeDot={false} />
+                <Area type="monotone" dataKey="cte" stroke="none" fill="url(#fillCte)" isAnimationActive={false} activeDot={false} />
+                <Area type="monotone" dataKey="mdfe" stroke="none" fill="url(#fillMdfe)" isAnimationActive={false} activeDot={false} />
                 <Line type="monotone" dataKey="nfe" stroke="#55e3ad" strokeWidth={2.5} dot={false} />
                 <Line type="monotone" dataKey="nfce" stroke="#ffd04d" strokeWidth={2.5} dot={false} />
                 <Line type="monotone" dataKey="cte" stroke="#59d9ff" strokeWidth={2.5} dot={false} />
                 <Line type="monotone" dataKey="mdfe" stroke="#8cf45f" strokeWidth={2.5} dot={false} />
-              </LineChart>
+              </ComposedChart>
             </ResponsiveContainer>
-          </div>
+        </div>
+
+        {(() => {
+          const ufs = data
+            ? Array.from(new Set(data.services.flatMap((s) => s.affectedUf ?? [])))
+            : [];
+          if (ufs.length === 0) return null;
+          return (
+            <div className="mt-3 flex items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-[11.5px] text-white/90">
+              <MapPin className="h-3.5 w-3.5 shrink-0 text-[#ffd04d]" />
+              <span className="font-semibold">UFs com instabilidade:</span>
+              <span className="truncate">{ufs.join(", ")}</span>
+            </div>
+          );
+        })()}
           <div className="mt-1 flex justify-center gap-5 text-[10px] font-semibold text-white/82">
             <ChartLegendDot color="#55e3ad" label="NF-e" />
             <ChartLegendDot color="#ffd04d" label="NFC-e" />
@@ -183,13 +221,6 @@ export function SefazStatusPanel() {
           </div>
         </div>
 
-        {affectedUfs.length > 0 && (
-          <div className="mt-4 flex items-center gap-2 rounded-xl bg-white/10 px-3 py-2 text-[11px] text-white/88 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
-            <MapPin className="h-3.5 w-3.5 text-[#ffd04d]" />
-            UFs com instabilidade:{" "}
-            <span className="font-semibold text-[#ffe87d]">{affectedUfs.join(", ")}</span>
-          </div>
-        )}
 
         <div className="mt-3 flex items-center justify-between gap-2">
           <button
