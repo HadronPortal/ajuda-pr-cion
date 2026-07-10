@@ -358,10 +358,10 @@ function TicketsPage() {
               aria-pressed={viewMode === "grid"}
               aria-label="Visualização em grade"
               className={cn(
-                "inline-flex h-7 items-center gap-1.5 rounded-md px-2.5 text-[12px] font-semibold transition",
+                "inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-md px-2.5 text-[12px] font-semibold transition",
                 viewMode === "grid"
                   ? "bg-primary/12 text-primary"
-                  : "text-muted-foreground hover:text-foreground",
+                  : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
               )}
             >
               <LayoutGrid className="h-3.5 w-3.5" />
@@ -373,10 +373,10 @@ function TicketsPage() {
               aria-pressed={viewMode === "list"}
               aria-label="Visualização em lista"
               className={cn(
-                "inline-flex h-7 items-center gap-1.5 rounded-md px-2.5 text-[12px] font-semibold transition",
+                "inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-md px-2.5 text-[12px] font-semibold transition",
                 viewMode === "list"
                   ? "bg-primary/12 text-primary"
-                  : "text-muted-foreground hover:text-foreground",
+                  : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
               )}
             >
               <ListIcon className="h-3.5 w-3.5" />
