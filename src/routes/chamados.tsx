@@ -214,9 +214,12 @@ function TicketsPage() {
       <section className="mb-6 grid grid-cols-1 gap-6 xl:grid-cols-[1.1fr_1.1fr]">
         <div className="space-y-6">
           <TicketsHero openTickets={openTickets} overdueTickets={overdueTickets} />
-          <DailyVolumeCard />
-          <WeeklyBacklogCard />
+          <div id="analytics-detalhado" className="scroll-mt-24 space-y-6">
+            <DailyVolumeCard />
+            <WeeklyBacklogCard />
+          </div>
         </div>
+
 
         <div className="space-y-6">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
