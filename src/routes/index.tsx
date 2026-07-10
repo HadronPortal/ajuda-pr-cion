@@ -278,12 +278,20 @@ function TodaySummaryCard() {
   }, []);
 
   return (
-    <div className="relative flex min-h-[356px] flex-col overflow-hidden rounded-2xl border border-white/14 bg-[radial-gradient(circle_at_32%_34%,rgba(71,186,255,0.28),transparent_34%),linear-gradient(137deg,rgba(42,132,210,0.58)_0%,rgba(45,58,155,0.74)_48%,rgba(42,34,120,0.84)_100%)] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.13)] backdrop-blur-md">
+    <div className="relative flex h-[440px] flex-col overflow-hidden rounded-2xl border border-white/14 bg-[radial-gradient(circle_at_32%_34%,rgba(71,186,255,0.28),transparent_34%),linear-gradient(137deg,rgba(42,132,210,0.58)_0%,rgba(45,58,155,0.74)_48%,rgba(42,34,120,0.84)_100%)] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.13)] backdrop-blur-md">
       <div className="pointer-events-none absolute -bottom-14 left-8 h-32 w-64 rounded-full bg-cyan-300/10 blur-3xl" />
       <div className="pointer-events-none absolute right-0 top-8 h-52 w-52 rounded-full bg-violet-300/12 blur-3xl" />
 
-      <div className="relative z-10 flex flex-1 flex-col">
-        {SLIDES[idx].render()}
+      <div className="relative z-10 flex-1 overflow-hidden">
+        {SLIDES.map((s, i) => (
+          <div
+            key={s.key}
+            className={`absolute inset-5 bottom-10 flex flex-col ${i === idx ? "opacity-100" : "pointer-events-none opacity-0"}`}
+            aria-hidden={i !== idx}
+          >
+            {s.render()}
+          </div>
+        ))}
       </div>
 
       <div className="relative z-10 mt-auto flex gap-1.5 pt-4">
