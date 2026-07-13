@@ -1134,19 +1134,14 @@ function TicketsListView({
                     onClick={() => onOpen(ticket)}
                     className={cn(
                       "group cursor-pointer transition",
-                      "[&>td]:border-y [&>td]:border-border/60 [&>td]:bg-card",
+                      rowTintFor(ticket),
+                      "[&>td]:border-y [&>td]:border-border/60",
                       "[&>td:first-child]:rounded-l-lg [&>td:first-child]:border-l-[3px]",
                       "[&>td:last-child]:rounded-r-lg [&>td:last-child]:border-r",
-                      "[&>td]:shadow-[0_1px_2px_rgba(25,29,51,0.03)]",
+                      statusBorderTone[ticket.status],
                     )}
                   >
-                    <td
-                      className={cn(
-                        "px-2 py-2 align-middle",
-                        rowTintFor(ticket),
-                        statusBorderTone[ticket.status],
-                      )}
-                    >
+                    <td className="px-2 py-2 align-middle">
                       <div className="flex flex-col items-start gap-0.5">
                         <Badge
                           className={cn(
@@ -1167,7 +1162,7 @@ function TicketsListView({
                         </span>
                       </div>
                     </td>
-                    <td className={cn("px-2 py-2 align-middle", rowTintFor(ticket))}>
+                    <td className="px-2 py-2 align-middle">
                       <span
                         className={cn(
                           "inline-flex min-w-[86px] items-center justify-center gap-1 whitespace-nowrap rounded-full border px-2 py-0.5 text-[10.5px] font-semibold",
