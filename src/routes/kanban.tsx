@@ -398,15 +398,15 @@ function MetricCard({
   };
 
   return (
-    <div className="rounded-xl border border-white/8 bg-white/[0.045] p-4 shadow-[0_18px_40px_rgba(0,0,0,0.16)]">
+    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-white/8 dark:bg-white/[0.045] dark:shadow-[0_18px_40px_rgba(0,0,0,0.16)]">
       <div className="flex items-center gap-3">
         <div className={cn("grid h-11 w-11 place-items-center rounded-xl bg-opacity-25", tones[color])}>
           <Icon className="h-5 w-5 text-white" />
         </div>
         <div>
-          <p className="text-[11px] font-medium text-slate-400">{label}</p>
+          <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400">{label}</p>
           <div className="mt-1 flex items-end gap-3">
-            <span className="text-3xl font-black leading-none text-white">{value}</span>
+            <span className="text-3xl font-black leading-none text-slate-900 dark:text-white">{value}</span>
           </div>
         </div>
       </div>
