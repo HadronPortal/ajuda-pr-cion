@@ -20,11 +20,17 @@ import {
   ArrowUpRight,
   CalendarClock,
   CheckCircle2,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronUp,
+  ChevronsLeft,
+  ChevronsRight,
+  ChevronsUpDown,
   Clock3,
   FolderKanban,
   Headphones,
   History,
-  ChevronRight,
   Layers,
   LockKeyhole,
   MessageSquarePlus,
@@ -97,6 +103,19 @@ const statusTone: Record<TicketStatus, string> = {
   Agendamento: "bg-orange-500 text-white border-orange-600 dark:bg-orange-500 dark:text-white dark:border-orange-400",
   Finalizado: "bg-emerald-600 text-white border-emerald-700 dark:bg-emerald-600 dark:text-white dark:border-emerald-500",
   Cancelado: "bg-slate-500 text-white border-slate-600 dark:bg-slate-600 dark:text-white dark:border-slate-500",
+};
+
+// Left border stripe color per status (matches badge).
+const statusBorderTone: Record<TicketStatus, string> = {
+  Atrasado: "border-l-red-600 dark:border-l-red-500",
+  "Em Aberto": "border-l-cyan-600 dark:border-l-cyan-500",
+  Ocupado: "border-l-amber-500 dark:border-l-amber-400",
+  "Em andamento": "border-l-blue-600 dark:border-l-blue-500",
+  "Aguardando cliente": "border-l-purple-600 dark:border-l-purple-500",
+  "Com especialista": "border-l-teal-600 dark:border-l-teal-500",
+  Agendamento: "border-l-orange-500 dark:border-l-orange-400",
+  Finalizado: "border-l-emerald-600 dark:border-l-emerald-500",
+  Cancelado: "border-l-slate-400 dark:border-l-slate-500",
 };
 
 // Solid priority badges. Baixa uses slate/blue — NOT green (green = Finalizado).
@@ -791,126 +810,413 @@ function TicketCard({
   );
 }
 
+type SortKey =
+  | "status"
+  | "priority"
+  | "cliente"
+  | "contato"
+  | "assunto"
+  | "modulo"
+  | "atendente"
+  | "responsavel"
+  | "registro"
+  | "atualizado";
+type SortDir = "asc" | "desc";
+
+const priorityOrder: Record<TicketPriority, number> = { Alta: 0, Media: 1, Baixa: 2 };
+const statusOrder = Object.fromEntries(
+  ticketStatuses.map((s, i) => [s, i]),
+) as Record<TicketStatus, number>;
+
+function compareTickets(a: SupportTicket, b: SupportTicket, key: SortKey): number {
+  switch (key) {
+    case "status":
+      return statusOrder[a.status] - statusOrder[b.status];
+    case "priority":
+      return priorityOrder[a.priority] - priorityOrder[b.priority];
+    case "cliente":
+      return (
+        a.clientCode.localeCompare(b.clientCode) ||
+        a.clientName.localeCompare(b.clientName)
+      );
+    case "contato":
+      return a.contact.localeCompare(b.contact);
+    case "assunto":
+      return a.subject.localeCompare(b.subject);
+    case "modulo":
+      return a.module.localeCompare(b.module);
+    case "atendente":
+      return a.attendant.localeCompare(b.attendant);
+    case "responsavel":
+      return a.owner.localeCompare(b.owner);
+    case "registro":
+      return new Date(a.openedAt).getTime() - new Date(b.openedAt).getTime();
+    case "atualizado":
+      return new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime();
+  }
+}
+
+function SortableTh({
+  label,
+  sortKey,
+  sort,
+  onSort,
+  align = "left",
+}: {
+  label: string;
+  sortKey: SortKey;
+  sort: { key: SortKey; dir: SortDir };
+  onSort: (key: SortKey) => void;
+  align?: "left" | "right";
+}) {
+  const active = sort.key === sortKey;
+  const Arrow = active ? (sort.dir === "asc" ? ChevronUp : ChevronDown) : ChevronsUpDown;
+  return (
+    <th
+      onClick={() => onSort(sortKey)}
+      aria-sort={active ? (sort.dir === "asc" ? "ascending" : "descending") : "none"}
+      className={cn(
+        "cursor-pointer select-none px-2 py-2.5 font-semibold transition hover:text-foreground",
+        align === "right" ? "text-right" : "text-left",
+      )}
+    >
+      <span className="inline-flex items-center gap-1">
+        {label}
+        <Arrow
+          className={cn(
+            "h-3 w-3 transition-opacity",
+            active ? "opacity-90 text-foreground" : "opacity-50",
+          )}
+        />
+      </span>
+    </th>
+  );
+}
+
+function pagesRange(current: number, total: number): (number | "…")[] {
+  const pages: (number | "…")[] = [];
+  if (total <= 7) {
+    for (let i = 1; i <= total; i += 1) pages.push(i);
+    return pages;
+  }
+  pages.push(1);
+  if (current > 3) pages.push("…");
+  const start = Math.max(2, current - 1);
+  const end = Math.min(total - 1, current + 1);
+  for (let i = start; i <= end; i += 1) pages.push(i);
+  if (current < total - 2) pages.push("…");
+  pages.push(total);
+  return pages;
+}
+
+function PagBtn({
+  children,
+  onClick,
+  disabled,
+  active,
+  label,
+}: {
+  children: React.ReactNode;
+  onClick: () => void;
+  disabled?: boolean;
+  active?: boolean;
+  label?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={label}
+      className={cn(
+        "inline-flex h-7 min-w-7 cursor-pointer items-center justify-center rounded-md border px-2 text-[11.5px] font-medium transition",
+        active
+          ? "border-primary bg-primary text-primary-foreground shadow-sm"
+          : "border-border bg-background text-foreground hover:bg-muted",
+        disabled && "cursor-not-allowed opacity-40 hover:bg-background",
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
+function PaginationBar({
+  page,
+  totalPages,
+  pageSize,
+  onPageChange,
+  onPageSizeChange,
+  start,
+  end,
+  total,
+}: {
+  page: number;
+  totalPages: number;
+  pageSize: number;
+  onPageChange: (p: number) => void;
+  onPageSizeChange: (n: number) => void;
+  start: number;
+  end: number;
+  total: number;
+}) {
+  const pages = pagesRange(page, totalPages);
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/60 bg-card px-4 py-3 text-[12px] text-muted-foreground shadow-[0_6px_16px_rgba(25,29,51,0.04)]">
+      <div>
+        Mostrando <strong className="text-foreground">{start}</strong> a{" "}
+        <strong className="text-foreground">{end}</strong> de{" "}
+        <strong className="text-foreground">{total}</strong> chamados
+      </div>
+      <div className="flex flex-wrap items-center gap-3">
+        <label className="flex items-center gap-2">
+          <span className="text-muted-foreground">Itens por página</span>
+          <select
+            value={pageSize}
+            onChange={(e) => onPageSizeChange(Number(e.target.value))}
+            className="h-7 cursor-pointer rounded-md border border-border bg-background px-2 text-[12px] outline-none focus:ring-2 focus:ring-ring"
+          >
+            {[10, 25, 50, 100].map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+          </select>
+        </label>
+        <div className="flex items-center gap-1">
+          <PagBtn
+            onClick={() => onPageChange(1)}
+            disabled={page <= 1}
+            label="Primeira página"
+          >
+            <ChevronsLeft className="h-3.5 w-3.5" />
+          </PagBtn>
+          <PagBtn
+            onClick={() => onPageChange(page - 1)}
+            disabled={page <= 1}
+            label="Página anterior"
+          >
+            <ChevronLeft className="h-3.5 w-3.5" />
+          </PagBtn>
+          {pages.map((p, i) =>
+            p === "…" ? (
+              <span key={`e-${i}`} className="px-1 text-muted-foreground">
+                …
+              </span>
+            ) : (
+              <PagBtn key={p} onClick={() => onPageChange(p)} active={p === page}>
+                {p}
+              </PagBtn>
+            ),
+          )}
+          <PagBtn
+            onClick={() => onPageChange(page + 1)}
+            disabled={page >= totalPages}
+            label="Próxima página"
+          >
+            <ChevronRight className="h-3.5 w-3.5" />
+          </PagBtn>
+          <PagBtn
+            onClick={() => onPageChange(totalPages)}
+            disabled={page >= totalPages}
+            label="Última página"
+          >
+            <ChevronsRight className="h-3.5 w-3.5" />
+          </PagBtn>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function TicketsListView({
   tickets,
   onOpen,
-  onHistory,
+  onHistory: _onHistory,
 }: {
   tickets: SupportTicket[];
   onOpen: (ticket: SupportTicket) => void;
   onHistory: (ticket: SupportTicket) => void;
 }) {
-  if (tickets.length === 0) {
-    return (
-      <Card className="rounded-2xl border border-border/60 bg-card p-8 text-center text-sm text-muted-foreground">
-        Nenhum chamado encontrado com os filtros atuais.
-      </Card>
-    );
-  }
+  const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({
+    key: "registro",
+    dir: "desc",
+  });
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
 
-  const handleAssume = (ticket: SupportTicket, e: React.MouseEvent) => {
-    e.stopPropagation();
-    ticketsStore.assumeTicket(ticket.id);
-    toast.success(`Chamado ${ticket.protocol} assumido.`);
+  // Reset to page 1 when filters (i.e. ticket list) or page size change.
+  useEffect(() => {
+    setPage(1);
+  }, [tickets, pageSize]);
+
+  const sorted = useMemo(() => {
+    const arr = [...tickets];
+    arr.sort((a, b) => {
+      const c = compareTickets(a, b, sort.key);
+      return sort.dir === "asc" ? c : -c;
+    });
+    return arr;
+  }, [tickets, sort]);
+
+  const totalPages = Math.max(1, Math.ceil(sorted.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const startIdx = (currentPage - 1) * pageSize;
+  const pageItems = sorted.slice(startIdx, startIdx + pageSize);
+  const start = sorted.length === 0 ? 0 : startIdx + 1;
+  const end = startIdx + pageItems.length;
+
+  const toggleSort = (key: SortKey) => {
+    setSort((prev) =>
+      prev.key === key
+        ? { key, dir: prev.dir === "asc" ? "desc" : "asc" }
+        : { key, dir: key === "registro" || key === "atualizado" ? "desc" : "asc" },
+    );
   };
 
   return (
-    <>
+    <div className="space-y-3">
       {/* Desktop table */}
-      <Card className="hidden overflow-hidden rounded-2xl border border-border/60 bg-card shadow-[0_8px_22px_rgba(25,29,51,0.05)] lg:block">
-        <div className="w-full">
+      <Card className="hidden overflow-hidden rounded-2xl border border-border/60 bg-card p-0 shadow-[0_8px_22px_rgba(25,29,51,0.05)] lg:block">
+        <div className="w-full overflow-x-auto">
           <table className="w-full table-fixed text-[12px]">
             <colgroup>
-              <col style={{ width: "160px" }} />
+              <col style={{ width: "172px" }} />
               <col style={{ width: "104px" }} />
+              <col style={{ width: "156px" }} />
+              <col style={{ width: "150px" }} />
               <col />
-              <col />
-              <col />
-              <col />
-              <col />
-              <col />
-              <col style={{ width: "108px" }} />
-              <col style={{ width: "108px" }} />
-              <col style={{ width: "28px" }} />
+              <col style={{ width: "190px" }} />
+              <col style={{ width: "112px" }} />
+              <col style={{ width: "112px" }} />
+              <col style={{ width: "128px" }} />
+              <col style={{ width: "128px" }} />
+              <col style={{ width: "36px" }} />
             </colgroup>
-            <thead className="bg-muted/40 text-[10.5px] uppercase tracking-wide text-muted-foreground">
+            <thead className="bg-muted/50 text-[10.5px] uppercase tracking-wide text-muted-foreground">
               <tr>
-                <th className="px-2 py-2 text-left font-semibold">Status</th>
-                <th className="px-2 py-2 text-left font-semibold">Prioridade</th>
-                <th className="px-2 py-2 text-left font-semibold">Cliente</th>
-                <th className="px-2 py-2 text-left font-semibold">Contato</th>
-                <th className="px-2 py-2 text-left font-semibold">Assunto</th>
-                <th className="px-2 py-2 text-left font-semibold">Módulo</th>
-                <th className="px-2 py-2 text-left font-semibold">Atendente</th>
-                <th className="px-2 py-2 text-left font-semibold">Responsável</th>
-                <th className="px-2 py-2 text-left font-semibold">Registro</th>
-                <th className="px-2 py-2 text-left font-semibold">Atualizado</th>
-                <th className="px-2 py-2" aria-label="Abrir" />
+                <SortableTh label="Status" sortKey="status" sort={sort} onSort={toggleSort} />
+                <SortableTh label="Prioridade" sortKey="priority" sort={sort} onSort={toggleSort} />
+                <SortableTh label="Cliente" sortKey="cliente" sort={sort} onSort={toggleSort} />
+                <SortableTh label="Contato" sortKey="contato" sort={sort} onSort={toggleSort} />
+                <SortableTh label="Assunto" sortKey="assunto" sort={sort} onSort={toggleSort} />
+                <SortableTh label="Módulo" sortKey="modulo" sort={sort} onSort={toggleSort} />
+                <SortableTh label="Atendente" sortKey="atendente" sort={sort} onSort={toggleSort} />
+                <SortableTh label="Responsável" sortKey="responsavel" sort={sort} onSort={toggleSort} />
+                <SortableTh label="Registro" sortKey="registro" sort={sort} onSort={toggleSort} />
+                <SortableTh label="Atualizado" sortKey="atualizado" sort={sort} onSort={toggleSort} />
+                <th className="px-2 py-2.5" aria-label="Abrir" />
               </tr>
             </thead>
             <tbody>
-              {tickets.map((ticket) => (
-                <tr
-                  key={ticket.id}
-                  className={cn(
-                    "cursor-pointer border-t border-border/60 transition",
-                    rowTintFor(ticket),
-                  )}
-                  onClick={() => onOpen(ticket)}
-                >
-                  <td className="px-2 py-2 align-top">
-                    <div className="flex flex-col items-start gap-1">
-                      <Badge
+              {pageItems.map((ticket) => {
+                const ModuleIcon = getModuleIcon(ticket.module, ticket.source, ticket.subject);
+                const initial = (ticket.contact.trim()[0] ?? "?").toUpperCase();
+                return (
+                  <tr
+                    key={ticket.id}
+                    onClick={() => onOpen(ticket)}
+                    className={cn(
+                      "group cursor-pointer border-t border-l-[3px] border-border/60 transition",
+                      rowTintFor(ticket),
+                      statusBorderTone[ticket.status],
+                    )}
+                  >
+                    <td className="px-2 py-2 align-middle">
+                      <div className="flex flex-col items-start gap-0.5">
+                        <Badge
+                          className={cn(
+                            "inline-flex w-[152px] justify-center whitespace-nowrap rounded-full border px-2 py-0.5 text-[10px] font-semibold",
+                            statusTone[ticket.status],
+                          )}
+                        >
+                          {ticket.status}
+                        </Badge>
+                        <span className="font-mono text-[10px] leading-tight text-muted-foreground">
+                          {ticket.protocol}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-2 py-2 align-middle">
+                      <span
                         className={cn(
-                          "inline-flex w-[136px] justify-center whitespace-nowrap rounded-full border px-2 py-0.5 text-[10px] font-semibold",
-                          statusTone[ticket.status],
+                          "inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-semibold",
+                          priorityTone[ticket.priority],
                         )}
                       >
-                        {ticket.status}
-                      </Badge>
-                      <span className="font-mono text-[10px] leading-tight text-muted-foreground">
-                        {ticket.protocol}
+                        <AlertTriangle className="h-3 w-3" />
+                        {ticket.priority}
                       </span>
-                    </div>
-                  </td>
-                  <td className="px-2 py-2 align-top">
-                    <span
-                      className={cn(
-                        "inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-semibold",
-                        priorityTone[ticket.priority],
-                      )}
-                    >
-                      <AlertTriangle className="h-3 w-3" />
-                      {ticket.priority}
-                    </span>
-                  </td>
-                  <td className="px-2 py-2 align-top">
-                    <div className="truncate font-semibold text-foreground">{ticket.clientCode}</div>
-                    <div className="truncate text-[11px] text-muted-foreground">{ticket.clientName}</div>
-                  </td>
-                  <td className="truncate px-2 py-2 align-top text-muted-foreground">
-                    {ticket.contact}
-                  </td>
-                  <td className="px-2 py-2 align-top font-medium text-foreground">
-                    <span className="line-clamp-2 break-words">{ticket.subject}</span>
-                  </td>
-                  <td className="truncate px-2 py-2 align-top text-muted-foreground">
-                    {ticket.module}
-                  </td>
-                  <td className="truncate px-2 py-2 align-top text-muted-foreground">{ticket.attendant}</td>
-                  <td className="truncate px-2 py-2 align-top text-muted-foreground">{ticket.owner}</td>
-                  <td className="whitespace-nowrap px-2 py-2 align-top text-[11px] text-muted-foreground">
-                    {formatDateTime(ticket.openedAt)}
-                  </td>
-                  <td className="whitespace-nowrap px-2 py-2 align-top text-[11px] text-muted-foreground">
-                    {formatDateTime(ticket.updatedAt)}
-                  </td>
-                  <td className="px-2 py-2 text-right align-top text-muted-foreground">
-                    <ChevronRight className="ml-auto h-4 w-4" />
-                  </td>
-                </tr>
-              ))}
-
+                    </td>
+                    <td className="px-2 py-2 align-middle">
+                      <div className="truncate text-[12px] font-bold text-foreground">
+                        {ticket.clientCode}
+                      </div>
+                      <div className="truncate text-[11px] text-muted-foreground">
+                        {ticket.clientName}
+                      </div>
+                    </td>
+                    <td className="px-2 py-2 align-middle">
+                      <div className="flex min-w-0 items-center gap-2">
+                        <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-primary/15 text-[10px] font-bold text-primary">
+                          {initial}
+                        </span>
+                        <span className="truncate text-[12px] text-foreground">
+                          {ticket.contact}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-2 py-2 align-middle">
+                      <span className="line-clamp-2 break-words text-[12px] font-semibold text-foreground">
+                        {ticket.subject}
+                      </span>
+                    </td>
+                    <td className="px-2 py-2 align-middle">
+                      <div className="flex min-w-0 items-center gap-1.5">
+                        <ModuleIcon className="h-3.5 w-3.5 shrink-0 text-primary/80" />
+                        <span className="truncate text-[11.5px] text-muted-foreground">
+                          {ticket.module}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-2 py-2 align-middle">
+                      <div className="flex min-w-0 items-center gap-1.5">
+                        <UserRound className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                        <span className="truncate text-[11.5px] font-semibold text-foreground">
+                          {ticket.attendant}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-2 py-2 align-middle">
+                      <div className="flex min-w-0 items-center gap-1.5">
+                        <UserPlus className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                        <span className="truncate text-[11.5px] font-semibold text-foreground">
+                          {ticket.owner}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-2 py-2 align-middle">
+                      <div className="flex min-w-0 items-center gap-1.5 text-[11px] text-muted-foreground">
+                        <CalendarClock className="h-3.5 w-3.5 shrink-0 opacity-70" />
+                        <span className="whitespace-nowrap">
+                          {formatDateTime(ticket.openedAt)}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-2 py-2 align-middle">
+                      <div className="flex min-w-0 items-center gap-1.5 text-[11px] text-muted-foreground">
+                        <Clock3 className="h-3.5 w-3.5 shrink-0 opacity-70" />
+                        <span className="whitespace-nowrap">
+                          {formatDateTime(ticket.updatedAt)}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-2 py-2 text-right align-middle text-muted-foreground">
+                      <ChevronRight className="ml-auto h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:text-foreground" />
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -918,81 +1224,83 @@ function TicketsListView({
 
       {/* Mobile stacked list */}
       <div className="space-y-2 lg:hidden">
-        {tickets.map((ticket) => (
+        {pageItems.map((ticket) => (
           <Card
             key={ticket.id}
             onClick={() => onOpen(ticket)}
-            className={cn("cursor-pointer rounded-xl border border-border/60 bg-card p-3 shadow-[0_6px_16px_rgba(25,29,51,0.04)] transition hover:shadow-[0_10px_20px_rgba(25,29,51,0.08)]", ticket.status === "Finalizado" ? finalizedRowTint : priorityTint[ticket.priority])}
+            className={cn(
+              "cursor-pointer rounded-xl border border-border/60 border-l-[3px] bg-card p-3 shadow-[0_6px_16px_rgba(25,29,51,0.04)] transition hover:shadow-[0_10px_20px_rgba(25,29,51,0.08)]",
+              ticket.status === "Finalizado" ? finalizedRowTint : priorityTint[ticket.priority],
+              statusBorderTone[ticket.status],
+            )}
           >
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <Badge
-                    className={cn(
-                      "rounded-full border px-2 py-0.5 text-[10px] font-semibold",
-                      statusTone[ticket.status],
-                    )}
-                  >
-                    {ticket.status}
-                  </Badge>
-                  <span
-                    className={cn(
-                      "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold",
-                      priorityTone[ticket.priority],
-                    )}
-                  >
-                    <AlertTriangle className="h-2.5 w-2.5" />
-                    {ticket.priority}
-                  </span>
-                  <span className="font-mono text-[10px] text-muted-foreground">
-                    {ticket.protocol}
-                  </span>
-                </div>
-                <p className="mt-1.5 truncate text-[13px] font-bold text-foreground">
-                  {ticket.subject}
-                </p>
-                <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
-                  <span className="font-semibold text-foreground">{ticket.clientCode}</span> ·{" "}
-                  {ticket.clientName}
-                </p>
-              </div>
+            <div className="flex flex-wrap items-center gap-1.5">
+              <Badge
+                className={cn(
+                  "rounded-full border px-2 py-0.5 text-[10px] font-semibold",
+                  statusTone[ticket.status],
+                )}
+              >
+                {ticket.status}
+              </Badge>
+              <span
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold",
+                  priorityTone[ticket.priority],
+                )}
+              >
+                <AlertTriangle className="h-2.5 w-2.5" />
+                {ticket.priority}
+              </span>
+              <span className="font-mono text-[10px] text-muted-foreground">
+                {ticket.protocol}
+              </span>
             </div>
+            <p className="mt-1.5 truncate text-[13px] font-bold text-foreground">
+              {ticket.subject}
+            </p>
+            <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
+              <span className="font-semibold text-foreground">{ticket.clientCode}</span> ·{" "}
+              {ticket.clientName}
+            </p>
             <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
-              <div className="truncate"><span className="font-semibold text-foreground">Contato:</span> {ticket.contact}</div>
-              <div className="truncate"><span className="font-semibold text-foreground">Atendente:</span> {ticket.attendant}</div>
-              <div className="col-span-2 truncate"><span className="font-semibold text-foreground">Módulo:</span> {ticket.module}</div>
-              <div className="truncate"><span className="font-semibold text-foreground">Resp.:</span> {ticket.owner}</div>
-              <div className="truncate"><span className="font-semibold text-foreground">Atual.:</span> {formatDateTime(ticket.updatedAt)}</div>
+              <div className="truncate">
+                <span className="font-semibold text-foreground">Contato:</span> {ticket.contact}
+              </div>
+              <div className="truncate">
+                <span className="font-semibold text-foreground">Atendente:</span>{" "}
+                {ticket.attendant}
+              </div>
+              <div className="col-span-2 truncate">
+                <span className="font-semibold text-foreground">Módulo:</span> {ticket.module}
+              </div>
+              <div className="truncate">
+                <span className="font-semibold text-foreground">Resp.:</span> {ticket.owner}
+              </div>
+              <div className="truncate">
+                <span className="font-semibold text-foreground">Atual.:</span>{" "}
+                {formatDateTime(ticket.updatedAt)}
+              </div>
             </dl>
-            <div className="mt-2 flex items-center justify-end gap-1 border-t border-border/60 pt-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={(e) => handleAssume(ticket, e)}
-                className="h-7 cursor-pointer rounded-md px-2 text-[11px] text-muted-foreground"
-              >
-                <UserPlus className="mr-1 h-3 w-3" />
-                Assumir
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onHistory(ticket);
-                }}
-                className="h-7 cursor-pointer rounded-md px-2 text-[11px] text-muted-foreground"
-              >
-                <History className="mr-1 h-3 w-3" />
-                Histórico
-              </Button>
-            </div>
           </Card>
         ))}
       </div>
-    </>
+
+      <PaginationBar
+        page={currentPage}
+        totalPages={totalPages}
+        pageSize={pageSize}
+        onPageChange={setPage}
+        onPageSizeChange={setPageSize}
+        start={start}
+        end={end}
+        total={sorted.length}
+      />
+    </div>
   );
 }
+
+
 
 function HistoryModalHost({
   ticketId,
