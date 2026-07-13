@@ -86,35 +86,47 @@ export const Route = createFileRoute("/chamados")({
   component: ChamadosRouteShell,
 });
 
+// Solid status badge colors. Green reserved for Finalizado only.
 const statusTone: Record<TicketStatus, string> = {
-  Atrasado: "bg-destructive/12 text-destructive border-destructive/20",
-  "Em Aberto": "bg-primary/12 text-primary border-primary/20",
-  Ocupado: "bg-[#fff1d6] text-[#b66a00] border-[#ffd78a] dark:bg-[#4d3516] dark:text-[#ffd28a] dark:border-[#7a5520]",
-  "Em andamento": "bg-[#e8f3ff] text-[#246cb5] border-[#bfddff] dark:bg-[#17314e] dark:text-[#9dcaff] dark:border-[#24527d]",
-  "Aguardando cliente": "bg-[#f2eaff] text-[#7253bd] border-[#d9c9ff] dark:bg-[#2e2549] dark:text-[#c7b8ff] dark:border-[#4b3a78]",
-  "Com especialista": "bg-[#e7faf1] text-[#1f9860] border-[#bdeed6] dark:bg-[#14382b] dark:text-[#8ee8be] dark:border-[#226447]",
-  Agendamento: "bg-[#fff8dd] text-[#9c7610] border-[#f4df85] dark:bg-[#403817] dark:text-[#f3d66d] dark:border-[#695b22]",
-  Finalizado: "bg-success/12 text-success border-success/20",
-  Cancelado: "bg-muted text-muted-foreground border-border",
+  Atrasado: "bg-red-600 text-white border-red-700 dark:bg-red-600 dark:text-white dark:border-red-500",
+  "Em Aberto": "bg-cyan-600 text-white border-cyan-700 dark:bg-cyan-600 dark:text-white dark:border-cyan-500",
+  Ocupado: "bg-amber-500 text-white border-amber-600 dark:bg-amber-500 dark:text-white dark:border-amber-400",
+  "Em andamento": "bg-blue-600 text-white border-blue-700 dark:bg-blue-600 dark:text-white dark:border-blue-500",
+  "Aguardando cliente": "bg-purple-600 text-white border-purple-700 dark:bg-purple-600 dark:text-white dark:border-purple-500",
+  "Com especialista": "bg-teal-600 text-white border-teal-700 dark:bg-teal-600 dark:text-white dark:border-teal-500",
+  Agendamento: "bg-orange-500 text-white border-orange-600 dark:bg-orange-500 dark:text-white dark:border-orange-400",
+  Finalizado: "bg-emerald-600 text-white border-emerald-700 dark:bg-emerald-600 dark:text-white dark:border-emerald-500",
+  Cancelado: "bg-slate-500 text-white border-slate-600 dark:bg-slate-600 dark:text-white dark:border-slate-500",
 };
 
+// Solid priority badges. Baixa uses slate/blue — NOT green (green = Finalizado).
 const priorityTone: Record<TicketPriority, string> = {
-  Alta: "bg-destructive/10 text-destructive",
-  Media: "bg-warning/16 text-warning-foreground",
-  Baixa: "bg-muted text-muted-foreground",
+  Alta: "bg-red-600 text-white dark:bg-red-600 dark:text-white",
+  Media: "bg-amber-500 text-white dark:bg-amber-500 dark:text-white",
+  Baixa: "bg-slate-500 text-white dark:bg-slate-500 dark:text-white",
+};
+
+// Row tint by priority (used only when ticket is NOT finalized).
+const priorityRowTint: Record<TicketPriority, string> = {
+  Alta: "bg-rose-100/70 hover:bg-rose-200/70 dark:bg-rose-500/[0.13] dark:hover:bg-rose-500/[0.20]",
+  Media: "bg-amber-100/70 hover:bg-amber-200/70 dark:bg-amber-500/[0.13] dark:hover:bg-amber-500/[0.20]",
+  Baixa: "bg-slate-100/70 hover:bg-slate-200/70 dark:bg-slate-500/[0.10] dark:hover:bg-slate-500/[0.16]",
 };
 
 const priorityTint: Record<TicketPriority, string> = {
   Alta: "bg-rose-100/80 dark:bg-rose-500/[0.14]",
   Media: "bg-amber-100/80 dark:bg-amber-500/[0.14]",
-  Baixa: "bg-emerald-100/70 dark:bg-emerald-500/[0.12]",
+  Baixa: "bg-slate-100/70 dark:bg-slate-500/[0.10]",
 };
 
-const priorityRowTint: Record<TicketPriority, string> = {
-  Alta: "bg-rose-100/70 hover:bg-rose-200/70 dark:bg-rose-500/[0.13] dark:hover:bg-rose-500/[0.20]",
-  Media: "bg-amber-100/70 hover:bg-amber-200/70 dark:bg-amber-500/[0.13] dark:hover:bg-amber-500/[0.20]",
-  Baixa: "bg-emerald-100/60 hover:bg-emerald-200/60 dark:bg-emerald-500/[0.11] dark:hover:bg-emerald-500/[0.18]",
-};
+// Green row tint reserved for finalized/resolved status.
+const finalizedRowTint =
+  "bg-emerald-100/70 hover:bg-emerald-200/70 dark:bg-emerald-500/[0.12] dark:hover:bg-emerald-500/[0.18]";
+
+function rowTintFor(ticket: SupportTicket) {
+  if (ticket.status === "Finalizado") return finalizedRowTint;
+  return priorityRowTint[ticket.priority];
+}
 
 const chartConfig = {
   opened: { label: "Abertos", color: "var(--color-primary)" },
@@ -153,6 +165,12 @@ const initialFilters: Filters = {
   dateStart: undefined,
   dateEnd: undefined,
 };
+
+function todayFilters(): Filters {
+  const today = new Date();
+  const day = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  return { ...initialFilters, dateStart: day, dateEnd: day };
+}
 
 function DateRangeFilter({
   start,
@@ -265,7 +283,7 @@ function ChamadosRouteShell() {
 function TicketsPage() {
 
   const supportTickets = useTickets();
-  const [filters, setFilters] = useState<Filters>(initialFilters);
+  const [filters, setFilters] = useState<Filters>(() => todayFilters());
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [historyTicketId, setHistoryTicketId] = useState<string | null>(null);
@@ -650,7 +668,7 @@ function TicketCard({
   };
 
   return (
-    <Card className={cn("flex min-w-0 flex-col gap-4 rounded-[16px] border border-border/70 bg-card p-4 shadow-[0_10px_28px_rgba(25,29,51,0.05)] transition hover:shadow-[0_14px_32px_rgba(25,29,51,0.09)] sm:p-5", priorityTint[ticket.priority])}>
+    <Card className={cn("flex min-w-0 flex-col gap-4 rounded-[16px] border border-border/70 bg-card p-4 shadow-[0_10px_28px_rgba(25,29,51,0.05)] transition hover:shadow-[0_14px_32px_rgba(25,29,51,0.09)] sm:p-5", ticket.status === "Finalizado" ? finalizedRowTint : priorityTint[ticket.priority])}>
       {/* Top: icon + title + client / protocol + status */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-start gap-3">
@@ -836,7 +854,7 @@ function TicketsListView({
                   key={ticket.id}
                   className={cn(
                     "cursor-pointer border-t border-border/60 transition",
-                    priorityRowTint[ticket.priority],
+                    rowTintFor(ticket),
                   )}
                   onClick={() => onOpen(ticket)}
                 >
@@ -904,7 +922,7 @@ function TicketsListView({
           <Card
             key={ticket.id}
             onClick={() => onOpen(ticket)}
-            className={cn("cursor-pointer rounded-xl border border-border/60 bg-card p-3 shadow-[0_6px_16px_rgba(25,29,51,0.04)] transition hover:shadow-[0_10px_20px_rgba(25,29,51,0.08)]", priorityTint[ticket.priority])}
+            className={cn("cursor-pointer rounded-xl border border-border/60 bg-card p-3 shadow-[0_6px_16px_rgba(25,29,51,0.04)] transition hover:shadow-[0_10px_20px_rgba(25,29,51,0.08)]", ticket.status === "Finalizado" ? finalizedRowTint : priorityTint[ticket.priority])}
           >
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
