@@ -583,6 +583,13 @@ function KanbanPage() {
                     canDeleteColumn={columns.length > 1}
                   />
                 ))}
+              <button
+                onClick={handleNewColumn}
+                className="mt-3 flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-blue-500/30 bg-blue-500/10 px-4 text-[12px] font-semibold text-blue-700 transition hover:bg-blue-500/20 dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:hover:bg-white/[0.12]"
+              >
+                <Plus className="h-4 w-4" />
+                Adicionar outra lista
+              </button>
             </div>
 
             <DragOverlay>
