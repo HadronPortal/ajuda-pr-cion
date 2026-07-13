@@ -959,6 +959,37 @@ function pagesRange(current: number, total: number): (number | "…")[] {
   return pages;
 }
 
+function SortableGridHeader({
+  label,
+  sortKey,
+  sort,
+  onSort,
+}: {
+  label: string;
+  sortKey: SortKey;
+  sort: { key: SortKey; dir: SortDir };
+  onSort: (key: SortKey) => void;
+}) {
+  const active = sort.key === sortKey;
+  const Arrow = active ? (sort.dir === "asc" ? ChevronUp : ChevronDown) : ChevronsUpDown;
+  return (
+    <button
+      type="button"
+      onClick={() => onSort(sortKey)}
+      aria-sort={active ? (sort.dir === "asc" ? "ascending" : "descending") : "none"}
+      className="flex min-w-0 cursor-pointer select-none items-center gap-1 text-left text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground transition hover:text-foreground"
+    >
+      <span className="truncate">{label}</span>
+      <Arrow
+        className={cn(
+          "h-3 w-3 shrink-0 transition-opacity",
+          active ? "opacity-90 text-foreground" : "opacity-50",
+        )}
+      />
+    </button>
+  );
+}
+
 function PagBtn({
   children,
   onClick,
@@ -1127,89 +1158,61 @@ function TicketsListView({
   return (
     <div className="space-y-3">
       {/* Desktop list */}
-      <Card className="hidden rounded-2xl border border-border/60 bg-card p-3 shadow-[0_8px_22px_rgba(25,29,51,0.05)] lg:block">
-        {/* Header */}
-        <div
-          className="grid items-center gap-x-2 rounded-lg bg-muted/50 py-2.5 pr-3 text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground"
-          style={{
-            gridTemplateColumns:
-              "172px 104px 156px 150px minmax(0,1fr) 190px 112px 112px 128px 128px 36px",
-            paddingLeft: "calc(4px + 0.75rem)",
-          }}
-        >
-          <SortableHead label="Status" sortKey="status" sort={sort} onSort={toggleSort} />
-          <SortableHead label="Prioridade" sortKey="priority" sort={sort} onSort={toggleSort} />
-          <SortableHead label="Cliente" sortKey="cliente" sort={sort} onSort={toggleSort} />
-          <SortableHead label="Contato" sortKey="contato" sort={sort} onSort={toggleSort} />
-          <SortableHead label="Assunto" sortKey="assunto" sort={sort} onSort={toggleSort} />
-          <SortableHead label="Módulo" sortKey="modulo" sort={sort} onSort={toggleSort} />
-          <SortableHead label="Atendente" sortKey="atendente" sort={sort} onSort={toggleSort} />
-          <SortableHead label="Responsável" sortKey="responsavel" sort={sort} onSort={toggleSort} />
-          <SortableHead label="Registro" sortKey="registro" sort={sort} onSort={toggleSort} />
-          <SortableHead label="Atualizado" sortKey="atualizado" sort={sort} onSort={toggleSort} />
-          <span aria-hidden />
-        </div>
+      <Card className="hidden overflow-x-auto rounded-2xl border border-border/60 bg-card p-3 shadow-[0_8px_22px_rgba(25,29,51,0.05)] lg:block">
+        <div className="min-w-[1220px]">
+          <div className="grid grid-cols-[150px_112px_minmax(130px,0.75fr)_150px_minmax(210px,1.25fr)_150px_120px_126px_124px_124px_32px] items-center rounded-xl bg-muted/50 px-4 py-3">
+            <SortableGridHeader label="Status" sortKey="status" sort={sort} onSort={toggleSort} />
+            <SortableGridHeader label="Prioridade" sortKey="priority" sort={sort} onSort={toggleSort} />
+            <SortableGridHeader label="Cliente" sortKey="cliente" sort={sort} onSort={toggleSort} />
+            <SortableGridHeader label="Contato" sortKey="contato" sort={sort} onSort={toggleSort} />
+            <SortableGridHeader label="Assunto" sortKey="assunto" sort={sort} onSort={toggleSort} />
+            <SortableGridHeader label="Modulo" sortKey="modulo" sort={sort} onSort={toggleSort} />
+            <SortableGridHeader label="Atendente" sortKey="atendente" sort={sort} onSort={toggleSort} />
+            <SortableGridHeader label="Responsavel" sortKey="responsavel" sort={sort} onSort={toggleSort} />
+            <SortableGridHeader label="Registro" sortKey="registro" sort={sort} onSort={toggleSort} />
+            <SortableGridHeader label="Atualizado" sortKey="atualizado" sort={sort} onSort={toggleSort} />
+            <span aria-label="Abrir" />
+          </div>
 
-        {/* Rows */}
-        <div className="mt-2 flex flex-col gap-y-2 text-[12px]">
-          {pageItems.map((ticket) => {
-            const ModuleIcon = getModuleIcon(ticket.module, ticket.source, ticket.subject);
-            const initial = (ticket.contact.trim()[0] ?? "?").toUpperCase();
-            return (
-              <div
-                key={ticket.id}
-                role="button"
-                tabIndex={0}
-                onClick={() => onOpen(ticket)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    onOpen(ticket);
-                  }
-                }}
-                className={cn(
-                  "group relative cursor-pointer overflow-hidden rounded-xl border border-border/60 bg-card shadow-[0_1px_2px_rgba(15,23,42,0.05)] transition hover:shadow-[0_6px_18px_rgba(15,23,42,0.08)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.35)]",
-                )}
-              >
-                <span
-                  aria-hidden
+          <div className="mt-2 space-y-2">
+            {pageItems.map((ticket) => {
+              const ModuleIcon = getModuleIcon(ticket.module, ticket.source, ticket.subject);
+              const initial = (ticket.contact.trim()[0] ?? "?").toUpperCase();
+              return (
+                <button
+                  key={ticket.id}
+                  type="button"
+                  onClick={() => onOpen(ticket)}
                   className={cn(
-                    "pointer-events-none absolute inset-y-0 left-0 w-1",
-                    statusDotTone[ticket.status],
-                  )}
-                />
-                <div
-                  className={cn(
-                    "grid items-center gap-x-2 py-2 pr-3 transition",
+                    "group relative grid min-h-[68px] w-full grid-cols-[150px_112px_minmax(130px,0.75fr)_150px_minmax(210px,1.25fr)_150px_120px_126px_124px_124px_32px] items-center overflow-hidden rounded-xl border border-border/60 px-4 py-3 text-left shadow-[0_4px_14px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:shadow-[0_10px_24px_rgba(15,23,42,0.08)]",
                     rowTintFor(ticket),
                   )}
-                  style={{
-                    gridTemplateColumns:
-                      "172px 104px 156px 150px minmax(0,1fr) 190px 112px 112px 128px 128px 36px",
-                    paddingLeft: "calc(4px + 0.75rem)",
-                  }}
                 >
-                  <div className="min-w-0">
-                    <div className="flex flex-col items-start gap-0.5">
-                      <Badge
+                  <span
+                    className={cn("absolute left-0 top-0 h-full w-1", statusDotTone[ticket.status])}
+                    aria-hidden="true"
+                  />
+
+                  <div className="flex min-w-0 flex-col items-start gap-1 pl-2">
+                    <Badge
+                      className={cn(
+                        "inline-flex items-center justify-start gap-1.5 whitespace-nowrap rounded-full border px-2 py-0.5 text-[10.5px] font-semibold",
+                        statusTone[ticket.status],
+                      )}
+                    >
+                      <span
                         className={cn(
-                          "inline-flex items-center justify-start gap-1.5 whitespace-nowrap rounded-full border px-2 py-0.5 text-[10.5px] font-semibold",
-                          statusTone[ticket.status],
+                          "h-1.5 w-1.5 shrink-0 rounded-full",
+                          statusDotTone[ticket.status],
                         )}
-                      >
-                        <span
-                          className={cn(
-                            "h-1.5 w-1.5 shrink-0 rounded-full",
-                            statusDotTone[ticket.status],
-                          )}
-                        />
-                        {ticket.status}
-                      </Badge>
-                      <span className="font-mono text-[10px] leading-tight text-muted-foreground">
-                        {ticket.protocol}
-                      </span>
-                    </div>
+                      />
+                      {ticket.status}
+                    </Badge>
+                    <span className="font-mono text-[10px] leading-tight text-muted-foreground">
+                      {ticket.protocol}
+                    </span>
                   </div>
+
                   <div className="min-w-0">
                     <span
                       className={cn(
@@ -1221,6 +1224,7 @@ function TicketsListView({
                       {ticket.priority}
                     </span>
                   </div>
+
                   <div className="min-w-0">
                     <div className="truncate text-[12px] font-bold text-foreground">
                       {ticket.clientCode}
@@ -1229,60 +1233,56 @@ function TicketsListView({
                       {ticket.clientName}
                     </div>
                   </div>
+
                   <div className="flex min-w-0 items-center gap-2">
                     <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-primary/15 text-[10px] font-bold text-primary">
                       {initial}
                     </span>
-                    <span className="truncate text-[12px] text-foreground">
-                      {ticket.contact}
-                    </span>
+                    <span className="truncate text-[12px] text-foreground">{ticket.contact}</span>
                   </div>
-                  <div className="min-w-0">
-                    <span className="line-clamp-2 break-words text-[12px] font-semibold text-foreground">
-                      {ticket.subject}
-                    </span>
-                  </div>
+
+                  <span className="line-clamp-2 min-w-0 pr-3 text-[12px] font-semibold leading-snug text-foreground">
+                    {ticket.subject}
+                  </span>
+
                   <div className="flex min-w-0 items-center gap-1.5">
                     <ModuleIcon className="h-3.5 w-3.5 shrink-0 text-primary/80" />
                     <span className="truncate text-[11.5px] text-muted-foreground">
                       {ticket.module}
                     </span>
                   </div>
+
                   <div className="flex min-w-0 items-center gap-1.5">
                     <UserRound className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                     <span className="truncate text-[11.5px] font-semibold text-foreground">
                       {ticket.attendant}
                     </span>
                   </div>
+
                   <div className="flex min-w-0 items-center gap-1.5">
                     <UserPlus className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                     <span className="truncate text-[11.5px] font-semibold text-foreground">
                       {ticket.owner}
                     </span>
                   </div>
+
                   <div className="flex min-w-0 items-center gap-1.5 text-[11px] text-muted-foreground">
                     <CalendarClock className="h-3.5 w-3.5 shrink-0 opacity-70" />
-                    <span className="whitespace-nowrap">
-                      {formatDateTime(ticket.openedAt)}
-                    </span>
+                    <span className="whitespace-nowrap">{formatDateTime(ticket.openedAt)}</span>
                   </div>
+
                   <div className="flex min-w-0 items-center gap-1.5 text-[11px] text-muted-foreground">
                     <Clock3 className="h-3.5 w-3.5 shrink-0 opacity-70" />
-                    <span className="whitespace-nowrap">
-                      {formatDateTime(ticket.updatedAt)}
-                    </span>
+                    <span className="whitespace-nowrap">{formatDateTime(ticket.updatedAt)}</span>
                   </div>
-                  <div className="flex justify-end text-muted-foreground">
-                    <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:text-foreground" />
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+
+                  <ChevronRight className="ml-auto h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-foreground" />
+                </button>
+              );
+            })}
+          </div>
         </div>
       </Card>
-
-
       {/* Mobile stacked list */}
       <div className="space-y-2 lg:hidden">
         {pageItems.map((ticket) => (
