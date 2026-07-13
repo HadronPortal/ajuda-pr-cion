@@ -250,6 +250,7 @@ export function TicketDetailSheet({
   const [timelineOpen, setTimelineOpen] = useState(false);
   const [navCollapsed, setNavCollapsed] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
+  const [selectedHistory, setSelectedHistory] = useState<PastAttendance | null>(null);
   const [activeAction, setActiveAction] = useState<
     "historico" | "encerrar" | "status" | "assumir" | "atender" | "timeline" | "chat"
   >("atender");
