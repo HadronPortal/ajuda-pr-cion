@@ -393,17 +393,66 @@ function KanbanPage() {
           <MetricCard icon={CheckCircle2} label="Concluídos" value={String(cardsByColumn["arquivado"].length)} color="emerald" />
         </div>
 
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCorners}
-          onDragStart={handleDragStart}
-          onDragOver={handleDragOver}
-          onDragEnd={handleDragEnd}
-        >
-          <div className="hidden xl:block">
-            <div className="overflow-x-auto kanban-scrollbar">
-              <div className="flex min-w-max gap-4 pb-2">
-                {kanbanColumnsDef.map((col) => (
+        {viewMode !== "kanban" ? (
+          <div className="grid place-items-center rounded-xl border border-dashed border-slate-300 bg-white/50 p-16 text-center dark:border-white/10 dark:bg-white/[0.02]">
+            <div className="max-w-md">
+              <p className="text-sm font-bold text-slate-900 dark:text-white">
+                Visualização em {viewMode === "list" ? "Lista" : "Calendário"} — em breve
+              </p>
+              <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                Estamos preparando esta visualização. Enquanto isso, continue usando o Kanban para gerenciar as demandas.
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-4 cursor-pointer"
+                onClick={() => setViewMode("kanban")}
+              >
+                Voltar ao Kanban
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCorners}
+            onDragStart={handleDragStart}
+            onDragOver={handleDragOver}
+            onDragEnd={handleDragEnd}
+          >
+            <div className="hidden xl:block">
+              <div className="overflow-x-auto kanban-scrollbar">
+                <div className="flex min-w-max gap-4 pb-2">
+                  {kanbanColumnsDef.map((col) => (
+                    <KanbanColumnView
+                      key={col.id}
+                      column={col}
+                      cards={cardsByColumn[col.id]}
+                      onCardClick={openCard}
+                      onArchiveCard={handleArchiveCard}
+                      onAddCard={handleNewCard}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="xl:hidden">
+              <Tabs value={mobileColumn} onValueChange={(v) => setMobileColumn(v as ColumnId)}>
+                <TabsList className="mb-3 flex h-auto w-full justify-start overflow-x-auto rounded-xl bg-slate-100 p-1 dark:bg-white/6">
+                  {kanbanColumnsDef.map((c) => (
+                    <TabsTrigger key={c.id} value={c.id} className="cursor-pointer whitespace-nowrap text-xs text-slate-600 data-[state=active]:bg-white data-[state=active]:text-slate-900 dark:text-slate-300 dark:data-[state=active]:bg-white/10 dark:data-[state=active]:text-white">
+                      {c.title}
+                      <span className="ml-1.5 rounded bg-slate-200 px-1.5 py-0.5 text-[10px] dark:bg-white/10">
+                        {cardsByColumn[c.id].length}
+                      </span>
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </Tabs>
+              {kanbanColumnsDef
+                .filter((c) => c.id === mobileColumn)
+                .map((col) => (
                   <KanbanColumnView
                     key={col.id}
                     column={col}
@@ -413,41 +462,14 @@ function KanbanPage() {
                     onAddCard={handleNewCard}
                   />
                 ))}
-              </div>
             </div>
-          </div>
 
-          <div className="xl:hidden">
-            <Tabs value={mobileColumn} onValueChange={(v) => setMobileColumn(v as ColumnId)}>
-              <TabsList className="mb-3 flex h-auto w-full justify-start overflow-x-auto rounded-xl bg-slate-100 p-1 dark:bg-white/6">
-                {kanbanColumnsDef.map((c) => (
-                  <TabsTrigger key={c.id} value={c.id} className="cursor-pointer whitespace-nowrap text-xs text-slate-600 data-[state=active]:bg-white data-[state=active]:text-slate-900 dark:text-slate-300 dark:data-[state=active]:bg-white/10 dark:data-[state=active]:text-white">
-                    {c.title}
-                    <span className="ml-1.5 rounded bg-slate-200 px-1.5 py-0.5 text-[10px] dark:bg-white/10">
-                      {cardsByColumn[c.id].length}
-                    </span>
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </Tabs>
-            {kanbanColumnsDef
-              .filter((c) => c.id === mobileColumn)
-              .map((col) => (
-                <KanbanColumnView
-                  key={col.id}
-                  column={col}
-                  cards={cardsByColumn[col.id]}
-                  onCardClick={openCard}
-                  onArchiveCard={handleArchiveCard}
-                  onAddCard={handleNewCard}
-                />
-              ))}
-          </div>
+            <DragOverlay>
+              {activeCard && <KanbanCardItem card={activeCard} overlay />}
+            </DragOverlay>
+          </DndContext>
+        )}
 
-          <DragOverlay>
-            {activeCard && <KanbanCardItem card={activeCard} overlay />}
-          </DragOverlay>
-        </DndContext>
       </div>
 
       <KanbanCardDrawer
