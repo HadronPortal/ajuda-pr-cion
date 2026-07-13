@@ -173,9 +173,21 @@ function TicketsPage() {
 
   const filteredTickets = useMemo(() => {
     const query = filters.query.trim().toLowerCase();
+    const sigla = filters.sigla.trim().toLowerCase();
     return supportTickets.filter((ticket) => {
       if (filters.status !== "Todos" && ticket.status !== filters.status) return false;
       if (filters.priority !== "Todas" && ticket.priority !== filters.priority) return false;
+      if (sigla && !ticket.clientCode.toLowerCase().includes(sigla)) return false;
+      if (filters.operator !== "Todos") {
+        const op = filters.operator;
+        if (filters.operatorType === "Atendente" && ticket.attendant !== op) return false;
+        if (filters.operatorType === "Responsável" && ticket.owner !== op) return false;
+        if (filters.operatorType === "Todos" && ticket.attendant !== op && ticket.owner !== op) return false;
+      }
+      if (filters.date) {
+        const field = filters.dateType === "Registro" ? ticket.openedAt : ticket.updatedAt;
+        if (!field.startsWith(filters.date)) return false;
+      }
       if (!query) return true;
       return [
         ticket.protocol,
