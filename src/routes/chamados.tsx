@@ -25,9 +25,7 @@ import {
   Headphones,
   History,
   ChevronRight,
-  LayoutGrid,
   Layers,
-  List as ListIcon,
   LockKeyhole,
   MessageSquarePlus,
   MoreVertical,
@@ -107,15 +105,15 @@ const priorityTone: Record<TicketPriority, string> = {
 };
 
 const priorityTint: Record<TicketPriority, string> = {
-  Alta: "bg-rose-50/70 dark:bg-rose-500/[0.06]",
-  Media: "bg-amber-50/70 dark:bg-amber-500/[0.06]",
-  Baixa: "bg-emerald-50/60 dark:bg-emerald-500/[0.05]",
+  Alta: "bg-rose-100/80 dark:bg-rose-500/[0.14]",
+  Media: "bg-amber-100/80 dark:bg-amber-500/[0.14]",
+  Baixa: "bg-emerald-100/70 dark:bg-emerald-500/[0.12]",
 };
 
 const priorityRowTint: Record<TicketPriority, string> = {
-  Alta: "bg-rose-50/50 dark:bg-rose-500/[0.05] hover:bg-rose-100/60 dark:hover:bg-rose-500/[0.09]",
-  Media: "bg-amber-50/50 dark:bg-amber-500/[0.05] hover:bg-amber-100/60 dark:hover:bg-amber-500/[0.09]",
-  Baixa: "bg-emerald-50/40 dark:bg-emerald-500/[0.04] hover:bg-emerald-100/60 dark:hover:bg-emerald-500/[0.08]",
+  Alta: "bg-rose-100/70 hover:bg-rose-200/70 dark:bg-rose-500/[0.13] dark:hover:bg-rose-500/[0.20]",
+  Media: "bg-amber-100/70 hover:bg-amber-200/70 dark:bg-amber-500/[0.13] dark:hover:bg-amber-500/[0.20]",
+  Baixa: "bg-emerald-100/60 hover:bg-emerald-200/60 dark:bg-emerald-500/[0.11] dark:hover:bg-emerald-500/[0.18]",
 };
 
 const chartConfig = {
@@ -218,7 +216,13 @@ function DateRangeFilter({
           mode="range"
           numberOfMonths={2}
           selected={draft}
-          onSelect={setDraft}
+          onSelect={(range) => {
+            setDraft(range);
+            let from = range?.from;
+            let to = range?.to;
+            if (from && to && from > to) [from, to] = [to, from];
+            onChange({ start: from, end: to });
+          }}
           locale={ptBR}
           initialFocus
           className={cn("pointer-events-auto p-3")}
@@ -266,13 +270,8 @@ function TicketsPage() {
   const [detailOpen, setDetailOpen] = useState(false);
   const [historyTicketId, setHistoryTicketId] = useState<string | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<"grid" | "list">(() => {
-    if (typeof window === "undefined") return "grid";
-    return (localStorage.getItem("chamados:viewMode") as "grid" | "list") ?? "grid";
-  });
-  useEffect(() => {
-    if (typeof window !== "undefined") localStorage.setItem("chamados:viewMode", viewMode);
-  }, [viewMode]);
+
+
 
   const openTicketDetail = (ticket: SupportTicket) => {
     setSelectedTicketId(ticket.id);
@@ -555,38 +554,6 @@ function TicketsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <div className="inline-flex items-center rounded-lg border border-border bg-card p-0.5">
-            <button
-              type="button"
-              onClick={() => setViewMode("grid")}
-              aria-pressed={viewMode === "grid"}
-              aria-label="Visualização em grade"
-              className={cn(
-                "inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-md px-2.5 text-[12px] font-semibold transition",
-                viewMode === "grid"
-                  ? "bg-primary/12 text-primary"
-                  : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
-              )}
-            >
-              <LayoutGrid className="h-3.5 w-3.5" />
-              Grid
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode("list")}
-              aria-pressed={viewMode === "list"}
-              aria-label="Visualização em lista"
-              className={cn(
-                "inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-md px-2.5 text-[12px] font-semibold transition",
-                viewMode === "list"
-                  ? "bg-primary/12 text-primary"
-                  : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
-              )}
-            >
-              <ListIcon className="h-3.5 w-3.5" />
-              Lista
-            </button>
-          </div>
           <Badge variant="secondary" className="rounded-full">
             CRM lado suporte
           </Badge>
@@ -601,17 +568,6 @@ function TicketsPage() {
                 Ajuste os filtros para exibir chamados nesta fila.
               </p>
             </div>
-          </div>
-        ) : viewMode === "grid" ? (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {filteredTickets.map((ticket) => (
-              <TicketCard
-                key={ticket.id}
-                ticket={ticket}
-                onOpen={openTicketDetail}
-                onHistory={openTicketHistory}
-              />
-            ))}
           </div>
         ) : (
           <TicketsListView
