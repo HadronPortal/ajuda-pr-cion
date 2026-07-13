@@ -15,11 +15,15 @@ import {
   BarChart3,
   Bell,
   BriefcaseBusiness,
+  CalendarRange,
   CheckCircle2,
   Clock3,
   Filter,
+  LayoutGrid,
+  List,
   Plus,
   Search,
+  Star,
   UserRound,
 } from "lucide-react";
 import { AppShell } from "@/components/portal/AppShell";
@@ -54,6 +58,9 @@ import {
   priorities,
   cardTypes,
 } from "@/lib/kanban-data";
+
+const CURRENT_USER_ID = "u-ar";
+
 
 export const Route = createFileRoute("/kanban")({
   head: () => ({
