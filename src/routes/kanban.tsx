@@ -76,12 +76,17 @@ export const Route = createFileRoute("/kanban")({
   component: KanbanPage,
 });
 
+type DueFilter = "all" | "overdue" | "today" | "week" | "no-date";
+type ViewMode = "kanban" | "list" | "calendar";
+
 type Filters = {
   client: string;
   assignee: string;
   priority: string;
   type: string;
   status: string;
+  tag: string;
+  due: DueFilter;
 };
 
 const emptyFilters: Filters = {
@@ -90,13 +95,24 @@ const emptyFilters: Filters = {
   priority: "all",
   type: "all",
   status: "all",
+  tag: "all",
+  due: "all",
 };
+
+function daysBetween(iso: string) {
+  const d = new Date(iso + "T00:00:00");
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  return Math.round((d.getTime() - now.getTime()) / 86400000);
+}
 
 function KanbanPage() {
   const cards = useKanbanCards();
   const setCards = kanbanStore.setCards;
   const [query, setQuery] = useState("");
   const [filters, setFilters] = useState<Filters>(emptyFilters);
+  const [onlyMine, setOnlyMine] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>("kanban");
   const [activeCard, setActiveCard] = useState<KanbanCard | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerMode, setDrawerMode] = useState<"edit" | "create">("edit");
@@ -105,17 +121,42 @@ function KanbanPage() {
   const [mobileColumn, setMobileColumn] = useState<ColumnId>("a-fazer");
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
-  const activeFilterCount = Object.values(filters).filter((v) => v !== "all").length;
+  const activeFilterCount =
+    Object.values(filters).filter((v) => v !== "all").length + (onlyMine ? 1 : 0);
+
+  const allTags = useMemo(() => {
+    const set = new Set<string>();
+    cards.forEach((c) => c.tags.forEach((t) => set.add(t)));
+    return Array.from(set).sort();
+  }, [cards]);
 
   const filteredCards = useMemo(() => {
     const q = query.trim().toLowerCase();
     return cards.filter((c) => {
       if (c.archived && c.columnId !== "arquivado") return false;
+      if (onlyMine) {
+        const isMine =
+          c.assigneeId === CURRENT_USER_ID ||
+          (c.participants ?? []).includes(CURRENT_USER_ID);
+        if (!isMine) return false;
+      }
       if (filters.client !== "all" && c.client !== filters.client) return false;
       if (filters.assignee !== "all" && c.assigneeId !== filters.assignee) return false;
       if (filters.priority !== "all" && c.priority !== filters.priority) return false;
       if (filters.type !== "all" && c.type !== filters.type) return false;
       if (filters.status !== "all" && c.columnId !== filters.status) return false;
+      if (filters.tag !== "all" && !c.tags.includes(filters.tag)) return false;
+      if (filters.due !== "all") {
+        if (!c.dueDate) {
+          if (filters.due !== "no-date") return false;
+        } else {
+          const diff = daysBetween(c.dueDate);
+          if (filters.due === "overdue" && diff >= 0) return false;
+          if (filters.due === "today" && diff !== 0) return false;
+          if (filters.due === "week" && (diff < 0 || diff > 7)) return false;
+          if (filters.due === "no-date") return false;
+        }
+      }
       if (!q) return true;
       return (
         c.title.toLowerCase().includes(q) ||
@@ -126,7 +167,9 @@ function KanbanPage() {
         c.tags.some((t) => t.toLowerCase().includes(q))
       );
     });
-  }, [cards, query, filters]);
+  }, [cards, query, filters, onlyMine]);
+
+
 
   const cardsByColumn = useMemo(() => {
     const grouped = Object.fromEntries(
