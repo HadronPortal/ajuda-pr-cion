@@ -48,15 +48,18 @@ function getPriorityMeta(priority: string) {
 
 export function KanbanCardItem({
   card,
+  columns = [],
   onClick,
   onArchive,
   overlay = false,
 }: {
   card: CardType;
+  columns?: KanbanColumn[];
   onClick?: () => void;
   onArchive?: (card: CardType) => void;
   overlay?: boolean;
 }) {
+
   const {
     attributes,
     listeners,
