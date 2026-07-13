@@ -51,6 +51,7 @@ import {
 } from "@/components/ui/chart";
 import {
   dailyTicketAnalytics,
+  ticketOperators,
   ticketStatuses,
   weeklyTicketAnalytics,
   type SupportTicket,
