@@ -166,6 +166,12 @@ const initialFilters: Filters = {
   dateEnd: undefined,
 };
 
+function todayFilters(): Filters {
+  const today = new Date();
+  const day = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  return { ...initialFilters, dateStart: day, dateEnd: day };
+}
+
 function DateRangeFilter({
   start,
   end,
