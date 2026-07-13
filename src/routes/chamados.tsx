@@ -1090,9 +1090,12 @@ function TicketsListView({
   return (
     <div className="space-y-3">
       {/* Desktop table */}
-      <Card className="hidden overflow-hidden rounded-2xl border border-border/60 bg-card p-0 shadow-[0_8px_22px_rgba(25,29,51,0.05)] lg:block">
+      <Card className="hidden rounded-2xl border border-border/60 bg-card p-2 shadow-[0_8px_22px_rgba(25,29,51,0.05)] lg:block">
         <div className="w-full overflow-x-auto">
-          <table className="w-full table-fixed text-[12px]">
+          <table
+            className="w-full table-fixed border-separate text-[12px]"
+            style={{ borderSpacing: "0 6px" }}
+          >
             <colgroup>
               <col style={{ width: "172px" }} />
               <col style={{ width: "104px" }} />
