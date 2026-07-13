@@ -1,14 +1,7 @@
 import { useState } from "react";
 import { PastAttendanceDetailModal } from "./PastAttendanceDetailModal";
-import {
-  CalendarClock,
-  ChevronRight,
-  FileText,
-  Folder,
-  History,
-  UserRound,
-  X,
-} from "lucide-react";
+import { TicketHistoryList } from "./TicketHistoryList";
+import { History, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -18,7 +11,6 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type {
   SupportTicket,
-  TicketPriority,
   TicketStatus,
 } from "@/lib/support-tickets-data";
 import type { PastAttendance } from "@/lib/tickets-store";
@@ -39,45 +31,6 @@ const statusTone: Record<TicketStatus, string> = {
   Finalizado: "bg-success/12 text-success border-success/20",
   Cancelado: "bg-muted text-muted-foreground border-border",
 };
-
-const priorityChip: Record<TicketPriority, string> = {
-  Alta:
-    "bg-destructive/12 text-destructive border-destructive/25",
-  Media:
-    "bg-[#fff4d1] text-[#8a6300] border-[#f2d97a] dark:bg-[#3a2f10] dark:text-[#f3d66d] dark:border-[#5c4a1c]",
-  Baixa:
-    "bg-muted text-muted-foreground border-border",
-};
-
-const priorityAccent: Record<TicketPriority, string> = {
-  Alta: "bg-destructive",
-  Media: "bg-[#e8b53a] dark:bg-[#d1a02b]",
-  Baixa: "bg-muted-foreground/40",
-};
-
-const priorityIconWrap: Record<TicketPriority, string> = {
-  Alta:
-    "bg-destructive/12 text-destructive ring-1 ring-destructive/25",
-  Media:
-    "bg-[#fff4d1] text-[#8a6300] ring-1 ring-[#f2d97a] dark:bg-[#3a2f10] dark:text-[#f3d66d] dark:ring-[#5c4a1c]",
-  Baixa:
-    "bg-primary/10 text-primary ring-1 ring-primary/20",
-};
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "2-digit",
-  });
-}
-
-function formatTime(iso: string) {
-  return new Date(iso).toLocaleTimeString("pt-BR", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
 
 export function TicketHistoryModal({
   open,
@@ -106,7 +59,6 @@ export function TicketHistoryModal({
           Histórico do chamado {ticket.protocol}
         </DialogTitle>
 
-        {/* Header limpo em fundo branco */}
         <header className="relative shrink-0 border-b border-border bg-card px-5 py-4 md:px-7 md:py-5">
           <button
             type="button"
@@ -154,8 +106,6 @@ export function TicketHistoryModal({
           </div>
         </header>
 
-
-        {/* Corpo */}
         <div className="flex-1 overflow-y-auto bg-muted/30 px-4 py-5 md:px-6">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-baseline gap-1.5">
@@ -177,132 +127,8 @@ export function TicketHistoryModal({
             )}
           </div>
 
-          {/* Cabeçalho de colunas — desktop */}
-          <div className="mb-2 hidden grid-cols-[minmax(0,1fr)_100px_120px_130px_150px_110px] gap-3 pl-4 pr-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground md:grid">
-            <span>Chamado</span>
-            <span>Prioridade</span>
-            <span>Atendente</span>
-            <span>Data / Hora</span>
-            <span>ID do chamado</span>
-            <span className="text-right">Ações</span>
-          </div>
-
-          {shown.length === 0 ? (
-            <div className="rounded-xl border border-border bg-card px-3 py-8 text-center text-[12px] text-muted-foreground">
-              Sem atendimentos anteriores para este cliente.
-            </div>
-          ) : (
-            <ul className="space-y-2">
-              {shown.map((h) => (
-                <li
-                  key={h.id}
-                  className="relative overflow-hidden rounded-xl border border-border bg-card shadow-[0_1px_0_rgba(15,23,42,0.03)] transition hover:border-primary/30 hover:shadow-[0_4px_18px_rgba(25,29,51,0.06)]"
-                >
-                  {/* Faixa vertical de prioridade */}
-                  <span
-                    aria-hidden
-                    className={cn(
-                      "absolute left-0 top-0 h-full w-1",
-                      priorityAccent[h.priority],
-                    )}
-                  />
-
-                  <div className="grid grid-cols-1 items-center gap-3 pl-4 pr-3 py-3 md:grid-cols-[minmax(0,1fr)_100px_120px_130px_150px_110px]">
-                    {/* Chamado: ícone + título + status + módulo */}
-                    <div className="flex min-w-0 items-start gap-2.5">
-                      <span
-                        className={cn(
-                          "grid h-8 w-8 shrink-0 place-items-center rounded-full",
-                          priorityIconWrap[h.priority],
-                        )}
-                        aria-hidden
-                      >
-                        <FileText className="h-3.5 w-3.5" />
-                      </span>
-                      <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-1.5">
-                          <span
-                            className="truncate text-[12px] font-bold uppercase tracking-wide text-foreground"
-                            title={h.title}
-                          >
-                            {h.title}
-                          </span>
-                          <Badge
-                            className={cn(
-                              "shrink-0 rounded-full border px-1.5 py-0 text-[9.5px] font-bold uppercase tracking-wide",
-                              statusTone[h.status],
-                            )}
-                          >
-                            {h.status}
-                          </Badge>
-                        </div>
-                        <p className="mt-0.5 inline-flex min-w-0 items-center gap-1 text-[10.5px] font-medium uppercase tracking-wide text-muted-foreground">
-                          <Folder className="h-3 w-3 shrink-0" />
-                          <span className="truncate">{h.module}</span>
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Prioridade */}
-                    <div className="md:justify-self-start">
-                      <span
-                        className={cn(
-                          "inline-flex items-center rounded-full border px-2 py-0.5 text-[10.5px] font-bold uppercase tracking-wide",
-                          priorityChip[h.priority],
-                        )}
-                      >
-                        {h.priority}
-                      </span>
-                    </div>
-
-                    {/* Atendente */}
-                    <div className="flex min-w-0 items-center gap-1.5 text-[11.5px] font-semibold text-foreground">
-                      <span
-                        aria-hidden
-                        className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-primary/12 text-primary"
-                      >
-                        <UserRound className="h-3 w-3" />
-                      </span>
-                      <span className="truncate">{h.operator}</span>
-                    </div>
-
-                    {/* Data / hora */}
-                    <div className="flex min-w-0 items-center gap-1.5 text-[11px] text-muted-foreground">
-                      <CalendarClock className="h-3.5 w-3.5 shrink-0" />
-                      <div className="leading-tight">
-                        <p className="font-semibold text-foreground">
-                          {formatDate(h.date)}
-                        </p>
-                        <p>{formatTime(h.date)}</p>
-                      </div>
-                    </div>
-
-                    {/* ID */}
-                    <div className="min-w-0 text-[10.5px] font-medium text-muted-foreground">
-                      <p className="truncate font-mono">
-                        <span className="font-bold uppercase tracking-wide text-muted-foreground/80 md:hidden">
-                          ID{" "}
-                        </span>
-                        {h.protocol}
-                      </p>
-                    </div>
-
-                    {/* Botão Ver chamado */}
-                    <button
-                      type="button"
-                      onClick={() => setSelected(h)}
-                      className="inline-flex cursor-pointer items-center justify-center gap-1 rounded-lg bg-primary/10 px-3 py-1.5 text-[11.5px] font-semibold text-primary transition hover:bg-primary/20 md:justify-self-end"
-                    >
-                      Ver chamado
-                      <ChevronRight className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
+          <TicketHistoryList items={shown} onSelect={setSelected} />
         </div>
-
       </DialogContent>
       <PastAttendanceDetailModal
         open={selected !== null}
@@ -313,3 +139,4 @@ export function TicketHistoryModal({
     </Dialog>
   );
 }
+
