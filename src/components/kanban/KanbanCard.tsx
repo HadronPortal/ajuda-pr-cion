@@ -95,17 +95,17 @@ export function KanbanCardItem({
         onClick?.();
       }}
       className={cn(
-        "group cursor-pointer rounded-xl border border-white/7 bg-[#101827] p-3 text-slate-100 shadow-[0_10px_28px_rgba(0,0,0,0.18)] transition duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1.5 hover:border-white/14 hover:bg-[#141e30] hover:shadow-[0_18px_34px_rgba(0,0,0,0.28)]",
+        "group cursor-pointer rounded-xl border border-white/7 bg-[#101827] p-4 text-slate-100 shadow-[0_10px_28px_rgba(0,0,0,0.18)] transition duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1.5 hover:border-white/14 hover:bg-[#141e30] hover:shadow-[0_18px_34px_rgba(0,0,0,0.28)]",
         isDragging && !overlay && "opacity-40",
         overlay && "rotate-1 shadow-2xl",
       )}
     >
       <div className="mb-3 flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="line-clamp-2 text-[11px] font-bold leading-snug text-white">
+          <p className="line-clamp-2 text-[12px] font-bold leading-snug text-white">
             {card.title}
           </p>
-          <p className="mt-2 truncate text-[10px] font-medium text-slate-400">
+          <p className="mt-2 text-[11px] font-medium text-slate-400 line-clamp-2">
             {card.client} <span className="text-slate-600">•</span> {card.module}
           </p>
         </div>

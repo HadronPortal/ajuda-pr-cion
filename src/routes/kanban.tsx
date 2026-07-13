@@ -20,13 +20,11 @@ import {
   Filter,
   Plus,
   Search,
-  SlidersHorizontal,
   UserRound,
 } from "lucide-react";
 import { AppShell } from "@/components/portal/AppShell";
 import { kanbanStore, useKanbanCards } from "@/lib/kanban-store";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
   Popover,
@@ -60,11 +58,11 @@ import {
 export const Route = createFileRoute("/kanban")({
   head: () => ({
     meta: [
-      { title: "Kanban de Chamados - Procion" },
+      { title: "Kanban Prócion - Demandas" },
       {
         name: "description",
         content:
-          "Quadro Kanban escuro para organizar demandas, suporte, implantacao e melhorias da Procion Sistemas.",
+          "Quadro Kanban escuro para organizar demandas e projetos internos da Prócion Sistemas.",
       },
     ],
   }),
@@ -133,14 +131,6 @@ function KanbanPage() {
     return grouped;
   }, [filteredCards]);
 
-  const priorityStats = useMemo(() => {
-    const count = (name: string) => filteredCards.filter((c) => c.priority.toLowerCase().includes(name)).length;
-    return [
-      { label: "Alta", value: count("alta"), color: "bg-rose-400" },
-      { label: "Media", value: filteredCards.filter((c) => c.priority.toLowerCase().includes("dia")).length, color: "bg-amber-400" },
-      { label: "Baixa", value: count("baixa"), color: "bg-emerald-400" },
-    ];
-  }, [filteredCards]);
 
   const handleDragStart = (e: DragStartEvent) => {
     const c = cards.find((x) => x.id === e.active.id);
@@ -254,8 +244,8 @@ function KanbanPage() {
       <div className="min-h-[calc(100vh-92px)] rounded-[18px] border border-white/8 bg-[#050c18] p-5 text-slate-100 shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
         <div className="mb-5 flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
           <div>
-            <h1 className="text-[22px] font-black tracking-tight text-white">Kanban de Chamados</h1>
-            <p className="mt-1 text-xs font-medium text-slate-400">Gestao inteligente de chamados e projetos</p>
+            <h1 className="text-[22px] font-black tracking-tight text-white">Kanban Prócion</h1>
+            <p className="mt-1 text-xs font-medium text-slate-400">Gestão inteligente de demandas e projetos internos</p>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
@@ -265,7 +255,7 @@ function KanbanPage() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 type="search"
-                placeholder="Buscar chamados..."
+                placeholder="Buscar demandas..."
                 className="h-full w-full rounded-lg border border-white/8 bg-white/[0.035] pl-10 pr-10 text-xs text-slate-200 outline-none transition placeholder:text-slate-500 focus:border-primary/50 focus:bg-white/[0.055]"
               />
               <Search className="absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-500" />
@@ -307,16 +297,16 @@ function KanbanPage() {
             </button>
             <Button onClick={() => handleNewCard()} className="h-11 rounded-lg bg-violet-600 px-5 text-xs font-bold text-white shadow-[0_12px_28px_rgba(124,58,237,0.28)] hover:bg-violet-500">
               <Plus className="mr-2 h-4 w-4" />
-              Novo chamado
+              Nova demanda
             </Button>
           </div>
         </div>
 
-        <div className="mb-5 grid gap-4 md:grid-cols-2 xl:grid-cols-[1fr_1fr_1fr_1.65fr]">
-          <MetricCard icon={BriefcaseBusiness} label="Abertos" value="48" delta="+12%" color="blue" />
-          <MetricCard icon={Clock3} label="Em andamento" value="15" delta="+8%" color="amber" />
-          <MetricCard icon={UserRound} label="Aguardando" value="9" delta="-4%" color="violet" negative />
-          <MetricCard icon={CheckCircle2} label="Concluido hoje" value="24" delta="+16%" color="emerald" wide />
+        <div className="mb-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <MetricCard icon={BriefcaseBusiness} label="A Fazer" value={String(cardsByColumn["a-fazer"].length)} color="blue" />
+          <MetricCard icon={Clock3} label="Em andamento" value={String(cardsByColumn["em-andamento"].length)} color="amber" />
+          <MetricCard icon={UserRound} label="Em revisão" value={String(cardsByColumn["homologacao"].length + cardsByColumn["concluido"].length)} color="violet" />
+          <MetricCard icon={CheckCircle2} label="Concluídos" value={String(cardsByColumn["arquivado"].length)} color="emerald" />
         </div>
 
         <DndContext
@@ -326,9 +316,9 @@ function KanbanPage() {
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
         >
-          <div className="hidden gap-4 xl:grid xl:grid-cols-[minmax(0,1fr)_230px]">
+          <div className="hidden xl:block">
             <div className="overflow-x-auto kanban-scrollbar">
-              <div className="flex min-w-max gap-3 pb-2">
+              <div className="flex min-w-max gap-4 pb-2">
                 {kanbanColumnsDef.map((col) => (
                   <KanbanColumnView
                     key={col.id}
@@ -341,7 +331,6 @@ function KanbanPage() {
                 ))}
               </div>
             </div>
-            <KanbanSidePanel priorityStats={priorityStats} />
           </div>
 
           <div className="xl:hidden">
@@ -394,18 +383,12 @@ function MetricCard({
   icon: Icon,
   label,
   value,
-  delta,
   color,
-  negative,
-  wide,
 }: {
   icon: typeof BriefcaseBusiness;
   label: string;
   value: string;
-  delta: string;
   color: "blue" | "amber" | "violet" | "emerald";
-  negative?: boolean;
-  wide?: boolean;
 }) {
   const tones = {
     blue: "bg-blue-500 text-blue-200",
@@ -415,7 +398,7 @@ function MetricCard({
   };
 
   return (
-    <div className={cn("rounded-xl border border-white/8 bg-white/[0.045] p-4 shadow-[0_18px_40px_rgba(0,0,0,0.16)]", wide && "xl:pr-8")}>
+    <div className="rounded-xl border border-white/8 bg-white/[0.045] p-4 shadow-[0_18px_40px_rgba(0,0,0,0.16)]">
       <div className="flex items-center gap-3">
         <div className={cn("grid h-11 w-11 place-items-center rounded-xl bg-opacity-25", tones[color])}>
           <Icon className="h-5 w-5 text-white" />
@@ -424,7 +407,6 @@ function MetricCard({
           <p className="text-[11px] font-medium text-slate-400">{label}</p>
           <div className="mt-1 flex items-end gap-3">
             <span className="text-3xl font-black leading-none text-white">{value}</span>
-            <span className={cn("pb-1 text-xs font-bold", negative ? "text-rose-400" : "text-emerald-400")}>{delta}</span>
           </div>
         </div>
       </div>
@@ -449,65 +431,6 @@ function MiniSpark({ color }: { color: "blue" | "amber" | "violet" | "emerald" }
   );
 }
 
-function KanbanSidePanel({ priorityStats }: { priorityStats: { label: string; value: number; color: string }[] }) {
-  return (
-    <aside className="space-y-3">
-      <div className="rounded-xl border border-white/8 bg-white/[0.045] p-4 shadow-[0_18px_40px_rgba(0,0,0,0.16)]">
-        <div className="mb-4 flex items-center justify-between">
-          <p className="text-sm font-black text-white">Resumo geral</p>
-          <button className="rounded-lg border border-white/8 bg-white/5 px-3 py-1 text-[11px] font-semibold text-slate-300">Hoje</button>
-        </div>
-        <p className="mb-3 text-[11px] font-bold text-slate-300">Chamados por prioridade</p>
-        <div className="flex items-center gap-4">
-          <div className="relative h-20 w-20 rounded-full bg-[conic-gradient(#f43f5e_0_37%,#f59e0b_37%_70%,#22c55e_70%_100%)]">
-            <div className="absolute inset-3 rounded-full bg-[#0c1422]" />
-          </div>
-          <div className="flex-1 space-y-2">
-            {priorityStats.map((p) => (
-              <div key={p.label} className="flex items-center justify-between gap-2 text-[11px]">
-                <span className="flex items-center gap-2 text-slate-300"><span className={cn("h-2 w-2 rounded-full", p.color)} />{p.label}</span>
-                <span className="font-bold text-slate-400">{p.value}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="rounded-xl border border-white/8 bg-white/[0.045] p-4 shadow-[0_18px_40px_rgba(0,0,0,0.16)]">
-        <p className="text-sm font-black text-white">SLA por periodo</p>
-        <div className="mt-3">
-          <p className="text-3xl font-black text-white">81%</p>
-          <p className="text-xs font-bold text-emerald-400">+5% vs ontem</p>
-        </div>
-        <svg className="mt-4 h-20 w-full" viewBox="0 0 220 80" fill="none" preserveAspectRatio="none">
-          <path d="M2 58 L38 45 L74 25 L110 51 L146 34 L182 39 L218 22" stroke="#168cff" strokeWidth="3" />
-          {[2, 38, 74, 110, 146, 182, 218].map((x, index) => (
-            <circle key={x} cx={x} cy={[58, 45, 25, 51, 34, 39, 22][index]} r="3.5" fill="#168cff" />
-          ))}
-        </svg>
-        <div className="mt-1 flex justify-between text-[10px] font-semibold text-slate-500">
-          <span>00h</span><span>06h</span><span>12h</span><span>18h</span><span>24h</span>
-        </div>
-      </div>
-
-      <div className="rounded-xl border border-white/8 bg-white/[0.045] p-4 shadow-[0_18px_40px_rgba(0,0,0,0.16)]">
-        <p className="mb-4 text-sm font-black text-white">Atendentes online</p>
-        {kanbanMembers.slice(0, 3).map((m, index) => (
-          <div key={m.id} className="mb-3 flex items-center gap-3 last:mb-0">
-            <Avatar className="h-8 w-8 border border-white/10">
-              <AvatarFallback className={cn("text-[10px] font-black", m.color)}>{m.initials}</AvatarFallback>
-            </Avatar>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-bold text-slate-200">{m.name}</p>
-            </div>
-            <span className="text-[10px] font-bold text-emerald-400">{index === 2 ? "Disponivel" : "Atendendo"}</span>
-          </div>
-        ))}
-        <p className="mt-4 text-[11px] font-semibold text-slate-500">+ 3 online</p>
-      </div>
-    </aside>
-  );
-}
 
 function FilterSelect({
   label,
