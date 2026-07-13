@@ -173,6 +173,7 @@ function KanbanPage() {
   const [newColumnOpen, setNewColumnOpen] = useState(false);
   const [newColumnName, setNewColumnName] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<KanbanColumn | null>(null);
+  const [followedColumns, setFollowedColumns] = useState<Set<ColumnId>>(new Set());
   const lastOverColumnRef = useRef<ColumnId | null>(null);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
