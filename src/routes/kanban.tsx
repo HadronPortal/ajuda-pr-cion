@@ -393,18 +393,12 @@ function MetricCard({
   icon: Icon,
   label,
   value,
-  delta,
   color,
-  negative,
-  wide,
 }: {
   icon: typeof BriefcaseBusiness;
   label: string;
   value: string;
-  delta: string;
   color: "blue" | "amber" | "violet" | "emerald";
-  negative?: boolean;
-  wide?: boolean;
 }) {
   const tones = {
     blue: "bg-blue-500 text-blue-200",
@@ -414,7 +408,7 @@ function MetricCard({
   };
 
   return (
-    <div className={cn("rounded-xl border border-white/8 bg-white/[0.045] p-4 shadow-[0_18px_40px_rgba(0,0,0,0.16)]", wide && "xl:pr-8")}>
+    <div className="rounded-xl border border-white/8 bg-white/[0.045] p-4 shadow-[0_18px_40px_rgba(0,0,0,0.16)]">
       <div className="flex items-center gap-3">
         <div className={cn("grid h-11 w-11 place-items-center rounded-xl bg-opacity-25", tones[color])}>
           <Icon className="h-5 w-5 text-white" />
@@ -423,7 +417,6 @@ function MetricCard({
           <p className="text-[11px] font-medium text-slate-400">{label}</p>
           <div className="mt-1 flex items-end gap-3">
             <span className="text-3xl font-black leading-none text-white">{value}</span>
-            <span className={cn("pb-1 text-xs font-bold", negative ? "text-rose-400" : "text-emerald-400")}>{delta}</span>
           </div>
         </div>
       </div>
