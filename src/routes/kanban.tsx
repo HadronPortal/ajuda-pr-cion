@@ -326,9 +326,9 @@ function KanbanPage() {
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
         >
-          <div className="hidden gap-4 xl:grid xl:grid-cols-[minmax(0,1fr)_230px]">
+          <div className="hidden xl:block">
             <div className="overflow-x-auto kanban-scrollbar">
-              <div className="flex min-w-max gap-3 pb-2">
+              <div className="flex min-w-max gap-4 pb-2">
                 {kanbanColumnsDef.map((col) => (
                   <KanbanColumnView
                     key={col.id}
@@ -341,7 +341,6 @@ function KanbanPage() {
                 ))}
               </div>
             </div>
-            <KanbanSidePanel priorityStats={priorityStats} />
           </div>
 
           <div className="xl:hidden">
