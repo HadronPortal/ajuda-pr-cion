@@ -904,6 +904,21 @@ export function KanbanCardDrawer({
                   Ações
                 </Label>
                 <div className="flex flex-col gap-1.5">
+                  {(() => {
+                    const idx = kanbanColumnsDef.findIndex((c) => c.id === draft.columnId);
+                    const next = idx >= 0 && idx < kanbanColumnsDef.length - 1 ? kanbanColumnsDef[idx + 1] : null;
+                    if (!next) return null;
+                    return (
+                      <Button
+                        variant="default"
+                        size="sm"
+                        className="cursor-pointer justify-start"
+                        onClick={() => handleChangeStatus(next.id)}
+                      >
+                        <GitBranch className="h-4 w-4 mr-2" /> Próximo passo: {next.title}
+                      </Button>
+                    );
+                  })()}
                   <Button variant="outline" size="sm" className="cursor-pointer justify-start" onClick={handleArchive}>
                     <Archive className="h-4 w-4 mr-2" /> Arquivar card
                   </Button>
@@ -922,6 +937,7 @@ export function KanbanCardDrawer({
                   )}
                 </div>
               </div>
+
             </aside>
           </div>
         </div>
