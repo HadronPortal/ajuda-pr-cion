@@ -589,7 +589,7 @@ function KanbanPage() {
             <div className="hidden xl:block">
               <div className="overflow-x-auto kanban-scrollbar">
                 <div className="flex min-w-max items-start gap-4 pb-2">
-                  {columns.map((col) => (
+                  {columns.map((col, idx) => (
                     <KanbanColumnView
                       key={col.id}
                       column={col}
@@ -599,15 +599,22 @@ function KanbanPage() {
                       onAddCard={handleNewCard}
                       onDeleteColumn={handleDeleteColumn}
                       canDeleteColumn={columns.length > 1}
+                      onCopyColumn={handleCopyColumn}
+                      onMoveColumn={handleMoveColumn}
+                      canMoveLeft={idx > 0}
+                      canMoveRight={idx < columns.length - 1}
+                      isFollowing={followedColumns.has(col.id)}
+                      onToggleFollow={handleToggleFollow}
                     />
                   ))}
                   <button
                     onClick={handleNewColumn}
-                    className="flex h-11 w-[270px] shrink-0 cursor-pointer items-center gap-2 rounded-xl border border-blue-500/30 bg-blue-500/10 px-4 text-[12px] font-semibold text-blue-700 backdrop-blur transition hover:bg-blue-500/20 dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:hover:bg-white/[0.12]"
+                    className="flex h-7 w-[210px] shrink-0 cursor-pointer items-center gap-1.5 self-start rounded-lg border border-blue-500/30 bg-blue-500/10 px-2.5 text-[11px] font-semibold text-blue-700 backdrop-blur transition hover:bg-blue-500/20 dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:hover:bg-white/[0.12]"
                   >
-                    <Plus className="h-4 w-4" />
+                    <Plus className="h-3.5 w-3.5" />
                     Adicionar outra lista
                   </button>
+
                 </div>
               </div>
             </div>
