@@ -1262,15 +1262,16 @@ function TicketsListView({
             <div className="flex flex-wrap items-center gap-1.5">
               <Badge
                 className={cn(
-                  "rounded-full border px-2 py-0.5 text-[10px] font-semibold",
+                  "inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-semibold",
                   statusTone[ticket.status],
                 )}
               >
+                <span className={cn("h-1.5 w-1.5 rounded-full", statusDotTone[ticket.status])} />
                 {ticket.status}
               </Badge>
               <span
                 className={cn(
-                  "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold",
+                  "inline-flex min-w-[80px] items-center justify-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold",
                   priorityTone[ticket.priority],
                 )}
               >
