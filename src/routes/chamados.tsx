@@ -118,12 +118,22 @@ type Filters = {
   status: string;
   priority: string;
   query: string;
+  sigla: string;
+  operatorType: "Todos" | "Atendente" | "Responsável";
+  operator: string;
+  dateType: "Registro" | "Atualizado";
+  date: string;
 };
 
 const initialFilters: Filters = {
   status: "Todos",
   priority: "Todas",
   query: "",
+  sigla: "",
+  operatorType: "Todos",
+  operator: "Todos",
+  dateType: "Registro",
+  date: "",
 };
 
 function ChamadosRouteShell() {
