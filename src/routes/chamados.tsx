@@ -95,11 +95,11 @@ export const Route = createFileRoute("/chamados")({
 // Soft/translucent status badges. Green reserved for Finalizado only.
 const statusTone: Record<TicketStatus, string> = {
   Atrasado: "bg-red-100 text-red-700 border-red-200 dark:bg-red-500/15 dark:text-red-300 dark:border-red-500/30",
-  "Em Aberto": "bg-cyan-100 text-cyan-700 border-cyan-200 dark:bg-cyan-500/15 dark:text-cyan-300 dark:border-cyan-500/30",
+  "Em Aberto": "bg-rose-100 text-rose-700 border-rose-200 dark:bg-rose-500/15 dark:text-rose-300 dark:border-rose-500/30",
   Ocupado: "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/30",
   "Em andamento": "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-500/15 dark:text-blue-300 dark:border-blue-500/30",
-  "Aguardando cliente": "bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-500/15 dark:text-purple-300 dark:border-purple-500/30",
-  "Com especialista": "bg-teal-100 text-teal-700 border-teal-200 dark:bg-teal-500/15 dark:text-teal-300 dark:border-teal-500/30",
+  "Aguardando cliente": "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/30",
+  "Com especialista": "bg-rose-100 text-rose-700 border-rose-200 dark:bg-rose-500/15 dark:text-rose-300 dark:border-rose-500/30",
   Agendamento: "bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-500/15 dark:text-orange-300 dark:border-orange-500/30",
   Finalizado: "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/30",
   Cancelado: "bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-500/15 dark:text-slate-300 dark:border-slate-500/30",
@@ -108,11 +108,11 @@ const statusTone: Record<TicketStatus, string> = {
 // Colored dot inside the status badge.
 const statusDotTone: Record<TicketStatus, string> = {
   Atrasado: "bg-red-500",
-  "Em Aberto": "bg-cyan-500",
+  "Em Aberto": "bg-rose-500",
   Ocupado: "bg-amber-500",
   "Em andamento": "bg-blue-500",
-  "Aguardando cliente": "bg-purple-500",
-  "Com especialista": "bg-teal-500",
+  "Aguardando cliente": "bg-emerald-500",
+  "Com especialista": "bg-rose-500",
   Agendamento: "bg-orange-500",
   Finalizado: "bg-emerald-500",
   Cancelado: "bg-slate-400",
@@ -121,11 +121,11 @@ const statusDotTone: Record<TicketStatus, string> = {
 // Left border stripe color per status (matches badge).
 const statusBorderTone: Record<TicketStatus, string> = {
   Atrasado: "border-l-red-500",
-  "Em Aberto": "border-l-cyan-500",
+  "Em Aberto": "border-l-rose-500",
   Ocupado: "border-l-amber-500",
   "Em andamento": "border-l-blue-500",
-  "Aguardando cliente": "border-l-purple-500",
-  "Com especialista": "border-l-teal-500",
+  "Aguardando cliente": "border-l-emerald-500",
+  "Com especialista": "border-l-rose-500",
   Agendamento: "border-l-orange-500",
   Finalizado: "border-l-emerald-500",
   Cancelado: "border-l-slate-400 dark:border-l-slate-500",
@@ -138,11 +138,16 @@ const priorityTone: Record<TicketPriority, string> = {
   Baixa: "bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-500/15 dark:text-slate-300 dark:border-slate-500/30",
 };
 
-// Row tint by priority (used only when ticket is NOT finalized).
-const priorityRowTint: Record<TicketPriority, string> = {
-  Alta: "bg-rose-100/70 hover:bg-rose-200/70 dark:bg-rose-500/[0.13] dark:hover:bg-rose-500/[0.20]",
-  Media: "bg-amber-100/70 hover:bg-amber-200/70 dark:bg-amber-500/[0.13] dark:hover:bg-amber-500/[0.20]",
-  Baixa: "bg-slate-100/70 hover:bg-slate-200/70 dark:bg-slate-500/[0.10] dark:hover:bg-slate-500/[0.16]",
+const statusRowTint: Record<TicketStatus, string> = {
+  Atrasado: "bg-rose-50/85 hover:bg-rose-100/90 dark:bg-rose-500/[0.12] dark:hover:bg-rose-500/[0.18]",
+  "Em Aberto": "bg-rose-50/70 hover:bg-rose-100/80 dark:bg-rose-500/[0.10] dark:hover:bg-rose-500/[0.16]",
+  Ocupado: "bg-orange-50/80 hover:bg-orange-100/90 dark:bg-orange-500/[0.12] dark:hover:bg-orange-500/[0.18]",
+  "Em andamento": "bg-sky-50/85 hover:bg-sky-100/90 dark:bg-sky-500/[0.12] dark:hover:bg-sky-500/[0.18]",
+  "Aguardando cliente": "bg-emerald-50/85 hover:bg-emerald-100/90 dark:bg-emerald-500/[0.12] dark:hover:bg-emerald-500/[0.18]",
+  "Com especialista": "bg-rose-50/75 hover:bg-rose-100/85 dark:bg-rose-500/[0.11] dark:hover:bg-rose-500/[0.17]",
+  Agendamento: "bg-amber-50/85 hover:bg-amber-100/90 dark:bg-amber-500/[0.12] dark:hover:bg-amber-500/[0.18]",
+  Finalizado: "bg-emerald-50/85 hover:bg-emerald-100/90 dark:bg-emerald-500/[0.12] dark:hover:bg-emerald-500/[0.18]",
+  Cancelado: "bg-slate-50 hover:bg-slate-100 dark:bg-slate-500/[0.08] dark:hover:bg-slate-500/[0.13]",
 };
 
 const priorityTint: Record<TicketPriority, string> = {
@@ -156,8 +161,7 @@ const finalizedRowTint =
   "bg-emerald-100/70 hover:bg-emerald-200/70 dark:bg-emerald-500/[0.12] dark:hover:bg-emerald-500/[0.18]";
 
 function rowTintFor(ticket: SupportTicket) {
-  if (ticket.status === "Finalizado") return finalizedRowTint;
-  return priorityRowTint[ticket.priority];
+  return statusRowTint[ticket.status];
 }
 
 const chartConfig = {
@@ -1056,7 +1060,7 @@ function TicketsListView({
     dir: "desc",
   });
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(25);
+  const [pageSize, setPageSize] = useState(10);
 
   // Reset to page 1 when filters (i.e. ticket list) or page size change.
   useEffect(() => {
