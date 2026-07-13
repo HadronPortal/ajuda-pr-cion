@@ -25,7 +25,6 @@ import {
   Headphones,
   History,
   ChevronRight,
-  ChevronRight,
   Layers,
   LockKeyhole,
   MessageSquarePlus,
