@@ -545,6 +545,13 @@ function KanbanPage() {
                       canDeleteColumn={columns.length > 1}
                     />
                   ))}
+                  <button
+                    onClick={handleNewColumn}
+                    className="flex h-11 w-[270px] shrink-0 cursor-pointer items-center gap-2 rounded-xl border border-blue-500/30 bg-blue-500/10 px-4 text-[12px] font-semibold text-blue-700 backdrop-blur transition hover:bg-blue-500/20 dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:hover:bg-white/[0.12]"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Adicionar outra lista
+                  </button>
                 </div>
               </div>
             </div>
