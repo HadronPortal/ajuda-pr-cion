@@ -92,37 +92,50 @@ export const Route = createFileRoute("/chamados")({
   component: ChamadosRouteShell,
 });
 
-// Solid status badge colors. Green reserved for Finalizado only.
+// Soft/translucent status badges. Green reserved for Finalizado only.
 const statusTone: Record<TicketStatus, string> = {
-  Atrasado: "bg-red-600 text-white border-red-700 dark:bg-red-600 dark:text-white dark:border-red-500",
-  "Em Aberto": "bg-cyan-600 text-white border-cyan-700 dark:bg-cyan-600 dark:text-white dark:border-cyan-500",
-  Ocupado: "bg-amber-500 text-white border-amber-600 dark:bg-amber-500 dark:text-white dark:border-amber-400",
-  "Em andamento": "bg-blue-600 text-white border-blue-700 dark:bg-blue-600 dark:text-white dark:border-blue-500",
-  "Aguardando cliente": "bg-purple-600 text-white border-purple-700 dark:bg-purple-600 dark:text-white dark:border-purple-500",
-  "Com especialista": "bg-teal-600 text-white border-teal-700 dark:bg-teal-600 dark:text-white dark:border-teal-500",
-  Agendamento: "bg-orange-500 text-white border-orange-600 dark:bg-orange-500 dark:text-white dark:border-orange-400",
-  Finalizado: "bg-emerald-600 text-white border-emerald-700 dark:bg-emerald-600 dark:text-white dark:border-emerald-500",
-  Cancelado: "bg-slate-500 text-white border-slate-600 dark:bg-slate-600 dark:text-white dark:border-slate-500",
+  Atrasado: "bg-red-100 text-red-700 border-red-200 dark:bg-red-500/15 dark:text-red-300 dark:border-red-500/30",
+  "Em Aberto": "bg-cyan-100 text-cyan-700 border-cyan-200 dark:bg-cyan-500/15 dark:text-cyan-300 dark:border-cyan-500/30",
+  Ocupado: "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/30",
+  "Em andamento": "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-500/15 dark:text-blue-300 dark:border-blue-500/30",
+  "Aguardando cliente": "bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-500/15 dark:text-purple-300 dark:border-purple-500/30",
+  "Com especialista": "bg-teal-100 text-teal-700 border-teal-200 dark:bg-teal-500/15 dark:text-teal-300 dark:border-teal-500/30",
+  Agendamento: "bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-500/15 dark:text-orange-300 dark:border-orange-500/30",
+  Finalizado: "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/30",
+  Cancelado: "bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-500/15 dark:text-slate-300 dark:border-slate-500/30",
+};
+
+// Colored dot inside the status badge.
+const statusDotTone: Record<TicketStatus, string> = {
+  Atrasado: "bg-red-500",
+  "Em Aberto": "bg-cyan-500",
+  Ocupado: "bg-amber-500",
+  "Em andamento": "bg-blue-500",
+  "Aguardando cliente": "bg-purple-500",
+  "Com especialista": "bg-teal-500",
+  Agendamento: "bg-orange-500",
+  Finalizado: "bg-emerald-500",
+  Cancelado: "bg-slate-400",
 };
 
 // Left border stripe color per status (matches badge).
 const statusBorderTone: Record<TicketStatus, string> = {
-  Atrasado: "border-l-red-600 dark:border-l-red-500",
-  "Em Aberto": "border-l-cyan-600 dark:border-l-cyan-500",
-  Ocupado: "border-l-amber-500 dark:border-l-amber-400",
-  "Em andamento": "border-l-blue-600 dark:border-l-blue-500",
-  "Aguardando cliente": "border-l-purple-600 dark:border-l-purple-500",
-  "Com especialista": "border-l-teal-600 dark:border-l-teal-500",
-  Agendamento: "border-l-orange-500 dark:border-l-orange-400",
-  Finalizado: "border-l-emerald-600 dark:border-l-emerald-500",
+  Atrasado: "border-l-red-500",
+  "Em Aberto": "border-l-cyan-500",
+  Ocupado: "border-l-amber-500",
+  "Em andamento": "border-l-blue-500",
+  "Aguardando cliente": "border-l-purple-500",
+  "Com especialista": "border-l-teal-500",
+  Agendamento: "border-l-orange-500",
+  Finalizado: "border-l-emerald-500",
   Cancelado: "border-l-slate-400 dark:border-l-slate-500",
 };
 
-// Solid priority badges. Baixa uses slate/blue — NOT green (green = Finalizado).
+// Soft/translucent priority badges. Baixa uses slate — NOT green.
 const priorityTone: Record<TicketPriority, string> = {
-  Alta: "bg-red-600 text-white dark:bg-red-600 dark:text-white",
-  Media: "bg-amber-500 text-white dark:bg-amber-500 dark:text-white",
-  Baixa: "bg-slate-500 text-white dark:bg-slate-500 dark:text-white",
+  Alta: "bg-red-100 text-red-700 border-red-200 dark:bg-red-500/15 dark:text-red-300 dark:border-red-500/30",
+  Media: "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/30",
+  Baixa: "bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-500/15 dark:text-slate-300 dark:border-slate-500/30",
 };
 
 // Row tint by priority (used only when ticket is NOT finalized).
