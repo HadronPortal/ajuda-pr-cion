@@ -105,6 +105,19 @@ const statusTone: Record<TicketStatus, string> = {
   Cancelado: "bg-slate-500 text-white border-slate-600 dark:bg-slate-600 dark:text-white dark:border-slate-500",
 };
 
+// Left border stripe color per status (matches badge).
+const statusBorderTone: Record<TicketStatus, string> = {
+  Atrasado: "border-l-red-600 dark:border-l-red-500",
+  "Em Aberto": "border-l-cyan-600 dark:border-l-cyan-500",
+  Ocupado: "border-l-amber-500 dark:border-l-amber-400",
+  "Em andamento": "border-l-blue-600 dark:border-l-blue-500",
+  "Aguardando cliente": "border-l-purple-600 dark:border-l-purple-500",
+  "Com especialista": "border-l-teal-600 dark:border-l-teal-500",
+  Agendamento: "border-l-orange-500 dark:border-l-orange-400",
+  Finalizado: "border-l-emerald-600 dark:border-l-emerald-500",
+  Cancelado: "border-l-slate-400 dark:border-l-slate-500",
+};
+
 // Solid priority badges. Baixa uses slate/blue — NOT green (green = Finalizado).
 const priorityTone: Record<TicketPriority, string> = {
   Alta: "bg-red-600 text-white dark:bg-red-600 dark:text-white",
