@@ -241,29 +241,29 @@ function KanbanPage() {
 
   return (
     <AppShell>
-      <div className="min-h-[calc(100vh-92px)] rounded-[18px] border border-white/8 bg-[#050c18] p-5 text-slate-100 shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
+      <div className="min-h-[calc(100vh-92px)] rounded-[18px] border border-slate-200 bg-slate-50 p-5 text-slate-900 shadow-[0_8px_24px_rgba(15,23,42,0.06)] dark:border-white/8 dark:bg-[#050c18] dark:text-slate-100 dark:shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
         <div className="mb-5 flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
           <div>
-            <h1 className="text-[22px] font-black tracking-tight text-white">Kanban Prócion</h1>
-            <p className="mt-1 text-xs font-medium text-slate-400">Gestão inteligente de demandas e projetos internos</p>
+            <h1 className="text-[22px] font-black tracking-tight text-slate-900 dark:text-white">Kanban Prócion</h1>
+            <p className="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400">Gestão inteligente de demandas e projetos internos</p>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
             <div className="relative h-11 w-full sm:w-[300px]">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 type="search"
                 placeholder="Buscar demandas..."
-                className="h-full w-full rounded-lg border border-white/8 bg-white/[0.035] pl-10 pr-10 text-xs text-slate-200 outline-none transition placeholder:text-slate-500 focus:border-primary/50 focus:bg-white/[0.055]"
+                className="h-full w-full rounded-lg border border-slate-200 bg-white pl-10 pr-10 text-xs text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-primary/50 dark:border-white/8 dark:bg-white/[0.035] dark:text-slate-200 dark:placeholder:text-slate-500 dark:focus:bg-white/[0.055]"
               />
-              <Search className="absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-500" />
+              <Search className="absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
             </div>
 
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" className="h-11 cursor-pointer rounded-lg border-white/8 bg-white/[0.035] px-4 text-xs text-slate-200 hover:bg-white/10 hover:text-white">
+                <Button variant="outline" className="h-11 cursor-pointer rounded-lg border-slate-200 bg-white px-4 text-xs text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:border-white/8 dark:bg-white/[0.035] dark:text-slate-200 dark:hover:bg-white/10 dark:hover:text-white">
                   <Filter className="mr-2 h-4 w-4" />
                   Filtros
                   {activeFilterCount > 0 && <Badge className="ml-2 h-5 min-w-5 bg-primary text-[10px]">{activeFilterCount}</Badge>}
@@ -288,10 +288,10 @@ function KanbanPage() {
               </PopoverContent>
             </Popover>
 
-            <button className="grid h-11 w-11 cursor-pointer place-items-center rounded-lg border border-white/8 bg-white/[0.035] text-slate-300 transition hover:bg-white/10 hover:text-white">
+            <button className="grid h-11 w-11 cursor-pointer place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:border-white/8 dark:bg-white/[0.035] dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white">
               <BarChart3 className="h-4 w-4" />
             </button>
-            <button className="relative grid h-11 w-11 cursor-pointer place-items-center rounded-lg border border-white/8 bg-white/[0.035] text-slate-300 transition hover:bg-white/10 hover:text-white">
+            <button className="relative grid h-11 w-11 cursor-pointer place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:border-white/8 dark:bg-white/[0.035] dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white">
               <Bell className="h-4 w-4" />
               <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-rose-500 px-1 text-[10px] font-black text-white">3</span>
             </button>
@@ -335,11 +335,11 @@ function KanbanPage() {
 
           <div className="xl:hidden">
             <Tabs value={mobileColumn} onValueChange={(v) => setMobileColumn(v as ColumnId)}>
-              <TabsList className="mb-3 flex h-auto w-full justify-start overflow-x-auto rounded-xl bg-white/6 p-1">
+              <TabsList className="mb-3 flex h-auto w-full justify-start overflow-x-auto rounded-xl bg-slate-100 p-1 dark:bg-white/6">
                 {kanbanColumnsDef.map((c) => (
-                  <TabsTrigger key={c.id} value={c.id} className="cursor-pointer whitespace-nowrap text-xs text-slate-300 data-[state=active]:bg-white/10 data-[state=active]:text-white">
+                  <TabsTrigger key={c.id} value={c.id} className="cursor-pointer whitespace-nowrap text-xs text-slate-600 data-[state=active]:bg-white data-[state=active]:text-slate-900 dark:text-slate-300 dark:data-[state=active]:bg-white/10 dark:data-[state=active]:text-white">
                     {c.title}
-                    <span className="ml-1.5 rounded bg-white/10 px-1.5 py-0.5 text-[10px]">
+                    <span className="ml-1.5 rounded bg-slate-200 px-1.5 py-0.5 text-[10px] dark:bg-white/10">
                       {cardsByColumn[c.id].length}
                     </span>
                   </TabsTrigger>
@@ -398,15 +398,15 @@ function MetricCard({
   };
 
   return (
-    <div className="rounded-xl border border-white/8 bg-white/[0.045] p-4 shadow-[0_18px_40px_rgba(0,0,0,0.16)]">
+    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-white/8 dark:bg-white/[0.045] dark:shadow-[0_18px_40px_rgba(0,0,0,0.16)]">
       <div className="flex items-center gap-3">
         <div className={cn("grid h-11 w-11 place-items-center rounded-xl bg-opacity-25", tones[color])}>
           <Icon className="h-5 w-5 text-white" />
         </div>
         <div>
-          <p className="text-[11px] font-medium text-slate-400">{label}</p>
+          <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400">{label}</p>
           <div className="mt-1 flex items-end gap-3">
-            <span className="text-3xl font-black leading-none text-white">{value}</span>
+            <span className="text-3xl font-black leading-none text-slate-900 dark:text-white">{value}</span>
           </div>
         </div>
       </div>
