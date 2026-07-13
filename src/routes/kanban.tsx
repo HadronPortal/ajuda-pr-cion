@@ -335,11 +335,11 @@ function KanbanPage() {
 
           <div className="xl:hidden">
             <Tabs value={mobileColumn} onValueChange={(v) => setMobileColumn(v as ColumnId)}>
-              <TabsList className="mb-3 flex h-auto w-full justify-start overflow-x-auto rounded-xl bg-white/6 p-1">
+              <TabsList className="mb-3 flex h-auto w-full justify-start overflow-x-auto rounded-xl bg-slate-100 p-1 dark:bg-white/6">
                 {kanbanColumnsDef.map((c) => (
-                  <TabsTrigger key={c.id} value={c.id} className="cursor-pointer whitespace-nowrap text-xs text-slate-300 data-[state=active]:bg-white/10 data-[state=active]:text-white">
+                  <TabsTrigger key={c.id} value={c.id} className="cursor-pointer whitespace-nowrap text-xs text-slate-600 data-[state=active]:bg-white data-[state=active]:text-slate-900 dark:text-slate-300 dark:data-[state=active]:bg-white/10 dark:data-[state=active]:text-white">
                     {c.title}
-                    <span className="ml-1.5 rounded bg-white/10 px-1.5 py-0.5 text-[10px]">
+                    <span className="ml-1.5 rounded bg-slate-200 px-1.5 py-0.5 text-[10px] dark:bg-white/10">
                       {cardsByColumn[c.id].length}
                     </span>
                   </TabsTrigger>
