@@ -266,13 +266,8 @@ function TicketsPage() {
   const [detailOpen, setDetailOpen] = useState(false);
   const [historyTicketId, setHistoryTicketId] = useState<string | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<"grid" | "list">(() => {
-    if (typeof window === "undefined") return "grid";
-    return (localStorage.getItem("chamados:viewMode") as "grid" | "list") ?? "grid";
-  });
-  useEffect(() => {
-    if (typeof window !== "undefined") localStorage.setItem("chamados:viewMode", viewMode);
-  }, [viewMode]);
+
+
 
   const openTicketDetail = (ticket: SupportTicket) => {
     setSelectedTicketId(ticket.id);
