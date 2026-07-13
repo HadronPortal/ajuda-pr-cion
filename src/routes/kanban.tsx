@@ -489,7 +489,7 @@ function KanbanPage() {
 
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" className="h-11 cursor-pointer rounded-lg border-slate-200 bg-white px-4 text-xs text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:border-white/8 dark:bg-white/[0.035] dark:text-slate-200 dark:hover:bg-white/10 dark:hover:text-white">
+                <Button variant="outline" className="h-11 shrink-0 cursor-pointer rounded-lg border-slate-200 bg-white px-4 text-xs text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:border-white/8 dark:bg-white/[0.035] dark:text-slate-200 dark:hover:bg-white/10 dark:hover:text-white">
                   <Filter className="mr-2 h-4 w-4" />
                   Filtros
                   {activeFilterCount > 0 && <Badge className="ml-2 h-5 min-w-5 bg-primary text-[10px]">{activeFilterCount}</Badge>}
