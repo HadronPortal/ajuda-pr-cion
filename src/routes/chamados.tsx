@@ -916,7 +916,7 @@ function TicketsListView({
           <Card
             key={ticket.id}
             onClick={() => onOpen(ticket)}
-            className={cn("cursor-pointer rounded-xl border border-border/60 bg-card p-3 shadow-[0_6px_16px_rgba(25,29,51,0.04)] transition hover:shadow-[0_10px_20px_rgba(25,29,51,0.08)]", priorityTint[ticket.priority])}
+            className={cn("cursor-pointer rounded-xl border border-border/60 bg-card p-3 shadow-[0_6px_16px_rgba(25,29,51,0.04)] transition hover:shadow-[0_10px_20px_rgba(25,29,51,0.08)]", ticket.status === "Finalizado" ? finalizedRowTint : priorityTint[ticket.priority])}
           >
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
