@@ -163,6 +163,9 @@ function KanbanPage() {
   const [drawerCard, setDrawerCard] = useState<KanbanCard | null>(null);
   const [defaultColumnId, setDefaultColumnId] = useState<ColumnId>("a-fazer");
   const [mobileColumn, setMobileColumn] = useState<ColumnId>("a-fazer");
+  const [newColumnOpen, setNewColumnOpen] = useState(false);
+  const [newColumnName, setNewColumnName] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<KanbanColumn | null>(null);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
   const activeFilterCount =
