@@ -198,9 +198,20 @@ function TicketsPage() {
         if (filters.operatorType === "Responsável" && ticket.owner !== op) return false;
         if (filters.operatorType === "Todos" && ticket.attendant !== op && ticket.owner !== op) return false;
       }
-      if (filters.date) {
-        const field = filters.dateType === "Registro" ? ticket.openedAt : ticket.updatedAt;
-        if (!field.startsWith(filters.date)) return false;
+      if (filters.dateStart || filters.dateEnd) {
+        const raw = filters.dateType === "Registro" ? ticket.openedAt : ticket.updatedAt;
+        const d = new Date(raw);
+        const day = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+        if (filters.dateStart) {
+          const s = filters.dateStart;
+          const start = new Date(s.getFullYear(), s.getMonth(), s.getDate()).getTime();
+          if (day < start) return false;
+        }
+        if (filters.dateEnd) {
+          const e = filters.dateEnd;
+          const end = new Date(e.getFullYear(), e.getMonth(), e.getDate()).getTime();
+          if (day > end) return false;
+        }
       }
       if (!query) return true;
       return [
