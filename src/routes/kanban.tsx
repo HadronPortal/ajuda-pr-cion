@@ -120,6 +120,7 @@ function daysBetween(iso: string) {
 }
 
 const KANBAN_COLUMNS_STORAGE_KEY = "procion-kanban-columns";
+const FOLLOWED_COLUMNS_STORAGE_KEY = "procion-kanban-followed-columns";
 
 const kanbanCollisionDetection: CollisionDetection = (args) => {
   const pointerCollisions = pointerWithin(args);
@@ -136,6 +137,18 @@ function getInitialColumns(): KanbanColumn[] {
     return parsed.filter((col) => col?.id && col?.title);
   } catch {
     return kanbanColumnsDef;
+  }
+}
+
+function getInitialFollowedColumns() {
+  if (typeof window === "undefined") return new Set<ColumnId>();
+  try {
+    const saved = window.localStorage.getItem(FOLLOWED_COLUMNS_STORAGE_KEY);
+    if (!saved) return new Set<ColumnId>();
+    const parsed = JSON.parse(saved) as ColumnId[];
+    return new Set(Array.isArray(parsed) ? parsed : []);
+  } catch {
+    return new Set<ColumnId>();
   }
 }
 
@@ -173,7 +186,7 @@ function KanbanPage() {
   const [newColumnOpen, setNewColumnOpen] = useState(false);
   const [newColumnName, setNewColumnName] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<KanbanColumn | null>(null);
-  const [followedColumns, setFollowedColumns] = useState<Set<ColumnId>>(new Set());
+  const [followedColumns, setFollowedColumns] = useState<Set<ColumnId>>(getInitialFollowedColumns);
   const lastOverColumnRef = useRef<ColumnId | null>(null);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
@@ -189,6 +202,13 @@ function KanbanPage() {
   useEffect(() => {
     window.localStorage.setItem(KANBAN_COLUMNS_STORAGE_KEY, JSON.stringify(columns));
   }, [columns]);
+
+  useEffect(() => {
+    window.localStorage.setItem(
+      FOLLOWED_COLUMNS_STORAGE_KEY,
+      JSON.stringify(Array.from(followedColumns)),
+    );
+  }, [followedColumns]);
 
   const filteredCards = useMemo(() => {
     const q = query.trim().toLowerCase();
