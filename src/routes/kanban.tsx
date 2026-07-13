@@ -473,7 +473,7 @@ function KanbanPage() {
             <p className="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400">Gestão inteligente de demandas e projetos internos</p>
           </div>
 
-          <div className="flex flex-nowrap items-center gap-2 overflow-x-auto xl:flex-wrap xl:overflow-visible">
+          <div className="flex flex-nowrap items-center gap-2 overflow-x-auto pb-1 xl:overflow-visible xl:pb-0">
             <div className="relative h-11 w-full min-w-[200px] shrink-0 sm:w-[240px]">
 
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
