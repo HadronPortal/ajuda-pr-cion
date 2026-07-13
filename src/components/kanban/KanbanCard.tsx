@@ -19,31 +19,30 @@ function formatDue(iso: string) {
 function getPriorityMeta(priority: string) {
   const normalized = priority.toLowerCase();
   if (normalized.includes("baixa")) {
-    return {
-      label: "Baixa",
-      accent: "bg-emerald-400",
-      badge: "bg-emerald-500/18 text-emerald-300 border-emerald-400/20",
-    };
+    return { label: "Baixa", accent: "bg-emerald-400", strip: "bg-emerald-500" };
   }
   if (normalized.includes("alta")) {
-    return {
-      label: "Alta",
-      accent: "bg-rose-400",
-      badge: "bg-rose-500/18 text-rose-300 border-rose-400/20",
-    };
+    return { label: "Alta", accent: "bg-rose-400", strip: "bg-orange-500" };
   }
   if (normalized.includes("cr")) {
-    return {
-      label: "Critica",
-      accent: "bg-red-400",
-      badge: "bg-red-500/18 text-red-300 border-red-400/20",
-    };
+    return { label: "Crítica", accent: "bg-red-500", strip: "bg-red-600" };
   }
-  return {
-    label: "Media",
-    accent: "bg-amber-400",
-    badge: "bg-amber-500/18 text-amber-300 border-amber-400/20",
-  };
+  return { label: "Média", accent: "bg-amber-400", strip: "bg-yellow-400" };
+}
+
+const TAG_COLORS: { match: RegExp; className: string }[] = [
+  { match: /fiscal|nf|sped|icms/i, className: "bg-sky-500" },
+  { match: /financ|pix|boleto|comiss/i, className: "bg-emerald-500" },
+  { match: /estoque|wms|log/i, className: "bg-indigo-500" },
+  { match: /performance|bug/i, className: "bg-rose-500" },
+  { match: /doc|api/i, className: "bg-violet-500" },
+  { match: /ux|design|release/i, className: "bg-pink-500" },
+  { match: /implant|migra|produ/i, className: "bg-teal-500" },
+  { match: /seg|2fa|infra/i, className: "bg-amber-500" },
+];
+
+function getTagColor(tag: string) {
+  return TAG_COLORS.find((t) => t.match.test(tag))?.className ?? "bg-slate-400";
 }
 
 export function KanbanCardItem({
