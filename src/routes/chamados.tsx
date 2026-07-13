@@ -1133,19 +1133,33 @@ function TicketsListView({
                     key={ticket.id}
                     onClick={() => onOpen(ticket)}
                     className={cn(
-                      "group cursor-pointer border-t border-l-[3px] border-border/60 transition",
-                      rowTintFor(ticket),
-                      statusBorderTone[ticket.status],
+                      "group cursor-pointer transition",
+                      "[&>td]:border-y [&>td]:border-border/60 [&>td]:bg-card",
+                      "[&>td:first-child]:rounded-l-lg [&>td:first-child]:border-l-[3px]",
+                      "[&>td:last-child]:rounded-r-lg [&>td:last-child]:border-r",
+                      "[&>td]:shadow-[0_1px_2px_rgba(25,29,51,0.03)]",
                     )}
                   >
-                    <td className="px-2 py-2 align-middle">
+                    <td
+                      className={cn(
+                        "px-2 py-2 align-middle",
+                        rowTintFor(ticket),
+                        statusBorderTone[ticket.status],
+                      )}
+                    >
                       <div className="flex flex-col items-start gap-0.5">
                         <Badge
                           className={cn(
-                            "inline-flex w-[152px] justify-center whitespace-nowrap rounded-full border px-2 py-0.5 text-[10px] font-semibold",
+                            "inline-flex items-center justify-start gap-1.5 whitespace-nowrap rounded-full border px-2 py-0.5 text-[10.5px] font-semibold",
                             statusTone[ticket.status],
                           )}
                         >
+                          <span
+                            className={cn(
+                              "h-1.5 w-1.5 shrink-0 rounded-full",
+                              statusDotTone[ticket.status],
+                            )}
+                          />
                           {ticket.status}
                         </Badge>
                         <span className="font-mono text-[10px] leading-tight text-muted-foreground">
@@ -1153,10 +1167,10 @@ function TicketsListView({
                         </span>
                       </div>
                     </td>
-                    <td className="px-2 py-2 align-middle">
+                    <td className={cn("px-2 py-2 align-middle", rowTintFor(ticket))}>
                       <span
                         className={cn(
-                          "inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-semibold",
+                          "inline-flex min-w-[86px] items-center justify-center gap-1 whitespace-nowrap rounded-full border px-2 py-0.5 text-[10.5px] font-semibold",
                           priorityTone[ticket.priority],
                         )}
                       >
