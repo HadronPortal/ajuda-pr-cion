@@ -19,31 +19,30 @@ function formatDue(iso: string) {
 function getPriorityMeta(priority: string) {
   const normalized = priority.toLowerCase();
   if (normalized.includes("baixa")) {
-    return {
-      label: "Baixa",
-      accent: "bg-emerald-400",
-      badge: "bg-emerald-500/18 text-emerald-300 border-emerald-400/20",
-    };
+    return { label: "Baixa", accent: "bg-emerald-400", strip: "bg-emerald-500" };
   }
   if (normalized.includes("alta")) {
-    return {
-      label: "Alta",
-      accent: "bg-rose-400",
-      badge: "bg-rose-500/18 text-rose-300 border-rose-400/20",
-    };
+    return { label: "Alta", accent: "bg-rose-400", strip: "bg-orange-500" };
   }
   if (normalized.includes("cr")) {
-    return {
-      label: "Critica",
-      accent: "bg-red-400",
-      badge: "bg-red-500/18 text-red-300 border-red-400/20",
-    };
+    return { label: "Crítica", accent: "bg-red-500", strip: "bg-red-600" };
   }
-  return {
-    label: "Media",
-    accent: "bg-amber-400",
-    badge: "bg-amber-500/18 text-amber-300 border-amber-400/20",
-  };
+  return { label: "Média", accent: "bg-amber-400", strip: "bg-yellow-400" };
+}
+
+const TAG_COLORS: { match: RegExp; className: string }[] = [
+  { match: /fiscal|nf|sped|icms/i, className: "bg-sky-500" },
+  { match: /financ|pix|boleto|comiss/i, className: "bg-emerald-500" },
+  { match: /estoque|wms|log/i, className: "bg-indigo-500" },
+  { match: /performance|bug/i, className: "bg-rose-500" },
+  { match: /doc|api/i, className: "bg-violet-500" },
+  { match: /ux|design|release/i, className: "bg-pink-500" },
+  { match: /implant|migra|produ/i, className: "bg-teal-500" },
+  { match: /seg|2fa|infra/i, className: "bg-amber-500" },
+];
+
+function getTagColor(tag: string) {
+  return TAG_COLORS.find((t) => t.match.test(tag))?.className ?? "bg-slate-400";
 }
 
 export function KanbanCardItem({
@@ -99,78 +98,78 @@ export function KanbanCardItem({
         overlay && "rotate-1 shadow-2xl",
       )}
     >
-      <div className="mb-3 flex items-start justify-between gap-2">
+      {/* Trello-style label strips */}
+      <div className="mb-2 flex flex-wrap gap-1">
+        <span
+          title={`Prioridade: ${priority.label}`}
+          className={cn("h-2 w-10 rounded-full", priority.strip)}
+        />
+        {card.tags?.slice(0, 6).map((t) => (
+          <span
+            key={t}
+            title={t}
+            className={cn("h-2 w-10 rounded-full opacity-90", getTagColor(t))}
+          />
+        ))}
+      </div>
+
+      <div className="mb-2 flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="line-clamp-2 text-[12px] font-bold leading-snug text-slate-900 dark:text-white">
+          <p className="line-clamp-2 text-[12px] font-semibold leading-snug text-slate-900 dark:text-white">
             {card.title}
           </p>
-          <p className="mt-2 text-[11px] font-medium text-slate-500 line-clamp-2 dark:text-slate-400">
+          <p className="mt-1 text-[11px] font-medium text-slate-500 line-clamp-1 dark:text-slate-400">
             {card.client} <span className="text-slate-400 dark:text-slate-600">•</span> {card.module}
           </p>
-          {card.tags && card.tags.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-1">
-              {card.tags.slice(0, 4).map((t) => (
-                <span
-                  key={t}
-                  className="rounded-sm bg-slate-100 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-slate-600 dark:bg-white/8 dark:text-slate-300"
-                >
-                  {t}
-                </span>
-              ))}
-              {card.tags.length > 4 && (
-                <span className="text-[9px] font-semibold text-slate-500 dark:text-slate-400">
-                  +{card.tags.length - 4}
-                </span>
-              )}
-            </div>
-          )}
         </div>
-
-        <div className="flex shrink-0 items-center gap-1">
-          <span className={cn("rounded-md border px-1.5 py-0.5 text-[9px] font-bold", priority.badge)}>
-            {priority.label}
-          </span>
+        <div className="flex shrink-0 items-center">
           <KanbanCardMenu
             card={card}
             columns={columns}
             onOpen={onClick}
             onArchive={onArchive}
           />
-
         </div>
       </div>
 
-      <div className="mb-3 flex items-center gap-2 text-[10px] text-slate-500 dark:text-slate-400">
-        <span className="inline-flex items-center gap-1">
+      <div className="flex items-center gap-3 text-[10px] text-slate-500 dark:text-slate-400">
+        <span className="inline-flex items-center gap-1" title="Prazo">
           <CalendarDays className="h-3 w-3" />
           {formatDue(card.dueDate)}
         </span>
-        <span className="ml-auto inline-flex items-center gap-1">
-          <MessageSquare className="h-3 w-3" />
-          {card.comments}
-        </span>
-        <span className="inline-flex items-center gap-1">
-          <Paperclip className="h-3 w-3" />
-          {card.attachments}
-        </span>
-        {assignee && (
-          <Avatar className="ml-1 h-6 w-6 border border-slate-200 dark:border-white/10">
-            <AvatarFallback className={cn("text-[9px] font-black", assignee.color)}>
-              {assignee.initials}
-            </AvatarFallback>
-          </Avatar>
+        {card.comments > 0 && (
+          <span className="inline-flex items-center gap-1" title="Comentários">
+            <MessageSquare className="h-3 w-3" />
+            {card.comments}
+          </span>
         )}
-      </div>
-
-      <div className="flex items-center gap-2">
-        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-200 dark:bg-white/8">
-          <div
-            className={cn("h-full rounded-full", priority.accent)}
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-        <span className="w-8 text-right text-[10px] font-semibold text-slate-500 dark:text-slate-400">
-          {done}/{total}
+        {card.attachments > 0 && (
+          <span className="inline-flex items-center gap-1" title="Anexos">
+            <Paperclip className="h-3 w-3" />
+            {card.attachments}
+          </span>
+        )}
+        {card.checklist && card.checklist.length > 0 && (
+          <span
+            className={cn(
+              "inline-flex items-center gap-1 rounded px-1.5 py-0.5",
+              progress === 100
+                ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-300"
+                : "text-slate-500 dark:text-slate-400",
+            )}
+            title="Checklist"
+          >
+            ☑ {done}/{total}
+          </span>
+        )}
+        <span className="ml-auto flex items-center">
+          {assignee && (
+            <Avatar className="h-6 w-6 border border-slate-200 dark:border-white/10">
+              <AvatarFallback className={cn("text-[9px] font-black", assignee.color)}>
+                {assignee.initials}
+              </AvatarFallback>
+            </Avatar>
+          )}
         </span>
       </div>
     </div>
