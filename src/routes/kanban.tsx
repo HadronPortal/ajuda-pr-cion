@@ -254,8 +254,8 @@ function KanbanPage() {
       <div className="min-h-[calc(100vh-92px)] rounded-[18px] border border-white/8 bg-[#050c18] p-5 text-slate-100 shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
         <div className="mb-5 flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
           <div>
-            <h1 className="text-[22px] font-black tracking-tight text-white">Kanban de Chamados</h1>
-            <p className="mt-1 text-xs font-medium text-slate-400">Gestao inteligente de chamados e projetos</p>
+            <h1 className="text-[22px] font-black tracking-tight text-white">Kanban Prócion</h1>
+            <p className="mt-1 text-xs font-medium text-slate-400">Gestão inteligente de demandas e projetos internos</p>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
@@ -265,7 +265,7 @@ function KanbanPage() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 type="search"
-                placeholder="Buscar chamados..."
+                placeholder="Buscar demandas..."
                 className="h-full w-full rounded-lg border border-white/8 bg-white/[0.035] pl-10 pr-10 text-xs text-slate-200 outline-none transition placeholder:text-slate-500 focus:border-primary/50 focus:bg-white/[0.055]"
               />
               <Search className="absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-500" />
@@ -307,16 +307,16 @@ function KanbanPage() {
             </button>
             <Button onClick={() => handleNewCard()} className="h-11 rounded-lg bg-violet-600 px-5 text-xs font-bold text-white shadow-[0_12px_28px_rgba(124,58,237,0.28)] hover:bg-violet-500">
               <Plus className="mr-2 h-4 w-4" />
-              Novo chamado
+              Nova demanda
             </Button>
           </div>
         </div>
 
-        <div className="mb-5 grid gap-4 md:grid-cols-2 xl:grid-cols-[1fr_1fr_1fr_1.65fr]">
-          <MetricCard icon={BriefcaseBusiness} label="Abertos" value="48" delta="+12%" color="blue" />
-          <MetricCard icon={Clock3} label="Em andamento" value="15" delta="+8%" color="amber" />
-          <MetricCard icon={UserRound} label="Aguardando" value="9" delta="-4%" color="violet" negative />
-          <MetricCard icon={CheckCircle2} label="Concluido hoje" value="24" delta="+16%" color="emerald" wide />
+        <div className="mb-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <MetricCard icon={BriefcaseBusiness} label="A Fazer" value={String(cardsByColumn["a-fazer"].length)} color="blue" />
+          <MetricCard icon={Clock3} label="Em andamento" value={String(cardsByColumn["em-andamento"].length)} color="amber" />
+          <MetricCard icon={UserRound} label="Em revisão" value={String(cardsByColumn["homologacao"].length + cardsByColumn["concluido"].length)} color="violet" />
+          <MetricCard icon={CheckCircle2} label="Concluídos" value={String(cardsByColumn["arquivado"].length)} color="emerald" />
         </div>
 
         <DndContext
