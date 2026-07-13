@@ -59,6 +59,7 @@ import { cn } from "@/lib/utils";
 import { KanbanColumnView } from "@/components/kanban/KanbanColumn";
 import { KanbanCardItem } from "@/components/kanban/KanbanCard";
 import { KanbanCardDrawer } from "@/components/kanban/KanbanCardDrawer";
+import { KanbanBoardMenu } from "@/components/kanban/KanbanBoardMenu";
 import {
   type KanbanCard,
   type ColumnId,
@@ -187,6 +188,7 @@ function KanbanPage() {
   const [newColumnName, setNewColumnName] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<KanbanColumn | null>(null);
   const [followedColumns, setFollowedColumns] = useState<Set<ColumnId>>(getInitialFollowedColumns);
+  const [boardMenuOpen, setBoardMenuOpen] = useState(false);
   const lastOverColumnRef = useRef<ColumnId | null>(null);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
@@ -354,6 +356,16 @@ function KanbanPage() {
         c.id === card.id ? { ...c, columnId: "arquivado", archived: true } : c,
       ),
     );
+  };
+
+  const handleRestoreCard = (card: KanbanCard) => {
+    const fallbackColumn = columns.find((column) => column.id !== "arquivado")?.id ?? "a-fazer";
+    setCards((prev) =>
+      prev.map((c) =>
+        c.id === card.id ? { ...c, columnId: fallbackColumn, archived: false } : c,
+      ),
+    );
+    toast.success(`Card "${card.title}" restaurado`);
   };
 
   const handleNewCard = (columnId: ColumnId = "a-fazer") => {
@@ -567,7 +579,11 @@ function KanbanPage() {
               <ViewToggleButton active={viewMode === "calendar"} onClick={() => setViewMode("calendar")} icon={CalendarRange} label="Calendário" soon />
             </div>
 
-            <button className="grid h-11 w-11 shrink-0 cursor-pointer place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:border-white/8 dark:bg-white/[0.035] dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white">
+            <button
+              onClick={() => setBoardMenuOpen(true)}
+              className="grid h-11 w-11 shrink-0 cursor-pointer place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:border-white/8 dark:bg-white/[0.035] dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white"
+              aria-label="Abrir menu do quadro"
+            >
               <BarChart3 className="h-4 w-4" />
             </button>
             <button className="relative grid h-11 w-11 shrink-0 cursor-pointer place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:border-white/8 dark:bg-white/[0.035] dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white">
@@ -704,6 +720,18 @@ function KanbanPage() {
         columns={columns}
         onSave={handleSave}
         onDelete={handleDelete}
+      />
+
+      <KanbanBoardMenu
+        open={boardMenuOpen}
+        onOpenChange={setBoardMenuOpen}
+        cards={cards}
+        columns={columns}
+        followedColumns={followedColumns}
+        onOpenCard={openCard}
+        onRestoreCard={handleRestoreCard}
+        onDeleteCard={handleDelete}
+        onCreateColumn={handleNewColumn}
       />
 
       <Dialog open={newColumnOpen} onOpenChange={setNewColumnOpen}>
