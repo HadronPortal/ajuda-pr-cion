@@ -218,7 +218,13 @@ function DateRangeFilter({
           mode="range"
           numberOfMonths={2}
           selected={draft}
-          onSelect={setDraft}
+          onSelect={(range) => {
+            setDraft(range);
+            let from = range?.from;
+            let to = range?.to;
+            if (from && to && from > to) [from, to] = [to, from];
+            onChange({ start: from, end: to });
+          }}
           locale={ptBR}
           initialFocus
           className={cn("pointer-events-auto p-3")}
