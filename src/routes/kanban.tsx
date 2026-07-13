@@ -537,6 +537,42 @@ function MiniSpark({ color }: { color: "blue" | "amber" | "violet" | "emerald" }
   );
 }
 
+function ViewToggleButton({
+  active,
+  onClick,
+  icon: Icon,
+  label,
+  soon,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: typeof LayoutGrid;
+  label: string;
+  soon?: boolean;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        "inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-md px-2.5 text-[11px] font-semibold transition",
+        active
+          ? "bg-violet-600 text-white shadow-sm"
+          : "text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/8 dark:hover:text-white",
+      )}
+      title={soon ? `${label} — em breve` : label}
+    >
+      <Icon className="h-3.5 w-3.5" />
+      {label}
+      {soon && !active && (
+        <span className="ml-1 rounded bg-amber-500/20 px-1 py-px text-[8px] font-black uppercase text-amber-700 dark:text-amber-300">
+          Em breve
+        </span>
+      )}
+    </button>
+  );
+}
+
+
 
 function FilterSelect({
   label,
