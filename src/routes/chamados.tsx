@@ -1098,7 +1098,7 @@ function TicketsListView({
         <div className="w-full overflow-x-auto">
           <table
             className="w-full table-fixed border-separate text-[12px]"
-            style={{ borderSpacing: "0 6px" }}
+            style={{ borderSpacing: "0 10px" }}
           >
             <colgroup>
               <col style={{ width: "172px" }} />
@@ -1139,12 +1139,14 @@ function TicketsListView({
                     className={cn(
                       "group cursor-pointer transition",
                       rowTintFor(ticket),
-                      "[&>td]:border-y [&>td]:border-border/60",
-                      "[&>td:first-child]:rounded-l-lg [&>td:first-child]:border-l-[3px]",
-                      "[&>td:last-child]:rounded-r-lg [&>td:last-child]:border-r",
+                      "[&>td]:border-y [&>td]:border-border/70 [&>td]:bg-card/40 [&>td]:shadow-[0_1px_2px_rgba(15,23,42,0.04)] dark:[&>td]:shadow-[0_1px_2px_rgba(0,0,0,0.35)]",
+                      "[&>td:first-child]:rounded-l-xl [&>td:first-child]:border-l-[4px]",
+                      "[&>td:last-child]:rounded-r-xl [&>td:last-child]:border-r",
+                      "hover:[&>td]:bg-accent/30",
                       statusBorderTone[ticket.status],
                     )}
                   >
+
                     <td className="px-2 py-2 align-middle">
                       <div className="flex flex-col items-start gap-0.5">
                         <Badge
