@@ -108,7 +108,25 @@ export function KanbanCardItem({
           <p className="mt-2 text-[11px] font-medium text-slate-500 line-clamp-2 dark:text-slate-400">
             {card.client} <span className="text-slate-400 dark:text-slate-600">•</span> {card.module}
           </p>
+          {card.tags && card.tags.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-1">
+              {card.tags.slice(0, 4).map((t) => (
+                <span
+                  key={t}
+                  className="rounded-sm bg-slate-100 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-slate-600 dark:bg-white/8 dark:text-slate-300"
+                >
+                  {t}
+                </span>
+              ))}
+              {card.tags.length > 4 && (
+                <span className="text-[9px] font-semibold text-slate-500 dark:text-slate-400">
+                  +{card.tags.length - 4}
+                </span>
+              )}
+            </div>
+          )}
         </div>
+
         <div className="flex shrink-0 items-center gap-1">
           <span className={cn("rounded-md border px-1.5 py-0.5 text-[9px] font-bold", priority.badge)}>
             {priority.label}
