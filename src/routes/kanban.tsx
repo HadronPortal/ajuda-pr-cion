@@ -593,6 +593,7 @@ function KanbanPage() {
                     <KanbanColumnView
                       key={col.id}
                       column={col}
+                      columns={columns}
                       cards={cardsByColumn[col.id]}
                       onCardClick={openCard}
                       onArchiveCard={handleArchiveCard}
@@ -640,6 +641,7 @@ function KanbanPage() {
                     <KanbanColumnView
                       key={col.id}
                       column={col}
+                      columns={columns}
                       cards={cardsByColumn[col.id]}
                       onCardClick={openCard}
                       onArchiveCard={handleArchiveCard}

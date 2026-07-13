@@ -36,6 +36,7 @@ const columnMeta: Record<string, { dot: string; text: string }> = {
 
 export function KanbanColumnView({
   column,
+  columns,
   cards,
   onCardClick,
   onArchiveCard,
@@ -50,6 +51,7 @@ export function KanbanColumnView({
   onToggleFollow,
 }: {
   column: KanbanColumn;
+  columns: KanbanColumn[];
   cards: KanbanCard[];
   onCardClick: (card: KanbanCard) => void;
   onArchiveCard: (card: KanbanCard) => void;
@@ -63,6 +65,7 @@ export function KanbanColumnView({
   isFollowing?: boolean;
   onToggleFollow?: (column: KanbanColumn) => void;
 }) {
+
   const { setNodeRef, isOver } = useDroppable({
     id: column.id,
     data: { type: "column", columnId: column.id },
@@ -183,9 +186,11 @@ export function KanbanColumnView({
               <KanbanCardItem
                 key={c.id}
                 card={c}
+                columns={columns}
                 onClick={() => onCardClick(c)}
                 onArchive={onArchiveCard}
               />
+
             ))}
           </div>
         </SortableContext>

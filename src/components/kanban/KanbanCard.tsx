@@ -1,19 +1,15 @@
-import { CalendarDays, MessageSquare, MoreHorizontal, Paperclip } from "lucide-react";
+import { CalendarDays, MessageSquare, Paperclip } from "lucide-react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import {
   type KanbanCard as CardType,
+  type KanbanColumn,
   kanbanMembers,
 } from "@/lib/kanban-data";
+import { KanbanCardMenu } from "./KanbanCardMenu";
+
 
 function formatDue(iso: string) {
   const d = new Date(iso + "T00:00:00");
@@ -52,15 +48,18 @@ function getPriorityMeta(priority: string) {
 
 export function KanbanCardItem({
   card,
+  columns = [],
   onClick,
   onArchive,
   overlay = false,
 }: {
   card: CardType;
+  columns?: KanbanColumn[];
   onClick?: () => void;
   onArchive?: (card: CardType) => void;
   overlay?: boolean;
 }) {
+
   const {
     attributes,
     listeners,
@@ -131,35 +130,13 @@ export function KanbanCardItem({
           <span className={cn("rounded-md border px-1.5 py-0.5 text-[9px] font-bold", priority.badge)}>
             {priority.label}
           </span>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                onClick={(e) => e.stopPropagation()}
-                onPointerDown={(e) => e.stopPropagation()}
-                className="grid h-6 w-6 cursor-pointer place-items-center rounded-md text-slate-400 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-500 dark:hover:bg-white/7 dark:hover:text-white"
-                aria-label="Acoes do card"
-              >
-                <MoreHorizontal className="h-3.5 w-3.5" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-44">
-              <DropdownMenuItem className="cursor-pointer" onClick={(e) => { e.stopPropagation(); onClick?.(); }}>
-                Abrir detalhes
-              </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer">Duplicar</DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer">Copiar link</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="cursor-pointer text-destructive focus:text-destructive"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onArchive?.(card);
-                }}
-              >
-                Arquivar
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <KanbanCardMenu
+            card={card}
+            columns={columns}
+            onOpen={onClick}
+            onArchive={onArchive}
+          />
+
         </div>
       </div>
 
