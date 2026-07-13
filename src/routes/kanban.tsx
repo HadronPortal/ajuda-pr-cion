@@ -296,7 +296,10 @@ function KanbanPage() {
         }
       }
 
-      const lastTargetIdx = withoutMoved.findLastIndex((c) => c.columnId === targetColumn);
+      let lastTargetIdx = -1;
+      for (let i = withoutMoved.length - 1; i >= 0; i--) {
+        if (withoutMoved[i].columnId === targetColumn) { lastTargetIdx = i; break; }
+      }
       const next = [...withoutMoved];
       next.splice(lastTargetIdx === -1 ? next.length : lastTargetIdx + 1, 0, movedCard);
       return next;
