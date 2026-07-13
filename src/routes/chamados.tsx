@@ -848,7 +848,7 @@ function TicketsListView({
                   key={ticket.id}
                   className={cn(
                     "cursor-pointer border-t border-border/60 transition",
-                    priorityRowTint[ticket.priority],
+                    rowTintFor(ticket),
                   )}
                   onClick={() => onOpen(ticket)}
                 >
