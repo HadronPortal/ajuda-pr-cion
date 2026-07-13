@@ -239,7 +239,10 @@ function KanbanPage() {
     if (c) setActiveCard(c);
   };
 
-  const getOverColumnId = (over: DragOverEvent["over"], currentCards: KanbanCard[] = cards) => {
+  const resolveOverColumn = (
+    over: DragOverEvent["over"],
+    currentCards: KanbanCard[],
+  ): ColumnId | undefined => {
     if (!over) return undefined;
     const overType = over.data.current?.type;
     if (overType === "column") {
@@ -254,59 +257,51 @@ function KanbanPage() {
     return columns.find((col) => col.id === over.id)?.id;
   };
 
-  const handleDragOver = (e: DragOverEvent) => {
-    const { active, over } = e;
-    const overColumn = getOverColumnId(over);
-    if (!overColumn) return;
-
-    setCards((prev) => {
-      const activeIdx = prev.findIndex((c) => c.id === active.id);
-      if (activeIdx === -1) return prev;
-      const activeCardX = prev[activeIdx];
-      if (activeCardX.columnId === overColumn) return prev;
-      const next = [...prev];
-      next[activeIdx] = {
-        ...activeCardX,
-        columnId: overColumn,
-        archived: overColumn === "arquivado",
-      };
-      return next;
-    });
+  const handleDragOver = (_e: DragOverEvent) => {
+    // Optimistic column swap during drag caused re-mount flicker
+    // and cards snapping back. Move only on drop.
   };
 
   const handleDragEnd = (e: DragEndEvent) => {
-    setActiveCard(null);
     const { active, over } = e;
+    setActiveCard(null);
     if (!over) return;
-    if (active.id === over.id) return;
-    const overType = over.data.current?.type;
 
     setCards((prev) => {
       const activeIdx = prev.findIndex((c) => c.id === active.id);
       if (activeIdx === -1) return prev;
-      const overColumn = getOverColumnId(over, prev);
+      const overColumn = resolveOverColumn(over, prev);
       if (!overColumn) return prev;
+      const activeItem = prev[activeIdx];
+      const overType = over.data.current?.type;
 
-      if (overType === "card") {
-        const overIdx = prev.findIndex((c) => c.id === over.id);
-        if (overIdx === -1) return prev;
-        const next = [...prev];
-        const [moved] = next.splice(activeIdx, 1);
+      const next = [...prev];
+      next.splice(activeIdx, 1);
+      const updated: KanbanCard = {
+        ...activeItem,
+        columnId: overColumn,
+        archived: overColumn === "arquivado",
+      };
+
+      if (overType === "card" && over.id !== active.id) {
         const targetIdx = next.findIndex((c) => c.id === over.id);
-        next.splice(targetIdx, 0, {
-          ...moved,
-          columnId: overColumn,
-          archived: overColumn === "arquivado",
-        });
-        return next;
-      }
-      if (overType === "column" || columns.some((col) => col.id === over.id)) {
-        return prev.map((c) =>
-          c.id === active.id ? { ...c, columnId: overColumn, archived: overColumn === "arquivado" } : c,
-        );
+        if (targetIdx !== -1) {
+          next.splice(targetIdx, 0, updated);
+          return next;
+        }
       }
 
-      return prev;
+      // Dropped on empty column area (or same card): append to end of target column
+      let insertAt = next.length;
+      for (let i = next.length - 1; i >= 0; i--) {
+        if (next[i].columnId === overColumn) {
+          insertAt = i + 1;
+          break;
+        }
+        if (i === 0) insertAt = next.length;
+      }
+      next.splice(insertAt, 0, updated);
+      return next;
     });
   };
 
@@ -350,18 +345,36 @@ function KanbanPage() {
   };
 
   const handleNewColumn = () => {
-    const title = window.prompt("Nome da nova coluna");
-    const cleanTitle = title?.trim();
-    if (!cleanTitle) return;
+    setNewColumnName("");
+    setNewColumnOpen(true);
+  };
+
+  const confirmNewColumn = () => {
+    const cleanTitle = newColumnName.trim();
+    if (!cleanTitle) {
+      toast.error("Informe um nome para a coluna");
+      return;
+    }
     const id = normalizeColumnId(cleanTitle, columns);
     setColumns((prev) => [...prev, { id, title: cleanTitle }]);
     setMobileColumn(id);
+    setNewColumnOpen(false);
+    setNewColumnName("");
+    toast.success(`Coluna "${cleanTitle}" criada`);
   };
 
   const handleDeleteColumn = (column: KanbanColumn) => {
+    if (columns.length <= 1) {
+      toast.error("Não é possível excluir a última coluna");
+      return;
+    }
+    setDeleteTarget(column);
+  };
+
+  const confirmDeleteColumn = () => {
+    if (!deleteTarget) return;
     if (columns.length <= 1) return;
-    const confirmed = window.confirm(`Excluir a coluna "${column.title}"? Os cards dela serao movidos para a primeira coluna.`);
-    if (!confirmed) return;
+    const column = deleteTarget;
     const nextColumns = columns.filter((col) => col.id !== column.id);
     const fallbackColumn = nextColumns[0]?.id ?? "a-fazer";
     setColumns(nextColumns);
@@ -374,6 +387,8 @@ function KanbanPage() {
     );
     setFilters((prev) => (prev.status === column.id ? { ...prev, status: "all" } : prev));
     if (mobileColumn === column.id) setMobileColumn(fallbackColumn);
+    setDeleteTarget(null);
+    toast.success(`Coluna "${column.title}" excluída`);
   };
 
   const clearFilters = () => setFilters(emptyFilters);
