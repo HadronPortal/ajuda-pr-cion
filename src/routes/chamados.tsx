@@ -1093,165 +1093,162 @@ function TicketsListView({
 
   return (
     <div className="space-y-3">
-      {/* Desktop table */}
-      <Card className="hidden rounded-2xl border border-border/60 bg-card p-2 shadow-[0_8px_22px_rgba(25,29,51,0.05)] lg:block">
-        <div className="w-full overflow-x-auto">
-          <table
-            className="w-full table-fixed border-separate text-[12px]"
-            style={{ borderSpacing: "0 10px" }}
-          >
-            <colgroup>
-              <col style={{ width: "172px" }} />
-              <col style={{ width: "104px" }} />
-              <col style={{ width: "156px" }} />
-              <col style={{ width: "150px" }} />
-              <col />
-              <col style={{ width: "190px" }} />
-              <col style={{ width: "112px" }} />
-              <col style={{ width: "112px" }} />
-              <col style={{ width: "128px" }} />
-              <col style={{ width: "128px" }} />
-              <col style={{ width: "36px" }} />
-            </colgroup>
-            <thead className="bg-muted/50 text-[10.5px] uppercase tracking-wide text-muted-foreground">
-              <tr>
-                <SortableTh label="Status" sortKey="status" sort={sort} onSort={toggleSort} />
-                <SortableTh label="Prioridade" sortKey="priority" sort={sort} onSort={toggleSort} />
-                <SortableTh label="Cliente" sortKey="cliente" sort={sort} onSort={toggleSort} />
-                <SortableTh label="Contato" sortKey="contato" sort={sort} onSort={toggleSort} />
-                <SortableTh label="Assunto" sortKey="assunto" sort={sort} onSort={toggleSort} />
-                <SortableTh label="Módulo" sortKey="modulo" sort={sort} onSort={toggleSort} />
-                <SortableTh label="Atendente" sortKey="atendente" sort={sort} onSort={toggleSort} />
-                <SortableTh label="Responsável" sortKey="responsavel" sort={sort} onSort={toggleSort} />
-                <SortableTh label="Registro" sortKey="registro" sort={sort} onSort={toggleSort} />
-                <SortableTh label="Atualizado" sortKey="atualizado" sort={sort} onSort={toggleSort} />
-                <th className="px-2 py-2.5" aria-label="Abrir" />
-              </tr>
-            </thead>
-            <tbody>
-              {pageItems.map((ticket) => {
-                const ModuleIcon = getModuleIcon(ticket.module, ticket.source, ticket.subject);
-                const initial = (ticket.contact.trim()[0] ?? "?").toUpperCase();
-                return (
-                  <tr
-                    key={ticket.id}
-                    onClick={() => onOpen(ticket)}
-                    className={cn(
-                      "group cursor-pointer transition",
-                      rowTintFor(ticket),
-                      "[&>td]:border-y [&>td]:border-border/70 [&>td]:bg-card/40 [&>td]:shadow-[0_1px_2px_rgba(15,23,42,0.04)] dark:[&>td]:shadow-[0_1px_2px_rgba(0,0,0,0.35)]",
-                      "[&>td:first-child]:rounded-l-xl [&>td:first-child]:border-l-[4px]",
-                      "[&>td:last-child]:rounded-r-xl [&>td:last-child]:border-r",
-                      "hover:[&>td]:bg-accent/30",
-                      statusBorderTone[ticket.status],
-                    )}
-                  >
+      {/* Desktop list */}
+      <Card className="hidden rounded-2xl border border-border/60 bg-card p-3 shadow-[0_8px_22px_rgba(25,29,51,0.05)] lg:block">
+        {/* Header */}
+        <div
+          className="grid items-center gap-x-2 rounded-lg bg-muted/50 py-2.5 pr-3 text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground"
+          style={{
+            gridTemplateColumns:
+              "172px 104px 156px 150px minmax(0,1fr) 190px 112px 112px 128px 128px 36px",
+            paddingLeft: "calc(4px + 0.75rem)",
+          }}
+        >
+          <SortableHead label="Status" sortKey="status" sort={sort} onSort={toggleSort} />
+          <SortableHead label="Prioridade" sortKey="priority" sort={sort} onSort={toggleSort} />
+          <SortableHead label="Cliente" sortKey="cliente" sort={sort} onSort={toggleSort} />
+          <SortableHead label="Contato" sortKey="contato" sort={sort} onSort={toggleSort} />
+          <SortableHead label="Assunto" sortKey="assunto" sort={sort} onSort={toggleSort} />
+          <SortableHead label="Módulo" sortKey="modulo" sort={sort} onSort={toggleSort} />
+          <SortableHead label="Atendente" sortKey="atendente" sort={sort} onSort={toggleSort} />
+          <SortableHead label="Responsável" sortKey="responsavel" sort={sort} onSort={toggleSort} />
+          <SortableHead label="Registro" sortKey="registro" sort={sort} onSort={toggleSort} />
+          <SortableHead label="Atualizado" sortKey="atualizado" sort={sort} onSort={toggleSort} />
+          <span aria-hidden />
+        </div>
 
-                    <td className="px-2 py-2 align-middle">
-                      <div className="flex flex-col items-start gap-0.5">
-                        <Badge
-                          className={cn(
-                            "inline-flex items-center justify-start gap-1.5 whitespace-nowrap rounded-full border px-2 py-0.5 text-[10.5px] font-semibold",
-                            statusTone[ticket.status],
-                          )}
-                        >
-                          <span
-                            className={cn(
-                              "h-1.5 w-1.5 shrink-0 rounded-full",
-                              statusDotTone[ticket.status],
-                            )}
-                          />
-                          {ticket.status}
-                        </Badge>
-                        <span className="font-mono text-[10px] leading-tight text-muted-foreground">
-                          {ticket.protocol}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-2 py-2 align-middle">
-                      <span
+        {/* Rows */}
+        <div className="mt-2 flex flex-col gap-y-2 text-[12px]">
+          {pageItems.map((ticket) => {
+            const ModuleIcon = getModuleIcon(ticket.module, ticket.source, ticket.subject);
+            const initial = (ticket.contact.trim()[0] ?? "?").toUpperCase();
+            return (
+              <div
+                key={ticket.id}
+                role="button"
+                tabIndex={0}
+                onClick={() => onOpen(ticket)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    onOpen(ticket);
+                  }
+                }}
+                className={cn(
+                  "group relative cursor-pointer overflow-hidden rounded-xl border border-border/60 bg-card shadow-[0_1px_2px_rgba(15,23,42,0.05)] transition hover:shadow-[0_6px_18px_rgba(15,23,42,0.08)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.35)]",
+                )}
+              >
+                <span
+                  aria-hidden
+                  className={cn(
+                    "pointer-events-none absolute inset-y-0 left-0 w-1",
+                    statusDotTone[ticket.status],
+                  )}
+                />
+                <div
+                  className={cn(
+                    "grid items-center gap-x-2 py-2 pr-3 transition",
+                    rowTintFor(ticket),
+                  )}
+                  style={{
+                    gridTemplateColumns:
+                      "172px 104px 156px 150px minmax(0,1fr) 190px 112px 112px 128px 128px 36px",
+                    paddingLeft: "calc(4px + 0.75rem)",
+                  }}
+                >
+                  <div className="min-w-0">
+                    <div className="flex flex-col items-start gap-0.5">
+                      <Badge
                         className={cn(
-                          "inline-flex min-w-[86px] items-center justify-center gap-1 whitespace-nowrap rounded-full border px-2 py-0.5 text-[10.5px] font-semibold",
-                          priorityTone[ticket.priority],
+                          "inline-flex items-center justify-start gap-1.5 whitespace-nowrap rounded-full border px-2 py-0.5 text-[10.5px] font-semibold",
+                          statusTone[ticket.status],
                         )}
                       >
-                        <AlertTriangle className="h-3 w-3" />
-                        {ticket.priority}
+                        <span
+                          className={cn(
+                            "h-1.5 w-1.5 shrink-0 rounded-full",
+                            statusDotTone[ticket.status],
+                          )}
+                        />
+                        {ticket.status}
+                      </Badge>
+                      <span className="font-mono text-[10px] leading-tight text-muted-foreground">
+                        {ticket.protocol}
                       </span>
-                    </td>
-                    <td className="px-2 py-2 align-middle">
-                      <div className="truncate text-[12px] font-bold text-foreground">
-                        {ticket.clientCode}
-                      </div>
-                      <div className="truncate text-[11px] text-muted-foreground">
-                        {ticket.clientName}
-                      </div>
-                    </td>
-                    <td className="px-2 py-2 align-middle">
-                      <div className="flex min-w-0 items-center gap-2">
-                        <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-primary/15 text-[10px] font-bold text-primary">
-                          {initial}
-                        </span>
-                        <span className="truncate text-[12px] text-foreground">
-                          {ticket.contact}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-2 py-2 align-middle">
-                      <span className="line-clamp-2 break-words text-[12px] font-semibold text-foreground">
-                        {ticket.subject}
-                      </span>
-                    </td>
-                    <td className="px-2 py-2 align-middle">
-                      <div className="flex min-w-0 items-center gap-1.5">
-                        <ModuleIcon className="h-3.5 w-3.5 shrink-0 text-primary/80" />
-                        <span className="truncate text-[11.5px] text-muted-foreground">
-                          {ticket.module}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-2 py-2 align-middle">
-                      <div className="flex min-w-0 items-center gap-1.5">
-                        <UserRound className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                        <span className="truncate text-[11.5px] font-semibold text-foreground">
-                          {ticket.attendant}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-2 py-2 align-middle">
-                      <div className="flex min-w-0 items-center gap-1.5">
-                        <UserPlus className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                        <span className="truncate text-[11.5px] font-semibold text-foreground">
-                          {ticket.owner}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-2 py-2 align-middle">
-                      <div className="flex min-w-0 items-center gap-1.5 text-[11px] text-muted-foreground">
-                        <CalendarClock className="h-3.5 w-3.5 shrink-0 opacity-70" />
-                        <span className="whitespace-nowrap">
-                          {formatDateTime(ticket.openedAt)}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-2 py-2 align-middle">
-                      <div className="flex min-w-0 items-center gap-1.5 text-[11px] text-muted-foreground">
-                        <Clock3 className="h-3.5 w-3.5 shrink-0 opacity-70" />
-                        <span className="whitespace-nowrap">
-                          {formatDateTime(ticket.updatedAt)}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-2 py-2 text-right align-middle text-muted-foreground">
-                      <ChevronRight className="ml-auto h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:text-foreground" />
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                    </div>
+                  </div>
+                  <div className="min-w-0">
+                    <span
+                      className={cn(
+                        "inline-flex min-w-[86px] items-center justify-center gap-1 whitespace-nowrap rounded-full border px-2 py-0.5 text-[10.5px] font-semibold",
+                        priorityTone[ticket.priority],
+                      )}
+                    >
+                      <AlertTriangle className="h-3 w-3" />
+                      {ticket.priority}
+                    </span>
+                  </div>
+                  <div className="min-w-0">
+                    <div className="truncate text-[12px] font-bold text-foreground">
+                      {ticket.clientCode}
+                    </div>
+                    <div className="truncate text-[11px] text-muted-foreground">
+                      {ticket.clientName}
+                    </div>
+                  </div>
+                  <div className="flex min-w-0 items-center gap-2">
+                    <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-primary/15 text-[10px] font-bold text-primary">
+                      {initial}
+                    </span>
+                    <span className="truncate text-[12px] text-foreground">
+                      {ticket.contact}
+                    </span>
+                  </div>
+                  <div className="min-w-0">
+                    <span className="line-clamp-2 break-words text-[12px] font-semibold text-foreground">
+                      {ticket.subject}
+                    </span>
+                  </div>
+                  <div className="flex min-w-0 items-center gap-1.5">
+                    <ModuleIcon className="h-3.5 w-3.5 shrink-0 text-primary/80" />
+                    <span className="truncate text-[11.5px] text-muted-foreground">
+                      {ticket.module}
+                    </span>
+                  </div>
+                  <div className="flex min-w-0 items-center gap-1.5">
+                    <UserRound className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                    <span className="truncate text-[11.5px] font-semibold text-foreground">
+                      {ticket.attendant}
+                    </span>
+                  </div>
+                  <div className="flex min-w-0 items-center gap-1.5">
+                    <UserPlus className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                    <span className="truncate text-[11.5px] font-semibold text-foreground">
+                      {ticket.owner}
+                    </span>
+                  </div>
+                  <div className="flex min-w-0 items-center gap-1.5 text-[11px] text-muted-foreground">
+                    <CalendarClock className="h-3.5 w-3.5 shrink-0 opacity-70" />
+                    <span className="whitespace-nowrap">
+                      {formatDateTime(ticket.openedAt)}
+                    </span>
+                  </div>
+                  <div className="flex min-w-0 items-center gap-1.5 text-[11px] text-muted-foreground">
+                    <Clock3 className="h-3.5 w-3.5 shrink-0 opacity-70" />
+                    <span className="whitespace-nowrap">
+                      {formatDateTime(ticket.updatedAt)}
+                    </span>
+                  </div>
+                  <div className="flex justify-end text-muted-foreground">
+                    <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:text-foreground" />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </Card>
+
 
       {/* Mobile stacked list */}
       <div className="space-y-2 lg:hidden">
