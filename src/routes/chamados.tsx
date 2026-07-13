@@ -134,7 +134,8 @@ type Filters = {
   operatorType: "Todos" | "Atendente" | "Responsável";
   operator: string;
   dateType: "Registro" | "Atualizado";
-  date: string;
+  dateStart?: Date;
+  dateEnd?: Date;
 };
 
 const initialFilters: Filters = {
@@ -145,7 +146,8 @@ const initialFilters: Filters = {
   operatorType: "Todos",
   operator: "Todos",
   dateType: "Registro",
-  date: "",
+  dateStart: undefined,
+  dateEnd: undefined,
 };
 
 function ChamadosRouteShell() {
