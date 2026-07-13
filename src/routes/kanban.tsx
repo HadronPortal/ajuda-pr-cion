@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { toast } from "sonner";
 import {
@@ -8,6 +8,8 @@ import {
   useSensor,
   useSensors,
   closestCorners,
+  pointerWithin,
+  type CollisionDetection,
   type DragEndEvent,
   type DragStartEvent,
   type DragOverEvent,
@@ -119,6 +121,11 @@ function daysBetween(iso: string) {
 
 const KANBAN_COLUMNS_STORAGE_KEY = "procion-kanban-columns";
 
+const kanbanCollisionDetection: CollisionDetection = (args) => {
+  const pointerCollisions = pointerWithin(args);
+  return pointerCollisions.length > 0 ? pointerCollisions : closestCorners(args);
+};
+
 function getInitialColumns(): KanbanColumn[] {
   if (typeof window === "undefined") return kanbanColumnsDef;
   try {
@@ -166,6 +173,7 @@ function KanbanPage() {
   const [newColumnOpen, setNewColumnOpen] = useState(false);
   const [newColumnName, setNewColumnName] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<KanbanColumn | null>(null);
+  const lastOverColumnRef = useRef<ColumnId | null>(null);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
   const activeFilterCount =
@@ -237,6 +245,7 @@ function KanbanPage() {
   const handleDragStart = (e: DragStartEvent) => {
     const c = cards.find((x) => x.id === e.active.id);
     if (c) setActiveCard(c);
+    lastOverColumnRef.current = c?.columnId ?? null;
   };
 
   const resolveOverColumn = (
@@ -257,52 +266,56 @@ function KanbanPage() {
     return columns.find((col) => col.id === over.id)?.id;
   };
 
-  const handleDragOver = (_e: DragOverEvent) => {
-    // Optimistic column swap during drag caused re-mount flicker
-    // and cards snapping back. Move only on drop.
+  const handleDragOver = (e: DragOverEvent) => {
+    const overColumn = resolveOverColumn(e.over, cards);
+    if (overColumn) lastOverColumnRef.current = overColumn;
+  };
+
+  const moveCardToColumn = (
+    activeId: string,
+    targetColumn: ColumnId,
+    overCardId?: string,
+  ) => {
+    setCards((prev) => {
+      const activeIdx = prev.findIndex((c) => c.id === activeId);
+      if (activeIdx === -1) return prev;
+
+      const movedCard = {
+        ...prev[activeIdx],
+        columnId: targetColumn,
+        archived: targetColumn === "arquivado",
+      };
+      const withoutMoved = prev.filter((c) => c.id !== activeId);
+
+      if (overCardId && overCardId !== activeId) {
+        const targetIdx = withoutMoved.findIndex((c) => c.id === overCardId);
+        if (targetIdx !== -1) {
+          const next = [...withoutMoved];
+          next.splice(targetIdx, 0, movedCard);
+          return next;
+        }
+      }
+
+      const lastTargetIdx = withoutMoved.findLastIndex((c) => c.columnId === targetColumn);
+      const next = [...withoutMoved];
+      next.splice(lastTargetIdx === -1 ? next.length : lastTargetIdx + 1, 0, movedCard);
+      return next;
+    });
   };
 
   const handleDragEnd = (e: DragEndEvent) => {
     const { active, over } = e;
     setActiveCard(null);
-    if (!over) return;
+    const targetColumn = resolveOverColumn(over, cards) ?? lastOverColumnRef.current;
+    const overCardId = over?.data.current?.type === "card" ? String(over.id) : undefined;
+    lastOverColumnRef.current = null;
+    if (!targetColumn) return;
+    moveCardToColumn(String(active.id), targetColumn, overCardId);
+  };
 
-    setCards((prev) => {
-      const activeIdx = prev.findIndex((c) => c.id === active.id);
-      if (activeIdx === -1) return prev;
-      const overColumn = resolveOverColumn(over, prev);
-      if (!overColumn) return prev;
-      const activeItem = prev[activeIdx];
-      const overType = over.data.current?.type;
-
-      const next = [...prev];
-      next.splice(activeIdx, 1);
-      const updated: KanbanCard = {
-        ...activeItem,
-        columnId: overColumn,
-        archived: overColumn === "arquivado",
-      };
-
-      if (overType === "card" && over.id !== active.id) {
-        const targetIdx = next.findIndex((c) => c.id === over.id);
-        if (targetIdx !== -1) {
-          next.splice(targetIdx, 0, updated);
-          return next;
-        }
-      }
-
-      // Dropped on empty column area (or same card): append to end of target column
-      let insertAt = next.length;
-      for (let i = next.length - 1; i >= 0; i--) {
-        if (next[i].columnId === overColumn) {
-          insertAt = i + 1;
-          break;
-        }
-        if (i === 0) insertAt = next.length;
-      }
-      next.splice(insertAt, 0, updated);
-      return next;
-    });
+  const handleDragCancel = () => {
+    setActiveCard(null);
+    lastOverColumnRef.current = null;
   };
 
   const openCard = (card: KanbanCard) => {
@@ -520,10 +533,11 @@ function KanbanPage() {
         ) : (
           <DndContext
             sensors={sensors}
-            collisionDetection={closestCorners}
+            collisionDetection={kanbanCollisionDetection}
             onDragStart={handleDragStart}
             onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
+            onDragCancel={handleDragCancel}
           >
             <div className="hidden xl:block">
               <div className="overflow-x-auto kanban-scrollbar">
