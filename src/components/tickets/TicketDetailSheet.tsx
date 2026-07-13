@@ -618,45 +618,37 @@ export function TicketDetailSheet({
                 />
               </div>
 
-              {/* Nota interna — card separado */}
+              {/* Histórico de atendimentos — embutido */}
               <div className="mt-4">
-                <Section title="Nota interna" icon={NotebookText}>
+                <Section title="Histórico de atendimentos" icon={TicketHistoryIcon}>
                   <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                    <p className="inline-flex items-center gap-1.5 rounded-full bg-muted/60 px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
-                      <AlertCircle className="h-3 w-3" />
-                      Visível somente para o time de suporte
-                    </p>
-                    {notes.length > 0 && (
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-[12.5px] font-bold text-foreground">
+                        Atendimentos anteriores
+                      </span>
+                      <span className="text-[11.5px] font-semibold text-muted-foreground">
+                        ({historyList.length})
+                      </span>
+                    </div>
+                    {historyList.length > 0 && (
                       <button
                         type="button"
-                        onClick={() => setNotesOpen(true)}
-                        className="inline-flex cursor-pointer items-center gap-1 text-[11px] font-semibold text-primary hover:underline"
+                        onClick={() => setHistoryOpen(true)}
+                        className="inline-flex cursor-pointer items-center gap-1 text-[11.5px] font-semibold text-primary hover:underline"
                       >
-                        <NotebookText className="h-3 w-3" />
-                        Ver {notes.length} nota(s)
+                        Ver todos
+                        <ChevronRight className="h-3.5 w-3.5" />
                       </button>
                     )}
                   </div>
-                  <textarea
-                    value={note}
-                    onChange={(e) => setNote(e.target.value)}
-                    rows={3}
-                    placeholder="Escreva uma nota interna sobre este atendimento..."
-                    className="w-full resize-none rounded-xl border border-border bg-background p-3 text-[13px] outline-none focus:ring-2 focus:ring-ring"
+                  <TicketHistoryList
+                    items={historyList.slice(0, 3)}
+                    onSelect={setSelectedHistory}
+                    compact
                   />
-                  <div className="mt-3 flex justify-end">
-                    <Button
-                      size="sm"
-                      disabled={!note.trim()}
-                      onClick={handleSaveNote}
-                      className="h-9 cursor-pointer rounded-lg text-[12px]"
-                    >
-                      <Send className="mr-1.5 h-3.5 w-3.5" />
-                      Salvar nota
-                    </Button>
-                  </div>
                 </Section>
               </div>
+
 
               <div className="h-2" />
             </div>
