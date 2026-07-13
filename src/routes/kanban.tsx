@@ -476,7 +476,6 @@ function KanbanPage() {
           <div className="flex flex-nowrap items-center gap-2 overflow-x-auto xl:flex-wrap xl:overflow-visible">
             <div className="relative h-11 w-full min-w-[200px] shrink-0 sm:w-[240px]">
 
-            <div className="relative h-11 w-full sm:w-[300px]">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
               <input
                 value={query}
