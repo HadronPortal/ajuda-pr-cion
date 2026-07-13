@@ -1,19 +1,15 @@
-import { CalendarDays, MessageSquare, MoreHorizontal, Paperclip } from "lucide-react";
+import { CalendarDays, MessageSquare, Paperclip } from "lucide-react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import {
   type KanbanCard as CardType,
+  type KanbanColumn,
   kanbanMembers,
 } from "@/lib/kanban-data";
+import { KanbanCardMenu } from "./KanbanCardMenu";
+
 
 function formatDue(iso: string) {
   const d = new Date(iso + "T00:00:00");
