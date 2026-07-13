@@ -133,14 +133,6 @@ function KanbanPage() {
     return grouped;
   }, [filteredCards]);
 
-  const priorityStats = useMemo(() => {
-    const count = (name: string) => filteredCards.filter((c) => c.priority.toLowerCase().includes(name)).length;
-    return [
-      { label: "Alta", value: count("alta"), color: "bg-rose-400" },
-      { label: "Media", value: filteredCards.filter((c) => c.priority.toLowerCase().includes("dia")).length, color: "bg-amber-400" },
-      { label: "Baixa", value: count("baixa"), color: "bg-emerald-400" },
-    ];
-  }, [filteredCards]);
 
   const handleDragStart = (e: DragStartEvent) => {
     const c = cards.find((x) => x.id === e.active.id);
