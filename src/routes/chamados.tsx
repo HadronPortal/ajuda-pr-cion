@@ -1160,13 +1160,12 @@ function TicketsListView({
       {/* Desktop list */}
       <Card className="hidden overflow-x-auto rounded-2xl border border-border/60 bg-card p-3 shadow-[0_8px_22px_rgba(25,29,51,0.05)] lg:block">
         <div className="min-w-[1220px]">
-          <div className="grid grid-cols-[150px_112px_minmax(130px,0.75fr)_150px_minmax(210px,1.25fr)_150px_120px_126px_124px_124px_32px] items-center rounded-xl bg-muted/50 px-4 py-3">
+          <div className="grid grid-cols-[150px_112px_minmax(130px,0.75fr)_150px_minmax(280px,1.75fr)_120px_126px_124px_124px_32px] items-center rounded-xl bg-muted/50 px-4 py-3">
             <SortableGridHeader label="Status" sortKey="status" sort={sort} onSort={toggleSort} />
             <SortableGridHeader label="Prioridade" sortKey="priority" sort={sort} onSort={toggleSort} />
             <SortableGridHeader label="Cliente" sortKey="cliente" sort={sort} onSort={toggleSort} />
             <SortableGridHeader label="Contato" sortKey="contato" sort={sort} onSort={toggleSort} />
             <SortableGridHeader label="Assunto" sortKey="assunto" sort={sort} onSort={toggleSort} />
-            <SortableGridHeader label="Modulo" sortKey="modulo" sort={sort} onSort={toggleSort} />
             <SortableGridHeader label="Atendente" sortKey="atendente" sort={sort} onSort={toggleSort} />
             <SortableGridHeader label="Responsavel" sortKey="responsavel" sort={sort} onSort={toggleSort} />
             <SortableGridHeader label="Registro" sortKey="registro" sort={sort} onSort={toggleSort} />
@@ -1174,7 +1173,7 @@ function TicketsListView({
             <span aria-label="Abrir" />
           </div>
 
-          <div className="mt-2 space-y-2">
+          <div className="mt-2 divide-y divide-border/60">
             {pageItems.map((ticket) => {
               const ModuleIcon = getModuleIcon(ticket.module, ticket.source, ticket.subject);
               const initial = (ticket.contact.trim()[0] ?? "?").toUpperCase();
@@ -1184,7 +1183,7 @@ function TicketsListView({
                   type="button"
                   onClick={() => onOpen(ticket)}
                   className={cn(
-                    "group relative grid min-h-[68px] w-full grid-cols-[150px_112px_minmax(130px,0.75fr)_150px_minmax(210px,1.25fr)_150px_120px_126px_124px_124px_32px] items-center overflow-hidden rounded-xl border border-border/60 px-4 py-3 text-left shadow-[0_4px_14px_rgba(15,23,42,0.04)] transition hover:-translate-y-0.5 hover:shadow-[0_10px_24px_rgba(15,23,42,0.08)]",
+                    "group relative grid min-h-[56px] w-full grid-cols-[150px_112px_minmax(130px,0.75fr)_150px_minmax(280px,1.75fr)_120px_126px_124px_124px_32px] items-center overflow-hidden px-4 py-2.5 text-left transition hover:bg-muted/40",
                     rowTintFor(ticket),
                   )}
                 >
@@ -1241,16 +1240,16 @@ function TicketsListView({
                     <span className="truncate text-[12px] text-foreground">{ticket.contact}</span>
                   </div>
 
-                  <span className="line-clamp-2 min-w-0 pr-3 text-[12px] font-semibold leading-snug text-foreground">
-                    {ticket.subject}
-                  </span>
-
-                  <div className="flex min-w-0 items-center gap-1.5">
-                    <ModuleIcon className="h-3.5 w-3.5 shrink-0 text-primary/80" />
-                    <span className="truncate text-[11.5px] text-muted-foreground">
-                      {ticket.module}
-                    </span>
+                  <div className="min-w-0 pr-3">
+                    <div className="line-clamp-2 text-[12px] font-semibold leading-snug text-foreground">
+                      {ticket.subject}
+                    </div>
+                    <div className="mt-0.5 flex min-w-0 items-center gap-1.5 text-[10.5px] text-muted-foreground/80">
+                      <ModuleIcon className="h-3 w-3 shrink-0 text-primary/70" />
+                      <span className="truncate">{ticket.module}</span>
+                    </div>
                   </div>
+
 
                   <div className="flex min-w-0 items-center gap-1.5">
                     <UserRound className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
