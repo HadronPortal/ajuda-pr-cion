@@ -408,6 +408,59 @@ function KanbanPage() {
     toast.success(`Coluna "${column.title}" excluída`);
   };
 
+  const handleCopyColumn = (column: KanbanColumn) => {
+    const newTitle = `Cópia de ${column.title}`;
+    const newId = normalizeColumnId(newTitle, columns);
+    const originalIdx = columns.findIndex((c) => c.id === column.id);
+    setColumns((prev) => {
+      const next = [...prev];
+      next.splice(originalIdx + 1, 0, { id: newId, title: newTitle });
+      return next;
+    });
+    setCards((prev) => {
+      const sourceCards = prev.filter((c) => c.columnId === column.id);
+      let maxId = Math.max(
+        0,
+        ...prev.map((c) => parseInt(c.id.replace(/\D/g, ""), 10) || 0),
+      );
+      const clones: KanbanCard[] = sourceCards.map((c) => {
+        maxId += 1;
+        return { ...c, id: `PRC-${maxId}`, columnId: newId };
+      });
+      return [...prev, ...clones];
+    });
+    toast.success(`Lista "${column.title}" copiada`);
+  };
+
+  const handleMoveColumn = (column: KanbanColumn, direction: "left" | "right") => {
+    setColumns((prev) => {
+      const idx = prev.findIndex((c) => c.id === column.id);
+      if (idx === -1) return prev;
+      const target = direction === "left" ? idx - 1 : idx + 1;
+      if (target < 0 || target >= prev.length) return prev;
+      const next = [...prev];
+      [next[idx], next[target]] = [next[target], next[idx]];
+      return next;
+    });
+    toast.success(
+      `Lista "${column.title}" movida para a ${direction === "left" ? "esquerda" : "direita"}`,
+    );
+  };
+
+  const handleToggleFollow = (column: KanbanColumn) => {
+    setFollowedColumns((prev) => {
+      const next = new Set(prev);
+      if (next.has(column.id)) {
+        next.delete(column.id);
+        toast(`Você deixou de seguir "${column.title}"`);
+      } else {
+        next.add(column.id);
+        toast.success(`Agora você está seguindo "${column.title}"`);
+      }
+      return next;
+    });
+  };
+
   const clearFilters = () => setFilters(emptyFilters);
   const getColumnCount = (id: ColumnId) => cardsByColumn[id]?.length ?? 0;
 
