@@ -593,6 +593,8 @@ function KanbanPage() {
                     <KanbanColumnView
                       key={col.id}
                       column={col}
+                      columns={columns}
+                      column={col}
                       cards={cardsByColumn[col.id]}
                       onCardClick={openCard}
                       onArchiveCard={handleArchiveCard}
