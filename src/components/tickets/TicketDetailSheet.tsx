@@ -71,6 +71,9 @@ import {
 } from "@/lib/tickets-store";
 import { currentUser } from "@/lib/mock-data";
 import { TicketHistoryModal } from "./TicketHistoryModal";
+import { TicketHistoryList } from "./TicketHistoryList";
+import { PastAttendanceDetailModal } from "./PastAttendanceDetailModal";
+import type { PastAttendance } from "@/lib/tickets-store";
 import { TicketNotesModal } from "./TicketNotesModal";
 import { TicketTimelineModal } from "./TicketTimelineModal";
 import { TicketChatPanel } from "./TicketChatPanel";
