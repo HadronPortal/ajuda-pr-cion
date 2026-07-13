@@ -100,6 +100,18 @@ const priorityTone: Record<TicketPriority, string> = {
   Baixa: "bg-muted text-muted-foreground",
 };
 
+const priorityTint: Record<TicketPriority, string> = {
+  Alta: "bg-rose-50/70 dark:bg-rose-500/[0.06]",
+  Media: "bg-amber-50/70 dark:bg-amber-500/[0.06]",
+  Baixa: "bg-emerald-50/60 dark:bg-emerald-500/[0.05]",
+};
+
+const priorityRowTint: Record<TicketPriority, string> = {
+  Alta: "bg-rose-50/50 dark:bg-rose-500/[0.05] hover:bg-rose-100/60 dark:hover:bg-rose-500/[0.09]",
+  Media: "bg-amber-50/50 dark:bg-amber-500/[0.05] hover:bg-amber-100/60 dark:hover:bg-amber-500/[0.09]",
+  Baixa: "bg-emerald-50/40 dark:bg-emerald-500/[0.04] hover:bg-emerald-100/60 dark:hover:bg-emerald-500/[0.08]",
+};
+
 const chartConfig = {
   opened: { label: "Abertos", color: "var(--color-primary)" },
   finished: { label: "Finalizados", color: "var(--color-success)" },
