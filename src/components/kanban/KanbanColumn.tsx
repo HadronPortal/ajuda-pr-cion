@@ -33,7 +33,7 @@ export function KanbanColumnView({
   const meta = columnMeta[column.id] ?? columnMeta["a-fazer"];
 
   return (
-    <section className="relative flex min-h-[470px] w-[200px] shrink-0 flex-col rounded-xl border border-white/7 bg-white/[0.045] p-2.5 shadow-[0_18px_40px_rgba(0,0,0,0.16)]">
+    <section className="relative flex min-h-[470px] w-[270px] shrink-0 flex-col rounded-xl border border-white/7 bg-white/[0.045] p-3 shadow-[0_18px_40px_rgba(0,0,0,0.16)]">
       <div className="mb-3 flex h-7 items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2">
           <span className={cn("h-2 w-2 shrink-0 rounded-full", meta.dot)} />
