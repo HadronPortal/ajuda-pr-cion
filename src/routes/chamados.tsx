@@ -325,92 +325,92 @@ function TicketsPage() {
 
 
       <Card className="mb-6 rounded-2xl border border-border/60 bg-card p-3 shadow-[0_8px_22px_rgba(25,29,51,0.05)]">
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8">
-          <div className="relative sm:col-span-2 xl:col-span-2">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <div className="-mx-1 overflow-x-auto px-1 xl:overflow-visible">
+          <div className="flex min-w-max flex-nowrap items-center gap-2 xl:min-w-0">
+            <div className="relative min-w-0 flex-1 basis-[220px]">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <input
+                value={filters.query}
+                onChange={(event) => setFilters((prev) => ({ ...prev, query: event.target.value }))}
+                type="search"
+                placeholder="Buscar cliente, protocolo..."
+                className="h-9 w-full truncate rounded-lg border border-border bg-background pl-9 pr-3 text-[13px] outline-none transition focus:ring-2 focus:ring-ring"
+              />
+            </div>
             <input
-              value={filters.query}
-              onChange={(event) => setFilters((prev) => ({ ...prev, query: event.target.value }))}
-              type="search"
-              placeholder="Buscar cliente, protocolo, assunto..."
-              className="h-9 w-full rounded-lg border border-border bg-background pl-9 pr-3 text-[13px] outline-none transition focus:ring-2 focus:ring-ring"
+              value={filters.sigla}
+              onChange={(event) => setFilters((prev) => ({ ...prev, sigla: event.target.value.toUpperCase() }))}
+              type="text"
+              placeholder="Sigla"
+              className="h-9 w-[80px] shrink-0 truncate rounded-lg border border-border bg-background px-2.5 text-[13px] uppercase outline-none focus:ring-2 focus:ring-ring"
             />
-          </div>
-          <input
-            value={filters.sigla}
-            onChange={(event) => setFilters((prev) => ({ ...prev, sigla: event.target.value.toUpperCase() }))}
-            type="text"
-            placeholder="Sigla"
-            className="h-9 w-full rounded-lg border border-border bg-background px-2.5 text-[13px] uppercase outline-none focus:ring-2 focus:ring-ring"
-          />
-          <select
-            value={filters.status}
-            onChange={(event) => setFilters((prev) => ({ ...prev, status: event.target.value }))}
-            className="h-9 w-full cursor-pointer rounded-lg border border-border bg-background px-2.5 pr-7 text-[13px] outline-none focus:ring-2 focus:ring-ring"
-          >
-            <option>Todos</option>
-            {ticketStatuses.map((status) => (
-              <option key={status}>{status}</option>
-            ))}
-          </select>
-          <select
-            value={filters.priority}
-            onChange={(event) => setFilters((prev) => ({ ...prev, priority: event.target.value }))}
-            className="h-9 w-full cursor-pointer rounded-lg border border-border bg-background px-2.5 pr-7 text-[13px] outline-none focus:ring-2 focus:ring-ring"
-          >
-            <option>Todas</option>
-            {ticketPriorities.map((priority) => (
-              <option key={priority}>{priority}</option>
-            ))}
-          </select>
-          <select
-            value={filters.operatorType}
-            onChange={(event) =>
-              setFilters((prev) => ({ ...prev, operatorType: event.target.value as Filters["operatorType"] }))
-            }
-            className="h-9 w-full cursor-pointer rounded-lg border border-border bg-background px-2.5 pr-7 text-[13px] outline-none focus:ring-2 focus:ring-ring"
-            title="Tipo operador"
-          >
-            <option value="Todos">Tipo operador</option>
-            <option value="Atendente">Atendente</option>
-            <option value="Responsável">Responsável</option>
-          </select>
-          <select
-            value={filters.operator}
-            onChange={(event) => setFilters((prev) => ({ ...prev, operator: event.target.value }))}
-            className="h-9 w-full cursor-pointer rounded-lg border border-border bg-background px-2.5 pr-7 text-[13px] outline-none focus:ring-2 focus:ring-ring"
-            title="Operador"
-          >
-            <option value="Todos">Operador</option>
-            {ticketOperators.map((op) => (
-              <option key={op} value={op}>
-                {op}
-              </option>
-            ))}
-          </select>
-          <select
-            value={filters.dateType}
-            onChange={(event) =>
-              setFilters((prev) => ({ ...prev, dateType: event.target.value as Filters["dateType"] }))
-            }
-            className="h-9 w-full cursor-pointer rounded-lg border border-border bg-background px-2.5 pr-7 text-[13px] outline-none focus:ring-2 focus:ring-ring"
-            title="Tipo data"
-          >
-            <option value="Registro">Registro</option>
-            <option value="Atualizado">Atualizado</option>
-          </select>
-          <div className="flex items-center gap-2 sm:col-span-2 xl:col-span-1">
+            <select
+              value={filters.status}
+              onChange={(event) => setFilters((prev) => ({ ...prev, status: event.target.value }))}
+              className="h-9 w-[130px] shrink-0 cursor-pointer truncate rounded-lg border border-border bg-background px-2.5 pr-7 text-[13px] outline-none focus:ring-2 focus:ring-ring"
+            >
+              <option>Todos</option>
+              {ticketStatuses.map((status) => (
+                <option key={status}>{status}</option>
+              ))}
+            </select>
+            <select
+              value={filters.priority}
+              onChange={(event) => setFilters((prev) => ({ ...prev, priority: event.target.value }))}
+              className="h-9 w-[110px] shrink-0 cursor-pointer truncate rounded-lg border border-border bg-background px-2.5 pr-7 text-[13px] outline-none focus:ring-2 focus:ring-ring"
+            >
+              <option>Todas</option>
+              {ticketPriorities.map((priority) => (
+                <option key={priority}>{priority}</option>
+              ))}
+            </select>
+            <select
+              value={filters.operatorType}
+              onChange={(event) =>
+                setFilters((prev) => ({ ...prev, operatorType: event.target.value as Filters["operatorType"] }))
+              }
+              className="h-9 w-[130px] shrink-0 cursor-pointer truncate rounded-lg border border-border bg-background px-2.5 pr-7 text-[13px] outline-none focus:ring-2 focus:ring-ring"
+              title="Tipo operador"
+            >
+              <option value="Todos">Tipo operador</option>
+              <option value="Atendente">Atendente</option>
+              <option value="Responsável">Responsável</option>
+            </select>
+            <select
+              value={filters.operator}
+              onChange={(event) => setFilters((prev) => ({ ...prev, operator: event.target.value }))}
+              className="h-9 w-[120px] shrink-0 cursor-pointer truncate rounded-lg border border-border bg-background px-2.5 pr-7 text-[13px] outline-none focus:ring-2 focus:ring-ring"
+              title="Operador"
+            >
+              <option value="Todos">Operador</option>
+              {ticketOperators.map((op) => (
+                <option key={op} value={op}>
+                  {op}
+                </option>
+              ))}
+            </select>
+            <select
+              value={filters.dateType}
+              onChange={(event) =>
+                setFilters((prev) => ({ ...prev, dateType: event.target.value as Filters["dateType"] }))
+              }
+              className="h-9 w-[120px] shrink-0 cursor-pointer truncate rounded-lg border border-border bg-background px-2.5 pr-7 text-[13px] outline-none focus:ring-2 focus:ring-ring"
+              title="Tipo data"
+            >
+              <option value="Registro">Registro</option>
+              <option value="Atualizado">Atualizado</option>
+            </select>
             <input
               value={filters.date}
               onChange={(event) => setFilters((prev) => ({ ...prev, date: event.target.value }))}
               type="date"
-              className="h-9 w-full cursor-pointer rounded-lg border border-border bg-background px-2.5 text-[13px] outline-none focus:ring-2 focus:ring-ring"
+              className="h-9 w-[140px] shrink-0 cursor-pointer rounded-lg border border-border bg-background px-2.5 text-[13px] outline-none focus:ring-2 focus:ring-ring"
             />
             <Button
               type="button"
               variant="ghost"
               size="sm"
-              className="h-9 shrink-0 cursor-pointer rounded-lg px-3 text-[13px] text-muted-foreground hover:text-foreground"
+              className="h-9 shrink-0 cursor-pointer whitespace-nowrap rounded-lg px-3 text-[13px] text-muted-foreground hover:text-foreground"
               onClick={() => setFilters(initialFilters)}
             >
               <SlidersHorizontal className="mr-1.5 h-3.5 w-3.5" />
@@ -467,24 +467,35 @@ function TicketsPage() {
           </Badge>
         </div>
       </div>
-      {viewMode === "grid" ? (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {filteredTickets.map((ticket) => (
-            <TicketCard
-              key={ticket.id}
-              ticket={ticket}
-              onOpen={openTicketDetail}
-              onHistory={openTicketHistory}
-            />
-          ))}
-        </div>
-      ) : (
-        <TicketsListView
-          tickets={filteredTickets}
-          onOpen={openTicketDetail}
-          onHistory={openTicketHistory}
-        />
-      )}
+      <div className="min-h-[560px]">
+        {filteredTickets.length === 0 ? (
+          <div className="grid min-h-[560px] place-items-center rounded-2xl border border-dashed border-border bg-card/40 p-8 text-center">
+            <div>
+              <p className="text-sm font-semibold text-foreground">Nenhum chamado encontrado</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Ajuste os filtros para exibir chamados nesta fila.
+              </p>
+            </div>
+          </div>
+        ) : viewMode === "grid" ? (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {filteredTickets.map((ticket) => (
+              <TicketCard
+                key={ticket.id}
+                ticket={ticket}
+                onOpen={openTicketDetail}
+                onHistory={openTicketHistory}
+              />
+            ))}
+          </div>
+        ) : (
+          <TicketsListView
+            tickets={filteredTickets}
+            onOpen={openTicketDetail}
+            onHistory={openTicketHistory}
+          />
+        )}
+      </div>
 
       <TicketDetailSheet
         ticketId={selectedTicketId}
