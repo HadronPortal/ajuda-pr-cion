@@ -65,6 +65,12 @@ import { FileText } from "lucide-react";
 import { getModuleIcon } from "@/lib/ticket-icons";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { CalendarIcon } from "lucide-react";
+import type { DateRange } from "react-day-picker";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { TicketDetailSheet } from "@/components/tickets/TicketDetailSheet";
 import { TicketHistoryModal } from "@/components/tickets/TicketHistoryModal";
 
@@ -100,6 +106,18 @@ const priorityTone: Record<TicketPriority, string> = {
   Baixa: "bg-muted text-muted-foreground",
 };
 
+const priorityTint: Record<TicketPriority, string> = {
+  Alta: "bg-rose-50/70 dark:bg-rose-500/[0.06]",
+  Media: "bg-amber-50/70 dark:bg-amber-500/[0.06]",
+  Baixa: "bg-emerald-50/60 dark:bg-emerald-500/[0.05]",
+};
+
+const priorityRowTint: Record<TicketPriority, string> = {
+  Alta: "bg-rose-50/50 dark:bg-rose-500/[0.05] hover:bg-rose-100/60 dark:hover:bg-rose-500/[0.09]",
+  Media: "bg-amber-50/50 dark:bg-amber-500/[0.05] hover:bg-amber-100/60 dark:hover:bg-amber-500/[0.09]",
+  Baixa: "bg-emerald-50/40 dark:bg-emerald-500/[0.04] hover:bg-emerald-100/60 dark:hover:bg-emerald-500/[0.08]",
+};
+
 const chartConfig = {
   opened: { label: "Abertos", color: "var(--color-primary)" },
   finished: { label: "Finalizados", color: "var(--color-success)" },
@@ -122,7 +140,8 @@ type Filters = {
   operatorType: "Todos" | "Atendente" | "Responsável";
   operator: string;
   dateType: "Registro" | "Atualizado";
-  date: string;
+  dateStart?: Date;
+  dateEnd?: Date;
 };
 
 const initialFilters: Filters = {
@@ -133,8 +152,102 @@ const initialFilters: Filters = {
   operatorType: "Todos",
   operator: "Todos",
   dateType: "Registro",
-  date: "",
+  dateStart: undefined,
+  dateEnd: undefined,
 };
+
+function DateRangeFilter({
+  start,
+  end,
+  onChange,
+}: {
+  start?: Date;
+  end?: Date;
+  onChange: (range: { start?: Date; end?: Date }) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState<DateRange | undefined>(
+    start || end ? { from: start, to: end } : undefined,
+  );
+
+  useEffect(() => {
+    setDraft(start || end ? { from: start, to: end } : undefined);
+  }, [start, end]);
+
+  const label = (() => {
+    if (start && end) {
+      return `${format(start, "dd/MM/yyyy")} - ${format(end, "dd/MM/yyyy")}`;
+    }
+    if (start) return `A partir de ${format(start, "dd/MM/yyyy")}`;
+    if (end) return `Até ${format(end, "dd/MM/yyyy")}`;
+    return "dd/mm/aaaa - dd/mm/aaaa";
+  })();
+
+  const apply = () => {
+    let from = draft?.from;
+    let to = draft?.to;
+    if (from && to && from > to) [from, to] = [to, from];
+    onChange({ start: from, end: to });
+    setOpen(false);
+  };
+
+  const clear = () => {
+    setDraft(undefined);
+    onChange({ start: undefined, end: undefined });
+    setOpen(false);
+  };
+
+  const isPlaceholder = !start && !end;
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className={cn(
+            "inline-flex h-9 w-[220px] shrink-0 cursor-pointer items-center gap-2 truncate rounded-lg border border-border bg-background px-2.5 text-[13px] outline-none transition focus:ring-2 focus:ring-ring",
+            isPlaceholder && "text-muted-foreground",
+          )}
+        >
+          <CalendarIcon className="h-3.5 w-3.5 shrink-0 opacity-70" />
+          <span className="truncate">{label}</span>
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-auto p-0">
+        <Calendar
+          mode="range"
+          numberOfMonths={2}
+          selected={draft}
+          onSelect={setDraft}
+          locale={ptBR}
+          initialFocus
+          className={cn("pointer-events-auto p-3")}
+        />
+        <div className="flex items-center justify-end gap-2 border-t border-border px-3 py-2">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-8 cursor-pointer"
+            onClick={clear}
+          >
+            Limpar
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            className="h-8 cursor-pointer"
+            onClick={apply}
+          >
+            Aplicar
+          </Button>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+
 
 function ChamadosRouteShell() {
   const location = useLocation();
@@ -184,9 +297,20 @@ function TicketsPage() {
         if (filters.operatorType === "Responsável" && ticket.owner !== op) return false;
         if (filters.operatorType === "Todos" && ticket.attendant !== op && ticket.owner !== op) return false;
       }
-      if (filters.date) {
-        const field = filters.dateType === "Registro" ? ticket.openedAt : ticket.updatedAt;
-        if (!field.startsWith(filters.date)) return false;
+      if (filters.dateStart || filters.dateEnd) {
+        const raw = filters.dateType === "Registro" ? ticket.openedAt : ticket.updatedAt;
+        const d = new Date(raw);
+        const day = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+        if (filters.dateStart) {
+          const s = filters.dateStart;
+          const start = new Date(s.getFullYear(), s.getMonth(), s.getDate()).getTime();
+          if (day < start) return false;
+        }
+        if (filters.dateEnd) {
+          const e = filters.dateEnd;
+          const end = new Date(e.getFullYear(), e.getMonth(), e.getDate()).getTime();
+          if (day > end) return false;
+        }
       }
       if (!query) return true;
       return [
@@ -400,11 +524,12 @@ function TicketsPage() {
               <option value="Registro">Registro</option>
               <option value="Atualizado">Atualizado</option>
             </select>
-            <input
-              value={filters.date}
-              onChange={(event) => setFilters((prev) => ({ ...prev, date: event.target.value }))}
-              type="date"
-              className="h-9 w-[140px] shrink-0 cursor-pointer rounded-lg border border-border bg-background px-2.5 text-[13px] outline-none focus:ring-2 focus:ring-ring"
+            <DateRangeFilter
+              start={filters.dateStart}
+              end={filters.dateEnd}
+              onChange={(range) =>
+                setFilters((prev) => ({ ...prev, dateStart: range.start, dateEnd: range.end }))
+              }
             />
             <Button
               type="button"
@@ -569,7 +694,7 @@ function TicketCard({
   };
 
   return (
-    <Card className="flex min-w-0 flex-col gap-4 rounded-[16px] border border-border/70 bg-card p-4 shadow-[0_10px_28px_rgba(25,29,51,0.05)] transition hover:shadow-[0_14px_32px_rgba(25,29,51,0.09)] sm:p-5">
+    <Card className={cn("flex min-w-0 flex-col gap-4 rounded-[16px] border border-border/70 bg-card p-4 shadow-[0_10px_28px_rgba(25,29,51,0.05)] transition hover:shadow-[0_14px_32px_rgba(25,29,51,0.09)] sm:p-5", priorityTint[ticket.priority])}>
       {/* Top: icon + title + client / protocol + status */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-start gap-3">
@@ -753,7 +878,10 @@ function TicketsListView({
               {tickets.map((ticket) => (
                 <tr
                   key={ticket.id}
-                  className="cursor-pointer border-t border-border/60 transition hover:bg-accent/40"
+                  className={cn(
+                    "cursor-pointer border-t border-border/60 transition",
+                    priorityRowTint[ticket.priority],
+                  )}
                   onClick={() => onOpen(ticket)}
                 >
                   <td className="px-2 py-2 align-top">
@@ -820,7 +948,7 @@ function TicketsListView({
           <Card
             key={ticket.id}
             onClick={() => onOpen(ticket)}
-            className="cursor-pointer rounded-xl border border-border/60 bg-card p-3 shadow-[0_6px_16px_rgba(25,29,51,0.04)] transition hover:shadow-[0_10px_20px_rgba(25,29,51,0.08)]"
+            className={cn("cursor-pointer rounded-xl border border-border/60 bg-card p-3 shadow-[0_6px_16px_rgba(25,29,51,0.04)] transition hover:shadow-[0_10px_20px_rgba(25,29,51,0.08)]", priorityTint[ticket.priority])}
           >
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
