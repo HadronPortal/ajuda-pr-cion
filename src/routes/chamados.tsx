@@ -467,24 +467,35 @@ function TicketsPage() {
           </Badge>
         </div>
       </div>
-      {viewMode === "grid" ? (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {filteredTickets.map((ticket) => (
-            <TicketCard
-              key={ticket.id}
-              ticket={ticket}
-              onOpen={openTicketDetail}
-              onHistory={openTicketHistory}
-            />
-          ))}
-        </div>
-      ) : (
-        <TicketsListView
-          tickets={filteredTickets}
-          onOpen={openTicketDetail}
-          onHistory={openTicketHistory}
-        />
-      )}
+      <div className="min-h-[560px]">
+        {filteredTickets.length === 0 ? (
+          <div className="grid min-h-[560px] place-items-center rounded-2xl border border-dashed border-border bg-card/40 p-8 text-center">
+            <div>
+              <p className="text-sm font-semibold text-foreground">Nenhum chamado encontrado</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Ajuste os filtros para exibir chamados nesta fila.
+              </p>
+            </div>
+          </div>
+        ) : viewMode === "grid" ? (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {filteredTickets.map((ticket) => (
+              <TicketCard
+                key={ticket.id}
+                ticket={ticket}
+                onOpen={openTicketDetail}
+                onHistory={openTicketHistory}
+              />
+            ))}
+          </div>
+        ) : (
+          <TicketsListView
+            tickets={filteredTickets}
+            onOpen={openTicketDetail}
+            onHistory={openTicketHistory}
+          />
+        )}
+      </div>
 
       <TicketDetailSheet
         ticketId={selectedTicketId}
