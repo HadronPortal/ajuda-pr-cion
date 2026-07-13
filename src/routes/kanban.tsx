@@ -296,7 +296,10 @@ function KanbanPage() {
         }
       }
 
-      const lastTargetIdx = withoutMoved.findLastIndex((c) => c.columnId === targetColumn);
+      let lastTargetIdx = -1;
+      for (let i = withoutMoved.length - 1; i >= 0; i--) {
+        if (withoutMoved[i].columnId === targetColumn) { lastTargetIdx = i; break; }
+      }
       const next = [...withoutMoved];
       next.splice(lastTargetIdx === -1 ? next.length : lastTargetIdx + 1, 0, movedCard);
       return next;
@@ -496,19 +499,7 @@ function KanbanPage() {
               <Bell className="h-4 w-4" />
               <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-rose-500 px-1 text-[10px] font-black text-white">3</span>
             </button>
-            <Button onClick={handleNewColumn} className="h-11 rounded-lg bg-violet-600 px-5 text-xs font-bold text-white shadow-[0_12px_28px_rgba(124,58,237,0.28)] hover:bg-violet-500">
-              <Plus className="mr-2 h-4 w-4" />
-              Nova coluna
-            </Button>
-
           </div>
-        </div>
-
-        <div className="mb-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <MetricCard icon={BriefcaseBusiness} label="A Fazer" value={String(getColumnCount("a-fazer"))} color="blue" />
-          <MetricCard icon={Clock3} label="Em andamento" value={String(getColumnCount("em-andamento"))} color="amber" />
-          <MetricCard icon={UserRound} label="Em revisão" value={String(getColumnCount("homologacao") + getColumnCount("concluido"))} color="violet" />
-          <MetricCard icon={CheckCircle2} label="Concluídos" value={String(getColumnCount("arquivado"))} color="emerald" />
         </div>
 
         {viewMode !== "kanban" ? (
@@ -541,7 +532,7 @@ function KanbanPage() {
           >
             <div className="hidden xl:block">
               <div className="overflow-x-auto kanban-scrollbar">
-                <div className="flex min-w-max gap-4 pb-2">
+                <div className="flex min-w-max items-start gap-4 pb-2">
                   {columns.map((col) => (
                     <KanbanColumnView
                       key={col.id}
@@ -554,6 +545,13 @@ function KanbanPage() {
                       canDeleteColumn={columns.length > 1}
                     />
                   ))}
+                  <button
+                    onClick={handleNewColumn}
+                    className="flex h-11 w-[270px] shrink-0 cursor-pointer items-center gap-2 rounded-xl border border-blue-500/30 bg-blue-500/10 px-4 text-[12px] font-semibold text-blue-700 backdrop-blur transition hover:bg-blue-500/20 dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:hover:bg-white/[0.12]"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Adicionar outra lista
+                  </button>
                 </div>
               </div>
             </div>
@@ -585,6 +583,13 @@ function KanbanPage() {
                     canDeleteColumn={columns.length > 1}
                   />
                 ))}
+              <button
+                onClick={handleNewColumn}
+                className="mt-3 flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-blue-500/30 bg-blue-500/10 px-4 text-[12px] font-semibold text-blue-700 transition hover:bg-blue-500/20 dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:hover:bg-white/[0.12]"
+              >
+                <Plus className="h-4 w-4" />
+                Adicionar outra lista
+              </button>
             </div>
 
             <DragOverlay>
