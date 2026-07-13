@@ -60,11 +60,11 @@ import {
 export const Route = createFileRoute("/kanban")({
   head: () => ({
     meta: [
-      { title: "Kanban de Chamados - Procion" },
+      { title: "Kanban Prócion - Demandas" },
       {
         name: "description",
         content:
-          "Quadro Kanban escuro para organizar demandas, suporte, implantacao e melhorias da Procion Sistemas.",
+          "Quadro Kanban escuro para organizar demandas e projetos internos da Prócion Sistemas.",
       },
     ],
   }),
