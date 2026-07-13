@@ -634,25 +634,35 @@ function KanbanPage() {
               </Tabs>
               {columns
                 .filter((c) => c.id === mobileColumn)
-                .map((col) => (
-                  <KanbanColumnView
-                    key={col.id}
-                    column={col}
-                    cards={cardsByColumn[col.id]}
-                    onCardClick={openCard}
-                    onArchiveCard={handleArchiveCard}
-                    onAddCard={handleNewCard}
-                    onDeleteColumn={handleDeleteColumn}
-                    canDeleteColumn={columns.length > 1}
-                  />
-                ))}
+                .map((col) => {
+                  const idx = columns.findIndex((c) => c.id === col.id);
+                  return (
+                    <KanbanColumnView
+                      key={col.id}
+                      column={col}
+                      cards={cardsByColumn[col.id]}
+                      onCardClick={openCard}
+                      onArchiveCard={handleArchiveCard}
+                      onAddCard={handleNewCard}
+                      onDeleteColumn={handleDeleteColumn}
+                      canDeleteColumn={columns.length > 1}
+                      onCopyColumn={handleCopyColumn}
+                      onMoveColumn={handleMoveColumn}
+                      canMoveLeft={idx > 0}
+                      canMoveRight={idx < columns.length - 1}
+                      isFollowing={followedColumns.has(col.id)}
+                      onToggleFollow={handleToggleFollow}
+                    />
+                  );
+                })}
               <button
                 onClick={handleNewColumn}
-                className="mt-3 flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-blue-500/30 bg-blue-500/10 px-4 text-[12px] font-semibold text-blue-700 transition hover:bg-blue-500/20 dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:hover:bg-white/[0.12]"
+                className="mt-3 flex h-8 w-full cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-blue-500/30 bg-blue-500/10 px-3 text-[11px] font-semibold text-blue-700 transition hover:bg-blue-500/20 dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:hover:bg-white/[0.12]"
               >
-                <Plus className="h-4 w-4" />
+                <Plus className="h-3.5 w-3.5" />
                 Adicionar outra lista
               </button>
+
             </div>
 
             <DragOverlay>
