@@ -186,9 +186,11 @@ export function KanbanColumnView({
               <KanbanCardItem
                 key={c.id}
                 card={c}
+                columns={columns}
                 onClick={() => onCardClick(c)}
                 onArchive={onArchiveCard}
               />
+
             ))}
           </div>
         </SortableContext>
