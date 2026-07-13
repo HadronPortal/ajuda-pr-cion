@@ -172,5 +172,6 @@ export function KanbanCardItem({
           )}
         </span>
       </div>
+    </div>
   );
 }
