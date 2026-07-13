@@ -441,65 +441,6 @@ function MiniSpark({ color }: { color: "blue" | "amber" | "violet" | "emerald" }
   );
 }
 
-function KanbanSidePanel({ priorityStats }: { priorityStats: { label: string; value: number; color: string }[] }) {
-  return (
-    <aside className="space-y-3">
-      <div className="rounded-xl border border-white/8 bg-white/[0.045] p-4 shadow-[0_18px_40px_rgba(0,0,0,0.16)]">
-        <div className="mb-4 flex items-center justify-between">
-          <p className="text-sm font-black text-white">Resumo geral</p>
-          <button className="rounded-lg border border-white/8 bg-white/5 px-3 py-1 text-[11px] font-semibold text-slate-300">Hoje</button>
-        </div>
-        <p className="mb-3 text-[11px] font-bold text-slate-300">Chamados por prioridade</p>
-        <div className="flex items-center gap-4">
-          <div className="relative h-20 w-20 rounded-full bg-[conic-gradient(#f43f5e_0_37%,#f59e0b_37%_70%,#22c55e_70%_100%)]">
-            <div className="absolute inset-3 rounded-full bg-[#0c1422]" />
-          </div>
-          <div className="flex-1 space-y-2">
-            {priorityStats.map((p) => (
-              <div key={p.label} className="flex items-center justify-between gap-2 text-[11px]">
-                <span className="flex items-center gap-2 text-slate-300"><span className={cn("h-2 w-2 rounded-full", p.color)} />{p.label}</span>
-                <span className="font-bold text-slate-400">{p.value}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="rounded-xl border border-white/8 bg-white/[0.045] p-4 shadow-[0_18px_40px_rgba(0,0,0,0.16)]">
-        <p className="text-sm font-black text-white">SLA por periodo</p>
-        <div className="mt-3">
-          <p className="text-3xl font-black text-white">81%</p>
-          <p className="text-xs font-bold text-emerald-400">+5% vs ontem</p>
-        </div>
-        <svg className="mt-4 h-20 w-full" viewBox="0 0 220 80" fill="none" preserveAspectRatio="none">
-          <path d="M2 58 L38 45 L74 25 L110 51 L146 34 L182 39 L218 22" stroke="#168cff" strokeWidth="3" />
-          {[2, 38, 74, 110, 146, 182, 218].map((x, index) => (
-            <circle key={x} cx={x} cy={[58, 45, 25, 51, 34, 39, 22][index]} r="3.5" fill="#168cff" />
-          ))}
-        </svg>
-        <div className="mt-1 flex justify-between text-[10px] font-semibold text-slate-500">
-          <span>00h</span><span>06h</span><span>12h</span><span>18h</span><span>24h</span>
-        </div>
-      </div>
-
-      <div className="rounded-xl border border-white/8 bg-white/[0.045] p-4 shadow-[0_18px_40px_rgba(0,0,0,0.16)]">
-        <p className="mb-4 text-sm font-black text-white">Atendentes online</p>
-        {kanbanMembers.slice(0, 3).map((m, index) => (
-          <div key={m.id} className="mb-3 flex items-center gap-3 last:mb-0">
-            <Avatar className="h-8 w-8 border border-white/10">
-              <AvatarFallback className={cn("text-[10px] font-black", m.color)}>{m.initials}</AvatarFallback>
-            </Avatar>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-bold text-slate-200">{m.name}</p>
-            </div>
-            <span className="text-[10px] font-bold text-emerald-400">{index === 2 ? "Disponivel" : "Atendendo"}</span>
-          </div>
-        ))}
-        <p className="mt-4 text-[11px] font-semibold text-slate-500">+ 3 online</p>
-      </div>
-    </aside>
-  );
-}
 
 function FilterSelect({
   label,
