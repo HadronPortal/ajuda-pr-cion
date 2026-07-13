@@ -496,19 +496,7 @@ function KanbanPage() {
               <Bell className="h-4 w-4" />
               <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-rose-500 px-1 text-[10px] font-black text-white">3</span>
             </button>
-            <Button onClick={handleNewColumn} className="h-11 rounded-lg bg-violet-600 px-5 text-xs font-bold text-white shadow-[0_12px_28px_rgba(124,58,237,0.28)] hover:bg-violet-500">
-              <Plus className="mr-2 h-4 w-4" />
-              Nova coluna
-            </Button>
-
           </div>
-        </div>
-
-        <div className="mb-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <MetricCard icon={BriefcaseBusiness} label="A Fazer" value={String(getColumnCount("a-fazer"))} color="blue" />
-          <MetricCard icon={Clock3} label="Em andamento" value={String(getColumnCount("em-andamento"))} color="amber" />
-          <MetricCard icon={UserRound} label="Em revisão" value={String(getColumnCount("homologacao") + getColumnCount("concluido"))} color="violet" />
-          <MetricCard icon={CheckCircle2} label="Concluídos" value={String(getColumnCount("arquivado"))} color="emerald" />
         </div>
 
         {viewMode !== "kanban" ? (
