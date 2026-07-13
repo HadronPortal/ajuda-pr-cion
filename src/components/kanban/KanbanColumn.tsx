@@ -1,6 +1,6 @@
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import { MoreVertical, Plus } from "lucide-react";
+import { MoreVertical, Plus, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { KanbanCardItem } from "./KanbanCard";
 import type { KanbanCard, KanbanColumn } from "@/lib/kanban-data";
@@ -19,12 +19,16 @@ export function KanbanColumnView({
   onCardClick,
   onArchiveCard,
   onAddCard,
+  onDeleteColumn,
+  canDeleteColumn = true,
 }: {
   column: KanbanColumn;
   cards: KanbanCard[];
   onCardClick: (card: KanbanCard) => void;
   onArchiveCard: (card: KanbanCard) => void;
   onAddCard: (columnId: KanbanColumn["id"]) => void;
+  onDeleteColumn?: (column: KanbanColumn) => void;
+  canDeleteColumn?: boolean;
 }) {
   const { setNodeRef, isOver } = useDroppable({
     id: column.id,
@@ -42,9 +46,21 @@ export function KanbanColumnView({
             {cards.length}
           </span>
         </div>
-        <button className="grid h-6 w-6 cursor-pointer place-items-center rounded-md text-slate-400 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-500 dark:hover:bg-white/7 dark:hover:text-white">
-          <MoreVertical className="h-3.5 w-3.5" />
-        </button>
+        <div className="flex shrink-0 items-center gap-1">
+          <button
+            type="button"
+            onClick={() => onDeleteColumn?.(column)}
+            disabled={!canDeleteColumn}
+            className="grid h-6 w-6 cursor-pointer place-items-center rounded-md text-slate-400 transition hover:bg-rose-50 hover:text-rose-500 disabled:pointer-events-none disabled:opacity-30 dark:text-slate-500 dark:hover:bg-rose-500/15 dark:hover:text-rose-300"
+            title="Excluir coluna"
+            aria-label={`Excluir coluna ${column.title}`}
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+          <button className="grid h-6 w-6 cursor-pointer place-items-center rounded-md text-slate-400 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-500 dark:hover:bg-white/7 dark:hover:text-white">
+            <MoreVertical className="h-3.5 w-3.5" />
+          </button>
+        </div>
       </div>
 
       <div

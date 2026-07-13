@@ -49,6 +49,7 @@ import {
 import {
   type KanbanCard,
   type ColumnId,
+  type KanbanColumn,
   type ChecklistItem,
   type CommentEntry,
   type ActivityEntry,
@@ -79,6 +80,7 @@ type Props = {
   card: KanbanCard | null;
   mode: "edit" | "create";
   defaultColumnId?: ColumnId;
+  columns?: KanbanColumn[];
   onSave: (card: KanbanCard) => void;
   onDelete?: (id: string) => void;
 };
@@ -147,6 +149,7 @@ export function KanbanCardDrawer({
   card,
   mode,
   defaultColumnId = "a-fazer",
+  columns = kanbanColumnsDef,
   onSave,
   onDelete,
 }: Props) {
@@ -186,8 +189,8 @@ export function KanbanCardDrawer({
   // === Ações ===
   const handleChangeStatus = (v: ColumnId) => {
     if (v === draft.columnId) return;
-    const from = kanbanColumnsDef.find((c) => c.id === draft.columnId)?.title;
-    const to = kanbanColumnsDef.find((c) => c.id === v)?.title;
+    const from = columns.find((c) => c.id === draft.columnId)?.title ?? draft.columnId;
+    const to = columns.find((c) => c.id === v)?.title ?? v;
     setDraft((d) => ({ ...d, columnId: v, archived: v === "arquivado" }));
     pushActivity(`Movido de "${from}" para "${to}"`);
   };
@@ -372,7 +375,7 @@ export function KanbanCardDrawer({
                 {draft.type}
               </Badge>
               <Badge variant="outline" className="text-[10px]">
-                {kanbanColumnsDef.find((c) => c.id === draft.columnId)?.title}
+                {columns.find((c) => c.id === draft.columnId)?.title ?? draft.columnId}
               </Badge>
               {draft.archived && (
                 <Badge variant="outline" className="text-[10px] text-muted-foreground">
@@ -736,7 +739,7 @@ export function KanbanCardDrawer({
                 <Select value={draft.columnId} onValueChange={(v) => handleChangeStatus(v as ColumnId)}>
                   <SelectTrigger className="h-9 cursor-pointer"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    {kanbanColumnsDef.map((c) => (
+                    {columns.map((c) => (
                       <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>
                     ))}
                   </SelectContent>

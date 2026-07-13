@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   DndContext,
@@ -50,6 +50,7 @@ import { KanbanCardDrawer } from "@/components/kanban/KanbanCardDrawer";
 import {
   type KanbanCard,
   type ColumnId,
+  type KanbanColumn,
   type Priority,
   type CardType,
   kanbanColumnsDef,
@@ -106,9 +107,42 @@ function daysBetween(iso: string) {
   return Math.round((d.getTime() - now.getTime()) / 86400000);
 }
 
+const KANBAN_COLUMNS_STORAGE_KEY = "procion-kanban-columns";
+
+function getInitialColumns(): KanbanColumn[] {
+  if (typeof window === "undefined") return kanbanColumnsDef;
+  try {
+    const saved = window.localStorage.getItem(KANBAN_COLUMNS_STORAGE_KEY);
+    if (!saved) return kanbanColumnsDef;
+    const parsed = JSON.parse(saved) as KanbanColumn[];
+    if (!Array.isArray(parsed) || parsed.length === 0) return kanbanColumnsDef;
+    return parsed.filter((col) => col?.id && col?.title);
+  } catch {
+    return kanbanColumnsDef;
+  }
+}
+
+function normalizeColumnId(title: string, columns: KanbanColumn[]): ColumnId {
+  const base =
+    title
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-|-$)/g, "") || "coluna";
+  let id = base;
+  let suffix = 2;
+  while (columns.some((col) => col.id === id)) {
+    id = `${base}-${suffix}`;
+    suffix += 1;
+  }
+  return id;
+}
+
 function KanbanPage() {
   const cards = useKanbanCards();
   const setCards = kanbanStore.setCards;
+  const [columns, setColumns] = useState<KanbanColumn[]>(getInitialColumns);
   const [query, setQuery] = useState("");
   const [filters, setFilters] = useState<Filters>(emptyFilters);
   const [onlyMine, setOnlyMine] = useState(false);
@@ -129,6 +163,10 @@ function KanbanPage() {
     cards.forEach((c) => c.tags.forEach((t) => set.add(t)));
     return Array.from(set).sort();
   }, [cards]);
+
+  useEffect(() => {
+    window.localStorage.setItem(KANBAN_COLUMNS_STORAGE_KEY, JSON.stringify(columns));
+  }, [columns]);
 
   const filteredCards = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -173,13 +211,14 @@ function KanbanPage() {
 
   const cardsByColumn = useMemo(() => {
     const grouped = Object.fromEntries(
-      kanbanColumnsDef.map((col) => [col.id, [] as KanbanCard[]]),
+      columns.map((col) => [col.id, [] as KanbanCard[]]),
     ) as Record<ColumnId, KanbanCard[]>;
+    const fallbackColumn = columns[0]?.id ?? "a-fazer";
     for (const c of filteredCards) {
-      (grouped[c.columnId] ?? grouped["a-fazer"]).push(c);
+      (grouped[c.columnId] ?? grouped[fallbackColumn]).push(c);
     }
     return grouped;
-  }, [filteredCards]);
+  }, [filteredCards, columns]);
 
 
   const handleDragStart = (e: DragStartEvent) => {
@@ -187,14 +226,24 @@ function KanbanPage() {
     if (c) setActiveCard(c);
   };
 
+  const getOverColumnId = (over: DragOverEvent["over"], currentCards: KanbanCard[] = cards) => {
+    if (!over) return undefined;
+    const overType = over.data.current?.type;
+    if (overType === "column") {
+      return over.data.current?.columnId as ColumnId | undefined;
+    }
+    if (overType === "card") {
+      return (
+        (over.data.current?.card?.columnId as ColumnId | undefined) ??
+        currentCards.find((c) => c.id === over.id)?.columnId
+      );
+    }
+    return columns.find((col) => col.id === over.id)?.id;
+  };
+
   const handleDragOver = (e: DragOverEvent) => {
     const { active, over } = e;
-    if (!over) return;
-    const overType = over.data.current?.type;
-    const overColumn =
-      overType === "column"
-        ? (over.data.current?.columnId as ColumnId)
-        : (over.data.current?.card?.columnId as ColumnId | undefined);
+    const overColumn = getOverColumnId(over);
     if (!overColumn) return;
 
     setCards((prev) => {
@@ -222,6 +271,8 @@ function KanbanPage() {
     setCards((prev) => {
       const activeIdx = prev.findIndex((c) => c.id === active.id);
       if (activeIdx === -1) return prev;
+      const overColumn = getOverColumnId(over, prev);
+      if (!overColumn) return prev;
 
       if (overType === "card") {
         const overIdx = prev.findIndex((c) => c.id === over.id);
@@ -231,14 +282,12 @@ function KanbanPage() {
         const targetIdx = next.findIndex((c) => c.id === over.id);
         next.splice(targetIdx, 0, {
           ...moved,
-          columnId: prev[overIdx].columnId,
-          archived: prev[overIdx].columnId === "arquivado",
+          columnId: overColumn,
+          archived: overColumn === "arquivado",
         });
         return next;
       }
-      if (overType === "column") {
-        const overColumn = over.data.current?.columnId as ColumnId | undefined;
-        if (!overColumn) return prev;
+      if (overType === "column" || columns.some((col) => col.id === over.id)) {
         return prev.map((c) =>
           c.id === active.id ? { ...c, columnId: overColumn, archived: overColumn === "arquivado" } : c,
         );
@@ -287,7 +336,35 @@ function KanbanPage() {
     setCards((prev) => prev.filter((c) => c.id !== id));
   };
 
+  const handleNewColumn = () => {
+    const title = window.prompt("Nome da nova coluna");
+    const cleanTitle = title?.trim();
+    if (!cleanTitle) return;
+    const id = normalizeColumnId(cleanTitle, columns);
+    setColumns((prev) => [...prev, { id, title: cleanTitle }]);
+    setMobileColumn(id);
+  };
+
+  const handleDeleteColumn = (column: KanbanColumn) => {
+    if (columns.length <= 1) return;
+    const confirmed = window.confirm(`Excluir a coluna "${column.title}"? Os cards dela serao movidos para a primeira coluna.`);
+    if (!confirmed) return;
+    const nextColumns = columns.filter((col) => col.id !== column.id);
+    const fallbackColumn = nextColumns[0]?.id ?? "a-fazer";
+    setColumns(nextColumns);
+    setCards((prev) =>
+      prev.map((card) =>
+        card.columnId === column.id
+          ? { ...card, columnId: fallbackColumn, archived: fallbackColumn === "arquivado" }
+          : card,
+      ),
+    );
+    setFilters((prev) => (prev.status === column.id ? { ...prev, status: "all" } : prev));
+    if (mobileColumn === column.id) setMobileColumn(fallbackColumn);
+  };
+
   const clearFilters = () => setFilters(emptyFilters);
+  const getColumnCount = (id: ColumnId) => cardsByColumn[id]?.length ?? 0;
 
   return (
     <AppShell>
@@ -333,7 +410,7 @@ function KanbanPage() {
                   <FilterSelect label="Responsavel" value={filters.assignee} onChange={(v) => setFilters({ ...filters, assignee: v })} options={[{ value: "all", label: "Todos" }, ...kanbanMembers.map((m) => ({ value: m.id, label: m.name }))]} />
                   <FilterSelect label="Prioridade" value={filters.priority} onChange={(v) => setFilters({ ...filters, priority: v as Priority | "all" })} options={[{ value: "all", label: "Todas" }, ...priorities.map((p) => ({ value: p, label: p }))]} />
                   <FilterSelect label="Tipo" value={filters.type} onChange={(v) => setFilters({ ...filters, type: v as CardType | "all" })} options={[{ value: "all", label: "Todos" }, ...cardTypes.map((t) => ({ value: t, label: t }))]} />
-                  <FilterSelect label="Status" value={filters.status} onChange={(v) => setFilters({ ...filters, status: v })} options={[{ value: "all", label: "Todos" }, ...kanbanColumnsDef.map((c) => ({ value: c.id, label: c.title }))]} />
+                  <FilterSelect label="Status" value={filters.status} onChange={(v) => setFilters({ ...filters, status: v })} options={[{ value: "all", label: "Todos" }, ...columns.map((c) => ({ value: c.id, label: c.title }))]} />
                   <FilterSelect label="Etiqueta" value={filters.tag} onChange={(v) => setFilters({ ...filters, tag: v })} options={[{ value: "all", label: "Todas" }, ...allTags.map((t) => ({ value: t, label: t }))]} />
                   <FilterSelect
                     label="Prazo"
@@ -378,19 +455,19 @@ function KanbanPage() {
               <Bell className="h-4 w-4" />
               <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-rose-500 px-1 text-[10px] font-black text-white">3</span>
             </button>
-            <Button onClick={() => handleNewCard()} className="h-11 cursor-pointer rounded-lg bg-violet-600 px-5 text-xs font-bold text-white shadow-[0_12px_28px_rgba(124,58,237,0.28)] hover:bg-violet-500">
+            <Button onClick={handleNewColumn} className="h-11 rounded-lg bg-violet-600 px-5 text-xs font-bold text-white shadow-[0_12px_28px_rgba(124,58,237,0.28)] hover:bg-violet-500">
               <Plus className="mr-2 h-4 w-4" />
-              Nova demanda
+              Nova coluna
             </Button>
 
           </div>
         </div>
 
         <div className="mb-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <MetricCard icon={BriefcaseBusiness} label="A Fazer" value={String(cardsByColumn["a-fazer"].length)} color="blue" />
-          <MetricCard icon={Clock3} label="Em andamento" value={String(cardsByColumn["em-andamento"].length)} color="amber" />
-          <MetricCard icon={UserRound} label="Em revisão" value={String(cardsByColumn["homologacao"].length + cardsByColumn["concluido"].length)} color="violet" />
-          <MetricCard icon={CheckCircle2} label="Concluídos" value={String(cardsByColumn["arquivado"].length)} color="emerald" />
+          <MetricCard icon={BriefcaseBusiness} label="A Fazer" value={String(getColumnCount("a-fazer"))} color="blue" />
+          <MetricCard icon={Clock3} label="Em andamento" value={String(getColumnCount("em-andamento"))} color="amber" />
+          <MetricCard icon={UserRound} label="Em revisão" value={String(getColumnCount("homologacao") + getColumnCount("concluido"))} color="violet" />
+          <MetricCard icon={CheckCircle2} label="Concluídos" value={String(getColumnCount("arquivado"))} color="emerald" />
         </div>
 
         {viewMode !== "kanban" ? (
@@ -423,7 +500,7 @@ function KanbanPage() {
             <div className="hidden xl:block">
               <div className="overflow-x-auto kanban-scrollbar">
                 <div className="flex min-w-max gap-4 pb-2">
-                  {kanbanColumnsDef.map((col) => (
+                  {columns.map((col) => (
                     <KanbanColumnView
                       key={col.id}
                       column={col}
@@ -431,6 +508,8 @@ function KanbanPage() {
                       onCardClick={openCard}
                       onArchiveCard={handleArchiveCard}
                       onAddCard={handleNewCard}
+                      onDeleteColumn={handleDeleteColumn}
+                      canDeleteColumn={columns.length > 1}
                     />
                   ))}
                 </div>
@@ -440,17 +519,17 @@ function KanbanPage() {
             <div className="xl:hidden">
               <Tabs value={mobileColumn} onValueChange={(v) => setMobileColumn(v as ColumnId)}>
                 <TabsList className="mb-3 flex h-auto w-full justify-start overflow-x-auto rounded-xl bg-slate-100 p-1 dark:bg-white/6">
-                  {kanbanColumnsDef.map((c) => (
+                  {columns.map((c) => (
                     <TabsTrigger key={c.id} value={c.id} className="cursor-pointer whitespace-nowrap text-xs text-slate-600 data-[state=active]:bg-white data-[state=active]:text-slate-900 dark:text-slate-300 dark:data-[state=active]:bg-white/10 dark:data-[state=active]:text-white">
                       {c.title}
                       <span className="ml-1.5 rounded bg-slate-200 px-1.5 py-0.5 text-[10px] dark:bg-white/10">
-                        {cardsByColumn[c.id].length}
+                        {cardsByColumn[c.id]?.length ?? 0}
                       </span>
                     </TabsTrigger>
                   ))}
                 </TabsList>
               </Tabs>
-              {kanbanColumnsDef
+              {columns
                 .filter((c) => c.id === mobileColumn)
                 .map((col) => (
                   <KanbanColumnView
@@ -460,6 +539,8 @@ function KanbanPage() {
                     onCardClick={openCard}
                     onArchiveCard={handleArchiveCard}
                     onAddCard={handleNewCard}
+                    onDeleteColumn={handleDeleteColumn}
+                    canDeleteColumn={columns.length > 1}
                   />
                 ))}
             </div>
@@ -478,6 +559,7 @@ function KanbanPage() {
         card={drawerCard}
         mode={drawerMode}
         defaultColumnId={defaultColumnId}
+        columns={columns}
         onSave={handleSave}
         onDelete={handleDelete}
       />
