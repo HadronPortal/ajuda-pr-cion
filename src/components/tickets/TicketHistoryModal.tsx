@@ -178,12 +178,13 @@ export function TicketHistoryModal({
           </div>
 
           {/* Cabeçalho de colunas — desktop */}
-          <div className="mb-2 hidden grid-cols-[minmax(0,1fr)_110px_120px_140px_120px] gap-3 px-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground md:grid">
+          <div className="mb-2 hidden grid-cols-[minmax(0,1fr)_100px_120px_130px_150px_110px] gap-3 pl-4 pr-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground md:grid">
             <span>Chamado</span>
             <span>Prioridade</span>
             <span>Atendente</span>
             <span>Data / Hora</span>
             <span>ID do chamado</span>
+            <span className="text-right">Ações</span>
           </div>
 
           {shown.length === 0 ? (
@@ -206,7 +207,7 @@ export function TicketHistoryModal({
                     )}
                   />
 
-                  <div className="grid grid-cols-1 items-center gap-3 pl-4 pr-3 py-3 md:grid-cols-[minmax(0,1fr)_110px_120px_140px_120px_auto]">
+                  <div className="grid grid-cols-1 items-center gap-3 pl-4 pr-3 py-3 md:grid-cols-[minmax(0,1fr)_100px_120px_130px_150px_110px]">
                     {/* Chamado: ícone + título + status + módulo */}
                     <div className="flex min-w-0 items-start gap-2.5">
                       <span
@@ -255,10 +256,10 @@ export function TicketHistoryModal({
                     </div>
 
                     {/* Atendente */}
-                    <div className="flex items-center gap-1.5 text-[11.5px] font-semibold text-foreground">
+                    <div className="flex min-w-0 items-center gap-1.5 text-[11.5px] font-semibold text-foreground">
                       <span
                         aria-hidden
-                        className="grid h-5 w-5 place-items-center rounded-full bg-primary/12 text-primary"
+                        className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-primary/12 text-primary"
                       >
                         <UserRound className="h-3 w-3" />
                       </span>
@@ -266,7 +267,7 @@ export function TicketHistoryModal({
                     </div>
 
                     {/* Data / hora */}
-                    <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                    <div className="flex min-w-0 items-center gap-1.5 text-[11px] text-muted-foreground">
                       <CalendarClock className="h-3.5 w-3.5 shrink-0" />
                       <div className="leading-tight">
                         <p className="font-semibold text-foreground">
@@ -278,11 +279,8 @@ export function TicketHistoryModal({
 
                     {/* ID */}
                     <div className="min-w-0 text-[10.5px] font-medium text-muted-foreground">
-                      <p className="text-[9.5px] font-bold uppercase tracking-wider text-muted-foreground/80 md:hidden">
-                        ID
-                      </p>
                       <p className="truncate font-mono">
-                        <span className="font-bold uppercase tracking-wide text-muted-foreground/80">
+                        <span className="font-bold uppercase tracking-wide text-muted-foreground/80 md:hidden">
                           ID{" "}
                         </span>
                         {h.protocol}
