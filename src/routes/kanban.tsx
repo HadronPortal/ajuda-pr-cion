@@ -530,7 +530,7 @@ function KanbanPage() {
             <button
               onClick={() => setOnlyMine((v) => !v)}
               className={cn(
-                "inline-flex h-11 cursor-pointer items-center gap-2 rounded-lg border px-3 text-xs font-semibold transition",
+                "inline-flex h-11 shrink-0 cursor-pointer items-center gap-2 rounded-lg border px-3 text-xs font-semibold transition",
                 onlyMine
                   ? "border-violet-500/60 bg-violet-500/15 text-violet-700 dark:text-violet-200"
                   : "border-slate-200 bg-white text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:border-white/8 dark:bg-white/[0.035] dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white",
