@@ -1,9 +1,37 @@
 import { useSyncExternalStore } from "react";
 import { initialCards, type KanbanCard } from "./kanban-data";
 
-let cards: KanbanCard[] = [...initialCards];
+const STORAGE_KEY = "procion-kanban-cards";
+
+function loadInitial(): KanbanCard[] {
+  if (typeof window === "undefined") return [...initialCards];
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [...initialCards];
+    const parsed = JSON.parse(raw) as KanbanCard[];
+    if (!Array.isArray(parsed) || parsed.length === 0) return [...initialCards];
+    return parsed;
+  } catch {
+    return [...initialCards];
+  }
+}
+
+let cards: KanbanCard[] = loadInitial();
 const listeners = new Set<() => void>();
-const emit = () => listeners.forEach((l) => l());
+
+function persist() {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(cards));
+  } catch {
+    /* ignore quota */
+  }
+}
+
+const emit = () => {
+  persist();
+  listeners.forEach((l) => l());
+};
 
 export const kanbanStore = {
   getSnapshot: () => cards,
@@ -43,6 +71,6 @@ export function useKanbanCards() {
   return useSyncExternalStore(
     kanbanStore.subscribe,
     kanbanStore.getSnapshot,
-    kanbanStore.getSnapshot,
+    () => initialCards,
   );
 }
