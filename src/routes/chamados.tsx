@@ -425,11 +425,12 @@ function TicketsPage() {
               <option value="Registro">Registro</option>
               <option value="Atualizado">Atualizado</option>
             </select>
-            <input
-              value={filters.date}
-              onChange={(event) => setFilters((prev) => ({ ...prev, date: event.target.value }))}
-              type="date"
-              className="h-9 w-[140px] shrink-0 cursor-pointer rounded-lg border border-border bg-background px-2.5 text-[13px] outline-none focus:ring-2 focus:ring-ring"
+            <DateRangeFilter
+              start={filters.dateStart}
+              end={filters.dateEnd}
+              onChange={(range) =>
+                setFilters((prev) => ({ ...prev, dateStart: range.start, dateEnd: range.end }))
+              }
             />
             <Button
               type="button"
