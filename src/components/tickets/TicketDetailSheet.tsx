@@ -624,7 +624,7 @@ export function TicketDetailSheet({
 
               {/* Histórico de atendimentos — embutido */}
               <div className="mt-4">
-                <Section title="Histórico de atendimentos" icon={TicketHistoryIcon}>
+                <Section title="Histórico de atendimentos" icon={History}>
                   <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                     <div className="flex items-baseline gap-1.5">
                       <span className="text-[12.5px] font-bold text-foreground">
