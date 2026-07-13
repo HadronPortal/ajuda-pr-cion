@@ -334,9 +334,42 @@ function KanbanPage() {
                   <FilterSelect label="Prioridade" value={filters.priority} onChange={(v) => setFilters({ ...filters, priority: v as Priority | "all" })} options={[{ value: "all", label: "Todas" }, ...priorities.map((p) => ({ value: p, label: p }))]} />
                   <FilterSelect label="Tipo" value={filters.type} onChange={(v) => setFilters({ ...filters, type: v as CardType | "all" })} options={[{ value: "all", label: "Todos" }, ...cardTypes.map((t) => ({ value: t, label: t }))]} />
                   <FilterSelect label="Status" value={filters.status} onChange={(v) => setFilters({ ...filters, status: v })} options={[{ value: "all", label: "Todos" }, ...kanbanColumnsDef.map((c) => ({ value: c.id, label: c.title }))]} />
+                  <FilterSelect label="Etiqueta" value={filters.tag} onChange={(v) => setFilters({ ...filters, tag: v })} options={[{ value: "all", label: "Todas" }, ...allTags.map((t) => ({ value: t, label: t }))]} />
+                  <FilterSelect
+                    label="Prazo"
+                    value={filters.due}
+                    onChange={(v) => setFilters({ ...filters, due: v as DueFilter })}
+                    options={[
+                      { value: "all", label: "Todos" },
+                      { value: "overdue", label: "Atrasados" },
+                      { value: "today", label: "Vence hoje" },
+                      { value: "week", label: "Próximos 7 dias" },
+                      { value: "no-date", label: "Sem prazo" },
+                    ]}
+                  />
                 </div>
               </PopoverContent>
             </Popover>
+
+            <button
+              onClick={() => setOnlyMine((v) => !v)}
+              className={cn(
+                "inline-flex h-11 cursor-pointer items-center gap-2 rounded-lg border px-3 text-xs font-semibold transition",
+                onlyMine
+                  ? "border-violet-500/60 bg-violet-500/15 text-violet-700 dark:text-violet-200"
+                  : "border-slate-200 bg-white text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:border-white/8 dark:bg-white/[0.035] dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white",
+              )}
+              title="Ver somente cards em que você é responsável ou participante"
+            >
+              <Star className={cn("h-4 w-4", onlyMine && "fill-current")} />
+              Meus cards
+            </button>
+
+            <div className="inline-flex h-11 items-center gap-0.5 rounded-lg border border-slate-200 bg-white p-0.5 dark:border-white/8 dark:bg-white/[0.035]">
+              <ViewToggleButton active={viewMode === "kanban"} onClick={() => setViewMode("kanban")} icon={LayoutGrid} label="Kanban" />
+              <ViewToggleButton active={viewMode === "list"} onClick={() => setViewMode("list")} icon={List} label="Lista" soon />
+              <ViewToggleButton active={viewMode === "calendar"} onClick={() => setViewMode("calendar")} icon={CalendarRange} label="Calendário" soon />
+            </div>
 
             <button className="grid h-11 w-11 cursor-pointer place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:border-white/8 dark:bg-white/[0.035] dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white">
               <BarChart3 className="h-4 w-4" />
@@ -345,10 +378,11 @@ function KanbanPage() {
               <Bell className="h-4 w-4" />
               <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-rose-500 px-1 text-[10px] font-black text-white">3</span>
             </button>
-            <Button onClick={() => handleNewCard()} className="h-11 rounded-lg bg-violet-600 px-5 text-xs font-bold text-white shadow-[0_12px_28px_rgba(124,58,237,0.28)] hover:bg-violet-500">
+            <Button onClick={() => handleNewCard()} className="h-11 cursor-pointer rounded-lg bg-violet-600 px-5 text-xs font-bold text-white shadow-[0_12px_28px_rgba(124,58,237,0.28)] hover:bg-violet-500">
               <Plus className="mr-2 h-4 w-4" />
               Nova demanda
             </Button>
+
           </div>
         </div>
 
