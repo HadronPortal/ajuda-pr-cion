@@ -98,80 +98,79 @@ export function KanbanCardItem({
         overlay && "rotate-1 shadow-2xl",
       )}
     >
-      <div className="mb-3 flex items-start justify-between gap-2">
+      {/* Trello-style label strips */}
+      <div className="mb-2 flex flex-wrap gap-1">
+        <span
+          title={`Prioridade: ${priority.label}`}
+          className={cn("h-2 w-10 rounded-full", priority.strip)}
+        />
+        {card.tags?.slice(0, 6).map((t) => (
+          <span
+            key={t}
+            title={t}
+            className={cn("h-2 w-10 rounded-full opacity-90", getTagColor(t))}
+          />
+        ))}
+      </div>
+
+      <div className="mb-2 flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="line-clamp-2 text-[12px] font-bold leading-snug text-slate-900 dark:text-white">
+          <p className="line-clamp-2 text-[12px] font-semibold leading-snug text-slate-900 dark:text-white">
             {card.title}
           </p>
-          <p className="mt-2 text-[11px] font-medium text-slate-500 line-clamp-2 dark:text-slate-400">
+          <p className="mt-1 text-[11px] font-medium text-slate-500 line-clamp-1 dark:text-slate-400">
             {card.client} <span className="text-slate-400 dark:text-slate-600">•</span> {card.module}
           </p>
-          {card.tags && card.tags.length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-1">
-              {card.tags.slice(0, 4).map((t) => (
-                <span
-                  key={t}
-                  className="rounded-sm bg-slate-100 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-slate-600 dark:bg-white/8 dark:text-slate-300"
-                >
-                  {t}
-                </span>
-              ))}
-              {card.tags.length > 4 && (
-                <span className="text-[9px] font-semibold text-slate-500 dark:text-slate-400">
-                  +{card.tags.length - 4}
-                </span>
-              )}
-            </div>
-          )}
         </div>
-
-        <div className="flex shrink-0 items-center gap-1">
-          <span className={cn("rounded-md border px-1.5 py-0.5 text-[9px] font-bold", priority.badge)}>
-            {priority.label}
-          </span>
+        <div className="flex shrink-0 items-center">
           <KanbanCardMenu
             card={card}
             columns={columns}
             onOpen={onClick}
             onArchive={onArchive}
           />
-
         </div>
       </div>
 
-      <div className="mb-3 flex items-center gap-2 text-[10px] text-slate-500 dark:text-slate-400">
-        <span className="inline-flex items-center gap-1">
+      <div className="flex items-center gap-3 text-[10px] text-slate-500 dark:text-slate-400">
+        <span className="inline-flex items-center gap-1" title="Prazo">
           <CalendarDays className="h-3 w-3" />
           {formatDue(card.dueDate)}
         </span>
-        <span className="ml-auto inline-flex items-center gap-1">
-          <MessageSquare className="h-3 w-3" />
-          {card.comments}
-        </span>
-        <span className="inline-flex items-center gap-1">
-          <Paperclip className="h-3 w-3" />
-          {card.attachments}
-        </span>
-        {assignee && (
-          <Avatar className="ml-1 h-6 w-6 border border-slate-200 dark:border-white/10">
-            <AvatarFallback className={cn("text-[9px] font-black", assignee.color)}>
-              {assignee.initials}
-            </AvatarFallback>
-          </Avatar>
+        {card.comments > 0 && (
+          <span className="inline-flex items-center gap-1" title="Comentários">
+            <MessageSquare className="h-3 w-3" />
+            {card.comments}
+          </span>
         )}
-      </div>
-
-      <div className="flex items-center gap-2">
-        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-200 dark:bg-white/8">
-          <div
-            className={cn("h-full rounded-full", priority.accent)}
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-        <span className="w-8 text-right text-[10px] font-semibold text-slate-500 dark:text-slate-400">
-          {done}/{total}
+        {card.attachments > 0 && (
+          <span className="inline-flex items-center gap-1" title="Anexos">
+            <Paperclip className="h-3 w-3" />
+            {card.attachments}
+          </span>
+        )}
+        {card.checklist && card.checklist.length > 0 && (
+          <span
+            className={cn(
+              "inline-flex items-center gap-1 rounded px-1.5 py-0.5",
+              progress === 100
+                ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-300"
+                : "text-slate-500 dark:text-slate-400",
+            )}
+            title="Checklist"
+          >
+            ☑ {done}/{total}
+          </span>
+        )}
+        <span className="ml-auto flex items-center">
+          {assignee && (
+            <Avatar className="h-6 w-6 border border-slate-200 dark:border-white/10">
+              <AvatarFallback className={cn("text-[9px] font-black", assignee.color)}>
+                {assignee.initials}
+              </AvatarFallback>
+            </Avatar>
+          )}
         </span>
       </div>
-    </div>
   );
 }
