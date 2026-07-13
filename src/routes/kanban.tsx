@@ -591,6 +591,81 @@ function KanbanPage() {
         onSave={handleSave}
         onDelete={handleDelete}
       />
+
+      <Dialog open={newColumnOpen} onOpenChange={setNewColumnOpen}>
+        <DialogContent className="sm:max-w-[420px]">
+          <DialogHeader>
+            <DialogTitle>Nova coluna</DialogTitle>
+            <DialogDescription>
+              Adicione uma nova coluna ao seu quadro Kanban.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 py-2">
+            <label htmlFor="new-column-name" className="text-xs font-medium text-muted-foreground">
+              Nome da coluna
+            </label>
+            <Input
+              id="new-column-name"
+              autoFocus
+              value={newColumnName}
+              onChange={(e) => setNewColumnName(e.target.value)}
+              placeholder="Ex.: Em revisão"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  confirmNewColumn();
+                }
+              }}
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              className="cursor-pointer"
+              onClick={() => setNewColumnOpen(false)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              className="cursor-pointer bg-violet-600 text-white hover:bg-violet-500"
+              onClick={confirmNewColumn}
+            >
+              Criar coluna
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
+        <DialogContent className="sm:max-w-[440px]">
+          <DialogHeader>
+            <DialogTitle>Excluir coluna {deleteTarget ? `"${deleteTarget.title}"` : ""}?</DialogTitle>
+            <DialogDescription>
+              Os cards desta coluna serão movidos para a primeira coluna disponível
+              {columns[0] && deleteTarget && columns[0].id !== deleteTarget.id
+                ? ` ("${columns[0].title}")`
+                : ""}
+              . Essa ação não pode ser desfeita.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              className="cursor-pointer"
+              onClick={() => setDeleteTarget(null)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              className="cursor-pointer"
+              onClick={confirmDeleteColumn}
+            >
+              Excluir coluna
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AppShell>
   );
 }
