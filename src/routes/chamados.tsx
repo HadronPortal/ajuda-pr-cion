@@ -878,7 +878,10 @@ function TicketsListView({
               {tickets.map((ticket) => (
                 <tr
                   key={ticket.id}
-                  className="cursor-pointer border-t border-border/60 transition hover:bg-accent/40"
+                  className={cn(
+                    "cursor-pointer border-t border-border/60 transition",
+                    priorityRowTint[ticket.priority],
+                  )}
                   onClick={() => onOpen(ticket)}
                 >
                   <td className="px-2 py-2 align-top">
