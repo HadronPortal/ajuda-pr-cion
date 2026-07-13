@@ -173,6 +173,7 @@ function KanbanPage() {
   const [newColumnOpen, setNewColumnOpen] = useState(false);
   const [newColumnName, setNewColumnName] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<KanbanColumn | null>(null);
+  const [followedColumns, setFollowedColumns] = useState<Set<ColumnId>>(new Set());
   const lastOverColumnRef = useRef<ColumnId | null>(null);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
@@ -407,6 +408,59 @@ function KanbanPage() {
     toast.success(`Coluna "${column.title}" excluída`);
   };
 
+  const handleCopyColumn = (column: KanbanColumn) => {
+    const newTitle = `Cópia de ${column.title}`;
+    const newId = normalizeColumnId(newTitle, columns);
+    const originalIdx = columns.findIndex((c) => c.id === column.id);
+    setColumns((prev) => {
+      const next = [...prev];
+      next.splice(originalIdx + 1, 0, { id: newId, title: newTitle });
+      return next;
+    });
+    setCards((prev) => {
+      const sourceCards = prev.filter((c) => c.columnId === column.id);
+      let maxId = Math.max(
+        0,
+        ...prev.map((c) => parseInt(c.id.replace(/\D/g, ""), 10) || 0),
+      );
+      const clones: KanbanCard[] = sourceCards.map((c) => {
+        maxId += 1;
+        return { ...c, id: `PRC-${maxId}`, columnId: newId };
+      });
+      return [...prev, ...clones];
+    });
+    toast.success(`Lista "${column.title}" copiada`);
+  };
+
+  const handleMoveColumn = (column: KanbanColumn, direction: "left" | "right") => {
+    setColumns((prev) => {
+      const idx = prev.findIndex((c) => c.id === column.id);
+      if (idx === -1) return prev;
+      const target = direction === "left" ? idx - 1 : idx + 1;
+      if (target < 0 || target >= prev.length) return prev;
+      const next = [...prev];
+      [next[idx], next[target]] = [next[target], next[idx]];
+      return next;
+    });
+    toast.success(
+      `Lista "${column.title}" movida para a ${direction === "left" ? "esquerda" : "direita"}`,
+    );
+  };
+
+  const handleToggleFollow = (column: KanbanColumn) => {
+    setFollowedColumns((prev) => {
+      const next = new Set(prev);
+      if (next.has(column.id)) {
+        next.delete(column.id);
+        toast(`Você deixou de seguir "${column.title}"`);
+      } else {
+        next.add(column.id);
+        toast.success(`Agora você está seguindo "${column.title}"`);
+      }
+      return next;
+    });
+  };
+
   const clearFilters = () => setFilters(emptyFilters);
   const getColumnCount = (id: ColumnId) => cardsByColumn[id]?.length ?? 0;
 
@@ -419,8 +473,9 @@ function KanbanPage() {
             <p className="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400">Gestão inteligente de demandas e projetos internos</p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="relative h-11 w-full sm:w-[300px]">
+          <div className="flex flex-nowrap items-center gap-2 overflow-x-auto pb-1 xl:overflow-visible xl:pb-0">
+            <div className="relative h-11 w-full min-w-[200px] shrink-0 sm:w-[240px]">
+
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
               <input
                 value={query}
@@ -434,7 +489,7 @@ function KanbanPage() {
 
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" className="h-11 cursor-pointer rounded-lg border-slate-200 bg-white px-4 text-xs text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:border-white/8 dark:bg-white/[0.035] dark:text-slate-200 dark:hover:bg-white/10 dark:hover:text-white">
+                <Button variant="outline" className="h-11 shrink-0 cursor-pointer rounded-lg border-slate-200 bg-white px-4 text-xs text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:border-white/8 dark:bg-white/[0.035] dark:text-slate-200 dark:hover:bg-white/10 dark:hover:text-white">
                   <Filter className="mr-2 h-4 w-4" />
                   Filtros
                   {activeFilterCount > 0 && <Badge className="ml-2 h-5 min-w-5 bg-primary text-[10px]">{activeFilterCount}</Badge>}
@@ -475,7 +530,7 @@ function KanbanPage() {
             <button
               onClick={() => setOnlyMine((v) => !v)}
               className={cn(
-                "inline-flex h-11 cursor-pointer items-center gap-2 rounded-lg border px-3 text-xs font-semibold transition",
+                "inline-flex h-11 shrink-0 cursor-pointer items-center gap-2 rounded-lg border px-3 text-xs font-semibold transition",
                 onlyMine
                   ? "border-violet-500/60 bg-violet-500/15 text-violet-700 dark:text-violet-200"
                   : "border-slate-200 bg-white text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:border-white/8 dark:bg-white/[0.035] dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white",
@@ -486,19 +541,20 @@ function KanbanPage() {
               Meus cards
             </button>
 
-            <div className="inline-flex h-11 items-center gap-0.5 rounded-lg border border-slate-200 bg-white p-0.5 dark:border-white/8 dark:bg-white/[0.035]">
+            <div className="inline-flex h-11 shrink-0 items-center gap-0.5 rounded-lg border border-slate-200 bg-white p-0.5 dark:border-white/8 dark:bg-white/[0.035]">
               <ViewToggleButton active={viewMode === "kanban"} onClick={() => setViewMode("kanban")} icon={LayoutGrid} label="Kanban" />
               <ViewToggleButton active={viewMode === "list"} onClick={() => setViewMode("list")} icon={List} label="Lista" soon />
               <ViewToggleButton active={viewMode === "calendar"} onClick={() => setViewMode("calendar")} icon={CalendarRange} label="Calendário" soon />
             </div>
 
-            <button className="grid h-11 w-11 cursor-pointer place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:border-white/8 dark:bg-white/[0.035] dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white">
+            <button className="grid h-11 w-11 shrink-0 cursor-pointer place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:border-white/8 dark:bg-white/[0.035] dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white">
               <BarChart3 className="h-4 w-4" />
             </button>
-            <button className="relative grid h-11 w-11 cursor-pointer place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:border-white/8 dark:bg-white/[0.035] dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white">
+            <button className="relative grid h-11 w-11 shrink-0 cursor-pointer place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:border-white/8 dark:bg-white/[0.035] dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white">
               <Bell className="h-4 w-4" />
               <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-rose-500 px-1 text-[10px] font-black text-white">3</span>
             </button>
+
           </div>
         </div>
 
@@ -533,7 +589,7 @@ function KanbanPage() {
             <div className="hidden xl:block">
               <div className="overflow-x-auto kanban-scrollbar">
                 <div className="flex min-w-max items-start gap-4 pb-2">
-                  {columns.map((col) => (
+                  {columns.map((col, idx) => (
                     <KanbanColumnView
                       key={col.id}
                       column={col}
@@ -543,15 +599,22 @@ function KanbanPage() {
                       onAddCard={handleNewCard}
                       onDeleteColumn={handleDeleteColumn}
                       canDeleteColumn={columns.length > 1}
+                      onCopyColumn={handleCopyColumn}
+                      onMoveColumn={handleMoveColumn}
+                      canMoveLeft={idx > 0}
+                      canMoveRight={idx < columns.length - 1}
+                      isFollowing={followedColumns.has(col.id)}
+                      onToggleFollow={handleToggleFollow}
                     />
                   ))}
                   <button
                     onClick={handleNewColumn}
-                    className="flex h-11 w-[270px] shrink-0 cursor-pointer items-center gap-2 rounded-xl border border-blue-500/30 bg-blue-500/10 px-4 text-[12px] font-semibold text-blue-700 backdrop-blur transition hover:bg-blue-500/20 dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:hover:bg-white/[0.12]"
+                    className="flex h-7 w-[210px] shrink-0 cursor-pointer items-center gap-1.5 self-start rounded-lg border border-blue-500/30 bg-blue-500/10 px-2.5 text-[11px] font-semibold text-blue-700 backdrop-blur transition hover:bg-blue-500/20 dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:hover:bg-white/[0.12]"
                   >
-                    <Plus className="h-4 w-4" />
+                    <Plus className="h-3.5 w-3.5" />
                     Adicionar outra lista
                   </button>
+
                 </div>
               </div>
             </div>
@@ -571,25 +634,35 @@ function KanbanPage() {
               </Tabs>
               {columns
                 .filter((c) => c.id === mobileColumn)
-                .map((col) => (
-                  <KanbanColumnView
-                    key={col.id}
-                    column={col}
-                    cards={cardsByColumn[col.id]}
-                    onCardClick={openCard}
-                    onArchiveCard={handleArchiveCard}
-                    onAddCard={handleNewCard}
-                    onDeleteColumn={handleDeleteColumn}
-                    canDeleteColumn={columns.length > 1}
-                  />
-                ))}
+                .map((col) => {
+                  const idx = columns.findIndex((c) => c.id === col.id);
+                  return (
+                    <KanbanColumnView
+                      key={col.id}
+                      column={col}
+                      cards={cardsByColumn[col.id]}
+                      onCardClick={openCard}
+                      onArchiveCard={handleArchiveCard}
+                      onAddCard={handleNewCard}
+                      onDeleteColumn={handleDeleteColumn}
+                      canDeleteColumn={columns.length > 1}
+                      onCopyColumn={handleCopyColumn}
+                      onMoveColumn={handleMoveColumn}
+                      canMoveLeft={idx > 0}
+                      canMoveRight={idx < columns.length - 1}
+                      isFollowing={followedColumns.has(col.id)}
+                      onToggleFollow={handleToggleFollow}
+                    />
+                  );
+                })}
               <button
                 onClick={handleNewColumn}
-                className="mt-3 flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-blue-500/30 bg-blue-500/10 px-4 text-[12px] font-semibold text-blue-700 transition hover:bg-blue-500/20 dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:hover:bg-white/[0.12]"
+                className="mt-3 flex h-8 w-full cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-blue-500/30 bg-blue-500/10 px-3 text-[11px] font-semibold text-blue-700 transition hover:bg-blue-500/20 dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:hover:bg-white/[0.12]"
               >
-                <Plus className="h-4 w-4" />
+                <Plus className="h-3.5 w-3.5" />
                 Adicionar outra lista
               </button>
+
             </div>
 
             <DragOverlay>
