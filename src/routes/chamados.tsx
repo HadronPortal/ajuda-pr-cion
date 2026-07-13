@@ -910,6 +910,36 @@ function SortableTh({
   );
 }
 
+function SortableHead({
+  label,
+  sortKey,
+  sort,
+  onSort,
+}: {
+  label: string;
+  sortKey: SortKey;
+  sort: { key: SortKey; dir: SortDir };
+  onSort: (key: SortKey) => void;
+}) {
+  const active = sort.key === sortKey;
+  const Arrow = active ? (sort.dir === "asc" ? ChevronUp : ChevronDown) : ChevronsUpDown;
+  return (
+    <button
+      type="button"
+      onClick={() => onSort(sortKey)}
+      className="inline-flex items-center gap-1 text-left font-semibold transition hover:text-foreground"
+    >
+      {label}
+      <Arrow
+        className={cn(
+          "h-3 w-3 transition-opacity",
+          active ? "opacity-90 text-foreground" : "opacity-50",
+        )}
+      />
+    </button>
+  );
+
+
 function pagesRange(current: number, total: number): (number | "…")[] {
   const pages: (number | "…")[] = [];
   if (total <= 7) {
