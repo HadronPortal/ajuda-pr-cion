@@ -51,6 +51,7 @@ import {
 } from "@/components/ui/chart";
 import {
   dailyTicketAnalytics,
+  ticketOperators,
   ticketStatuses,
   weeklyTicketAnalytics,
   type SupportTicket,
@@ -117,12 +118,22 @@ type Filters = {
   status: string;
   priority: string;
   query: string;
+  sigla: string;
+  operatorType: "Todos" | "Atendente" | "Responsável";
+  operator: string;
+  dateType: "Registro" | "Atualizado";
+  date: string;
 };
 
 const initialFilters: Filters = {
   status: "Todos",
   priority: "Todas",
   query: "",
+  sigla: "",
+  operatorType: "Todos",
+  operator: "Todos",
+  dateType: "Registro",
+  date: "",
 };
 
 function ChamadosRouteShell() {
@@ -162,9 +173,21 @@ function TicketsPage() {
 
   const filteredTickets = useMemo(() => {
     const query = filters.query.trim().toLowerCase();
+    const sigla = filters.sigla.trim().toLowerCase();
     return supportTickets.filter((ticket) => {
       if (filters.status !== "Todos" && ticket.status !== filters.status) return false;
       if (filters.priority !== "Todas" && ticket.priority !== filters.priority) return false;
+      if (sigla && !ticket.clientCode.toLowerCase().includes(sigla)) return false;
+      if (filters.operator !== "Todos") {
+        const op = filters.operator;
+        if (filters.operatorType === "Atendente" && ticket.attendant !== op) return false;
+        if (filters.operatorType === "Responsável" && ticket.owner !== op) return false;
+        if (filters.operatorType === "Todos" && ticket.attendant !== op && ticket.owner !== op) return false;
+      }
+      if (filters.date) {
+        const field = filters.dateType === "Registro" ? ticket.openedAt : ticket.updatedAt;
+        if (!field.startsWith(filters.date)) return false;
+      }
       if (!query) return true;
       return [
         ticket.protocol,
@@ -302,38 +325,87 @@ function TicketsPage() {
 
 
       <Card className="mb-6 rounded-2xl border border-border/60 bg-card p-3 shadow-[0_8px_22px_rgba(25,29,51,0.05)]">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-          <div className="relative order-1 min-w-0 flex-1 sm:order-none">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8">
+          <div className="relative sm:col-span-2 xl:col-span-2">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <input
               value={filters.query}
               onChange={(event) => setFilters((prev) => ({ ...prev, query: event.target.value }))}
               type="search"
-              placeholder="Buscar por cliente, protocolo, assunto, contato..."
-              className="h-9 w-full rounded-lg border border-border bg-background pl-9 pr-3 text-sm outline-none transition focus:ring-2 focus:ring-ring"
+              placeholder="Buscar cliente, protocolo, assunto..."
+              className="h-9 w-full rounded-lg border border-border bg-background pl-9 pr-3 text-[13px] outline-none transition focus:ring-2 focus:ring-ring"
             />
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <select
-              value={filters.status}
-              onChange={(event) => setFilters((prev) => ({ ...prev, status: event.target.value }))}
-              className="h-9 cursor-pointer rounded-lg border border-border bg-background px-2.5 pr-7 text-[13px] outline-none focus:ring-2 focus:ring-ring sm:w-[150px]"
-            >
-              <option>Todos</option>
-              {ticketStatuses.map((status) => (
-                <option key={status}>{status}</option>
-              ))}
-            </select>
-            <select
-              value={filters.priority}
-              onChange={(event) => setFilters((prev) => ({ ...prev, priority: event.target.value }))}
-              className="h-9 cursor-pointer rounded-lg border border-border bg-background px-2.5 pr-7 text-[13px] outline-none focus:ring-2 focus:ring-ring sm:w-[130px]"
-            >
-              <option>Todas</option>
-              {ticketPriorities.map((priority) => (
-                <option key={priority}>{priority}</option>
-              ))}
-            </select>
+          <input
+            value={filters.sigla}
+            onChange={(event) => setFilters((prev) => ({ ...prev, sigla: event.target.value.toUpperCase() }))}
+            type="text"
+            placeholder="Sigla"
+            className="h-9 w-full rounded-lg border border-border bg-background px-2.5 text-[13px] uppercase outline-none focus:ring-2 focus:ring-ring"
+          />
+          <select
+            value={filters.status}
+            onChange={(event) => setFilters((prev) => ({ ...prev, status: event.target.value }))}
+            className="h-9 w-full cursor-pointer rounded-lg border border-border bg-background px-2.5 pr-7 text-[13px] outline-none focus:ring-2 focus:ring-ring"
+          >
+            <option>Todos</option>
+            {ticketStatuses.map((status) => (
+              <option key={status}>{status}</option>
+            ))}
+          </select>
+          <select
+            value={filters.priority}
+            onChange={(event) => setFilters((prev) => ({ ...prev, priority: event.target.value }))}
+            className="h-9 w-full cursor-pointer rounded-lg border border-border bg-background px-2.5 pr-7 text-[13px] outline-none focus:ring-2 focus:ring-ring"
+          >
+            <option>Todas</option>
+            {ticketPriorities.map((priority) => (
+              <option key={priority}>{priority}</option>
+            ))}
+          </select>
+          <select
+            value={filters.operatorType}
+            onChange={(event) =>
+              setFilters((prev) => ({ ...prev, operatorType: event.target.value as Filters["operatorType"] }))
+            }
+            className="h-9 w-full cursor-pointer rounded-lg border border-border bg-background px-2.5 pr-7 text-[13px] outline-none focus:ring-2 focus:ring-ring"
+            title="Tipo operador"
+          >
+            <option value="Todos">Tipo operador</option>
+            <option value="Atendente">Atendente</option>
+            <option value="Responsável">Responsável</option>
+          </select>
+          <select
+            value={filters.operator}
+            onChange={(event) => setFilters((prev) => ({ ...prev, operator: event.target.value }))}
+            className="h-9 w-full cursor-pointer rounded-lg border border-border bg-background px-2.5 pr-7 text-[13px] outline-none focus:ring-2 focus:ring-ring"
+            title="Operador"
+          >
+            <option value="Todos">Operador</option>
+            {ticketOperators.map((op) => (
+              <option key={op} value={op}>
+                {op}
+              </option>
+            ))}
+          </select>
+          <select
+            value={filters.dateType}
+            onChange={(event) =>
+              setFilters((prev) => ({ ...prev, dateType: event.target.value as Filters["dateType"] }))
+            }
+            className="h-9 w-full cursor-pointer rounded-lg border border-border bg-background px-2.5 pr-7 text-[13px] outline-none focus:ring-2 focus:ring-ring"
+            title="Tipo data"
+          >
+            <option value="Registro">Registro</option>
+            <option value="Atualizado">Atualizado</option>
+          </select>
+          <div className="flex items-center gap-2 sm:col-span-2 xl:col-span-1">
+            <input
+              value={filters.date}
+              onChange={(event) => setFilters((prev) => ({ ...prev, date: event.target.value }))}
+              type="date"
+              className="h-9 w-full cursor-pointer rounded-lg border border-border bg-background px-2.5 text-[13px] outline-none focus:ring-2 focus:ring-ring"
+            />
             <Button
               type="button"
               variant="ghost"
