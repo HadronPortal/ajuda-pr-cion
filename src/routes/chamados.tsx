@@ -156,6 +156,99 @@ const initialFilters: Filters = {
   dateEnd: undefined,
 };
 
+function DateRangeFilter({
+  start,
+  end,
+  onChange,
+}: {
+  start?: Date;
+  end?: Date;
+  onChange: (range: { start?: Date; end?: Date }) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState<DateRange | undefined>(
+    start || end ? { from: start, to: end } : undefined,
+  );
+
+  useEffect(() => {
+    setDraft(start || end ? { from: start, to: end } : undefined);
+  }, [start, end]);
+
+  const label = (() => {
+    if (start && end) {
+      return `${format(start, "dd/MM/yyyy")} - ${format(end, "dd/MM/yyyy")}`;
+    }
+    if (start) return `A partir de ${format(start, "dd/MM/yyyy")}`;
+    if (end) return `Até ${format(end, "dd/MM/yyyy")}`;
+    return "dd/mm/aaaa - dd/mm/aaaa";
+  })();
+
+  const apply = () => {
+    let from = draft?.from;
+    let to = draft?.to;
+    if (from && to && from > to) [from, to] = [to, from];
+    onChange({ start: from, end: to });
+    setOpen(false);
+  };
+
+  const clear = () => {
+    setDraft(undefined);
+    onChange({ start: undefined, end: undefined });
+    setOpen(false);
+  };
+
+  const isPlaceholder = !start && !end;
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className={cn(
+            "inline-flex h-9 w-[220px] shrink-0 cursor-pointer items-center gap-2 truncate rounded-lg border border-border bg-background px-2.5 text-[13px] outline-none transition focus:ring-2 focus:ring-ring",
+            isPlaceholder && "text-muted-foreground",
+          )}
+        >
+          <CalendarIcon className="h-3.5 w-3.5 shrink-0 opacity-70" />
+          <span className="truncate">{label}</span>
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-auto p-0">
+        <Calendar
+          mode="range"
+          numberOfMonths={2}
+          selected={draft}
+          onSelect={setDraft}
+          locale={ptBR}
+          initialFocus
+          className={cn("pointer-events-auto p-3")}
+        />
+        <div className="flex items-center justify-end gap-2 border-t border-border px-3 py-2">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-8 cursor-pointer"
+            onClick={clear}
+          >
+            Limpar
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            className="h-8 cursor-pointer"
+            onClick={apply}
+          >
+            Aplicar
+          </Button>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+
+
 function ChamadosRouteShell() {
   const location = useLocation();
   if (location.pathname !== "/chamados") {
