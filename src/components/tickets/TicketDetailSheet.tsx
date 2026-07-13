@@ -12,6 +12,7 @@ import {
   FileText,
   Folder,
   Globe,
+  History,
   Info,
   LayoutGrid,
   LockKeyhole,
