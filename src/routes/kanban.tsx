@@ -532,7 +532,7 @@ function KanbanPage() {
           >
             <div className="hidden xl:block">
               <div className="overflow-x-auto kanban-scrollbar">
-                <div className="flex min-w-max gap-4 pb-2">
+                <div className="flex min-w-max items-start gap-4 pb-2">
                   {columns.map((col) => (
                     <KanbanColumnView
                       key={col.id}
