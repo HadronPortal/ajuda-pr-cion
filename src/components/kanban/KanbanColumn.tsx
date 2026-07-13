@@ -88,7 +88,7 @@ export function KanbanColumnView({
           className="mt-2 flex h-9 w-full cursor-pointer items-center justify-center gap-1.5 rounded-lg text-[11px] font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/7 dark:hover:text-white"
         >
           <Plus className="h-3 w-3" />
-          Adicionar tarefa
+          Adicionar um cartão
         </button>
       </div>
     </section>
