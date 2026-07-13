@@ -555,38 +555,6 @@ function TicketsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <div className="inline-flex items-center rounded-lg border border-border bg-card p-0.5">
-            <button
-              type="button"
-              onClick={() => setViewMode("grid")}
-              aria-pressed={viewMode === "grid"}
-              aria-label="Visualização em grade"
-              className={cn(
-                "inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-md px-2.5 text-[12px] font-semibold transition",
-                viewMode === "grid"
-                  ? "bg-primary/12 text-primary"
-                  : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
-              )}
-            >
-              <LayoutGrid className="h-3.5 w-3.5" />
-              Grid
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode("list")}
-              aria-pressed={viewMode === "list"}
-              aria-label="Visualização em lista"
-              className={cn(
-                "inline-flex h-7 cursor-pointer items-center gap-1.5 rounded-md px-2.5 text-[12px] font-semibold transition",
-                viewMode === "list"
-                  ? "bg-primary/12 text-primary"
-                  : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
-              )}
-            >
-              <ListIcon className="h-3.5 w-3.5" />
-              Lista
-            </button>
-          </div>
           <Badge variant="secondary" className="rounded-full">
             CRM lado suporte
           </Badge>
@@ -601,17 +569,6 @@ function TicketsPage() {
                 Ajuste os filtros para exibir chamados nesta fila.
               </p>
             </div>
-          </div>
-        ) : viewMode === "grid" ? (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {filteredTickets.map((ticket) => (
-              <TicketCard
-                key={ticket.id}
-                ticket={ticket}
-                onOpen={openTicketDetail}
-                onHistory={openTicketHistory}
-              />
-            ))}
           </div>
         ) : (
           <TicketsListView
