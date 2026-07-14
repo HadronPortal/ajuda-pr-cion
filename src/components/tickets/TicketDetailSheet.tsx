@@ -17,7 +17,6 @@ import {
   LayoutGrid,
   LockKeyhole,
   MapPin,
-  MessageCircle,
   MessageSquare,
   NotebookText,
   Paperclip,
@@ -76,11 +75,11 @@ import { PastAttendanceDetailModal } from "./PastAttendanceDetailModal";
 import type { PastAttendance } from "@/lib/tickets-store";
 import { TicketNotesModal } from "./TicketNotesModal";
 import { TicketTimelineModal } from "./TicketTimelineModal";
-import { TicketChatPanel } from "./TicketChatPanel";
+
 import ticketAssumeIconUrl from "@/assets/ticket-assume.png?url";
 import ticketAttendIconUrl from "@/assets/ticket-attend.png?url";
 import ticketCloseIconUrl from "@/assets/ticket-close.png?url";
-import ticketHistoryIconUrl from "@/assets/ticket-history.png?url";
+
 import ticketStatusIconUrl from "@/assets/ticket-status.png?url";
 import ticketTimelineIconUrl from "@/assets/ticket-timeline.png?url";
 
@@ -217,7 +216,7 @@ function createMaskedTicketIcon(maskUrl: string): IconComponent {
   };
 }
 
-const TicketHistoryIcon = createMaskedTicketIcon(ticketHistoryIconUrl);
+
 const TicketCloseIcon = createMaskedTicketIcon(ticketCloseIconUrl);
 const TicketStatusIcon = createMaskedTicketIcon(ticketStatusIconUrl);
 const TicketAssumeIcon = createMaskedTicketIcon(ticketAssumeIconUrl);
@@ -249,10 +248,9 @@ export function TicketDetailSheet({
   const [notesOpen, setNotesOpen] = useState(false);
   const [timelineOpen, setTimelineOpen] = useState(false);
   const [navCollapsed, setNavCollapsed] = useState(false);
-  const [chatOpen, setChatOpen] = useState(false);
   const [selectedHistory, setSelectedHistory] = useState<PastAttendance | null>(null);
   const [activeAction, setActiveAction] = useState<
-    "historico" | "encerrar" | "status" | "assumir" | "atender" | "timeline" | "chat"
+    "encerrar" | "status" | "assumir" | "atender" | "timeline"
   >("atender");
 
   const mock = useMemo(() => (ticket ? buildMock(ticket) : null), [ticket]);
@@ -400,16 +398,6 @@ export function TicketDetailSheet({
                   </p>
                 )}
                 <SideItem
-                  icon={TicketHistoryIcon}
-                  label="Histórico"
-                  collapsed={navCollapsed}
-                  active={activeAction === "historico"}
-                  onClick={() => {
-                    setActiveAction("historico");
-                    setHistoryOpen(true);
-                  }}
-                />
-                <SideItem
                   icon={TicketCloseIcon}
                   label="Encerrar"
                   collapsed={navCollapsed}
@@ -489,17 +477,6 @@ export function TicketDetailSheet({
                     setTimelineOpen(true);
                   }}
                 />
-                <SideItem
-                  icon={MessageCircle}
-                  label="Chat"
-                  collapsed={navCollapsed}
-                  active={activeAction === "chat"}
-                  onClick={() => {
-                    setActiveAction("chat");
-                    setChatOpen(true);
-                  }}
-                  className="xl:hidden"
-                />
               </div>
 
 
@@ -523,7 +500,6 @@ export function TicketDetailSheet({
 
             {/* Mobile action bar (topo, rolável) */}
             <div className="flex shrink-0 items-center gap-2 overflow-x-auto border-b border-border bg-card px-3 py-2 md:hidden">
-              <MobileAction icon={TicketHistoryIcon} label="Histórico" onClick={() => setHistoryOpen(true)} />
               <MobileAction icon={TicketCloseIcon} label="Encerrar" onClick={() => setCloseOpen(true)} />
               <MobileAction
                 icon={TicketStatusIcon}
@@ -533,7 +509,6 @@ export function TicketDetailSheet({
               <MobileAction icon={TicketAssumeIcon} label="Assumir" onClick={handleAssume} />
               <MobileAction icon={TicketAttendIcon} label="Atender" onClick={handleAttend} highlight />
               <MobileAction icon={TicketTimelineIcon} label="Timeline" onClick={() => setTimelineOpen(true)} />
-              <MobileAction icon={MessageCircle} label="Chat" onClick={() => setChatOpen(true)} />
             </div>
 
             {/* Main content */}
@@ -664,10 +639,10 @@ export function TicketDetailSheet({
           {/* fim painel esquerdo */}
 
 
-          {/* Painel direito — Chat (card separado) */}
-          <TicketChatPanel
-            ticket={ticket}
-            className="hidden max-h-[90vh] overflow-hidden rounded-2xl border border-border shadow-[0_30px_80px_rgba(0,0,0,0.35)] xl:flex"
+          {/* Painel direito — Histórico do chamado (timeline) */}
+          <TicketHistorySidePanel
+            events={timelineEvents}
+            className="hidden max-h-[90vh] overflow-hidden rounded-2xl border border-border bg-card shadow-[0_30px_80px_rgba(0,0,0,0.35)] xl:flex"
           />
 
         </DialogContent>
@@ -709,17 +684,6 @@ export function TicketDetailSheet({
         ticket={ticket}
       />
 
-      {/* Chat como modal para notebook/mobile */}
-      <Dialog open={chatOpen} onOpenChange={setChatOpen}>
-        <DialogContent className="flex h-[85vh] max-h-[85vh] w-[calc(100vw-1rem)] max-w-md flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-background p-0 sm:w-[420px]">
-          <DialogTitle className="sr-only">Chat com o cliente</DialogTitle>
-          <TicketChatPanel
-            ticket={ticket}
-            className="flex-1 border-l-0"
-            onClose={() => setChatOpen(false)}
-          />
-        </DialogContent>
-      </Dialog>
 
 
     </>
@@ -1100,4 +1064,77 @@ function MobileAction({
     </button>
   );
 }
+
+function TicketHistorySidePanel({
+  events,
+  className,
+}: {
+  events: TicketEvent[];
+  className?: string;
+}) {
+  return (
+    <aside className={cn("flex min-h-0 flex-col bg-card", className)}>
+      <header className="flex shrink-0 items-center justify-between gap-2 border-b border-border px-4 py-3">
+        <div className="min-w-0">
+          <h3 className="text-[13px] font-bold text-foreground">Histórico</h3>
+          <p className="truncate text-[11.5px] text-muted-foreground">
+            Eventos do atendimento
+          </p>
+        </div>
+        <span
+          aria-hidden
+          className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-primary/10 text-primary"
+        >
+          <History className="h-3.5 w-3.5" />
+        </span>
+      </header>
+
+      <div className="flex-1 min-h-0 overflow-y-auto bg-muted/20 px-3 py-4">
+        {events.length === 0 ? (
+          <p className="py-8 text-center text-[12px] text-muted-foreground">
+            Nenhum evento registrado.
+          </p>
+        ) : (
+          <ol className="relative space-y-3 pl-1">
+            {events.map((ev, i) => {
+              const Icon = timelineIcon[ev.kind];
+              const isLast = i === events.length - 1;
+              return (
+                <li key={ev.id} className="relative flex gap-2.5">
+                  <div className="flex flex-col items-center">
+                    <span
+                      className={cn(
+                        "grid h-7 w-7 shrink-0 place-items-center rounded-full",
+                        timelineTone[ev.kind],
+                      )}
+                    >
+                      <Icon className="h-3.5 w-3.5" />
+                    </span>
+                    {!isLast && (
+                      <span className="mt-1 w-px flex-1 bg-border" aria-hidden />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1 pb-2">
+                    <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
+                      <span className="text-[12px] font-semibold text-foreground">
+                        {ev.actor}
+                      </span>
+                      <span className="text-[10.5px] text-muted-foreground">
+                        {formatDateTime(ev.when)}
+                      </span>
+                    </div>
+                    <p className="mt-0.5 text-[12px] leading-relaxed text-muted-foreground">
+                      {ev.description}
+                    </p>
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+        )}
+      </div>
+    </aside>
+  );
+}
+
 
