@@ -1066,3 +1066,76 @@ function MobileAction({
   );
 }
 
+function TicketHistorySidePanel({
+  events,
+  className,
+}: {
+  events: TicketEvent[];
+  className?: string;
+}) {
+  return (
+    <aside className={cn("flex min-h-0 flex-col bg-card", className)}>
+      <header className="flex shrink-0 items-center justify-between gap-2 border-b border-border px-4 py-3">
+        <div className="min-w-0">
+          <h3 className="text-[13px] font-bold text-foreground">Histórico</h3>
+          <p className="truncate text-[11.5px] text-muted-foreground">
+            Eventos do atendimento
+          </p>
+        </div>
+        <span
+          aria-hidden
+          className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-primary/10 text-primary"
+        >
+          <History className="h-3.5 w-3.5" />
+        </span>
+      </header>
+
+      <div className="flex-1 min-h-0 overflow-y-auto bg-muted/20 px-3 py-4">
+        {events.length === 0 ? (
+          <p className="py-8 text-center text-[12px] text-muted-foreground">
+            Nenhum evento registrado.
+          </p>
+        ) : (
+          <ol className="relative space-y-3 pl-1">
+            {events.map((ev, i) => {
+              const Icon = timelineIcon[ev.kind];
+              const isLast = i === events.length - 1;
+              return (
+                <li key={ev.id} className="relative flex gap-2.5">
+                  <div className="flex flex-col items-center">
+                    <span
+                      className={cn(
+                        "grid h-7 w-7 shrink-0 place-items-center rounded-full",
+                        timelineTone[ev.kind],
+                      )}
+                    >
+                      <Icon className="h-3.5 w-3.5" />
+                    </span>
+                    {!isLast && (
+                      <span className="mt-1 w-px flex-1 bg-border" aria-hidden />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1 pb-2">
+                    <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
+                      <span className="text-[12px] font-semibold text-foreground">
+                        {ev.actor}
+                      </span>
+                      <span className="text-[10.5px] text-muted-foreground">
+                        {formatDateTime(ev.when)}
+                      </span>
+                    </div>
+                    <p className="mt-0.5 text-[12px] leading-relaxed text-muted-foreground">
+                      {ev.description}
+                    </p>
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+        )}
+      </div>
+    </aside>
+  );
+}
+
+
