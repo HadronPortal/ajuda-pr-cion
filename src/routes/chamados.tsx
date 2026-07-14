@@ -1842,39 +1842,40 @@ function StatisticsCard() {
         </button>
       </div>
 
-      <div className="mb-8 flex items-center gap-2 overflow-x-auto pb-1">
-        <button className="grid h-[68px] w-[54px] shrink-0 cursor-pointer place-items-center rounded-md bg-muted/60 text-foreground">
-          <ChevronLeft className="h-5 w-5" />
+      <div className="mb-6 flex items-center gap-1.5 overflow-x-auto pb-1">
+        <button className="grid h-[60px] w-[40px] shrink-0 cursor-pointer place-items-center rounded-md bg-muted/60 text-foreground">
+          <ChevronLeft className="h-4 w-4" />
         </button>
         {statisticsDays.map((item) => (
           <button
             key={`${item.day}-${item.weekday}`}
             className={cn(
-              "grid h-[68px] w-[54px] shrink-0 cursor-pointer place-items-center rounded-md bg-muted/45 text-center transition",
+              "grid h-[60px] w-[44px] shrink-0 cursor-pointer place-items-center rounded-md bg-muted/45 text-center transition",
               item.active && "bg-[#a779c7] text-white",
               item.outlined && "border-2 border-[#7fb9ab] bg-white text-[#6aa899] dark:bg-[#20263d]",
             )}
           >
             <span>
-              <span className="block text-[16px] font-black leading-none">{item.day}</span>
+              <span className="block text-[14px] font-black leading-none">{item.day}</span>
               <span
                 className={cn(
-                  "mt-1 block text-[10px] font-bold",
+                  "mt-1 block text-[9px] font-bold",
                   item.warm && !item.active ? "text-[#ff7a2f]" : "text-current",
                 )}
               >
                 {item.weekday}
               </span>
-              <span className="mx-auto mt-2 block h-1 w-1 rounded-full bg-[#b9d899]" />
+              <span className="mx-auto mt-1.5 block h-1 w-1 rounded-full bg-[#b9d899]" />
             </span>
           </button>
         ))}
-        <button className="grid h-[68px] w-[54px] shrink-0 cursor-pointer place-items-center rounded-md bg-muted/60 text-foreground">
-          <ChevronRight className="h-5 w-5" />
+        <button className="grid h-[60px] w-[40px] shrink-0 cursor-pointer place-items-center rounded-md bg-muted/60 text-foreground">
+          <ChevronRight className="h-4 w-4" />
         </button>
       </div>
 
-      <div className="h-[300px]">
+      <div className="h-[300px] w-full min-w-0 overflow-hidden">
+
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={hourlyStats} margin={{ top: 12, right: 24, left: 0, bottom: 8 }}>
             <defs>
