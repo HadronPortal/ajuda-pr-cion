@@ -330,7 +330,7 @@ export function PastAttendanceDetailModal({
                 aria-hidden
                 className="absolute left-4 top-2 bottom-2 w-px bg-border"
               />
-              {timeline.map((step, idx) => {
+              {timeline.map((step) => {
                 const Icon = step.icon;
                 return (
                   <li
