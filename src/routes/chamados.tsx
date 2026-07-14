@@ -2242,16 +2242,17 @@ function Gauge({ value }: { value: number }) {
 }
 
 const statusChartColors = [
-  "#435897",
-  "#5669a1",
-  "#6979aa",
-  "#7b8ab7",
-  "#94a0c2",
-  "#4f63a0",
-  "#6375ad",
-  "#8794bd",
-  "#a0aacb",
+  "#2f6feb",
+  "#8b5cf6",
+  "#f5c518",
+  "#f97316",
+  "#22c55e",
+  "#ef4444",
+  "#38bdf8",
+  "#ec4899",
+  "#94a3b8",
 ];
+
 
 function polarPoint(cx: number, cy: number, radius: number, angle: number) {
   const radians = ((angle - 90) * Math.PI) / 180;
