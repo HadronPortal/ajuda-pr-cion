@@ -1163,20 +1163,17 @@ function TicketsListView({
                   key={ticket.id}
                   type="button"
                   onClick={() => onOpen(ticket)}
-                  className={cn(
-                    "group relative grid min-h-[56px] w-full cursor-pointer grid-cols-[140px_104px_minmax(210px,1.3fr)_130px_minmax(260px,1.6fr)_112px_118px_112px_112px_28px] items-center px-4 py-2.5 text-left transition hover:bg-muted/40",
-                    rowTintFor(ticket),
-                  )}
+                  className="group relative grid min-h-[52px] w-full cursor-pointer grid-cols-[140px_104px_minmax(210px,1.3fr)_130px_minmax(260px,1.6fr)_112px_118px_112px_112px_28px] items-center bg-transparent px-4 py-2 text-left transition hover:bg-muted/30"
                 >
                   <span
-                    className={cn("pointer-events-none absolute bottom-2 left-0 top-2 w-1 rounded-full", statusDotTone[ticket.status])}
+                    className={cn("pointer-events-none absolute bottom-1.5 left-0 top-1.5 w-1", statusDotTone[ticket.status])}
                     aria-hidden="true"
                   />
 
                   <div className="flex min-w-0 flex-col items-start gap-1 pl-2">
                     <Badge
                       className={cn(
-                        "inline-flex items-center justify-start gap-1.5 whitespace-nowrap rounded-full border px-2 py-0.5 text-[10.5px] font-semibold",
+                        "inline-flex items-center justify-start gap-1.5 whitespace-nowrap rounded-full border px-2 py-0.5 text-[10px] font-medium",
                         statusTone[ticket.status],
                       )}
                     >
@@ -1196,7 +1193,7 @@ function TicketsListView({
                   <div className="min-w-0">
                     <span
                       className={cn(
-                        "inline-flex min-w-[86px] items-center justify-center gap-1 whitespace-nowrap rounded-full border px-2 py-0.5 text-[10.5px] font-semibold",
+                        "inline-flex min-w-[86px] items-center justify-center gap-1 whitespace-nowrap rounded-full border px-2 py-0.5 text-[10px] font-medium",
                         priorityTone[ticket.priority],
                       )}
                     >
@@ -1206,23 +1203,23 @@ function TicketsListView({
                   </div>
 
                   <div className="min-w-0">
-                    <div className="truncate text-[13.5px] font-bold text-foreground">
+                    <div className="truncate text-[12.5px] text-foreground">
                       {ticket.clientCode}
                     </div>
-                    <div className="truncate text-[12px] text-muted-foreground">
+                    <div className="truncate text-[11.5px] text-muted-foreground">
                       {ticket.clientName}
                     </div>
                   </div>
 
                   <div className="flex min-w-0 items-center">
-                    <span className="truncate text-[13.5px] text-foreground">{ticket.contact}</span>
+                    <span className="truncate text-[12.5px] text-foreground">{ticket.contact}</span>
                   </div>
 
                   <div className="min-w-0 pr-3">
-                    <div className="line-clamp-2 text-[14.5px] font-semibold leading-snug text-foreground">
+                    <div className="line-clamp-2 text-[13px] leading-snug text-foreground">
                       {ticket.subject}
                     </div>
-                    <div className="mt-0.5 flex min-w-0 items-center gap-1.5 text-[12px] text-muted-foreground/80">
+                    <div className="mt-0.5 flex min-w-0 items-center gap-1.5 text-[11.5px] text-muted-foreground/80">
                       <ModuleIcon className="h-3 w-3 shrink-0 text-primary/70" />
                       <span className="truncate">{ticket.module}</span>
                     </div>
@@ -1231,24 +1228,24 @@ function TicketsListView({
 
                   <div className="flex min-w-0 items-center gap-1.5">
                     <UserRound className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                    <span className="truncate text-[13.5px] font-semibold text-foreground">
+                    <span className="truncate text-[12.5px] text-foreground">
                       {ticket.attendant}
                     </span>
                   </div>
 
                   <div className="flex min-w-0 items-center gap-1.5">
                     <UserPlus className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                    <span className="truncate text-[13.5px] font-semibold text-foreground">
+                    <span className="truncate text-[12.5px] text-foreground">
                       {ticket.owner}
                     </span>
                   </div>
 
-                  <div className="flex min-w-0 items-center gap-1.5 text-[12.5px] text-muted-foreground">
+                  <div className="flex min-w-0 items-center gap-1.5 text-[12px] text-muted-foreground">
                     <CalendarClock className="h-3.5 w-3.5 shrink-0 opacity-70" />
                     <span className="whitespace-nowrap">{formatDateTime(ticket.openedAt)}</span>
                   </div>
 
-                  <div className="flex min-w-0 items-center gap-1.5 text-[12.5px] text-muted-foreground">
+                  <div className="flex min-w-0 items-center gap-1.5 text-[12px] text-muted-foreground">
                     <Clock3 className="h-3.5 w-3.5 shrink-0 opacity-70" />
                     <span className="whitespace-nowrap">{formatDateTime(ticket.updatedAt)}</span>
                   </div>
