@@ -450,17 +450,8 @@ function TicketsPage() {
         </p>
       </div>
 
-      <Link
-        to="/chamados/novo"
-        aria-label="Novo chamado"
-        title="Novo chamado"
-        className="group fixed bottom-6 right-6 z-40 inline-grid h-14 w-14 cursor-pointer place-items-center rounded-2xl bg-primary text-primary-foreground shadow-[0_14px_32px_rgba(11,151,196,0.35)] transition-transform hover:-translate-y-0.5 hover:shadow-[0_18px_38px_rgba(11,151,196,0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 md:bottom-8 md:right-8"
-      >
-        <MessageSquarePlus className="h-6 w-6" />
-        <span className="pointer-events-none absolute right-full top-1/2 mr-2 -translate-y-1/2 whitespace-nowrap rounded-md bg-foreground px-2 py-1 text-xs font-semibold text-background opacity-0 shadow-md transition-opacity group-hover:opacity-100">
-          Novo chamado
-        </span>
-      </Link>
+
+
 
 
 
@@ -494,7 +485,15 @@ function TicketsPage() {
       </section>
 
 
-      <div className="mb-6 flex justify-end">
+      <div className="mb-6 flex justify-end gap-2">
+        <Link
+          to="/chamados/novo"
+          aria-label="Novo chamado"
+          className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground shadow-md transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+        >
+          <MessageSquarePlus className="h-4 w-4" />
+          Novo chamado
+        </Link>
         <Button
           type="button"
           onClick={() => setFiltersOpen(true)}
@@ -504,6 +503,7 @@ function TicketsPage() {
           Filters
         </Button>
       </div>
+
 
       <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
         <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-[480px]">
@@ -1251,19 +1251,20 @@ function TicketsListView({
   return (
     <div className="space-y-3">
       {/* Desktop list */}
-      <Card className="hidden overflow-x-auto rounded-2xl border border-border/60 bg-card p-3 shadow-[0_8px_22px_rgba(25,29,51,0.05)] lg:block">
-        <div className="min-w-[1220px]">
-          <div className="grid grid-cols-[140px_104px_minmax(210px,1.3fr)_130px_minmax(260px,1.6fr)_112px_118px_112px_112px_28px] items-center rounded-xl bg-muted/50 px-4 py-3">
+      <Card className="hidden rounded-2xl border border-border/60 bg-card p-3 shadow-[0_8px_22px_rgba(25,29,51,0.05)] lg:block">
+        <div className="min-w-0">
+          <div className="grid grid-cols-[120px_92px_minmax(0,1.25fr)_110px_minmax(0,1.6fr)_140px_110px_110px_24px] items-center gap-x-2 rounded-xl bg-muted/50 px-4 py-3">
+
             <SortableGridHeader label="Status" sortKey="status" sort={sort} onSort={toggleSort} />
             <SortableGridHeader label="Prioridade" sortKey="priority" sort={sort} onSort={toggleSort} />
             <SortableGridHeader label="Cliente" sortKey="cliente" sort={sort} onSort={toggleSort} />
             <SortableGridHeader label="Contato" sortKey="contato" sort={sort} onSort={toggleSort} />
             <SortableGridHeader label="Assunto" sortKey="assunto" sort={sort} onSort={toggleSort} />
             <SortableGridHeader label="Atendente" sortKey="atendente" sort={sort} onSort={toggleSort} />
-            <SortableGridHeader label="Responsavel" sortKey="responsavel" sort={sort} onSort={toggleSort} />
             <SortableGridHeader label="Registro" sortKey="registro" sort={sort} onSort={toggleSort} />
             <SortableGridHeader label="Atualizado" sortKey="atualizado" sort={sort} onSort={toggleSort} />
             <span aria-label="Abrir" />
+
           </div>
 
           <div className="my-2 divide-y divide-border/60">
@@ -1274,7 +1275,7 @@ function TicketsListView({
                   key={ticket.id}
                   type="button"
                   onClick={() => onOpen(ticket)}
-                  className="group relative grid min-h-[52px] w-full cursor-pointer grid-cols-[140px_104px_minmax(210px,1.3fr)_130px_minmax(260px,1.6fr)_112px_118px_112px_112px_28px] items-center bg-transparent px-4 py-2 text-left transition hover:bg-muted/30"
+                  className="group relative grid min-h-[52px] w-full cursor-pointer grid-cols-[120px_92px_minmax(0,1.25fr)_110px_minmax(0,1.6fr)_140px_110px_110px_24px] items-center gap-x-2 bg-transparent px-4 py-2 text-left transition hover:bg-muted/30"
                 >
                   <span
                     className={cn("pointer-events-none absolute bottom-1.5 left-0 top-1.5 w-1", statusDotTone[ticket.status])}
@@ -1336,20 +1337,18 @@ function TicketsListView({
                     </div>
                   </div>
 
-
-                  <div className="flex min-w-0 items-center gap-1.5">
-                    <UserRound className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                    <span className="truncate text-[12.5px] text-foreground">
-                      {ticket.attendant}
+                  <div className="flex min-w-0 flex-col">
+                    <div className="flex min-w-0 items-center gap-1.5">
+                      <UserRound className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                      <span className="truncate text-[12.5px] text-foreground">
+                        {ticket.attendant}
+                      </span>
+                    </div>
+                    <span className="truncate pl-5 text-[10.5px] text-muted-foreground/80">
+                      Responsável: {ticket.owner}
                     </span>
                   </div>
 
-                  <div className="flex min-w-0 items-center gap-1.5">
-                    <UserPlus className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                    <span className="truncate text-[12.5px] text-foreground">
-                      {ticket.owner}
-                    </span>
-                  </div>
 
                   <div className="flex min-w-0 items-center gap-1.5 text-[12px] text-muted-foreground">
                     <CalendarClock className="h-3.5 w-3.5 shrink-0 opacity-70" />
@@ -1693,20 +1692,22 @@ function TopAgentsCard({ tickets }: { tickets: SupportTicket[] }) {
   }, [tickets]);
 
   return (
-    <Card className="rounded-md border border-border/80 bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.08)] dark:bg-card">
-      <div className="mb-7 flex items-center justify-between gap-4">
-        <h3 className="text-[20px] font-bold tracking-tight text-foreground">Performance dos Operadores</h3>
+    <Card className="rounded-md border border-border/80 bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.08)] dark:bg-card">
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <h3 className="text-base font-bold tracking-tight text-foreground">
+          Performance dos Operadores
+        </h3>
         <Button
           type="button"
           variant="outline"
-          className="h-10 cursor-pointer gap-2 rounded-md border-border bg-white px-4 text-sm font-semibold text-foreground shadow-none hover:bg-muted dark:bg-card"
+          className="h-9 cursor-pointer gap-2 rounded-md border-border bg-white px-3 text-xs font-semibold text-foreground shadow-none hover:bg-muted dark:bg-card"
         >
           <CalendarClock className="h-4 w-4" />
           Mensal
         </Button>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-3">
         {agents.map((agent, index) => {
           const profile = agentProfiles[agent.operator] ?? {
             name: agent.operator,
@@ -1722,53 +1723,53 @@ function TopAgentsCard({ tickets }: { tickets: SupportTicket[] }) {
             98,
             Math.max(fallbackRates[index] ?? 70, rawResolutionRate),
           );
-          const activeDots = Math.round((resolutionRate / 100) * 24);
+          const activeDots = Math.round((resolutionRate / 100) * 18);
           const avgResolutionTime = (1.1 + index * 0.18 + agent.handled * 0.08).toFixed(1);
 
           return (
             <div
               key={agent.operator}
-              className="grid min-h-[108px] grid-cols-1 items-center gap-5 rounded-md border border-border/80 bg-white px-6 py-5 shadow-none dark:bg-background/30 sm:grid-cols-2 min-[1500px]:grid-cols-[250px_190px_170px_minmax(260px,1fr)] min-[1500px]:gap-8"
+              className="flex flex-col gap-3 rounded-md border border-border/80 bg-white px-4 py-3 dark:bg-background/30 lg:flex-row lg:items-center lg:gap-5"
             >
-              <div className="flex min-w-0 items-center gap-4">
+              <div className="flex min-w-0 items-center gap-3 lg:w-[200px]">
                 <img
                   src={profile.avatar}
                   alt={profile.name}
-                  className="h-14 w-14 shrink-0 rounded-full object-cover"
+                  className="h-10 w-10 shrink-0 rounded-full object-cover"
                   loading="lazy"
                 />
                 <div className="min-w-0">
-                  <p className="truncate text-[17px] font-bold text-[#071735] dark:text-foreground">
+                  <p className="truncate text-[13px] font-semibold text-foreground">
                     {profile.name}
                   </p>
-                  <div className="mt-1 flex items-center gap-1.5 text-[15px] text-muted-foreground">
-                    <Star className="h-4 w-4 fill-[#ffb31a] text-[#ffb31a]" />
+                  <div className="mt-0.5 flex items-center gap-1 text-[11px] text-muted-foreground">
+                    <Star className="h-3 w-3 fill-[#ffb31a] text-[#ffb31a]" />
                     <span>{profile.rating.toFixed(1)}</span>
                   </div>
                 </div>
               </div>
 
-              <div>
-                <p className="text-[16px] text-muted-foreground">Tempo médio de resolução</p>
-                <p className="mt-2 text-[18px] font-bold text-foreground">{avgResolutionTime}h</p>
+              <div className="min-w-0 lg:w-[130px]">
+                <p className="text-[11px] text-muted-foreground">Tempo médio</p>
+                <p className="mt-0.5 text-[14px] font-bold text-foreground">{avgResolutionTime}h</p>
               </div>
 
-              <div>
-                <p className="text-[16px] text-muted-foreground">Atendimentos realizados</p>
-                <p className="mt-2 text-[18px] font-bold text-foreground">{agent.handled}</p>
+              <div className="min-w-0 lg:w-[120px]">
+                <p className="text-[11px] text-muted-foreground">Atendimentos</p>
+                <p className="mt-0.5 text-[14px] font-bold text-foreground">{agent.handled}</p>
               </div>
 
-              <div>
-                <div className="mb-3 flex items-center justify-between gap-4">
-                  <p className="text-[16px] text-foreground">Taxa de resolução</p>
-                  <p className="text-[18px] text-foreground">{resolutionRate}%</p>
+              <div className="min-w-0 flex-1">
+                <div className="mb-1.5 flex items-center justify-between gap-3">
+                  <p className="text-[11px] text-muted-foreground">Taxa de resolução</p>
+                  <p className="text-[13px] font-semibold text-foreground">{resolutionRate}%</p>
                 </div>
-                <div className="flex flex-wrap items-center gap-1.5">
-                  {Array.from({ length: 24 }).map((_, dotIndex) => (
+                <div className="flex flex-wrap items-center gap-1">
+                  {Array.from({ length: 18 }).map((_, dotIndex) => (
                     <span
                       key={dotIndex}
                       className={cn(
-                        "h-3.5 w-3.5 rounded-full",
+                        "h-2.5 w-2.5 rounded-full",
                         dotIndex < activeDots ? "bg-[#f26322]" : "bg-[#dfe3e8] dark:bg-muted",
                       )}
                     />
@@ -1780,6 +1781,7 @@ function TopAgentsCard({ tickets }: { tickets: SupportTicket[] }) {
         })}
       </div>
     </Card>
+
   );
 }
 const statisticsDays = [
