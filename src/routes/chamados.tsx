@@ -1349,9 +1349,10 @@ function TicketsListView({
                     </div>
                     <div className="flex min-w-0 items-center gap-1.5">
                       <UserPlus className="h-3.5 w-3.5 shrink-0 text-muted-foreground/70" />
-                      <span className="truncate text-[12.5px] text-foreground">
-                        {ticket.owner}
+                      <span className="truncate text-[11px] text-muted-foreground/80">
+                        <span className="font-medium">Responsável:</span> {ticket.owner}
                       </span>
+
 
                     </div>
                   </div>
