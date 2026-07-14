@@ -1253,19 +1253,20 @@ function TicketsListView({
       {/* Desktop list */}
       <Card className="hidden rounded-2xl border border-border/60 bg-card p-3 shadow-[0_8px_22px_rgba(25,29,51,0.05)] lg:block">
         <div className="min-w-0">
-          <div className="grid grid-cols-[140px_100px_minmax(0,1.25fr)_110px_minmax(0,1.6fr)_140px_110px_110px_24px] items-center gap-x-4 rounded-xl bg-muted/50 px-4 py-3">
+          <div className="grid grid-cols-[160px_100px_minmax(0,1.2fr)_110px_minmax(0,1.55fr)_170px_100px_100px_24px] items-center gap-x-3 rounded-xl bg-muted/50 px-4 py-3">
 
             <SortableGridHeader label="Status" sortKey="status" sort={sort} onSort={toggleSort} />
             <SortableGridHeader label="Prioridade" sortKey="priority" sort={sort} onSort={toggleSort} />
             <SortableGridHeader label="Cliente" sortKey="cliente" sort={sort} onSort={toggleSort} />
             <SortableGridHeader label="Contato" sortKey="contato" sort={sort} onSort={toggleSort} />
             <SortableGridHeader label="Assunto" sortKey="assunto" sort={sort} onSort={toggleSort} />
-            <SortableGridHeader label="Atendente" sortKey="atendente" sort={sort} onSort={toggleSort} />
+            <SortableGridHeader label="Atendente/Responsável" sortKey="atendente" sort={sort} onSort={toggleSort} />
             <SortableGridHeader label="Registro" sortKey="registro" sort={sort} onSort={toggleSort} />
             <SortableGridHeader label="Atualizado" sortKey="atualizado" sort={sort} onSort={toggleSort} />
             <span aria-label="Abrir" />
 
           </div>
+
 
           <div className="my-2 divide-y divide-border/60">
             {pageItems.map((ticket) => {
@@ -1275,17 +1276,17 @@ function TicketsListView({
                   key={ticket.id}
                   type="button"
                   onClick={() => onOpen(ticket)}
-                  className="group relative grid min-h-[52px] w-full cursor-pointer grid-cols-[140px_100px_minmax(0,1.25fr)_110px_minmax(0,1.6fr)_140px_110px_110px_24px] items-center gap-x-4 bg-transparent px-4 py-2 text-left transition hover:bg-muted/30"
+                  className="group relative grid min-h-[52px] w-full cursor-pointer grid-cols-[160px_100px_minmax(0,1.2fr)_110px_minmax(0,1.55fr)_170px_100px_100px_24px] items-center gap-x-3 bg-transparent px-4 py-2 text-left transition hover:bg-muted/30"
                 >
                   <span
                     className={cn("pointer-events-none absolute bottom-1.5 left-0 top-1.5 w-1", statusDotTone[ticket.status])}
                     aria-hidden="true"
                   />
 
-                  <div className="flex min-w-0 flex-col items-start gap-1 pl-2">
+                  <div className="flex min-w-0 flex-col items-stretch gap-1 pl-2">
                     <Badge
                       className={cn(
-                        "inline-flex items-center justify-start gap-1.5 whitespace-nowrap rounded-full border px-2 py-0.5 text-[10px] font-medium",
+                        "inline-flex w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-full border px-2 py-0.5 text-[10px] font-medium",
                         statusTone[ticket.status],
                       )}
                     >
@@ -1297,10 +1298,11 @@ function TicketsListView({
                       />
                       {ticket.status}
                     </Badge>
-                    <span className="font-mono text-[10px] leading-tight text-muted-foreground">
+                    <span className="text-center font-mono text-[10px] leading-tight text-muted-foreground">
                       {ticket.protocol}
                     </span>
                   </div>
+
 
                   <div className="min-w-0">
                     <span
@@ -1346,9 +1348,10 @@ function TicketsListView({
                     </div>
                     <div className="flex min-w-0 items-center gap-1.5">
                       <UserPlus className="h-3.5 w-3.5 shrink-0 text-muted-foreground/70" />
-                      <span className="truncate text-[10.5px] text-muted-foreground/80">
+                      <span className="truncate text-[12.5px] text-foreground">
                         {ticket.owner}
                       </span>
+
                     </div>
                   </div>
 
