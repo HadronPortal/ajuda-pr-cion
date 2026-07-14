@@ -1173,10 +1173,9 @@ function TicketsListView({
             <span aria-label="Abrir" />
           </div>
 
-          <div className="mt-2 divide-y divide-border/60">
+          <div className="my-2 divide-y divide-border/60">
             {pageItems.map((ticket) => {
               const ModuleIcon = getModuleIcon(ticket.module, ticket.source, ticket.subject);
-              const initial = (ticket.contact.trim()[0] ?? "?").toUpperCase();
               return (
                 <button
                   key={ticket.id}
