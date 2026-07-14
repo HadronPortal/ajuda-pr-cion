@@ -1253,19 +1253,20 @@ function TicketsListView({
       {/* Desktop list */}
       <Card className="hidden rounded-2xl border border-border/60 bg-card p-3 shadow-[0_8px_22px_rgba(25,29,51,0.05)] lg:block">
         <div className="min-w-0">
-          <div className="grid grid-cols-[140px_100px_minmax(0,1.25fr)_110px_minmax(0,1.6fr)_140px_110px_110px_24px] items-center gap-x-4 rounded-xl bg-muted/50 px-4 py-3">
+          <div className="grid grid-cols-[160px_100px_minmax(0,1.2fr)_110px_minmax(0,1.55fr)_170px_100px_100px_24px] items-center gap-x-3 rounded-xl bg-muted/50 px-4 py-3">
 
             <SortableGridHeader label="Status" sortKey="status" sort={sort} onSort={toggleSort} />
             <SortableGridHeader label="Prioridade" sortKey="priority" sort={sort} onSort={toggleSort} />
             <SortableGridHeader label="Cliente" sortKey="cliente" sort={sort} onSort={toggleSort} />
             <SortableGridHeader label="Contato" sortKey="contato" sort={sort} onSort={toggleSort} />
             <SortableGridHeader label="Assunto" sortKey="assunto" sort={sort} onSort={toggleSort} />
-            <SortableGridHeader label="Atendente" sortKey="atendente" sort={sort} onSort={toggleSort} />
+            <SortableGridHeader label="Atendente/Responsável" sortKey="atendente" sort={sort} onSort={toggleSort} />
             <SortableGridHeader label="Registro" sortKey="registro" sort={sort} onSort={toggleSort} />
             <SortableGridHeader label="Atualizado" sortKey="atualizado" sort={sort} onSort={toggleSort} />
             <span aria-label="Abrir" />
 
           </div>
+
 
           <div className="my-2 divide-y divide-border/60">
             {pageItems.map((ticket) => {
