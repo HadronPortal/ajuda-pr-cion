@@ -479,15 +479,6 @@ export function TicketDetailSheet({
                     setTimelineOpen(true);
                   }}
                 />
-                  label="Chat"
-                  collapsed={navCollapsed}
-                  active={activeAction === "chat"}
-                  onClick={() => {
-                    setActiveAction("chat");
-                    setChatOpen(true);
-                  }}
-                  className="xl:hidden"
-                />
               </div>
 
 
