@@ -1728,11 +1728,11 @@ function StatisticsCard() {
                 fontSize: 12,
               }}
             />
-            <Bar dataKey="thisWeek" name="This Week" fill="url(#statsPurple)" radius={[5, 5, 0, 0]} barSize={58} />
+            <Bar dataKey="thisWeek" name="Esta semana" fill="url(#statsPurple)" radius={[5, 5, 0, 0]} barSize={58} />
             <Line
               type="monotone"
               dataKey="lastWeek"
-              name="Last Week"
+              name="Semana passada"
               stroke="#89c2b7"
               strokeWidth={2.5}
               dot={{ r: 4, strokeWidth: 3, stroke: "#89c2b7", fill: "#ffffff" }}
@@ -1743,10 +1743,10 @@ function StatisticsCard() {
 
       <div className="mt-2 flex flex-wrap justify-end gap-8 text-xs font-semibold text-muted-foreground">
         <span className="inline-flex items-center gap-2">
-          <span className="h-3 w-3 rounded-sm bg-[#a779c7]" /> This Week
+          <span className="h-3 w-3 rounded-sm bg-[#a779c7]" /> Esta semana
         </span>
         <span className="inline-flex items-center gap-2">
-          <span className="h-3 w-3 rounded-full border-2 border-[#89c2b7]" /> Last Week
+          <span className="h-3 w-3 rounded-full border-2 border-[#89c2b7]" /> Semana passada
         </span>
       </div>
     </Card>
