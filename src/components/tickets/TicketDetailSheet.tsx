@@ -216,7 +216,7 @@ function createMaskedTicketIcon(maskUrl: string): IconComponent {
   };
 }
 
-const TicketHistoryIcon = createMaskedTicketIcon(ticketHistoryIconUrl);
+
 const TicketCloseIcon = createMaskedTicketIcon(ticketCloseIconUrl);
 const TicketStatusIcon = createMaskedTicketIcon(ticketStatusIconUrl);
 const TicketAssumeIcon = createMaskedTicketIcon(ticketAssumeIconUrl);
