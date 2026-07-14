@@ -400,16 +400,6 @@ export function TicketDetailSheet({
                   </p>
                 )}
                 <SideItem
-                  icon={TicketHistoryIcon}
-                  label="Histórico"
-                  collapsed={navCollapsed}
-                  active={activeAction === "historico"}
-                  onClick={() => {
-                    setActiveAction("historico");
-                    setHistoryOpen(true);
-                  }}
-                />
-                <SideItem
                   icon={TicketCloseIcon}
                   label="Encerrar"
                   collapsed={navCollapsed}
