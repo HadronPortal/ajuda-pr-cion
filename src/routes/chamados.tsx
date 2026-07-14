@@ -19,7 +19,6 @@ import {
 import {
   AlertTriangle,
   ArrowRight,
-  ArrowUpRight,
   CalendarClock,
   CheckCircle2,
   ChevronDown,
@@ -41,6 +40,7 @@ import {
   PhoneCall,
   Search,
   SlidersHorizontal,
+  Star,
   TrendingDown,
   TrendingUp,
   UserPlus,
@@ -1632,14 +1632,49 @@ function RevenueStyleCards({
   );
 }
 
-const agentProfiles: Record<string, { name: string; role: string; avatar: string; color: string }> = {
-  PRCSUZ: { name: "Ana Ribeiro", role: "Analista de Suporte", color: "#0b97c4", avatar: "https://i.pravatar.cc/120?img=47" },
-  PRCMAR: { name: "Marcos Ribeiro", role: "Atendente Sênior", color: "#e75d3c", avatar: "https://i.pravatar.cc/120?img=12" },
-  PRCROG: { name: "Rogerio Lima", role: "Líder de Atendimento", color: "#5fb9ba", avatar: "https://i.pravatar.cc/120?img=15" },
-  PRCLCZ: { name: "Lucas Cruz", role: "Especialista de Suporte", color: "#112635", avatar: "https://i.pravatar.cc/120?img=33" },
-  PRCGGC: { name: "Guilherme Costa", role: "Atendente Comercial", color: "#d87c2c", avatar: "https://i.pravatar.cc/120?img=68" },
-  PRCPED: { name: "Pedro Almeida", role: "Atendente de Suporte", color: "#7c5cff", avatar: "https://i.pravatar.cc/120?img=59" },
-  PRCTRE: { name: "Trevisan Silva", role: "Atendente de Suporte", color: "#20bf6b", avatar: "https://i.pravatar.cc/120?img=51" },
+const agentProfiles: Record<string, { name: string; role: string; avatar: string; rating: number }> = {
+  PRCSUZ: {
+    name: "Ana Ribeiro",
+    role: "Analista de Suporte",
+    avatar: "https://i.pravatar.cc/120?img=47",
+    rating: 4.8,
+  },
+  PRCMAR: {
+    name: "Marcos Ribeiro",
+    role: "Especialista Sênior",
+    avatar: "https://i.pravatar.cc/120?img=12",
+    rating: 4.6,
+  },
+  PRCROG: {
+    name: "Rogerio Lima",
+    role: "Líder de Atendimento",
+    avatar: "https://i.pravatar.cc/120?img=33",
+    rating: 4.7,
+  },
+  PRCLCZ: {
+    name: "Lucas Cruz",
+    role: "Analista de Suporte",
+    avatar: "https://i.pravatar.cc/120?img=59",
+    rating: 4.5,
+  },
+  PRCGGC: {
+    name: "Guilherme Costa",
+    role: "Coordenador de Suporte",
+    avatar: "https://i.pravatar.cc/120?img=15",
+    rating: 4.9,
+  },
+  PRCPED: {
+    name: "Pedro Almeida",
+    role: "Analista de Sistemas",
+    avatar: "https://i.pravatar.cc/120?img=52",
+    rating: 4.4,
+  },
+  PRCTRE: {
+    name: "Trevisan Silva",
+    role: "Consultor Técnico",
+    avatar: "https://i.pravatar.cc/120?img=65",
+    rating: 4.3,
+  },
 };
 
 function TopAgentsCard({ tickets }: { tickets: SupportTicket[] }) {
@@ -1658,66 +1693,87 @@ function TopAgentsCard({ tickets }: { tickets: SupportTicket[] }) {
   }, [tickets]);
 
   return (
-    <Card className="rounded-[14px] border border-border/60 bg-card p-6 text-foreground shadow-[0_10px_26px_rgba(25,29,51,0.06)] dark:border-white/10 dark:bg-[#161918] dark:text-[#dcecff] dark:shadow-[0_18px_40px_rgba(0,0,0,0.22)]">
+    <Card className="rounded-md border border-border/80 bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.08)] dark:bg-card">
       <div className="mb-7 flex items-center justify-between gap-4">
-        <h3 className="text-base font-bold tracking-tight text-foreground dark:text-[#b9d8ff]">Top Operadores</h3>
-        <button
+        <h3 className="text-[20px] font-bold tracking-tight text-foreground">Performance dos Operadores</h3>
+        <Button
           type="button"
-          className="grid h-12 w-12 cursor-pointer place-items-center rounded-full border border-border bg-muted/40 text-foreground transition hover:bg-muted dark:border-white/10 dark:bg-white/[0.02] dark:text-[#a9ccff] dark:hover:bg-white/[0.06]"
-          aria-label="Abrir ranking de operadores"
+          variant="outline"
+          className="h-10 cursor-pointer gap-2 rounded-md border-border bg-white px-4 text-sm font-semibold text-foreground shadow-none hover:bg-muted dark:bg-card"
         >
-          <ArrowUpRight className="h-6 w-6" />
-        </button>
+          <CalendarClock className="h-4 w-4" />
+          Mensal
+        </Button>
       </div>
 
-      <div className="space-y-5">
+      <div className="space-y-6">
         {agents.map((agent, index) => {
           const profile = agentProfiles[agent.operator] ?? {
             name: agent.operator,
-            role: "Atendente de Suporte",
-            color: "#0b97c4",
-            avatar: `https://i.pravatar.cc/120?u=${encodeURIComponent(agent.operator)}`,
+            role: "Analista de Suporte",
+            avatar: `https://i.pravatar.cc/120?u=${agent.operator}`,
+            rating: 4.4,
           };
-          const revenue = (agent.handled * 0.42 + agent.finished * 0.88).toFixed(1);
+          const fallbackRates = [70, 95, 60, 80];
+          const rawResolutionRate = agent.handled
+            ? Math.round((agent.finished / agent.handled) * 100)
+            : fallbackRates[index] ?? 70;
+          const resolutionRate = Math.min(
+            98,
+            Math.max(fallbackRates[index] ?? 70, rawResolutionRate),
+          );
+          const activeDots = Math.round((resolutionRate / 100) * 24);
+          const avgResolutionTime = (1.1 + index * 0.18 + agent.handled * 0.08).toFixed(1);
 
           return (
             <div
               key={agent.operator}
-              className="grid min-h-[86px] grid-cols-[42px_74px_minmax(0,1fr)_130px_110px] items-center gap-4 rounded-[9px] border border-border/60 bg-muted/30 px-5 py-4 dark:border-white/10 dark:bg-white/[0.015]"
+              className="grid min-h-[108px] grid-cols-1 items-center gap-5 rounded-md border border-border/80 bg-white px-6 py-5 shadow-none dark:bg-background/30 sm:grid-cols-2 min-[1500px]:grid-cols-[250px_190px_170px_minmax(260px,1fr)] min-[1500px]:gap-8"
             >
-              <span className="grid h-9 w-9 place-items-center rounded-full border border-primary/30 bg-primary/10 text-sm font-black text-primary dark:border-[#0b97c4]/25 dark:bg-[#071f2d] dark:text-[#0b97c4]">
-                #{index + 1}
-              </span>
-
-              <div className="relative h-[60px] w-[60px]">
+              <div className="flex min-w-0 items-center gap-4">
                 <img
                   src={profile.avatar}
                   alt={profile.name}
+                  className="h-14 w-14 shrink-0 rounded-full object-cover"
                   loading="lazy"
-                  className="h-full w-full rounded-full object-cover ring-2 ring-border dark:ring-white/10"
                 />
-                <span className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full border-2 border-card bg-[#16a75b] dark:border-[#161918]" />
-              </div>
-
-              <div className="min-w-0">
-                <p className="truncate text-[17px] font-black text-foreground dark:text-[#b9d8ff]">{profile.name}</p>
-                <p className="mt-1 truncate text-sm text-muted-foreground dark:text-[#a9b8c7]">{profile.role}</p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 text-center">
-                <div>
-                  <p className="text-[19px] font-black text-foreground dark:text-[#b9d8ff]">{agent.handled}</p>
-                  <p className="text-sm text-muted-foreground dark:text-[#a9b8c7]">Atend.</p>
-                </div>
-                <div>
-                  <p className="text-[19px] font-black text-foreground dark:text-[#b9d8ff]">{agent.finished}</p>
-                  <p className="text-sm text-muted-foreground dark:text-[#a9b8c7]">Final.</p>
+                <div className="min-w-0">
+                  <p className="truncate text-[17px] font-bold text-[#071735] dark:text-foreground">
+                    {profile.name}
+                  </p>
+                  <div className="mt-1 flex items-center gap-1.5 text-[15px] text-muted-foreground">
+                    <Star className="h-4 w-4 fill-[#ffb31a] text-[#ffb31a]" />
+                    <span>{profile.rating.toFixed(1)}</span>
+                  </div>
                 </div>
               </div>
 
-              <div className="text-right">
-                <p className="text-[19px] font-black text-foreground dark:text-[#b9d8ff]">{revenue}h</p>
-                <p className="text-sm text-muted-foreground dark:text-[#a9b8c7]">Horas atend.</p>
+              <div>
+                <p className="text-[16px] text-muted-foreground">Tempo médio de resolução</p>
+                <p className="mt-2 text-[18px] font-bold text-foreground">{avgResolutionTime}h</p>
+              </div>
+
+              <div>
+                <p className="text-[16px] text-muted-foreground">Atendimentos realizados</p>
+                <p className="mt-2 text-[18px] font-bold text-foreground">{agent.handled}</p>
+              </div>
+
+              <div>
+                <div className="mb-3 flex items-center justify-between gap-4">
+                  <p className="text-[16px] text-foreground">Taxa de resolução</p>
+                  <p className="text-[18px] text-foreground">{resolutionRate}%</p>
+                </div>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {Array.from({ length: 24 }).map((_, dotIndex) => (
+                    <span
+                      key={dotIndex}
+                      className={cn(
+                        "h-3.5 w-3.5 rounded-full",
+                        dotIndex < activeDots ? "bg-[#f26322]" : "bg-[#dfe3e8] dark:bg-muted",
+                      )}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
           );
@@ -1726,7 +1782,6 @@ function TopAgentsCard({ tickets }: { tickets: SupportTicket[] }) {
     </Card>
   );
 }
-
 const statisticsDays = [
   { day: "11", weekday: "QUI" },
   { day: "12", weekday: "SEX" },
