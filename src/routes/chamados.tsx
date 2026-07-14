@@ -491,102 +491,202 @@ function TicketsPage() {
       </section>
 
 
-      <Card className="mb-6 rounded-2xl border border-border/60 bg-card p-3 shadow-[0_8px_22px_rgba(25,29,51,0.05)]">
-        <div className="-mx-1 overflow-x-auto px-1 xl:overflow-visible">
-          <div className="flex min-w-max flex-nowrap items-center gap-2 xl:min-w-0">
-            <div className="relative min-w-0 flex-1 basis-[220px]">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <input
-                value={filters.query}
-                onChange={(event) => setFilters((prev) => ({ ...prev, query: event.target.value }))}
-                type="search"
-                placeholder="Buscar cliente, protocolo..."
-                className="h-9 w-full truncate rounded-lg border border-border bg-background pl-9 pr-3 text-[13px] outline-none transition focus:ring-2 focus:ring-ring"
-              />
+      <div className="mb-6 flex justify-end">
+        <Button
+          type="button"
+          onClick={() => setFiltersOpen(true)}
+          className="h-10 cursor-pointer gap-2 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white shadow-md hover:bg-blue-700"
+        >
+          <Filter className="h-4 w-4" />
+          Filters
+        </Button>
+      </div>
+
+      <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
+        <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-[480px]">
+          <SheetHeader className="border-b border-border px-6 py-4">
+            <SheetTitle className="text-lg font-semibold">Chamados Filters</SheetTitle>
+          </SheetHeader>
+          <div className="flex-1 overflow-y-auto px-6 py-5">
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Busca
+                </p>
+                <div className="relative">
+                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <input
+                    value={filters.query}
+                    onChange={(e) => setFilters((p) => ({ ...p, query: e.target.value }))}
+                    type="search"
+                    placeholder="Cliente, protocolo ou assunto"
+                    className="h-10 w-full rounded-lg border border-border bg-background pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Sigla do cliente
+                </p>
+                <input
+                  value={filters.sigla}
+                  onChange={(e) => setFilters((p) => ({ ...p, sigla: e.target.value.toUpperCase() }))}
+                  type="text"
+                  placeholder="Ex.: MIT"
+                  className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm uppercase outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Status
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  {(["Todos", ...ticketStatuses] as string[]).map((status) => {
+                    const active = filters.status === status;
+                    return (
+                      <label
+                        key={status}
+                        className={cn(
+                          "flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm transition",
+                          active
+                            ? "border-primary bg-primary/5 text-foreground"
+                            : "border-border bg-background text-muted-foreground hover:text-foreground",
+                        )}
+                      >
+                        <input
+                          type="radio"
+                          name="filter-status"
+                          className="h-4 w-4 cursor-pointer accent-primary"
+                          checked={active}
+                          onChange={() => setFilters((p) => ({ ...p, status }))}
+                        />
+                        <span className="truncate">{status}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Prioridade
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  {(["Todas", ...ticketPriorities] as string[]).map((priority) => {
+                    const active = filters.priority === priority;
+                    return (
+                      <label
+                        key={priority}
+                        className={cn(
+                          "flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm transition",
+                          active
+                            ? "border-primary bg-primary/5 text-foreground"
+                            : "border-border bg-background text-muted-foreground hover:text-foreground",
+                        )}
+                      >
+                        <input
+                          type="radio"
+                          name="filter-priority"
+                          className="h-4 w-4 cursor-pointer accent-primary"
+                          checked={active}
+                          onChange={() => setFilters((p) => ({ ...p, priority }))}
+                        />
+                        <span>{priority}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Tipo operador
+                  </p>
+                  <select
+                    value={filters.operatorType}
+                    onChange={(e) =>
+                      setFilters((p) => ({ ...p, operatorType: e.target.value as Filters["operatorType"] }))
+                    }
+                    className="h-10 w-full cursor-pointer rounded-lg border border-border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+                  >
+                    <option value="Todos">Todos</option>
+                    <option value="Atendente">Atendente</option>
+                    <option value="Responsável">Responsável</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Operador
+                  </p>
+                  <select
+                    value={filters.operator}
+                    onChange={(e) => setFilters((p) => ({ ...p, operator: e.target.value }))}
+                    className="h-10 w-full cursor-pointer rounded-lg border border-border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+                  >
+                    <option value="Todos">Todos</option>
+                    {ticketOperators.map((op) => (
+                      <option key={op} value={op}>
+                        {op}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Tipo data
+                </p>
+                <select
+                  value={filters.dateType}
+                  onChange={(e) =>
+                    setFilters((p) => ({ ...p, dateType: e.target.value as Filters["dateType"] }))
+                  }
+                  className="h-10 w-full cursor-pointer rounded-lg border border-border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+                >
+                  <option value="Registro">Registro</option>
+                  <option value="Atualizado">Atualizado</option>
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Período
+                </p>
+                <DateRangeFilter
+                  start={filters.dateStart}
+                  end={filters.dateEnd}
+                  onChange={(range) =>
+                    setFilters((p) => ({ ...p, dateStart: range.start, dateEnd: range.end }))
+                  }
+                />
+              </div>
             </div>
-            <input
-              value={filters.sigla}
-              onChange={(event) => setFilters((prev) => ({ ...prev, sigla: event.target.value.toUpperCase() }))}
-              type="text"
-              placeholder="Sigla"
-              className="h-9 w-[80px] shrink-0 truncate rounded-lg border border-border bg-background px-2.5 text-[13px] uppercase outline-none focus:ring-2 focus:ring-ring"
-            />
-            <select
-              value={filters.status}
-              onChange={(event) => setFilters((prev) => ({ ...prev, status: event.target.value }))}
-              className="h-9 w-[130px] shrink-0 cursor-pointer truncate rounded-lg border border-border bg-background px-2.5 pr-7 text-[13px] outline-none focus:ring-2 focus:ring-ring"
-            >
-              <option>Todos</option>
-              {ticketStatuses.map((status) => (
-                <option key={status}>{status}</option>
-              ))}
-            </select>
-            <select
-              value={filters.priority}
-              onChange={(event) => setFilters((prev) => ({ ...prev, priority: event.target.value }))}
-              className="h-9 w-[110px] shrink-0 cursor-pointer truncate rounded-lg border border-border bg-background px-2.5 pr-7 text-[13px] outline-none focus:ring-2 focus:ring-ring"
-            >
-              <option>Todas</option>
-              {ticketPriorities.map((priority) => (
-                <option key={priority}>{priority}</option>
-              ))}
-            </select>
-            <select
-              value={filters.operatorType}
-              onChange={(event) =>
-                setFilters((prev) => ({ ...prev, operatorType: event.target.value as Filters["operatorType"] }))
-              }
-              className="h-9 w-[130px] shrink-0 cursor-pointer truncate rounded-lg border border-border bg-background px-2.5 pr-7 text-[13px] outline-none focus:ring-2 focus:ring-ring"
-              title="Tipo operador"
-            >
-              <option value="Todos">Tipo operador</option>
-              <option value="Atendente">Atendente</option>
-              <option value="Responsável">Responsável</option>
-            </select>
-            <select
-              value={filters.operator}
-              onChange={(event) => setFilters((prev) => ({ ...prev, operator: event.target.value }))}
-              className="h-9 w-[120px] shrink-0 cursor-pointer truncate rounded-lg border border-border bg-background px-2.5 pr-7 text-[13px] outline-none focus:ring-2 focus:ring-ring"
-              title="Operador"
-            >
-              <option value="Todos">Operador</option>
-              {ticketOperators.map((op) => (
-                <option key={op} value={op}>
-                  {op}
-                </option>
-              ))}
-            </select>
-            <select
-              value={filters.dateType}
-              onChange={(event) =>
-                setFilters((prev) => ({ ...prev, dateType: event.target.value as Filters["dateType"] }))
-              }
-              className="h-9 w-[120px] shrink-0 cursor-pointer truncate rounded-lg border border-border bg-background px-2.5 pr-7 text-[13px] outline-none focus:ring-2 focus:ring-ring"
-              title="Tipo data"
-            >
-              <option value="Registro">Registro</option>
-              <option value="Atualizado">Atualizado</option>
-            </select>
-            <DateRangeFilter
-              start={filters.dateStart}
-              end={filters.dateEnd}
-              onChange={(range) =>
-                setFilters((prev) => ({ ...prev, dateStart: range.start, dateEnd: range.end }))
-              }
-            />
+          </div>
+          <div className="flex items-center justify-between gap-3 border-t border-border bg-background px-6 py-4">
             <Button
               type="button"
               variant="ghost"
-              size="sm"
-              className="h-9 shrink-0 cursor-pointer whitespace-nowrap rounded-lg px-3 text-[13px] text-muted-foreground hover:text-foreground"
+              className="h-10 cursor-pointer rounded-lg text-sm"
               onClick={() => setFilters(initialFilters)}
             >
-              <SlidersHorizontal className="mr-1.5 h-3.5 w-3.5" />
+              <SlidersHorizontal className="mr-1.5 h-4 w-4" />
               Limpar
             </Button>
+            <Button
+              type="button"
+              onClick={() => setFiltersOpen(false)}
+              className="h-10 cursor-pointer rounded-lg bg-blue-600 px-5 text-sm font-medium text-white hover:bg-blue-700"
+            >
+              Aplicar filtros
+            </Button>
           </div>
-        </div>
-      </Card>
+        </SheetContent>
+      </Sheet>
+
 
 
 
