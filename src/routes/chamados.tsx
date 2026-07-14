@@ -53,6 +53,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { AppShell, PageHeader } from "@/components/portal/AppShell";
+import { Breadcrumbs } from "@/components/portal/Breadcrumbs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
