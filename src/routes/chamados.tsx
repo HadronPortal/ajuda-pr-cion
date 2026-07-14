@@ -7,6 +7,8 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
+  ComposedChart,
+  Line,
   Pie,
   PieChart,
   ResponsiveContainer,
@@ -208,6 +210,14 @@ function todayFilters(): Filters {
   return { ...initialFilters, dateStart: day, dateEnd: day };
 }
 
+function normalizeFilterText(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
+}
+
 function DateRangeFilter({
   start,
   end,
@@ -345,19 +355,13 @@ function TicketsPage() {
       if (filters.priority !== "Todas" && ticket.priority !== filters.priority) return false;
       if (sigla && !ticket.clientCode.toLowerCase().includes(sigla)) return false;
       if (filters.operator !== "Todos") {
-        const normalize = (v: string) =>
-          (v ?? "")
-            .toString()
-            .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "")
-            .trim()
-            .toLowerCase();
-        const op = normalize(filters.operator);
-        const att = normalize(ticket.attendant);
-        const own = normalize(ticket.owner);
-        if (filters.operatorType === "Atendente" && att !== op) return false;
-        if (filters.operatorType === "Responsável" && own !== op) return false;
-        if (filters.operatorType === "Todos" && att !== op && own !== op) return false;
+        const op = normalizeFilterText(filters.operator);
+        const operatorType = normalizeFilterText(filters.operatorType);
+        const attendant = normalizeFilterText(ticket.attendant);
+        const owner = normalizeFilterText(ticket.owner);
+        if (operatorType === "atendente" && attendant !== op) return false;
+        if (operatorType.startsWith("respons") && owner !== op) return false;
+        if (operatorType === "todos" && attendant !== op && owner !== op) return false;
       }
       if (filters.dateStart || filters.dateEnd) {
         const raw = filters.dateType === "Registro" ? ticket.openedAt : ticket.updatedAt;
@@ -449,63 +453,32 @@ function TicketsPage() {
 
 
 
-      <section className="mb-6 grid grid-cols-1 gap-6 xl:grid-cols-[1.1fr_1.1fr]">
-        <div className="space-y-6">
-          <TicketsHero openTickets={openTickets} overdueTickets={overdueTickets} />
-          <div id="analytics-detalhado" className="scroll-mt-24 space-y-6">
-            <DailyVolumeCard />
-            <WeeklyBacklogCard />
-          </div>
+      <section className="mb-6 space-y-6">
+        <RevenueStyleCards
+          openTickets={openTickets}
+          inProgressTickets={inProgressTickets}
+          overdueTickets={overdueTickets}
+          finishedTickets={finishedTickets}
+        />
+
+        <div id="analytics-detalhado" className="grid scroll-mt-24 grid-cols-1 gap-6 xl:grid-cols-[0.92fr_1.35fr]">
+          <TopAgentsCard tickets={supportTickets} />
+          <StatisticsCard />
         </div>
 
-
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <SmallStatCard
-              title="Abertos"
-              value={String(openTickets)}
-              change="+18 hoje"
-              trend="up"
-              icon={Headphones}
-              accent="#0b97c4"
-            />
-            <SmallStatCard
-              title="Em andamento"
-              value={String(inProgressTickets)}
-              change="ativos"
-              trend="up"
-              icon={Clock3}
-              accent="#8d6bd8"
-            />
-            <SmallStatCard
-              title="Atrasados"
-              value={String(overdueTickets)}
-              change="revisar SLA"
-              trend="down"
-              icon={AlertTriangle}
-              accent="#fb5166"
-            />
-            <SmallStatCard
-              title="Finalizados"
-              value={String(finishedTickets)}
-              change="+8 hoje"
-              trend="up"
-              icon={CheckCircle2}
-              accent="#20bf6b"
-            />
-          </div>
-
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+          <WeeklyBacklogCard />
           <SlaProfileCard
             slaMedio={slaMedio}
             avgHandlingLabel={avgHandlingLabel}
             resolutionRate={resolutionRate}
             portalTickets={portalTickets}
           />
+        </div>
 
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <StatusCategoriesCard data={statusDistribution} />
-            <SourceModuleCard sources={sourceDistribution} modules={moduleDistribution} />
-          </div>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <StatusCategoriesCard data={statusDistribution} />
+          <SourceModuleCard sources={sourceDistribution} modules={moduleDistribution} />
         </div>
       </section>
 
@@ -1436,6 +1409,358 @@ function formatDateTime(value: string) {
 
 
 // ============= Analytics dashboard components (Chamados) =============
+
+function RevenueStyleCards({
+  openTickets,
+  inProgressTickets,
+  overdueTickets,
+  finishedTickets,
+}: {
+  openTickets: number;
+  inProgressTickets: number;
+  overdueTickets: number;
+  finishedTickets: number;
+}) {
+  const cards = [
+    {
+      tag: "ABR",
+      title: "Chamados Abertos",
+      value: openTickets,
+      change: "+18 hoje",
+      helper: "Abertos e aguardando atendimento",
+      tone: "from-[#ff9d00] to-[#ffb13b]",
+      arrow: "bg-[#e28a00]",
+      positive: true,
+      bars: [34, 42, 28, 56, 48],
+    },
+    {
+      tag: "AND",
+      title: "Em Atendimento",
+      value: inProgressTickets,
+      change: "+8%",
+      helper: "Chamados em execucao",
+      tone: "from-[#0b97c4] to-[#36b9df]",
+      arrow: "bg-[#087fa6]",
+      positive: true,
+      bars: [26, 40, 44, 36, 52],
+    },
+    {
+      tag: "SLA",
+      title: "Chamados Atrasados",
+      value: overdueTickets,
+      change: "-5.0%",
+      helper: "Exigem retorno imediato",
+      tone: "from-[#ff1f25] to-[#ff4a50]",
+      arrow: "bg-[#d80f15]",
+      positive: false,
+      bars: [46, 32, 28, 58, 38],
+    },
+    {
+      tag: "FIN",
+      title: "Finalizados Hoje",
+      value: finishedTickets,
+      change: "+12%",
+      helper: "Concluidos pela equipe",
+      tone: "from-[#18b978] to-[#36d695]",
+      arrow: "bg-[#10955f]",
+      positive: true,
+      bars: [28, 48, 36, 62, 44],
+    },
+  ];
+
+  return (
+    <div className="grid grid-cols-1 gap-5 md:grid-cols-2 2xl:grid-cols-4">
+      {cards.map((card) => (
+        <Card
+          key={card.tag}
+          className="relative min-h-[152px] overflow-hidden rounded-[28px] border-0 bg-[#f6f7f9] pl-[74px] shadow-[0_14px_34px_rgba(15,23,42,0.08)] dark:bg-[#20263d]"
+        >
+          <div className={cn("absolute inset-y-0 left-0 w-[104px] rounded-l-[28px] bg-gradient-to-b", card.tone)}>
+            <span className="absolute left-5 top-1/2 -translate-y-1/2 text-[19px] font-black text-white">
+              {card.tag}
+            </span>
+            <span
+              className={cn(
+                "absolute right-[-26px] top-1/2 h-[74px] w-[74px] -translate-y-1/2 rotate-45 shadow-[10px_10px_18px_rgba(0,0,0,0.12)]",
+                card.arrow,
+              )}
+            />
+          </div>
+
+          <div className="relative z-10 flex h-full min-h-[152px] flex-col justify-between rounded-l-[28px] bg-[#f6f7f9] px-6 py-5 dark:bg-[#20263d]">
+            <div>
+              <p className="text-[15px] font-medium text-foreground">{card.title}</p>
+              <p className="mt-3 text-[28px] font-black leading-none tracking-tight text-foreground">
+                {card.value} chamados
+              </p>
+            </div>
+            <div className="flex items-end justify-between gap-4">
+              <div className="flex min-w-0 items-center gap-2">
+                <span
+                  className={cn(
+                    "rounded-full px-2 py-1 text-[13px] font-bold",
+                    card.positive ? "bg-emerald-100 text-emerald-600" : "bg-rose-100 text-rose-600",
+                  )}
+                >
+                  {card.change}
+                </span>
+                <span className="truncate text-[13px] text-muted-foreground">{card.helper}</span>
+              </div>
+              <div className="flex h-12 shrink-0 items-end gap-2 opacity-80">
+                {card.bars.map((height, index) => (
+                  <span
+                    key={index}
+                    className="w-1.5 rounded-t bg-[#cfc6f4]"
+                    style={{ height }}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+const agentProfiles: Record<string, { name: string; role: string; avatar?: string; color: string }> = {
+  PRCSUZ: { name: "Ana Ribeiro", role: "Analista de Suporte", color: "#0b97c4" },
+  PRCMAR: { name: "Marcos Ribeiro", role: "Senior Agent", color: "#e75d3c" },
+  PRCROG: { name: "Rogerio Lima", role: "Lead Agent", color: "#5fb9ba" },
+  PRCLCZ: { name: "Lucas Cruz", role: "Property Specialist", color: "#112635" },
+  PRCGGC: { name: "Guilherme Costa", role: "Sales Agent", color: "#d87c2c" },
+  PRCPED: { name: "Pedro Almeida", role: "Support Agent", color: "#7c5cff" },
+  PRCTRE: { name: "Trevisan Silva", role: "Support Agent", color: "#20bf6b" },
+};
+
+function TopAgentsCard({ tickets }: { tickets: SupportTicket[] }) {
+  const agents = useMemo(() => {
+    const map = new Map<string, { operator: string; handled: number; finished: number }>();
+    tickets.forEach((ticket) => {
+      const key = ticket.owner;
+      const current = map.get(key) ?? { operator: key, handled: 0, finished: 0 };
+      current.handled += 1;
+      if (ticket.status === "Finalizado") current.finished += 1;
+      map.set(key, current);
+    });
+    return Array.from(map.values())
+      .sort((a, b) => b.handled - a.handled)
+      .slice(0, 4);
+  }, [tickets]);
+
+  return (
+    <Card className="rounded-[14px] border border-white/10 bg-[#161918] p-6 text-[#dcecff] shadow-[0_18px_40px_rgba(0,0,0,0.22)]">
+      <div className="mb-7 flex items-center justify-between gap-4">
+        <h3 className="text-[26px] font-black tracking-tight text-[#b9d8ff]">Top Agents</h3>
+        <button
+          type="button"
+          className="grid h-12 w-12 cursor-pointer place-items-center rounded-full border border-white/10 bg-white/[0.02] text-[#a9ccff] transition hover:bg-white/[0.06]"
+          aria-label="Abrir ranking de operadores"
+        >
+          <ArrowUpRight className="h-6 w-6" />
+        </button>
+      </div>
+
+      <div className="space-y-5">
+        {agents.map((agent, index) => {
+          const profile = agentProfiles[agent.operator] ?? {
+            name: agent.operator,
+            role: "Support Agent",
+            color: "#0b97c4",
+          };
+          const initials = profile.name
+            .split(" ")
+            .map((part) => part[0])
+            .join("")
+            .slice(0, 2)
+            .toUpperCase();
+          const revenue = (agent.handled * 0.42 + agent.finished * 0.88).toFixed(1);
+
+          return (
+            <div
+              key={agent.operator}
+              className="grid min-h-[86px] grid-cols-[42px_74px_minmax(0,1fr)_130px_150px] items-center gap-4 rounded-[9px] border border-white/10 bg-white/[0.015] px-5 py-4"
+            >
+              <span className="grid h-9 w-9 place-items-center rounded-full border border-[#0b97c4]/25 bg-[#071f2d] text-sm font-black text-[#0b97c4]">
+                #{index + 1}
+              </span>
+
+              <div className="relative h-[60px] w-[60px] overflow-visible rounded-full">
+                <div
+                  className="grid h-full w-full place-items-center rounded-full text-sm font-black text-[#9bd1ff]"
+                  style={{ background: profile.color }}
+                >
+                  {initials}
+                </div>
+                <span className="absolute bottom-1 right-0 h-3.5 w-3.5 rounded-full border-2 border-[#161918] bg-[#16a75b]" />
+              </div>
+
+              <div className="min-w-0">
+                <p className="truncate text-[17px] font-black text-[#b9d8ff]">{profile.name}</p>
+                <p className="mt-1 truncate text-sm text-[#a9b8c7]">{profile.role}</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 text-center">
+                <div>
+                  <p className="text-[19px] font-black text-[#b9d8ff]">{agent.handled}</p>
+                  <p className="text-sm text-[#a9b8c7]">Atend.</p>
+                </div>
+                <div>
+                  <p className="text-[19px] font-black text-[#b9d8ff]">{agent.finished}</p>
+                  <p className="text-sm text-[#a9b8c7]">Final.</p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-8 text-[#9dccff]">
+                <span className="text-sm font-bold text-[#b9d8ff]">{revenue}h</span>
+                <PhoneCall className="h-5 w-5" />
+                <MessageSquarePlus className="h-5 w-5" />
+                <MoreVertical className="h-5 w-5" />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </Card>
+  );
+}
+
+const statisticsDays = [
+  { day: "11", weekday: "THU" },
+  { day: "12", weekday: "FRI" },
+  { day: "13", weekday: "SAT", warm: true },
+  { day: "14", weekday: "SUN", warm: true },
+  { day: "15", weekday: "MON" },
+  { day: "16", weekday: "TUE" },
+  { day: "17", weekday: "WED" },
+  { day: "18", weekday: "THU" },
+  { day: "19", weekday: "FRI" },
+  { day: "20", weekday: "SAT", warm: true },
+  { day: "21", weekday: "SUN", warm: true },
+  { day: "22", weekday: "MON" },
+  { day: "23", weekday: "TUE" },
+  { day: "24", weekday: "WED" },
+  { day: "25", weekday: "THU" },
+  { day: "26", weekday: "FRI" },
+  { day: "27", weekday: "SAT", warm: true },
+  { day: "28", weekday: "SUN", warm: true },
+  { day: "29", weekday: "MON" },
+  { day: "30", weekday: "TUE", active: true },
+  { day: "31", weekday: "WED" },
+  { day: "01", weekday: "THU", outlined: true },
+];
+
+const hourlyStats = [
+  { time: "7am", thisWeek: 28, lastWeek: 23 },
+  { time: "8am", thisWeek: 45, lastWeek: 38 },
+  { time: "9am", thisWeek: 86, lastWeek: 72 },
+  { time: "10am", thisWeek: 120, lastWeek: 98 },
+  { time: "11am", thisWeek: 96, lastWeek: 82 },
+  { time: "12pm", thisWeek: 78, lastWeek: 66 },
+  { time: "1pm", thisWeek: 65, lastWeek: 56 },
+  { time: "2pm", thisWeek: 72, lastWeek: 61 },
+  { time: "3pm", thisWeek: 88, lastWeek: 76 },
+  { time: "4pm", thisWeek: 62, lastWeek: 53 },
+  { time: "5pm", thisWeek: 48, lastWeek: 41 },
+  { time: "6pm", thisWeek: 36, lastWeek: 29 },
+];
+
+function StatisticsCard() {
+  return (
+    <Card className="rounded-[14px] border border-border/60 bg-white p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)] dark:bg-[#20263d]">
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+        <h3 className="text-[28px] font-black tracking-tight text-foreground">Statistics</h3>
+        <button
+          type="button"
+          className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-md bg-muted/60 px-4 text-sm font-semibold text-foreground"
+        >
+          <CalendarClock className="h-4 w-4" />
+          Last 7 Days
+        </button>
+      </div>
+
+      <div className="mb-8 flex items-center gap-2 overflow-x-auto pb-1">
+        <button className="grid h-[68px] w-[54px] shrink-0 cursor-pointer place-items-center rounded-md bg-muted/60 text-foreground">
+          <ChevronLeft className="h-5 w-5" />
+        </button>
+        {statisticsDays.map((item) => (
+          <button
+            key={`${item.day}-${item.weekday}`}
+            className={cn(
+              "grid h-[68px] w-[54px] shrink-0 cursor-pointer place-items-center rounded-md bg-muted/45 text-center transition",
+              item.active && "bg-[#a779c7] text-white",
+              item.outlined && "border-2 border-[#7fb9ab] bg-white text-[#6aa899] dark:bg-[#20263d]",
+            )}
+          >
+            <span>
+              <span className="block text-[16px] font-black leading-none">{item.day}</span>
+              <span
+                className={cn(
+                  "mt-1 block text-[10px] font-bold",
+                  item.warm && !item.active ? "text-[#ff7a2f]" : "text-current",
+                )}
+              >
+                {item.weekday}
+              </span>
+              <span className="mx-auto mt-2 block h-1 w-1 rounded-full bg-[#b9d899]" />
+            </span>
+          </button>
+        ))}
+        <button className="grid h-[68px] w-[54px] shrink-0 cursor-pointer place-items-center rounded-md bg-muted/60 text-foreground">
+          <ChevronRight className="h-5 w-5" />
+        </button>
+      </div>
+
+      <div className="h-[300px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <ComposedChart data={hourlyStats} margin={{ top: 12, right: 24, left: 0, bottom: 8 }}>
+            <defs>
+              <linearGradient id="statsPurple" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#b082cf" stopOpacity={0.95} />
+                <stop offset="100%" stopColor="#8e62aa" stopOpacity={0.95} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid vertical={false} stroke="rgba(139,145,173,0.28)" />
+            <XAxis dataKey="time" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#66708a" }} />
+            <YAxis
+              axisLine={false}
+              tickLine={false}
+              ticks={[0, 40, 80, 120, 160]}
+              tick={{ fontSize: 12, fill: "#66708a" }}
+              width={42}
+            />
+            <Tooltip
+              contentStyle={{
+                border: "0",
+                borderRadius: 12,
+                boxShadow: "0 14px 30px rgba(25,29,51,0.12)",
+                fontSize: 12,
+              }}
+            />
+            <Bar dataKey="thisWeek" name="This Week" fill="url(#statsPurple)" radius={[5, 5, 0, 0]} barSize={58} />
+            <Line
+              type="monotone"
+              dataKey="lastWeek"
+              name="Last Week"
+              stroke="#89c2b7"
+              strokeWidth={2.5}
+              dot={{ r: 4, strokeWidth: 3, stroke: "#89c2b7", fill: "#ffffff" }}
+            />
+          </ComposedChart>
+        </ResponsiveContainer>
+      </div>
+
+      <div className="mt-2 flex flex-wrap justify-end gap-8 text-xs font-semibold text-muted-foreground">
+        <span className="inline-flex items-center gap-2">
+          <span className="h-3 w-3 rounded-sm bg-[#a779c7]" /> This Week
+        </span>
+        <span className="inline-flex items-center gap-2">
+          <span className="h-3 w-3 rounded-full border-2 border-[#89c2b7]" /> Last Week
+        </span>
+      </div>
+    </Card>
+  );
+}
 
 function TicketsHero({
   openTickets,
