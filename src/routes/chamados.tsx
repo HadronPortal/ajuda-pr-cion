@@ -2242,15 +2242,15 @@ function Gauge({ value }: { value: number }) {
 }
 
 const statusChartColors = [
-  "#0b97c4",
-  "#8d6bd8",
-  "#ffd166",
-  "#ff9f68",
-  "#20bf6b",
-  "#fb5166",
-  "#33c3e8",
-  "#ff5fc8",
-  "#8b91ad",
+  "#435897",
+  "#5669a1",
+  "#6979aa",
+  "#7b8ab7",
+  "#94a0c2",
+  "#4f63a0",
+  "#6375ad",
+  "#8794bd",
+  "#a0aacb",
 ];
 
 function polarPoint(cx: number, cy: number, radius: number, angle: number) {
@@ -2264,23 +2264,19 @@ function polarPoint(cx: number, cy: number, radius: number, angle: number) {
 function polarAreaPath(
   cx: number,
   cy: number,
-  innerRadius: number,
   outerRadius: number,
   startAngle: number,
   endAngle: number,
 ) {
   const outerStart = polarPoint(cx, cy, outerRadius, startAngle);
   const outerEnd = polarPoint(cx, cy, outerRadius, endAngle);
-  const innerEnd = polarPoint(cx, cy, innerRadius, endAngle);
-  const innerStart = polarPoint(cx, cy, innerRadius, startAngle);
   const largeArc = endAngle - startAngle > 180 ? 1 : 0;
 
   return [
-    `M ${innerStart.x} ${innerStart.y}`,
+    `M ${cx} ${cy}`,
     `L ${outerStart.x} ${outerStart.y}`,
     `A ${outerRadius} ${outerRadius} 0 ${largeArc} 1 ${outerEnd.x} ${outerEnd.y}`,
-    `L ${innerEnd.x} ${innerEnd.y}`,
-    `A ${innerRadius} ${innerRadius} 0 ${largeArc} 0 ${innerStart.x} ${innerStart.y}`,
+    `L ${cx} ${cy}`,
     "Z",
   ].join(" ");
 }
@@ -2290,22 +2286,20 @@ function StatusCategoriesCard({
 }: {
   data: { status: TicketStatus; total: number }[];
 }) {
-  const total = data.reduce((sum, item) => sum + item.total, 0);
   const max = Math.max(1, ...data.map((item) => item.total));
   const cx = 140;
-  const cy = 112;
-  const innerRadius = 18;
-  const minRadius = 62;
-  const maxRadius = 100;
+  const cy = 114;
+  const minRadius = 72;
+  const maxRadius = 108;
   const angleStep = 360 / Math.max(1, data.length);
-  const gap = 4;
-  const rotation = -24;
+  const gap = 1.5;
+  const rotation = 0;
 
   return (
     <Card className="rounded-[14px] border-0 bg-white dark:bg-[#20263d] p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
       <h3 className="text-base font-bold text-foreground">Chamados por status</h3>
       <p className="mt-1 text-xs text-muted-foreground">Distribuição atual do funil.</p>
-      <div className="mt-4 flex h-[190px] items-center justify-center overflow-hidden">
+      <div className="mt-4 flex h-[220px] items-center justify-center overflow-hidden">
         <svg viewBox="0 0 280 230" className="h-full w-full max-w-[280px]" role="img" aria-label="Chamados por status">
           {data.map((item, index) => {
             const startAngle = rotation + index * angleStep + gap / 2;
@@ -2313,29 +2307,22 @@ function StatusCategoriesCard({
             const normalized = item.total / max;
             const outerRadius = minRadius + (maxRadius - minRadius) * Math.max(0.22, normalized);
             const midAngle = (startAngle + endAngle) / 2;
-            const offset = index % 2 === 0 ? 7 : 4;
+            const offset = item.total === max || index % 3 === 1 ? 7 : 0;
             const exploded = polarPoint(0, 0, offset, midAngle);
 
             return (
               <path
                 key={item.status}
-                d={polarAreaPath(cx + exploded.x, cy + exploded.y, innerRadius, outerRadius, startAngle, endAngle)}
+                d={polarAreaPath(cx + exploded.x, cy + exploded.y, outerRadius, startAngle, endAngle)}
                 fill={statusChartColors[index % statusChartColors.length]}
-                stroke="#ffffff"
-                strokeWidth="2.5"
-                className="drop-shadow-[0_8px_16px_rgba(25,29,51,0.08)] transition duration-200 hover:opacity-90"
+                stroke="hsl(var(--card))"
+                strokeWidth="2"
+                className="transition duration-200 hover:opacity-90"
               >
                 <title>{`${item.status}: ${item.total} chamado${item.total === 1 ? "" : "s"}`}</title>
               </path>
             );
           })}
-          <circle cx={cx} cy={cy} r={innerRadius - 2} fill="white" className="dark:fill-[#20263d]" />
-          <text x={cx} y={cy - 2} textAnchor="middle" className="fill-foreground text-[17px] font-bold">
-            {total}
-          </text>
-          <text x={cx} y={cy + 15} textAnchor="middle" className="fill-muted-foreground text-[10px]">
-            total
-          </text>
         </svg>
       </div>
       <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1.5">
