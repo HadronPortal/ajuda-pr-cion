@@ -1187,7 +1187,7 @@ function TicketsListView({
                   )}
                 >
                   <span
-                    className={cn("pointer-events-none absolute left-0 top-0 bottom-0 w-1 rounded-none", statusDotTone[ticket.status])}
+                    className={cn("pointer-events-none absolute bottom-2 left-0 top-2 w-1 rounded-full", statusDotTone[ticket.status])}
                     aria-hidden="true"
                   />
 
