@@ -98,7 +98,7 @@ function InfoRow({
 }) {
   return (
     <div className="flex items-start gap-2.5 rounded-lg border border-border/70 bg-muted/30 px-3 py-2.5">
-      <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
+      <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center text-muted-foreground">
         <Icon className="h-3.5 w-3.5" />
       </span>
       <div className="min-w-0">
@@ -192,7 +192,7 @@ export function PastAttendanceDetailModal({
           <div className="flex flex-wrap items-start gap-3 pr-10">
             <span
               aria-hidden
-              className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-success/12 text-success"
+              className="grid h-10 w-10 shrink-0 place-items-center text-muted-foreground"
             >
               <History className="h-5 w-5" />
             </span>
@@ -330,9 +330,8 @@ export function PastAttendanceDetailModal({
                 aria-hidden
                 className="absolute left-4 top-2 bottom-2 w-px bg-border"
               />
-              {timeline.map((step, idx) => {
+              {timeline.map((step) => {
                 const Icon = step.icon;
-                const isLast = idx === timeline.length - 1;
                 return (
                   <li
                     key={step.label}
@@ -340,12 +339,7 @@ export function PastAttendanceDetailModal({
                   >
                     <span
                       aria-hidden
-                      className={cn(
-                        "relative z-10 grid h-8 w-8 shrink-0 place-items-center rounded-full ring-2 ring-card",
-                        isLast
-                          ? "bg-success text-success-foreground"
-                          : "bg-primary/12 text-primary",
-                      )}
+                      className="relative z-10 grid h-8 w-8 shrink-0 place-items-center rounded-full bg-card ring-2 ring-card text-muted-foreground"
                     >
                       <Icon className="h-3.5 w-3.5" />
                     </span>

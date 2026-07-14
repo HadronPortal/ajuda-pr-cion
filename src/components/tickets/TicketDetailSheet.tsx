@@ -247,7 +247,7 @@ export function TicketDetailSheet({
   const [historyOpen, setHistoryOpen] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
   const [timelineOpen, setTimelineOpen] = useState(false);
-  const [navCollapsed, setNavCollapsed] = useState(false);
+  const [navCollapsed, setNavCollapsed] = useState(true);
   const [selectedHistory, setSelectedHistory] = useState<PastAttendance | null>(null);
   const [activeAction, setActiveAction] = useState<
     "encerrar" | "status" | "assumir" | "atender" | "timeline"
@@ -1138,7 +1138,7 @@ function TicketPastAttendancesSidePanel({
         </div>
         <span
           aria-hidden
-          className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-primary/10 text-primary"
+          className="grid h-7 w-7 shrink-0 place-items-center text-muted-foreground"
         >
           <History className="h-3.5 w-3.5" />
         </span>
