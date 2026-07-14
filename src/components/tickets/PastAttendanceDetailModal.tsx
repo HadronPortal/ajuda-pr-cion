@@ -332,7 +332,6 @@ export function PastAttendanceDetailModal({
               />
               {timeline.map((step, idx) => {
                 const Icon = step.icon;
-                const isLast = idx === timeline.length - 1;
                 return (
                   <li
                     key={step.label}
