@@ -1283,10 +1283,10 @@ function TicketsListView({
                     aria-hidden="true"
                   />
 
-                  <div className="flex min-w-0 flex-col items-start gap-1 pl-2">
+                  <div className="flex min-w-0 flex-col items-stretch gap-1 pl-2">
                     <Badge
                       className={cn(
-                        "inline-flex items-center justify-start gap-1.5 whitespace-nowrap rounded-full border px-2 py-0.5 text-[10px] font-medium",
+                        "inline-flex w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-full border px-2 py-0.5 text-[10px] font-medium",
                         statusTone[ticket.status],
                       )}
                     >
@@ -1298,10 +1298,11 @@ function TicketsListView({
                       />
                       {ticket.status}
                     </Badge>
-                    <span className="font-mono text-[10px] leading-tight text-muted-foreground">
+                    <span className="text-center font-mono text-[10px] leading-tight text-muted-foreground">
                       {ticket.protocol}
                     </span>
                   </div>
+
 
                   <div className="min-w-0">
                     <span
