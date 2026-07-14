@@ -1475,16 +1475,17 @@ function RevenueStyleCards({
           key={card.tag}
           className="relative min-h-[152px] overflow-hidden rounded-[28px] border-0 bg-[#f6f7f9] pl-[74px] shadow-[0_14px_34px_rgba(15,23,42,0.08)] dark:bg-[#20263d]"
         >
-          <div className={cn("absolute inset-y-0 left-0 w-[104px] rounded-l-[28px] bg-gradient-to-b", card.tone)}>
-            <span className="absolute left-5 top-1/2 -translate-y-1/2 text-[19px] font-black text-white">
-              {card.tag}
-            </span>
+          <div className={cn("absolute inset-y-0 left-0 w-[104px] overflow-hidden rounded-l-[28px] bg-gradient-to-b", card.tone)}>
             <span
               className={cn(
                 "absolute right-[-26px] top-1/2 h-[74px] w-[74px] -translate-y-1/2 rotate-45 shadow-[10px_10px_18px_rgba(0,0,0,0.12)]",
                 card.arrow,
               )}
+              aria-hidden="true"
             />
+            <span className="absolute left-3 top-1/2 z-10 -translate-y-1/2 text-[17px] font-black tracking-tight text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)]">
+              {card.tag}
+            </span>
           </div>
 
           <div className="relative z-10 flex h-full min-h-[152px] flex-col justify-between rounded-l-[28px] bg-[#f6f7f9] px-6 py-5 dark:bg-[#20263d]">
