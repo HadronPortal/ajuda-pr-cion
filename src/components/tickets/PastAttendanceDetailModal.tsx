@@ -192,7 +192,7 @@ export function PastAttendanceDetailModal({
           <div className="flex flex-wrap items-start gap-3 pr-10">
             <span
               aria-hidden
-              className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-success/12 text-success"
+              className="grid h-10 w-10 shrink-0 place-items-center text-muted-foreground"
             >
               <History className="h-5 w-5" />
             </span>
