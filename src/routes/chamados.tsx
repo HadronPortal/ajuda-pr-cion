@@ -345,10 +345,19 @@ function TicketsPage() {
       if (filters.priority !== "Todas" && ticket.priority !== filters.priority) return false;
       if (sigla && !ticket.clientCode.toLowerCase().includes(sigla)) return false;
       if (filters.operator !== "Todos") {
-        const op = filters.operator;
-        if (filters.operatorType === "Atendente" && ticket.attendant !== op) return false;
-        if (filters.operatorType === "Responsável" && ticket.owner !== op) return false;
-        if (filters.operatorType === "Todos" && ticket.attendant !== op && ticket.owner !== op) return false;
+        const normalize = (v: string) =>
+          (v ?? "")
+            .toString()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .trim()
+            .toLowerCase();
+        const op = normalize(filters.operator);
+        const att = normalize(ticket.attendant);
+        const own = normalize(ticket.owner);
+        if (filters.operatorType === "Atendente" && att !== op) return false;
+        if (filters.operatorType === "Responsável" && own !== op) return false;
+        if (filters.operatorType === "Todos" && att !== op && own !== op) return false;
       }
       if (filters.dateStart || filters.dateEnd) {
         const raw = filters.dateType === "Registro" ? ticket.openedAt : ticket.updatedAt;
@@ -1182,7 +1191,7 @@ function TicketsListView({
                   type="button"
                   onClick={() => onOpen(ticket)}
                   className={cn(
-                    "group relative grid min-h-[56px] w-full grid-cols-[140px_104px_minmax(210px,1.3fr)_130px_minmax(260px,1.6fr)_112px_118px_112px_112px_28px] items-center px-4 py-2.5 text-left transition hover:bg-muted/40",
+                    "group relative grid min-h-[56px] w-full cursor-pointer grid-cols-[140px_104px_minmax(210px,1.3fr)_130px_minmax(260px,1.6fr)_112px_118px_112px_112px_28px] items-center px-4 py-2.5 text-left transition hover:bg-muted/40",
                     rowTintFor(ticket),
                   )}
                 >
