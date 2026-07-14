@@ -485,7 +485,15 @@ function TicketsPage() {
       </section>
 
 
-      <div className="mb-6 flex justify-end">
+      <div className="mb-6 flex justify-end gap-2">
+        <Link
+          to="/chamados/novo"
+          aria-label="Novo chamado"
+          className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground shadow-md transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+        >
+          <MessageSquarePlus className="h-4 w-4" />
+          Novo chamado
+        </Link>
         <Button
           type="button"
           onClick={() => setFiltersOpen(true)}
@@ -495,6 +503,7 @@ function TicketsPage() {
           Filters
         </Button>
       </div>
+
 
       <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
         <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-[480px]">
