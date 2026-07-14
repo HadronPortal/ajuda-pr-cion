@@ -1173,10 +1173,9 @@ function TicketsListView({
             <span aria-label="Abrir" />
           </div>
 
-          <div className="mt-2 divide-y divide-border/60">
+          <div className="my-2 divide-y divide-border/60">
             {pageItems.map((ticket) => {
               const ModuleIcon = getModuleIcon(ticket.module, ticket.source, ticket.subject);
-              const initial = (ticket.contact.trim()[0] ?? "?").toUpperCase();
               return (
                 <button
                   key={ticket.id}
@@ -1233,10 +1232,7 @@ function TicketsListView({
                     </div>
                   </div>
 
-                  <div className="flex min-w-0 items-center gap-2">
-                    <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-primary/15 text-[10.5px] font-bold text-primary">
-                      {initial}
-                    </span>
+                  <div className="flex min-w-0 items-center">
                     <span className="truncate text-[13.5px] text-foreground">{ticket.contact}</span>
                   </div>
 
