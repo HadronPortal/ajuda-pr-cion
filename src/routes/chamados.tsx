@@ -1524,14 +1524,14 @@ function RevenueStyleCards({
   );
 }
 
-const agentProfiles: Record<string, { name: string; role: string; avatar?: string; color: string }> = {
-  PRCSUZ: { name: "Ana Ribeiro", role: "Analista de Suporte", color: "#0b97c4" },
-  PRCMAR: { name: "Marcos Ribeiro", role: "Senior Agent", color: "#e75d3c" },
-  PRCROG: { name: "Rogerio Lima", role: "Lead Agent", color: "#5fb9ba" },
-  PRCLCZ: { name: "Lucas Cruz", role: "Property Specialist", color: "#112635" },
-  PRCGGC: { name: "Guilherme Costa", role: "Sales Agent", color: "#d87c2c" },
-  PRCPED: { name: "Pedro Almeida", role: "Support Agent", color: "#7c5cff" },
-  PRCTRE: { name: "Trevisan Silva", role: "Support Agent", color: "#20bf6b" },
+const agentProfiles: Record<string, { name: string; role: string; avatar: string; color: string }> = {
+  PRCSUZ: { name: "Ana Ribeiro", role: "Analista de Suporte", color: "#0b97c4", avatar: "https://i.pravatar.cc/120?img=47" },
+  PRCMAR: { name: "Marcos Ribeiro", role: "Atendente Sênior", color: "#e75d3c", avatar: "https://i.pravatar.cc/120?img=12" },
+  PRCROG: { name: "Rogerio Lima", role: "Líder de Atendimento", color: "#5fb9ba", avatar: "https://i.pravatar.cc/120?img=15" },
+  PRCLCZ: { name: "Lucas Cruz", role: "Especialista de Suporte", color: "#112635", avatar: "https://i.pravatar.cc/120?img=33" },
+  PRCGGC: { name: "Guilherme Costa", role: "Atendente Comercial", color: "#d87c2c", avatar: "https://i.pravatar.cc/120?img=68" },
+  PRCPED: { name: "Pedro Almeida", role: "Atendente de Suporte", color: "#7c5cff", avatar: "https://i.pravatar.cc/120?img=59" },
+  PRCTRE: { name: "Trevisan Silva", role: "Atendente de Suporte", color: "#20bf6b", avatar: "https://i.pravatar.cc/120?img=51" },
 };
 
 function TopAgentsCard({ tickets }: { tickets: SupportTicket[] }) {
@@ -1550,12 +1550,12 @@ function TopAgentsCard({ tickets }: { tickets: SupportTicket[] }) {
   }, [tickets]);
 
   return (
-    <Card className="rounded-[14px] border border-white/10 bg-[#161918] p-6 text-[#dcecff] shadow-[0_18px_40px_rgba(0,0,0,0.22)]">
+    <Card className="rounded-[14px] border border-border/60 bg-card p-6 text-foreground shadow-[0_10px_26px_rgba(25,29,51,0.06)] dark:border-white/10 dark:bg-[#161918] dark:text-[#dcecff] dark:shadow-[0_18px_40px_rgba(0,0,0,0.22)]">
       <div className="mb-7 flex items-center justify-between gap-4">
-        <h3 className="text-[26px] font-black tracking-tight text-[#b9d8ff]">Top Agents</h3>
+        <h3 className="text-[26px] font-black tracking-tight text-foreground dark:text-[#b9d8ff]">Top Operadores</h3>
         <button
           type="button"
-          className="grid h-12 w-12 cursor-pointer place-items-center rounded-full border border-white/10 bg-white/[0.02] text-[#a9ccff] transition hover:bg-white/[0.06]"
+          className="grid h-12 w-12 cursor-pointer place-items-center rounded-full border border-border bg-muted/40 text-foreground transition hover:bg-muted dark:border-white/10 dark:bg-white/[0.02] dark:text-[#a9ccff] dark:hover:bg-white/[0.06]"
           aria-label="Abrir ranking de operadores"
         >
           <ArrowUpRight className="h-6 w-6" />
@@ -1566,57 +1566,50 @@ function TopAgentsCard({ tickets }: { tickets: SupportTicket[] }) {
         {agents.map((agent, index) => {
           const profile = agentProfiles[agent.operator] ?? {
             name: agent.operator,
-            role: "Support Agent",
+            role: "Atendente de Suporte",
             color: "#0b97c4",
+            avatar: `https://i.pravatar.cc/120?u=${encodeURIComponent(agent.operator)}`,
           };
-          const initials = profile.name
-            .split(" ")
-            .map((part) => part[0])
-            .join("")
-            .slice(0, 2)
-            .toUpperCase();
           const revenue = (agent.handled * 0.42 + agent.finished * 0.88).toFixed(1);
 
           return (
             <div
               key={agent.operator}
-              className="grid min-h-[86px] grid-cols-[42px_74px_minmax(0,1fr)_130px_150px] items-center gap-4 rounded-[9px] border border-white/10 bg-white/[0.015] px-5 py-4"
+              className="grid min-h-[86px] grid-cols-[42px_74px_minmax(0,1fr)_130px_110px] items-center gap-4 rounded-[9px] border border-border/60 bg-muted/30 px-5 py-4 dark:border-white/10 dark:bg-white/[0.015]"
             >
-              <span className="grid h-9 w-9 place-items-center rounded-full border border-[#0b97c4]/25 bg-[#071f2d] text-sm font-black text-[#0b97c4]">
+              <span className="grid h-9 w-9 place-items-center rounded-full border border-primary/30 bg-primary/10 text-sm font-black text-primary dark:border-[#0b97c4]/25 dark:bg-[#071f2d] dark:text-[#0b97c4]">
                 #{index + 1}
               </span>
 
-              <div className="relative h-[60px] w-[60px] overflow-visible rounded-full">
-                <div
-                  className="grid h-full w-full place-items-center rounded-full text-sm font-black text-[#9bd1ff]"
-                  style={{ background: profile.color }}
-                >
-                  {initials}
-                </div>
-                <span className="absolute bottom-1 right-0 h-3.5 w-3.5 rounded-full border-2 border-[#161918] bg-[#16a75b]" />
+              <div className="relative h-[60px] w-[60px]">
+                <img
+                  src={profile.avatar}
+                  alt={profile.name}
+                  loading="lazy"
+                  className="h-full w-full rounded-full object-cover ring-2 ring-border dark:ring-white/10"
+                />
+                <span className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full border-2 border-card bg-[#16a75b] dark:border-[#161918]" />
               </div>
 
               <div className="min-w-0">
-                <p className="truncate text-[17px] font-black text-[#b9d8ff]">{profile.name}</p>
-                <p className="mt-1 truncate text-sm text-[#a9b8c7]">{profile.role}</p>
+                <p className="truncate text-[17px] font-black text-foreground dark:text-[#b9d8ff]">{profile.name}</p>
+                <p className="mt-1 truncate text-sm text-muted-foreground dark:text-[#a9b8c7]">{profile.role}</p>
               </div>
 
               <div className="grid grid-cols-2 gap-4 text-center">
                 <div>
-                  <p className="text-[19px] font-black text-[#b9d8ff]">{agent.handled}</p>
-                  <p className="text-sm text-[#a9b8c7]">Atend.</p>
+                  <p className="text-[19px] font-black text-foreground dark:text-[#b9d8ff]">{agent.handled}</p>
+                  <p className="text-sm text-muted-foreground dark:text-[#a9b8c7]">Atend.</p>
                 </div>
                 <div>
-                  <p className="text-[19px] font-black text-[#b9d8ff]">{agent.finished}</p>
-                  <p className="text-sm text-[#a9b8c7]">Final.</p>
+                  <p className="text-[19px] font-black text-foreground dark:text-[#b9d8ff]">{agent.finished}</p>
+                  <p className="text-sm text-muted-foreground dark:text-[#a9b8c7]">Final.</p>
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-8 text-[#9dccff]">
-                <span className="text-sm font-bold text-[#b9d8ff]">{revenue}h</span>
-                <PhoneCall className="h-5 w-5" />
-                <MessageSquarePlus className="h-5 w-5" />
-                <MoreVertical className="h-5 w-5" />
+              <div className="text-right">
+                <p className="text-[19px] font-black text-foreground dark:text-[#b9d8ff]">{revenue}h</p>
+                <p className="text-sm text-muted-foreground dark:text-[#a9b8c7]">Horas atend.</p>
               </div>
             </div>
           );
