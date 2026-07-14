@@ -1692,20 +1692,22 @@ function TopAgentsCard({ tickets }: { tickets: SupportTicket[] }) {
   }, [tickets]);
 
   return (
-    <Card className="rounded-md border border-border/80 bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.08)] dark:bg-card">
-      <div className="mb-7 flex items-center justify-between gap-4">
-        <h3 className="text-[20px] font-bold tracking-tight text-foreground">Performance dos Operadores</h3>
+    <Card className="rounded-md border border-border/80 bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.08)] dark:bg-card">
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <h3 className="text-base font-bold tracking-tight text-foreground">
+          Performance dos Operadores
+        </h3>
         <Button
           type="button"
           variant="outline"
-          className="h-10 cursor-pointer gap-2 rounded-md border-border bg-white px-4 text-sm font-semibold text-foreground shadow-none hover:bg-muted dark:bg-card"
+          className="h-9 cursor-pointer gap-2 rounded-md border-border bg-white px-3 text-xs font-semibold text-foreground shadow-none hover:bg-muted dark:bg-card"
         >
           <CalendarClock className="h-4 w-4" />
           Mensal
         </Button>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-3">
         {agents.map((agent, index) => {
           const profile = agentProfiles[agent.operator] ?? {
             name: agent.operator,
@@ -1721,53 +1723,53 @@ function TopAgentsCard({ tickets }: { tickets: SupportTicket[] }) {
             98,
             Math.max(fallbackRates[index] ?? 70, rawResolutionRate),
           );
-          const activeDots = Math.round((resolutionRate / 100) * 24);
+          const activeDots = Math.round((resolutionRate / 100) * 18);
           const avgResolutionTime = (1.1 + index * 0.18 + agent.handled * 0.08).toFixed(1);
 
           return (
             <div
               key={agent.operator}
-              className="grid min-h-[108px] grid-cols-1 items-center gap-5 rounded-md border border-border/80 bg-white px-6 py-5 shadow-none dark:bg-background/30 sm:grid-cols-2 min-[1500px]:grid-cols-[250px_190px_170px_minmax(260px,1fr)] min-[1500px]:gap-8"
+              className="flex flex-col gap-3 rounded-md border border-border/80 bg-white px-4 py-3 dark:bg-background/30 lg:flex-row lg:items-center lg:gap-5"
             >
-              <div className="flex min-w-0 items-center gap-4">
+              <div className="flex min-w-0 items-center gap-3 lg:w-[200px]">
                 <img
                   src={profile.avatar}
                   alt={profile.name}
-                  className="h-14 w-14 shrink-0 rounded-full object-cover"
+                  className="h-10 w-10 shrink-0 rounded-full object-cover"
                   loading="lazy"
                 />
                 <div className="min-w-0">
-                  <p className="truncate text-[17px] font-bold text-[#071735] dark:text-foreground">
+                  <p className="truncate text-[13px] font-semibold text-foreground">
                     {profile.name}
                   </p>
-                  <div className="mt-1 flex items-center gap-1.5 text-[15px] text-muted-foreground">
-                    <Star className="h-4 w-4 fill-[#ffb31a] text-[#ffb31a]" />
+                  <div className="mt-0.5 flex items-center gap-1 text-[11px] text-muted-foreground">
+                    <Star className="h-3 w-3 fill-[#ffb31a] text-[#ffb31a]" />
                     <span>{profile.rating.toFixed(1)}</span>
                   </div>
                 </div>
               </div>
 
-              <div>
-                <p className="text-[16px] text-muted-foreground">Tempo médio de resolução</p>
-                <p className="mt-2 text-[18px] font-bold text-foreground">{avgResolutionTime}h</p>
+              <div className="min-w-0 lg:w-[130px]">
+                <p className="text-[11px] text-muted-foreground">Tempo médio</p>
+                <p className="mt-0.5 text-[14px] font-bold text-foreground">{avgResolutionTime}h</p>
               </div>
 
-              <div>
-                <p className="text-[16px] text-muted-foreground">Atendimentos realizados</p>
-                <p className="mt-2 text-[18px] font-bold text-foreground">{agent.handled}</p>
+              <div className="min-w-0 lg:w-[120px]">
+                <p className="text-[11px] text-muted-foreground">Atendimentos</p>
+                <p className="mt-0.5 text-[14px] font-bold text-foreground">{agent.handled}</p>
               </div>
 
-              <div>
-                <div className="mb-3 flex items-center justify-between gap-4">
-                  <p className="text-[16px] text-foreground">Taxa de resolução</p>
-                  <p className="text-[18px] text-foreground">{resolutionRate}%</p>
+              <div className="min-w-0 flex-1">
+                <div className="mb-1.5 flex items-center justify-between gap-3">
+                  <p className="text-[11px] text-muted-foreground">Taxa de resolução</p>
+                  <p className="text-[13px] font-semibold text-foreground">{resolutionRate}%</p>
                 </div>
-                <div className="flex flex-wrap items-center gap-1.5">
-                  {Array.from({ length: 24 }).map((_, dotIndex) => (
+                <div className="flex flex-wrap items-center gap-1">
+                  {Array.from({ length: 18 }).map((_, dotIndex) => (
                     <span
                       key={dotIndex}
                       className={cn(
-                        "h-3.5 w-3.5 rounded-full",
+                        "h-2.5 w-2.5 rounded-full",
                         dotIndex < activeDots ? "bg-[#f26322]" : "bg-[#dfe3e8] dark:bg-muted",
                       )}
                     />
@@ -1779,6 +1781,7 @@ function TopAgentsCard({ tickets }: { tickets: SupportTicket[] }) {
         })}
       </div>
     </Card>
+
   );
 }
 const statisticsDays = [
