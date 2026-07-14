@@ -1225,26 +1225,26 @@ function TicketsListView({
                   </div>
 
                   <div className="min-w-0">
-                    <div className="truncate text-[12px] font-bold text-foreground">
+                    <div className="truncate text-[13.5px] font-bold text-foreground">
                       {ticket.clientCode}
                     </div>
-                    <div className="truncate text-[11px] text-muted-foreground">
+                    <div className="truncate text-[12px] text-muted-foreground">
                       {ticket.clientName}
                     </div>
                   </div>
 
                   <div className="flex min-w-0 items-center gap-2">
-                    <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-primary/15 text-[10px] font-bold text-primary">
+                    <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-primary/15 text-[10.5px] font-bold text-primary">
                       {initial}
                     </span>
-                    <span className="truncate text-[12px] text-foreground">{ticket.contact}</span>
+                    <span className="truncate text-[13.5px] text-foreground">{ticket.contact}</span>
                   </div>
 
                   <div className="min-w-0 pr-3">
-                    <div className="line-clamp-2 text-[12px] font-semibold leading-snug text-foreground">
+                    <div className="line-clamp-2 text-[14.5px] font-semibold leading-snug text-foreground">
                       {ticket.subject}
                     </div>
-                    <div className="mt-0.5 flex min-w-0 items-center gap-1.5 text-[10.5px] text-muted-foreground/80">
+                    <div className="mt-0.5 flex min-w-0 items-center gap-1.5 text-[12px] text-muted-foreground/80">
                       <ModuleIcon className="h-3 w-3 shrink-0 text-primary/70" />
                       <span className="truncate">{ticket.module}</span>
                     </div>
@@ -1253,24 +1253,24 @@ function TicketsListView({
 
                   <div className="flex min-w-0 items-center gap-1.5">
                     <UserRound className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                    <span className="truncate text-[11.5px] font-semibold text-foreground">
+                    <span className="truncate text-[13.5px] font-semibold text-foreground">
                       {ticket.attendant}
                     </span>
                   </div>
 
                   <div className="flex min-w-0 items-center gap-1.5">
                     <UserPlus className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                    <span className="truncate text-[11.5px] font-semibold text-foreground">
+                    <span className="truncate text-[13.5px] font-semibold text-foreground">
                       {ticket.owner}
                     </span>
                   </div>
 
-                  <div className="flex min-w-0 items-center gap-1.5 text-[11px] text-muted-foreground">
+                  <div className="flex min-w-0 items-center gap-1.5 text-[12.5px] text-muted-foreground">
                     <CalendarClock className="h-3.5 w-3.5 shrink-0 opacity-70" />
                     <span className="whitespace-nowrap">{formatDateTime(ticket.openedAt)}</span>
                   </div>
 
-                  <div className="flex min-w-0 items-center gap-1.5 text-[11px] text-muted-foreground">
+                  <div className="flex min-w-0 items-center gap-1.5 text-[12.5px] text-muted-foreground">
                     <Clock3 className="h-3.5 w-3.5 shrink-0 opacity-70" />
                     <span className="whitespace-nowrap">{formatDateTime(ticket.updatedAt)}</span>
                   </div>
