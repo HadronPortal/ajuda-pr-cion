@@ -337,6 +337,7 @@ function TicketsPage() {
 
   const supportTickets = useTickets();
   const [filters, setFilters] = useState<Filters>(() => todayFilters());
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [historyTicketId, setHistoryTicketId] = useState<string | null>(null);
