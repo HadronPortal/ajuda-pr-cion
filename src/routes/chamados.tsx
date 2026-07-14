@@ -1261,10 +1261,10 @@ function TicketsListView({
             <SortableGridHeader label="Contato" sortKey="contato" sort={sort} onSort={toggleSort} />
             <SortableGridHeader label="Assunto" sortKey="assunto" sort={sort} onSort={toggleSort} />
             <SortableGridHeader label="Atendente" sortKey="atendente" sort={sort} onSort={toggleSort} />
-            <SortableGridHeader label="Responsavel" sortKey="responsavel" sort={sort} onSort={toggleSort} />
             <SortableGridHeader label="Registro" sortKey="registro" sort={sort} onSort={toggleSort} />
             <SortableGridHeader label="Atualizado" sortKey="atualizado" sort={sort} onSort={toggleSort} />
             <span aria-label="Abrir" />
+
           </div>
 
           <div className="my-2 divide-y divide-border/60">
