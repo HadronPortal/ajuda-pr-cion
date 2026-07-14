@@ -502,7 +502,6 @@ export function TicketDetailSheet({
 
             {/* Mobile action bar (topo, rolável) */}
             <div className="flex shrink-0 items-center gap-2 overflow-x-auto border-b border-border bg-card px-3 py-2 md:hidden">
-              <MobileAction icon={TicketHistoryIcon} label="Histórico" onClick={() => setHistoryOpen(true)} />
               <MobileAction icon={TicketCloseIcon} label="Encerrar" onClick={() => setCloseOpen(true)} />
               <MobileAction
                 icon={TicketStatusIcon}
@@ -512,7 +511,6 @@ export function TicketDetailSheet({
               <MobileAction icon={TicketAssumeIcon} label="Assumir" onClick={handleAssume} />
               <MobileAction icon={TicketAttendIcon} label="Atender" onClick={handleAttend} highlight />
               <MobileAction icon={TicketTimelineIcon} label="Timeline" onClick={() => setTimelineOpen(true)} />
-              <MobileAction icon={MessageCircle} label="Chat" onClick={() => setChatOpen(true)} />
             </div>
 
             {/* Main content */}
