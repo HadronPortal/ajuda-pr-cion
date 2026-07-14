@@ -79,7 +79,7 @@ import { TicketTimelineModal } from "./TicketTimelineModal";
 import ticketAssumeIconUrl from "@/assets/ticket-assume.png?url";
 import ticketAttendIconUrl from "@/assets/ticket-attend.png?url";
 import ticketCloseIconUrl from "@/assets/ticket-close.png?url";
-import ticketHistoryIconUrl from "@/assets/ticket-history.png?url";
+
 import ticketStatusIconUrl from "@/assets/ticket-status.png?url";
 import ticketTimelineIconUrl from "@/assets/ticket-timeline.png?url";
 
