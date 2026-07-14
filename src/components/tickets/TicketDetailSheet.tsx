@@ -249,10 +249,9 @@ export function TicketDetailSheet({
   const [notesOpen, setNotesOpen] = useState(false);
   const [timelineOpen, setTimelineOpen] = useState(false);
   const [navCollapsed, setNavCollapsed] = useState(false);
-  const [chatOpen, setChatOpen] = useState(false);
   const [selectedHistory, setSelectedHistory] = useState<PastAttendance | null>(null);
   const [activeAction, setActiveAction] = useState<
-    "historico" | "encerrar" | "status" | "assumir" | "atender" | "timeline" | "chat"
+    "encerrar" | "status" | "assumir" | "atender" | "timeline"
   >("atender");
 
   const mock = useMemo(() => (ticket ? buildMock(ticket) : null), [ticket]);
