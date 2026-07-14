@@ -449,7 +449,7 @@ export function TicketDetailSheet({
                 </Popover>
                 <SideItem
                   icon={TicketAssumeIcon}
-                  label="Assumir chamado"
+                  label="Transferir chamado"
                   collapsed={navCollapsed}
                   active={activeAction === "assumir"}
                   onClick={() => {
@@ -467,16 +467,7 @@ export function TicketDetailSheet({
                     handleAttend();
                   }}
                 />
-                <SideItem
-                  icon={TicketTimelineIcon}
-                  label="Timeline"
-                  collapsed={navCollapsed}
-                  active={activeAction === "timeline"}
-                  onClick={() => {
-                    setActiveAction("timeline");
-                    setTimelineOpen(true);
-                  }}
-                />
+
               </div>
 
 
