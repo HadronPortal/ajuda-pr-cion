@@ -1251,9 +1251,10 @@ function TicketsListView({
   return (
     <div className="space-y-3">
       {/* Desktop list */}
-      <Card className="hidden overflow-x-auto rounded-2xl border border-border/60 bg-card p-3 shadow-[0_8px_22px_rgba(25,29,51,0.05)] lg:block">
-        <div className="min-w-[1220px]">
-          <div className="grid grid-cols-[140px_104px_minmax(210px,1.3fr)_130px_minmax(260px,1.6fr)_112px_118px_112px_112px_28px] items-center rounded-xl bg-muted/50 px-4 py-3">
+      <Card className="hidden rounded-2xl border border-border/60 bg-card p-3 shadow-[0_8px_22px_rgba(25,29,51,0.05)] lg:block">
+        <div className="min-w-0">
+          <div className="grid grid-cols-[120px_92px_minmax(0,1.25fr)_110px_minmax(0,1.6fr)_140px_110px_110px_24px] items-center gap-x-2 rounded-xl bg-muted/50 px-4 py-3">
+
             <SortableGridHeader label="Status" sortKey="status" sort={sort} onSort={toggleSort} />
             <SortableGridHeader label="Prioridade" sortKey="priority" sort={sort} onSort={toggleSort} />
             <SortableGridHeader label="Cliente" sortKey="cliente" sort={sort} onSort={toggleSort} />
