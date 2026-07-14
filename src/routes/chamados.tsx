@@ -1660,7 +1660,7 @@ function TopAgentsCard({ tickets }: { tickets: SupportTicket[] }) {
   return (
     <Card className="rounded-[14px] border border-border/60 bg-card p-6 text-foreground shadow-[0_10px_26px_rgba(25,29,51,0.06)] dark:border-white/10 dark:bg-[#161918] dark:text-[#dcecff] dark:shadow-[0_18px_40px_rgba(0,0,0,0.22)]">
       <div className="mb-7 flex items-center justify-between gap-4">
-        <h3 className="text-[26px] font-black tracking-tight text-foreground dark:text-[#b9d8ff]">Top Operadores</h3>
+        <h3 className="text-base font-bold tracking-tight text-foreground dark:text-[#b9d8ff]">Top Operadores</h3>
         <button
           type="button"
           className="grid h-12 w-12 cursor-pointer place-items-center rounded-full border border-border bg-muted/40 text-foreground transition hover:bg-muted dark:border-white/10 dark:bg-white/[0.02] dark:text-[#a9ccff] dark:hover:bg-white/[0.06]"
