@@ -442,11 +442,13 @@ function TicketsPage() {
 
   return (
     <AppShell>
-      <PageHeader
-        title="Chamados"
-        description="CRM de suporte para acompanhar abertura, atendimento, atrasos e produtividade dos chamados."
-        breadcrumbs={[{ label: "Chamados" }]}
-      />
+      <div className="mb-5">
+        <Breadcrumbs items={[{ label: "Chamados" }]} />
+        <h1 className="text-lg font-semibold tracking-tight text-foreground">Chamados</h1>
+        <p className="mt-1 max-w-2xl text-xs text-muted-foreground">
+          CRM de suporte para acompanhar abertura, atendimento, atrasos e produtividade dos chamados.
+        </p>
+      </div>
 
       <Link
         to="/chamados/novo"
