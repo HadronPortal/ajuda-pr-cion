@@ -1253,7 +1253,7 @@ function TicketsListView({
       {/* Desktop list */}
       <Card className="hidden rounded-2xl border border-border/60 bg-card p-3 shadow-[0_8px_22px_rgba(25,29,51,0.05)] lg:block">
         <div className="min-w-0">
-          <div className="grid grid-cols-[120px_92px_minmax(0,1.25fr)_110px_minmax(0,1.6fr)_140px_110px_110px_24px] items-center gap-x-2 rounded-xl bg-muted/50 px-4 py-3">
+          <div className="grid grid-cols-[140px_100px_minmax(0,1.25fr)_110px_minmax(0,1.6fr)_140px_110px_110px_24px] items-center gap-x-4 rounded-xl bg-muted/50 px-4 py-3">
 
             <SortableGridHeader label="Status" sortKey="status" sort={sort} onSort={toggleSort} />
             <SortableGridHeader label="Prioridade" sortKey="priority" sort={sort} onSort={toggleSort} />
@@ -1275,7 +1275,7 @@ function TicketsListView({
                   key={ticket.id}
                   type="button"
                   onClick={() => onOpen(ticket)}
-                  className="group relative grid min-h-[52px] w-full cursor-pointer grid-cols-[120px_92px_minmax(0,1.25fr)_110px_minmax(0,1.6fr)_140px_110px_110px_24px] items-center gap-x-2 bg-transparent px-4 py-2 text-left transition hover:bg-muted/30"
+                  className="group relative grid min-h-[52px] w-full cursor-pointer grid-cols-[140px_100px_minmax(0,1.25fr)_110px_minmax(0,1.6fr)_140px_110px_110px_24px] items-center gap-x-4 bg-transparent px-4 py-2 text-left transition hover:bg-muted/30"
                 >
                   <span
                     className={cn("pointer-events-none absolute bottom-1.5 left-0 top-1.5 w-1", statusDotTone[ticket.status])}
@@ -1337,17 +1337,21 @@ function TicketsListView({
                     </div>
                   </div>
 
-                  <div className="flex min-w-0 flex-col">
+                  <div className="flex min-w-0 flex-col gap-0.5">
                     <div className="flex min-w-0 items-center gap-1.5">
                       <UserRound className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                       <span className="truncate text-[12.5px] text-foreground">
                         {ticket.attendant}
                       </span>
                     </div>
-                    <span className="truncate pl-5 text-[10.5px] text-muted-foreground/80">
-                      Responsável: {ticket.owner}
-                    </span>
+                    <div className="flex min-w-0 items-center gap-1.5">
+                      <UserPlus className="h-3.5 w-3.5 shrink-0 text-muted-foreground/70" />
+                      <span className="truncate text-[10.5px] text-muted-foreground/80">
+                        {ticket.owner}
+                      </span>
+                    </div>
                   </div>
+
 
 
                   <div className="flex min-w-0 items-center gap-1.5 text-[12px] text-muted-foreground">
@@ -1826,7 +1830,7 @@ const hourlyStats = [
 
 function StatisticsCard() {
   return (
-    <Card className="rounded-[14px] border border-border/60 bg-white p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)] dark:bg-[#20263d]">
+    <Card className="w-full max-w-full min-w-0 overflow-hidden rounded-[14px] border border-border/60 bg-white p-4 shadow-[0_10px_26px_rgba(25,29,51,0.06)] dark:bg-[#20263d] sm:p-5">
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <h3 className="text-base font-bold tracking-tight text-foreground">Estatísticas</h3>
         <button
@@ -1838,39 +1842,40 @@ function StatisticsCard() {
         </button>
       </div>
 
-      <div className="mb-8 flex items-center gap-2 overflow-x-auto pb-1">
-        <button className="grid h-[68px] w-[54px] shrink-0 cursor-pointer place-items-center rounded-md bg-muted/60 text-foreground">
-          <ChevronLeft className="h-5 w-5" />
+      <div className="mb-6 flex items-center gap-1.5 overflow-x-auto pb-1">
+        <button className="grid h-[60px] w-[40px] shrink-0 cursor-pointer place-items-center rounded-md bg-muted/60 text-foreground">
+          <ChevronLeft className="h-4 w-4" />
         </button>
         {statisticsDays.map((item) => (
           <button
             key={`${item.day}-${item.weekday}`}
             className={cn(
-              "grid h-[68px] w-[54px] shrink-0 cursor-pointer place-items-center rounded-md bg-muted/45 text-center transition",
+              "grid h-[60px] w-[44px] shrink-0 cursor-pointer place-items-center rounded-md bg-muted/45 text-center transition",
               item.active && "bg-[#a779c7] text-white",
               item.outlined && "border-2 border-[#7fb9ab] bg-white text-[#6aa899] dark:bg-[#20263d]",
             )}
           >
             <span>
-              <span className="block text-[16px] font-black leading-none">{item.day}</span>
+              <span className="block text-[14px] font-black leading-none">{item.day}</span>
               <span
                 className={cn(
-                  "mt-1 block text-[10px] font-bold",
+                  "mt-1 block text-[9px] font-bold",
                   item.warm && !item.active ? "text-[#ff7a2f]" : "text-current",
                 )}
               >
                 {item.weekday}
               </span>
-              <span className="mx-auto mt-2 block h-1 w-1 rounded-full bg-[#b9d899]" />
+              <span className="mx-auto mt-1.5 block h-1 w-1 rounded-full bg-[#b9d899]" />
             </span>
           </button>
         ))}
-        <button className="grid h-[68px] w-[54px] shrink-0 cursor-pointer place-items-center rounded-md bg-muted/60 text-foreground">
-          <ChevronRight className="h-5 w-5" />
+        <button className="grid h-[60px] w-[40px] shrink-0 cursor-pointer place-items-center rounded-md bg-muted/60 text-foreground">
+          <ChevronRight className="h-4 w-4" />
         </button>
       </div>
 
-      <div className="h-[300px]">
+      <div className="h-[300px] w-full min-w-0 overflow-hidden">
+
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={hourlyStats} margin={{ top: 12, right: 24, left: 0, bottom: 8 }}>
             <defs>
@@ -1896,7 +1901,7 @@ function StatisticsCard() {
                 fontSize: 12,
               }}
             />
-            <Bar dataKey="thisWeek" name="Esta semana" fill="url(#statsPurple)" radius={[5, 5, 0, 0]} barSize={58} />
+            <Bar dataKey="thisWeek" name="Esta semana" fill="url(#statsPurple)" radius={[5, 5, 0, 0]} maxBarSize={36} />
             <Line
               type="monotone"
               dataKey="lastWeek"
