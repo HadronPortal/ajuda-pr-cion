@@ -1901,7 +1901,7 @@ function StatisticsCard() {
                 fontSize: 12,
               }}
             />
-            <Bar dataKey="thisWeek" name="Esta semana" fill="url(#statsPurple)" radius={[5, 5, 0, 0]} barSize={58} />
+            <Bar dataKey="thisWeek" name="Esta semana" fill="url(#statsPurple)" radius={[5, 5, 0, 0]} maxBarSize={36} />
             <Line
               type="monotone"
               dataKey="lastWeek"
