@@ -1275,7 +1275,7 @@ function TicketsListView({
                   key={ticket.id}
                   type="button"
                   onClick={() => onOpen(ticket)}
-                  className="group relative grid min-h-[52px] w-full cursor-pointer grid-cols-[140px_104px_minmax(210px,1.3fr)_130px_minmax(260px,1.6fr)_112px_118px_112px_112px_28px] items-center bg-transparent px-4 py-2 text-left transition hover:bg-muted/30"
+                  className="group relative grid min-h-[52px] w-full cursor-pointer grid-cols-[120px_92px_minmax(0,1.25fr)_110px_minmax(0,1.6fr)_140px_110px_110px_24px] items-center gap-x-2 bg-transparent px-4 py-2 text-left transition hover:bg-muted/30"
                 >
                   <span
                     className={cn("pointer-events-none absolute bottom-1.5 left-0 top-1.5 w-1", statusDotTone[ticket.status])}
