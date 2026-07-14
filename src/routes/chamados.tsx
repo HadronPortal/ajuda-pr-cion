@@ -1598,8 +1598,8 @@ function RevenueStyleCards({
 
           <div className="relative z-10 flex h-full min-h-[152px] flex-col justify-between rounded-l-[28px] bg-[#f6f7f9] px-6 py-5 dark:bg-[#20263d]">
             <div>
-              <p className="text-[15px] font-medium text-foreground">{card.title}</p>
-              <p className="mt-3 text-[28px] font-black leading-none tracking-tight text-foreground">
+              <p className="text-[13px] font-medium text-muted-foreground">{card.title}</p>
+              <p className="mt-2 text-[20px] font-bold leading-none tracking-tight text-foreground">
                 {card.value} chamados
               </p>
             </div>
