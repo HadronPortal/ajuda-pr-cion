@@ -598,36 +598,33 @@ export function TicketDetailSheet({
                 />
               </div>
 
-              {/* Histórico de atendimentos — embutido */}
+              {/* Timeline do chamado atual — embutida */}
               <div className="mt-4">
-                <Section title="Histórico de atendimentos" icon={History}>
+                <Section title="Timeline do chamado" icon={History}>
                   <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                     <div className="flex items-baseline gap-1.5">
                       <span className="text-[12.5px] font-bold text-foreground">
-                        Atendimentos anteriores
+                        Eventos do atendimento
                       </span>
                       <span className="text-[11.5px] font-semibold text-muted-foreground">
-                        ({historyList.length})
+                        ({timelineEvents.length})
                       </span>
                     </div>
-                    {historyList.length > 0 && (
+                    {timelineEvents.length > 0 && (
                       <button
                         type="button"
-                        onClick={() => setHistoryOpen(true)}
+                        onClick={() => setTimelineOpen(true)}
                         className="inline-flex cursor-pointer items-center gap-1 text-[11.5px] font-semibold text-primary hover:underline"
                       >
-                        Ver todos
+                        Ver completa
                         <ChevronRight className="h-3.5 w-3.5" />
                       </button>
                     )}
                   </div>
-                  <TicketHistoryList
-                    items={historyList.slice(0, 3)}
-                    onSelect={setSelectedHistory}
-                    compact
-                  />
+                  <TicketTimelineInline events={timelineEvents} />
                 </Section>
               </div>
+
 
 
               <div className="h-2" />
