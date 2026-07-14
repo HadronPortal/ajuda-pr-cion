@@ -17,7 +17,6 @@ import {
   LayoutGrid,
   LockKeyhole,
   MapPin,
-  MessageCircle,
   MessageSquare,
   NotebookText,
   Paperclip,
