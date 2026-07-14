@@ -1065,21 +1065,85 @@ function MobileAction({
   );
 }
 
-function TicketHistorySidePanel({
-  events,
+function TicketTimelineInline({ events }: { events: TicketEvent[] }) {
+  if (events.length === 0) {
+    return (
+      <div className="rounded-xl border border-border bg-card px-3 py-6 text-center text-[12px] text-muted-foreground">
+        Nenhum evento registrado ainda.
+      </div>
+    );
+  }
+  return (
+    <ol className="relative space-y-3 rounded-xl border border-border bg-card px-3 py-3">
+      {events.map((ev, i) => {
+        const Icon = timelineIcon[ev.kind];
+        const isLast = i === events.length - 1;
+        return (
+          <li key={ev.id} className="relative flex gap-3">
+            <div className="flex flex-col items-center">
+              <span
+                className={cn(
+                  "grid h-8 w-8 shrink-0 place-items-center rounded-full",
+                  timelineTone[ev.kind],
+                )}
+              >
+                <Icon className="h-4 w-4" />
+              </span>
+              {!isLast && (
+                <span className="mt-1 w-px flex-1 bg-border" aria-hidden />
+              )}
+            </div>
+            <div className="min-w-0 flex-1 pb-2">
+              <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                <span className="text-[12.5px] font-semibold text-foreground">
+                  {ev.actor}
+                </span>
+                <span className="text-[11px] text-muted-foreground">
+                  {formatDateTime(ev.when)}
+                </span>
+              </div>
+              <p className="mt-0.5 text-[12.5px] leading-relaxed text-muted-foreground">
+                {ev.description}
+              </p>
+            </div>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+function TicketPastAttendancesSidePanel({
+  ticket,
+  items,
+  onSelect,
+  onSeeAll,
   className,
 }: {
-  events: TicketEvent[];
+  ticket: SupportTicket;
+  items: PastAttendance[];
+  onSelect: (item: PastAttendance) => void;
+  onSeeAll: () => void;
   className?: string;
 }) {
   return (
     <aside className={cn("flex min-h-0 flex-col bg-card", className)}>
-      <header className="flex shrink-0 items-center justify-between gap-2 border-b border-border px-4 py-3">
+      <header className="flex shrink-0 items-start justify-between gap-2 border-b border-border px-4 py-3">
         <div className="min-w-0">
           <h3 className="text-[13px] font-bold text-foreground">Histórico</h3>
-          <p className="truncate text-[11.5px] text-muted-foreground">
-            Eventos do atendimento
+          <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
+            Cliente {ticket.clientCode}
           </p>
+          <div className="mt-1.5 inline-flex items-center gap-1.5">
+            <Badge
+              className={cn(
+                "rounded-full border px-2 py-0.5 text-[10.5px] font-semibold",
+                statusTone[ticket.status],
+              )}
+            >
+              {ticket.status}
+            </Badge>
+          </div>
         </div>
         <span
           aria-hidden
@@ -1089,52 +1153,103 @@ function TicketHistorySidePanel({
         </span>
       </header>
 
-      <div className="flex-1 min-h-0 overflow-y-auto bg-muted/20 px-3 py-4">
-        {events.length === 0 ? (
+      <div className="flex shrink-0 items-baseline justify-between gap-2 border-b border-border px-4 py-2">
+        <div className="flex items-baseline gap-1.5">
+          <span className="text-[12px] font-bold text-foreground">Atendimentos</span>
+          <span className="text-[11px] font-semibold text-muted-foreground">
+            ({items.length})
+          </span>
+        </div>
+        {items.length > 0 && (
+          <button
+            type="button"
+            onClick={onSeeAll}
+            className="inline-flex cursor-pointer items-center gap-0.5 text-[11px] font-semibold text-primary hover:underline"
+          >
+            Ver todos
+            <ChevronRight className="h-3 w-3" />
+          </button>
+        )}
+      </div>
+
+      <div className="flex-1 min-h-0 overflow-y-auto bg-muted/20 px-3 py-3">
+        {items.length === 0 ? (
           <p className="py-8 text-center text-[12px] text-muted-foreground">
-            Nenhum evento registrado.
+            Sem atendimentos anteriores.
           </p>
         ) : (
-          <ol className="relative space-y-3 pl-1">
-            {events.map((ev, i) => {
-              const Icon = timelineIcon[ev.kind];
-              const isLast = i === events.length - 1;
-              return (
-                <li key={ev.id} className="relative flex gap-2.5">
-                  <div className="flex flex-col items-center">
+          <ul className="space-y-2">
+            {items.map((h) => (
+              <li
+                key={h.id}
+                className="relative overflow-hidden rounded-xl border border-border bg-card p-2.5 shadow-[0_1px_0_rgba(15,23,42,0.03)]"
+              >
+                <span
+                  aria-hidden
+                  className={cn(
+                    "absolute left-0 top-0 h-full w-1",
+                    priorityTone[h.priority].includes("destructive")
+                      ? "bg-destructive"
+                      : priorityTone[h.priority].includes("warning")
+                        ? "bg-warning"
+                        : "bg-muted-foreground/40",
+                  )}
+                />
+                <div className="pl-2">
+                  <div className="flex items-start gap-1.5">
+                    <span
+                      className="truncate text-[11.5px] font-bold uppercase tracking-wide text-foreground"
+                      title={h.title}
+                    >
+                      {h.title}
+                    </span>
+                  </div>
+                  <p className="mt-0.5 inline-flex min-w-0 items-center gap-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                    <Folder className="h-3 w-3 shrink-0" />
+                    <span className="truncate">{h.module}</span>
+                  </p>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                     <span
                       className={cn(
-                        "grid h-7 w-7 shrink-0 place-items-center rounded-full",
-                        timelineTone[ev.kind],
+                        "inline-flex items-center rounded-full border px-1.5 py-0 text-[9.5px] font-bold uppercase tracking-wide",
+                        priorityTone[h.priority],
                       )}
                     >
-                      <Icon className="h-3.5 w-3.5" />
+                      {h.priority}
                     </span>
-                    {!isLast && (
-                      <span className="mt-1 w-px flex-1 bg-border" aria-hidden />
-                    )}
+                    <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-foreground">
+                      <UserRound className="h-3 w-3 text-primary" />
+                      {h.operator}
+                    </span>
                   </div>
-                  <div className="min-w-0 flex-1 pb-2">
-                    <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5">
-                      <span className="text-[12px] font-semibold text-foreground">
-                        {ev.actor}
-                      </span>
-                      <span className="text-[10.5px] text-muted-foreground">
-                        {formatDateTime(ev.when)}
-                      </span>
-                    </div>
-                    <p className="mt-0.5 text-[12px] leading-relaxed text-muted-foreground">
-                      {ev.description}
-                    </p>
+                  <div className="mt-1.5 flex items-center justify-between gap-2">
+                    <span className="inline-flex items-center gap-1 text-[10.5px] text-muted-foreground">
+                      <CalendarClock className="h-3 w-3" />
+                      {formatDateTime(h.date)}
+                    </span>
+                    <span className="font-mono text-[10px] text-muted-foreground">
+                      {h.protocol}
+                    </span>
                   </div>
-                </li>
-              );
-            })}
-          </ol>
+                  <div className="mt-1.5 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => onSelect(h)}
+                      className="inline-flex cursor-pointer items-center gap-0.5 rounded-md bg-primary/10 px-2 py-1 text-[10.5px] font-semibold text-primary transition hover:bg-primary/20"
+                    >
+                      Ver chamado
+                      <ChevronRight className="h-3 w-3" />
+                    </button>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
         )}
       </div>
     </aside>
   );
 }
+
 
 
