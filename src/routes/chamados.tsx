@@ -1830,7 +1830,7 @@ const hourlyStats = [
 
 function StatisticsCard() {
   return (
-    <Card className="rounded-[14px] border border-border/60 bg-white p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)] dark:bg-[#20263d]">
+    <Card className="w-full max-w-full min-w-0 overflow-hidden rounded-[14px] border border-border/60 bg-white p-4 shadow-[0_10px_26px_rgba(25,29,51,0.06)] dark:bg-[#20263d] sm:p-5">
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
         <h3 className="text-base font-bold tracking-tight text-foreground">Estatísticas</h3>
         <button
