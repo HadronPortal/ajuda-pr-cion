@@ -6,11 +6,8 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  Cell,
   ComposedChart,
   Line,
-  Pie,
-  PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -2256,33 +2253,90 @@ const statusChartColors = [
   "#8b91ad",
 ];
 
+function polarPoint(cx: number, cy: number, radius: number, angle: number) {
+  const radians = ((angle - 90) * Math.PI) / 180;
+  return {
+    x: cx + radius * Math.cos(radians),
+    y: cy + radius * Math.sin(radians),
+  };
+}
+
+function polarAreaPath(
+  cx: number,
+  cy: number,
+  innerRadius: number,
+  outerRadius: number,
+  startAngle: number,
+  endAngle: number,
+) {
+  const outerStart = polarPoint(cx, cy, outerRadius, startAngle);
+  const outerEnd = polarPoint(cx, cy, outerRadius, endAngle);
+  const innerEnd = polarPoint(cx, cy, innerRadius, endAngle);
+  const innerStart = polarPoint(cx, cy, innerRadius, startAngle);
+  const largeArc = endAngle - startAngle > 180 ? 1 : 0;
+
+  return [
+    `M ${innerStart.x} ${innerStart.y}`,
+    `L ${outerStart.x} ${outerStart.y}`,
+    `A ${outerRadius} ${outerRadius} 0 ${largeArc} 1 ${outerEnd.x} ${outerEnd.y}`,
+    `L ${innerEnd.x} ${innerEnd.y}`,
+    `A ${innerRadius} ${innerRadius} 0 ${largeArc} 0 ${innerStart.x} ${innerStart.y}`,
+    "Z",
+  ].join(" ");
+}
+
 function StatusCategoriesCard({
   data,
 }: {
   data: { status: TicketStatus; total: number }[];
 }) {
+  const total = data.reduce((sum, item) => sum + item.total, 0);
+  const max = Math.max(1, ...data.map((item) => item.total));
+  const cx = 140;
+  const cy = 112;
+  const innerRadius = 18;
+  const minRadius = 62;
+  const maxRadius = 100;
+  const angleStep = 360 / Math.max(1, data.length);
+  const gap = 4;
+  const rotation = -24;
+
   return (
     <Card className="rounded-[14px] border-0 bg-white dark:bg-[#20263d] p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
       <h3 className="text-base font-bold text-foreground">Chamados por status</h3>
       <p className="mt-1 text-xs text-muted-foreground">Distribuição atual do funil.</p>
-      <div className="mt-4 h-[180px]">
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie data={data} innerRadius={46} outerRadius={72} paddingAngle={2} dataKey="total" nameKey="status">
-              {data.map((entry, index) => (
-                <Cell key={entry.status} fill={statusChartColors[index % statusChartColors.length]} />
-              ))}
-            </Pie>
-            <Tooltip
-              contentStyle={{
-                border: "0",
-                borderRadius: 12,
-                boxShadow: "0 14px 30px rgba(25,29,51,0.12)",
-                fontSize: 12,
-              }}
-            />
-          </PieChart>
-        </ResponsiveContainer>
+      <div className="mt-4 flex h-[190px] items-center justify-center overflow-hidden">
+        <svg viewBox="0 0 280 230" className="h-full w-full max-w-[280px]" role="img" aria-label="Chamados por status">
+          {data.map((item, index) => {
+            const startAngle = rotation + index * angleStep + gap / 2;
+            const endAngle = rotation + (index + 1) * angleStep - gap / 2;
+            const normalized = item.total / max;
+            const outerRadius = minRadius + (maxRadius - minRadius) * Math.max(0.22, normalized);
+            const midAngle = (startAngle + endAngle) / 2;
+            const offset = index % 2 === 0 ? 7 : 4;
+            const exploded = polarPoint(0, 0, offset, midAngle);
+
+            return (
+              <path
+                key={item.status}
+                d={polarAreaPath(cx + exploded.x, cy + exploded.y, innerRadius, outerRadius, startAngle, endAngle)}
+                fill={statusChartColors[index % statusChartColors.length]}
+                stroke="#ffffff"
+                strokeWidth="2.5"
+                className="drop-shadow-[0_8px_16px_rgba(25,29,51,0.08)] transition duration-200 hover:opacity-90"
+              >
+                <title>{`${item.status}: ${item.total} chamado${item.total === 1 ? "" : "s"}`}</title>
+              </path>
+            );
+          })}
+          <circle cx={cx} cy={cy} r={innerRadius - 2} fill="white" className="dark:fill-[#20263d]" />
+          <text x={cx} y={cy - 2} textAnchor="middle" className="fill-foreground text-[17px] font-bold">
+            {total}
+          </text>
+          <text x={cx} y={cy + 15} textAnchor="middle" className="fill-muted-foreground text-[10px]">
+            total
+          </text>
+        </svg>
       </div>
       <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1.5">
         {data.map((item, index) => (
