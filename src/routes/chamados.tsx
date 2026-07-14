@@ -1163,20 +1163,17 @@ function TicketsListView({
                   key={ticket.id}
                   type="button"
                   onClick={() => onOpen(ticket)}
-                  className={cn(
-                    "group relative grid min-h-[56px] w-full cursor-pointer grid-cols-[140px_104px_minmax(210px,1.3fr)_130px_minmax(260px,1.6fr)_112px_118px_112px_112px_28px] items-center px-4 py-2.5 text-left transition hover:bg-muted/40",
-                    rowTintFor(ticket),
-                  )}
+                  className="group relative grid min-h-[52px] w-full cursor-pointer grid-cols-[140px_104px_minmax(210px,1.3fr)_130px_minmax(260px,1.6fr)_112px_118px_112px_112px_28px] items-center bg-transparent px-4 py-2 text-left transition hover:bg-muted/30"
                 >
                   <span
-                    className={cn("pointer-events-none absolute bottom-2 left-0 top-2 w-1 rounded-full", statusDotTone[ticket.status])}
+                    className={cn("pointer-events-none absolute bottom-1.5 left-0 top-1.5 w-1", statusDotTone[ticket.status])}
                     aria-hidden="true"
                   />
 
                   <div className="flex min-w-0 flex-col items-start gap-1 pl-2">
                     <Badge
                       className={cn(
-                        "inline-flex items-center justify-start gap-1.5 whitespace-nowrap rounded-full border px-2 py-0.5 text-[10.5px] font-semibold",
+                        "inline-flex items-center justify-start gap-1.5 whitespace-nowrap rounded-full border px-2 py-0.5 text-[10px] font-medium",
                         statusTone[ticket.status],
                       )}
                     >
@@ -1196,7 +1193,7 @@ function TicketsListView({
                   <div className="min-w-0">
                     <span
                       className={cn(
-                        "inline-flex min-w-[86px] items-center justify-center gap-1 whitespace-nowrap rounded-full border px-2 py-0.5 text-[10.5px] font-semibold",
+                        "inline-flex min-w-[86px] items-center justify-center gap-1 whitespace-nowrap rounded-full border px-2 py-0.5 text-[10px] font-medium",
                         priorityTone[ticket.priority],
                       )}
                     >
@@ -1206,23 +1203,23 @@ function TicketsListView({
                   </div>
 
                   <div className="min-w-0">
-                    <div className="truncate text-[13.5px] font-bold text-foreground">
+                    <div className="truncate text-[12.5px] text-foreground">
                       {ticket.clientCode}
                     </div>
-                    <div className="truncate text-[12px] text-muted-foreground">
+                    <div className="truncate text-[11.5px] text-muted-foreground">
                       {ticket.clientName}
                     </div>
                   </div>
 
                   <div className="flex min-w-0 items-center">
-                    <span className="truncate text-[13.5px] text-foreground">{ticket.contact}</span>
+                    <span className="truncate text-[12.5px] text-foreground">{ticket.contact}</span>
                   </div>
 
                   <div className="min-w-0 pr-3">
-                    <div className="line-clamp-2 text-[14.5px] font-semibold leading-snug text-foreground">
+                    <div className="line-clamp-2 text-[13px] leading-snug text-foreground">
                       {ticket.subject}
                     </div>
-                    <div className="mt-0.5 flex min-w-0 items-center gap-1.5 text-[12px] text-muted-foreground/80">
+                    <div className="mt-0.5 flex min-w-0 items-center gap-1.5 text-[11.5px] text-muted-foreground/80">
                       <ModuleIcon className="h-3 w-3 shrink-0 text-primary/70" />
                       <span className="truncate">{ticket.module}</span>
                     </div>
@@ -1231,24 +1228,24 @@ function TicketsListView({
 
                   <div className="flex min-w-0 items-center gap-1.5">
                     <UserRound className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                    <span className="truncate text-[13.5px] font-semibold text-foreground">
+                    <span className="truncate text-[12.5px] text-foreground">
                       {ticket.attendant}
                     </span>
                   </div>
 
                   <div className="flex min-w-0 items-center gap-1.5">
                     <UserPlus className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                    <span className="truncate text-[13.5px] font-semibold text-foreground">
+                    <span className="truncate text-[12.5px] text-foreground">
                       {ticket.owner}
                     </span>
                   </div>
 
-                  <div className="flex min-w-0 items-center gap-1.5 text-[12.5px] text-muted-foreground">
+                  <div className="flex min-w-0 items-center gap-1.5 text-[12px] text-muted-foreground">
                     <CalendarClock className="h-3.5 w-3.5 shrink-0 opacity-70" />
                     <span className="whitespace-nowrap">{formatDateTime(ticket.openedAt)}</span>
                   </div>
 
-                  <div className="flex min-w-0 items-center gap-1.5 text-[12.5px] text-muted-foreground">
+                  <div className="flex min-w-0 items-center gap-1.5 text-[12px] text-muted-foreground">
                     <Clock3 className="h-3.5 w-3.5 shrink-0 opacity-70" />
                     <span className="whitespace-nowrap">{formatDateTime(ticket.updatedAt)}</span>
                   </div>
@@ -1475,16 +1472,17 @@ function RevenueStyleCards({
           key={card.tag}
           className="relative min-h-[152px] overflow-hidden rounded-[28px] border-0 bg-[#f6f7f9] pl-[74px] shadow-[0_14px_34px_rgba(15,23,42,0.08)] dark:bg-[#20263d]"
         >
-          <div className={cn("absolute inset-y-0 left-0 w-[104px] rounded-l-[28px] bg-gradient-to-b", card.tone)}>
-            <span className="absolute left-5 top-1/2 -translate-y-1/2 text-[19px] font-black text-white">
-              {card.tag}
-            </span>
+          <div className={cn("absolute inset-y-0 left-0 w-[104px] overflow-hidden rounded-l-[28px] bg-gradient-to-b", card.tone)}>
             <span
               className={cn(
                 "absolute right-[-26px] top-1/2 h-[74px] w-[74px] -translate-y-1/2 rotate-45 shadow-[10px_10px_18px_rgba(0,0,0,0.12)]",
                 card.arrow,
               )}
+              aria-hidden="true"
             />
+            <span className="absolute left-3 top-1/2 z-10 -translate-y-1/2 text-[17px] font-black tracking-tight text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)]">
+              {card.tag}
+            </span>
           </div>
 
           <div className="relative z-10 flex h-full min-h-[152px] flex-col justify-between rounded-l-[28px] bg-[#f6f7f9] px-6 py-5 dark:bg-[#20263d]">
@@ -1523,14 +1521,14 @@ function RevenueStyleCards({
   );
 }
 
-const agentProfiles: Record<string, { name: string; role: string; avatar?: string; color: string }> = {
-  PRCSUZ: { name: "Ana Ribeiro", role: "Analista de Suporte", color: "#0b97c4" },
-  PRCMAR: { name: "Marcos Ribeiro", role: "Senior Agent", color: "#e75d3c" },
-  PRCROG: { name: "Rogerio Lima", role: "Lead Agent", color: "#5fb9ba" },
-  PRCLCZ: { name: "Lucas Cruz", role: "Property Specialist", color: "#112635" },
-  PRCGGC: { name: "Guilherme Costa", role: "Sales Agent", color: "#d87c2c" },
-  PRCPED: { name: "Pedro Almeida", role: "Support Agent", color: "#7c5cff" },
-  PRCTRE: { name: "Trevisan Silva", role: "Support Agent", color: "#20bf6b" },
+const agentProfiles: Record<string, { name: string; role: string; avatar: string; color: string }> = {
+  PRCSUZ: { name: "Ana Ribeiro", role: "Analista de Suporte", color: "#0b97c4", avatar: "https://i.pravatar.cc/120?img=47" },
+  PRCMAR: { name: "Marcos Ribeiro", role: "Atendente Sênior", color: "#e75d3c", avatar: "https://i.pravatar.cc/120?img=12" },
+  PRCROG: { name: "Rogerio Lima", role: "Líder de Atendimento", color: "#5fb9ba", avatar: "https://i.pravatar.cc/120?img=15" },
+  PRCLCZ: { name: "Lucas Cruz", role: "Especialista de Suporte", color: "#112635", avatar: "https://i.pravatar.cc/120?img=33" },
+  PRCGGC: { name: "Guilherme Costa", role: "Atendente Comercial", color: "#d87c2c", avatar: "https://i.pravatar.cc/120?img=68" },
+  PRCPED: { name: "Pedro Almeida", role: "Atendente de Suporte", color: "#7c5cff", avatar: "https://i.pravatar.cc/120?img=59" },
+  PRCTRE: { name: "Trevisan Silva", role: "Atendente de Suporte", color: "#20bf6b", avatar: "https://i.pravatar.cc/120?img=51" },
 };
 
 function TopAgentsCard({ tickets }: { tickets: SupportTicket[] }) {
@@ -1549,12 +1547,12 @@ function TopAgentsCard({ tickets }: { tickets: SupportTicket[] }) {
   }, [tickets]);
 
   return (
-    <Card className="rounded-[14px] border border-white/10 bg-[#161918] p-6 text-[#dcecff] shadow-[0_18px_40px_rgba(0,0,0,0.22)]">
+    <Card className="rounded-[14px] border border-border/60 bg-card p-6 text-foreground shadow-[0_10px_26px_rgba(25,29,51,0.06)] dark:border-white/10 dark:bg-[#161918] dark:text-[#dcecff] dark:shadow-[0_18px_40px_rgba(0,0,0,0.22)]">
       <div className="mb-7 flex items-center justify-between gap-4">
-        <h3 className="text-[26px] font-black tracking-tight text-[#b9d8ff]">Top Agents</h3>
+        <h3 className="text-[26px] font-black tracking-tight text-foreground dark:text-[#b9d8ff]">Top Operadores</h3>
         <button
           type="button"
-          className="grid h-12 w-12 cursor-pointer place-items-center rounded-full border border-white/10 bg-white/[0.02] text-[#a9ccff] transition hover:bg-white/[0.06]"
+          className="grid h-12 w-12 cursor-pointer place-items-center rounded-full border border-border bg-muted/40 text-foreground transition hover:bg-muted dark:border-white/10 dark:bg-white/[0.02] dark:text-[#a9ccff] dark:hover:bg-white/[0.06]"
           aria-label="Abrir ranking de operadores"
         >
           <ArrowUpRight className="h-6 w-6" />
@@ -1565,57 +1563,50 @@ function TopAgentsCard({ tickets }: { tickets: SupportTicket[] }) {
         {agents.map((agent, index) => {
           const profile = agentProfiles[agent.operator] ?? {
             name: agent.operator,
-            role: "Support Agent",
+            role: "Atendente de Suporte",
             color: "#0b97c4",
+            avatar: `https://i.pravatar.cc/120?u=${encodeURIComponent(agent.operator)}`,
           };
-          const initials = profile.name
-            .split(" ")
-            .map((part) => part[0])
-            .join("")
-            .slice(0, 2)
-            .toUpperCase();
           const revenue = (agent.handled * 0.42 + agent.finished * 0.88).toFixed(1);
 
           return (
             <div
               key={agent.operator}
-              className="grid min-h-[86px] grid-cols-[42px_74px_minmax(0,1fr)_130px_150px] items-center gap-4 rounded-[9px] border border-white/10 bg-white/[0.015] px-5 py-4"
+              className="grid min-h-[86px] grid-cols-[42px_74px_minmax(0,1fr)_130px_110px] items-center gap-4 rounded-[9px] border border-border/60 bg-muted/30 px-5 py-4 dark:border-white/10 dark:bg-white/[0.015]"
             >
-              <span className="grid h-9 w-9 place-items-center rounded-full border border-[#0b97c4]/25 bg-[#071f2d] text-sm font-black text-[#0b97c4]">
+              <span className="grid h-9 w-9 place-items-center rounded-full border border-primary/30 bg-primary/10 text-sm font-black text-primary dark:border-[#0b97c4]/25 dark:bg-[#071f2d] dark:text-[#0b97c4]">
                 #{index + 1}
               </span>
 
-              <div className="relative h-[60px] w-[60px] overflow-visible rounded-full">
-                <div
-                  className="grid h-full w-full place-items-center rounded-full text-sm font-black text-[#9bd1ff]"
-                  style={{ background: profile.color }}
-                >
-                  {initials}
-                </div>
-                <span className="absolute bottom-1 right-0 h-3.5 w-3.5 rounded-full border-2 border-[#161918] bg-[#16a75b]" />
+              <div className="relative h-[60px] w-[60px]">
+                <img
+                  src={profile.avatar}
+                  alt={profile.name}
+                  loading="lazy"
+                  className="h-full w-full rounded-full object-cover ring-2 ring-border dark:ring-white/10"
+                />
+                <span className="absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full border-2 border-card bg-[#16a75b] dark:border-[#161918]" />
               </div>
 
               <div className="min-w-0">
-                <p className="truncate text-[17px] font-black text-[#b9d8ff]">{profile.name}</p>
-                <p className="mt-1 truncate text-sm text-[#a9b8c7]">{profile.role}</p>
+                <p className="truncate text-[17px] font-black text-foreground dark:text-[#b9d8ff]">{profile.name}</p>
+                <p className="mt-1 truncate text-sm text-muted-foreground dark:text-[#a9b8c7]">{profile.role}</p>
               </div>
 
               <div className="grid grid-cols-2 gap-4 text-center">
                 <div>
-                  <p className="text-[19px] font-black text-[#b9d8ff]">{agent.handled}</p>
-                  <p className="text-sm text-[#a9b8c7]">Atend.</p>
+                  <p className="text-[19px] font-black text-foreground dark:text-[#b9d8ff]">{agent.handled}</p>
+                  <p className="text-sm text-muted-foreground dark:text-[#a9b8c7]">Atend.</p>
                 </div>
                 <div>
-                  <p className="text-[19px] font-black text-[#b9d8ff]">{agent.finished}</p>
-                  <p className="text-sm text-[#a9b8c7]">Final.</p>
+                  <p className="text-[19px] font-black text-foreground dark:text-[#b9d8ff]">{agent.finished}</p>
+                  <p className="text-sm text-muted-foreground dark:text-[#a9b8c7]">Final.</p>
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-8 text-[#9dccff]">
-                <span className="text-sm font-bold text-[#b9d8ff]">{revenue}h</span>
-                <PhoneCall className="h-5 w-5" />
-                <MessageSquarePlus className="h-5 w-5" />
-                <MoreVertical className="h-5 w-5" />
+              <div className="text-right">
+                <p className="text-[19px] font-black text-foreground dark:text-[#b9d8ff]">{revenue}h</p>
+                <p className="text-sm text-muted-foreground dark:text-[#a9b8c7]">Horas atend.</p>
               </div>
             </div>
           );
@@ -1626,28 +1617,28 @@ function TopAgentsCard({ tickets }: { tickets: SupportTicket[] }) {
 }
 
 const statisticsDays = [
-  { day: "11", weekday: "THU" },
-  { day: "12", weekday: "FRI" },
-  { day: "13", weekday: "SAT", warm: true },
-  { day: "14", weekday: "SUN", warm: true },
-  { day: "15", weekday: "MON" },
-  { day: "16", weekday: "TUE" },
-  { day: "17", weekday: "WED" },
-  { day: "18", weekday: "THU" },
-  { day: "19", weekday: "FRI" },
-  { day: "20", weekday: "SAT", warm: true },
-  { day: "21", weekday: "SUN", warm: true },
-  { day: "22", weekday: "MON" },
-  { day: "23", weekday: "TUE" },
-  { day: "24", weekday: "WED" },
-  { day: "25", weekday: "THU" },
-  { day: "26", weekday: "FRI" },
-  { day: "27", weekday: "SAT", warm: true },
-  { day: "28", weekday: "SUN", warm: true },
-  { day: "29", weekday: "MON" },
-  { day: "30", weekday: "TUE", active: true },
-  { day: "31", weekday: "WED" },
-  { day: "01", weekday: "THU", outlined: true },
+  { day: "11", weekday: "QUI" },
+  { day: "12", weekday: "SEX" },
+  { day: "13", weekday: "SAB", warm: true },
+  { day: "14", weekday: "DOM", warm: true },
+  { day: "15", weekday: "SEG" },
+  { day: "16", weekday: "TER" },
+  { day: "17", weekday: "QUA" },
+  { day: "18", weekday: "QUI" },
+  { day: "19", weekday: "SEX" },
+  { day: "20", weekday: "SAB", warm: true },
+  { day: "21", weekday: "DOM", warm: true },
+  { day: "22", weekday: "SEG" },
+  { day: "23", weekday: "TER" },
+  { day: "24", weekday: "QUA" },
+  { day: "25", weekday: "QUI" },
+  { day: "26", weekday: "SEX" },
+  { day: "27", weekday: "SAB", warm: true },
+  { day: "28", weekday: "DOM", warm: true },
+  { day: "29", weekday: "SEG" },
+  { day: "30", weekday: "TER", active: true },
+  { day: "31", weekday: "QUA" },
+  { day: "01", weekday: "QUI", outlined: true },
 ];
 
 const hourlyStats = [
@@ -1669,13 +1660,13 @@ function StatisticsCard() {
   return (
     <Card className="rounded-[14px] border border-border/60 bg-white p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)] dark:bg-[#20263d]">
       <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
-        <h3 className="text-[28px] font-black tracking-tight text-foreground">Statistics</h3>
+        <h3 className="text-[28px] font-black tracking-tight text-foreground">Estatísticas</h3>
         <button
           type="button"
           className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-md bg-muted/60 px-4 text-sm font-semibold text-foreground"
         >
           <CalendarClock className="h-4 w-4" />
-          Last 7 Days
+          Últimos 7 dias
         </button>
       </div>
 
@@ -1737,11 +1728,11 @@ function StatisticsCard() {
                 fontSize: 12,
               }}
             />
-            <Bar dataKey="thisWeek" name="This Week" fill="url(#statsPurple)" radius={[5, 5, 0, 0]} barSize={58} />
+            <Bar dataKey="thisWeek" name="Esta semana" fill="url(#statsPurple)" radius={[5, 5, 0, 0]} barSize={58} />
             <Line
               type="monotone"
               dataKey="lastWeek"
-              name="Last Week"
+              name="Semana passada"
               stroke="#89c2b7"
               strokeWidth={2.5}
               dot={{ r: 4, strokeWidth: 3, stroke: "#89c2b7", fill: "#ffffff" }}
@@ -1752,10 +1743,10 @@ function StatisticsCard() {
 
       <div className="mt-2 flex flex-wrap justify-end gap-8 text-xs font-semibold text-muted-foreground">
         <span className="inline-flex items-center gap-2">
-          <span className="h-3 w-3 rounded-sm bg-[#a779c7]" /> This Week
+          <span className="h-3 w-3 rounded-sm bg-[#a779c7]" /> Esta semana
         </span>
         <span className="inline-flex items-center gap-2">
-          <span className="h-3 w-3 rounded-full border-2 border-[#89c2b7]" /> Last Week
+          <span className="h-3 w-3 rounded-full border-2 border-[#89c2b7]" /> Semana passada
         </span>
       </div>
     </Card>
