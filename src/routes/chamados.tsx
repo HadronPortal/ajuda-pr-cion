@@ -1232,10 +1232,7 @@ function TicketsListView({
                     </div>
                   </div>
 
-                  <div className="flex min-w-0 items-center gap-2">
-                    <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-primary/15 text-[10.5px] font-bold text-primary">
-                      {initial}
-                    </span>
+                  <div className="flex min-w-0 items-center">
                     <span className="truncate text-[13.5px] text-foreground">{ticket.contact}</span>
                   </div>
 
