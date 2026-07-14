@@ -479,8 +479,6 @@ export function TicketDetailSheet({
                     setTimelineOpen(true);
                   }}
                 />
-                <SideItem
-                  icon={MessageCircle}
                   label="Chat"
                   collapsed={navCollapsed}
                   active={activeAction === "chat"}
