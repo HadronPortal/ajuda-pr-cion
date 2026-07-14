@@ -641,10 +641,10 @@ export function TicketDetailSheet({
           {/* fim painel esquerdo */}
 
 
-          {/* Painel direito — Chat (card separado) */}
-          <TicketChatPanel
-            ticket={ticket}
-            className="hidden max-h-[90vh] overflow-hidden rounded-2xl border border-border shadow-[0_30px_80px_rgba(0,0,0,0.35)] xl:flex"
+          {/* Painel direito — Histórico do chamado (timeline) */}
+          <TicketHistorySidePanel
+            events={timelineEvents}
+            className="hidden max-h-[90vh] overflow-hidden rounded-2xl border border-border bg-card shadow-[0_30px_80px_rgba(0,0,0,0.35)] xl:flex"
           />
 
         </DialogContent>
