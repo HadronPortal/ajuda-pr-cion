@@ -345,10 +345,19 @@ function TicketsPage() {
       if (filters.priority !== "Todas" && ticket.priority !== filters.priority) return false;
       if (sigla && !ticket.clientCode.toLowerCase().includes(sigla)) return false;
       if (filters.operator !== "Todos") {
-        const op = filters.operator;
-        if (filters.operatorType === "Atendente" && ticket.attendant !== op) return false;
-        if (filters.operatorType === "Responsável" && ticket.owner !== op) return false;
-        if (filters.operatorType === "Todos" && ticket.attendant !== op && ticket.owner !== op) return false;
+        const normalize = (v: string) =>
+          (v ?? "")
+            .toString()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .trim()
+            .toLowerCase();
+        const op = normalize(filters.operator);
+        const att = normalize(ticket.attendant);
+        const own = normalize(ticket.owner);
+        if (filters.operatorType === "Atendente" && att !== op) return false;
+        if (filters.operatorType === "Responsável" && own !== op) return false;
+        if (filters.operatorType === "Todos" && att !== op && own !== op) return false;
       }
       if (filters.dateStart || filters.dateEnd) {
         const raw = filters.dateType === "Registro" ? ticket.openedAt : ticket.updatedAt;
