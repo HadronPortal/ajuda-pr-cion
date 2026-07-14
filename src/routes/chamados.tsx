@@ -30,6 +30,7 @@ import {
   ChevronsRight,
   ChevronsUpDown,
   Clock3,
+  Filter,
   FolderKanban,
   Headphones,
   History,
@@ -45,6 +46,12 @@ import {
   UserPlus,
   UserRound,
 } from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { AppShell, PageHeader } from "@/components/portal/AppShell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
