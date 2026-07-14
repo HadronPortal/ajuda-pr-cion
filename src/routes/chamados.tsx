@@ -1283,7 +1283,7 @@ function TicketsListView({
                     aria-hidden="true"
                   />
 
-                  <div className="flex min-w-0 flex-col items-stretch gap-1 pl-2">
+                  <div className="flex min-w-0 flex-col items-stretch gap-1 self-start pl-2 pt-1">
                     <Badge
                       className={cn(
                         "inline-flex w-full items-center justify-center gap-1.5 whitespace-nowrap rounded-full border px-2 py-0.5 text-[10px] font-medium",
@@ -1304,7 +1304,7 @@ function TicketsListView({
                   </div>
 
 
-                  <div className="min-w-0">
+                  <div className="min-w-0 self-start pt-1">
                     <span
                       className={cn(
                         "inline-flex min-w-[86px] items-center justify-center gap-1 whitespace-nowrap rounded-full border px-2 py-0.5 text-[10px] font-medium",
@@ -1315,6 +1315,7 @@ function TicketsListView({
                       {ticket.priority}
                     </span>
                   </div>
+
 
                   <div className="min-w-0">
                     <div className="truncate text-[12.5px] text-foreground">
