@@ -340,12 +340,7 @@ export function PastAttendanceDetailModal({
                   >
                     <span
                       aria-hidden
-                      className={cn(
-                        "relative z-10 grid h-8 w-8 shrink-0 place-items-center rounded-full ring-2 ring-card",
-                        isLast
-                          ? "bg-success text-success-foreground"
-                          : "bg-primary/12 text-primary",
-                      )}
+                      className="relative z-10 grid h-8 w-8 shrink-0 place-items-center rounded-full bg-card ring-2 ring-card text-muted-foreground"
                     >
                       <Icon className="h-3.5 w-3.5" />
                     </span>
