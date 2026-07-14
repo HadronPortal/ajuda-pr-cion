@@ -636,9 +636,12 @@ export function TicketDetailSheet({
           {/* fim painel esquerdo */}
 
 
-          {/* Painel direito — Histórico do chamado (timeline) */}
-          <TicketHistorySidePanel
-            events={timelineEvents}
+          {/* Painel direito — Histórico de atendimentos anteriores */}
+          <TicketPastAttendancesSidePanel
+            ticket={ticket}
+            items={historyList}
+            onSelect={setSelectedHistory}
+            onSeeAll={() => setHistoryOpen(true)}
             className="hidden max-h-[90vh] overflow-hidden rounded-2xl border border-border bg-card shadow-[0_30px_80px_rgba(0,0,0,0.35)] xl:flex"
           />
 
