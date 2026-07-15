@@ -80,8 +80,8 @@ function ServiceCard({ svc }: { svc: SefazService }) {
         <StatusIcon status={svc.status} className="h-4 w-4" />
       </span>
       <div className="min-w-0 flex-1">
-        <p className="text-[13px] font-bold leading-none text-foreground">{svc.name}</p>
-        <p className={cn("mt-1 text-[10.5px] font-semibold leading-none", tone.text)}>
+        <p className="text-[13px] font-semibold leading-none text-foreground">{svc.name}</p>
+        <p className={cn("mt-1 text-[10.5px] font-medium leading-none", tone.text)}>
           {svc.status}
         </p>
         {svc.affectedUf && svc.affectedUf.length > 0 && (
@@ -136,7 +136,7 @@ export function SefazStatusPanel() {
               <Activity className="h-5 w-5" />
             </span>
             <div className="min-w-0">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-white/80">
+              <p className="text-[11px] font-medium uppercase tracking-wider text-white/80">
                 Status SEFAZ
               </p>
               <p className="text-[10.5px] text-white/70">
@@ -144,7 +144,7 @@ export function SefazStatusPanel() {
               </p>
             </div>
           </div>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/18 px-3 py-1.5 text-[11px] font-bold text-white">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/18 px-3 py-1.5 text-[11px] font-medium text-white">
             <span className={cn("h-1.5 w-1.5 rounded-full", tone.dot)} />
             {data?.generalStatus ?? "-"}
           </span>
@@ -156,7 +156,7 @@ export function SefazStatusPanel() {
             return (
               <span
                 key={s.name}
-                className="inline-flex items-center gap-1.5 rounded-full bg-white/12 px-2.5 py-1 text-[10.5px] font-semibold text-white"
+                className="inline-flex items-center gap-1.5 rounded-full bg-white/12 px-2.5 py-1 text-[10.5px] font-medium text-white"
               >
                 <span className={cn("h-1.5 w-1.5 rounded-full", t.dot)} />
                 {s.name}
@@ -166,7 +166,7 @@ export function SefazStatusPanel() {
         </div>
 
         <div className="mt-4">
-          <p className="mb-2 text-[11px] font-semibold text-white/86">
+          <p className="mb-2 text-[11px] font-medium text-white/86">
             Histórico de status (últimas 24h)
           </p>
           <div className="h-[132px] overflow-visible">
@@ -222,7 +222,7 @@ export function SefazStatusPanel() {
             </div>
           );
         })()}
-          <div className="mt-1 flex justify-center gap-5 text-[10px] font-semibold text-white/82">
+          <div className="mt-1 flex justify-center gap-5 text-[10px] font-medium text-white/82">
             <ChartLegendDot color="#55e3ad" label="NF-e" />
             <ChartLegendDot color="#ffd04d" label="NFC-e" />
             <ChartLegendDot color="#59d9ff" label="CT-e" />
@@ -288,8 +288,8 @@ export function SefazStatusPanel() {
                     </span>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-2">
-                        <p className="text-[13px] font-bold text-foreground">{svc.name}</p>
-                        <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-semibold", t.badge)}>
+                        <p className="text-[13px] font-semibold text-foreground">{svc.name}</p>
+                        <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-medium", t.badge)}>
                           {svc.status}
                         </span>
                       </div>

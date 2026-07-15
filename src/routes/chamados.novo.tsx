@@ -375,7 +375,7 @@ function Field({
 }) {
   return (
     <div>
-      <Label className="mb-1.5 block text-[12px] font-semibold text-foreground">
+      <Label className="mb-1.5 block text-[12px] font-medium text-foreground">
         {label}
         {required && <span className="ml-1 text-destructive">*</span>}
       </Label>
@@ -395,7 +395,7 @@ function PreviewItem({
 }) {
   return (
     <div className="min-w-0">
-      <p className="inline-flex items-center gap-1 text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">
+      <p className="inline-flex items-center gap-1 text-[10.5px] font-medium uppercase tracking-wide text-muted-foreground">
         <Icon className="h-3 w-3" />
         {label}
       </p>

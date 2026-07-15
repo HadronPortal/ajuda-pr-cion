@@ -646,7 +646,7 @@ function KanbanPage() {
                   ))}
                   <button
                     onClick={handleNewColumn}
-                    className="flex h-7 w-[210px] shrink-0 cursor-pointer items-center gap-1.5 self-start rounded-lg border border-blue-500/30 bg-blue-500/10 px-2.5 text-[11px] font-semibold text-blue-700 backdrop-blur transition hover:bg-blue-500/20 dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:hover:bg-white/[0.12]"
+                    className="flex h-7 w-[210px] shrink-0 cursor-pointer items-center gap-1.5 self-start rounded-lg border border-blue-500/30 bg-blue-500/10 px-2.5 text-[11px] font-medium text-blue-700 backdrop-blur transition hover:bg-blue-500/20 dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:hover:bg-white/[0.12]"
                   >
                     <Plus className="h-3.5 w-3.5" />
                     Adicionar outra lista
@@ -695,7 +695,7 @@ function KanbanPage() {
                 })}
               <button
                 onClick={handleNewColumn}
-                className="mt-3 flex h-8 w-full cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-blue-500/30 bg-blue-500/10 px-3 text-[11px] font-semibold text-blue-700 transition hover:bg-blue-500/20 dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:hover:bg-white/[0.12]"
+                className="mt-3 flex h-8 w-full cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-blue-500/30 bg-blue-500/10 px-3 text-[11px] font-medium text-blue-700 transition hover:bg-blue-500/20 dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:hover:bg-white/[0.12]"
               >
                 <Plus className="h-3.5 w-3.5" />
                 Adicionar outra lista
@@ -881,7 +881,7 @@ function ViewToggleButton({
     <button
       onClick={onClick}
       className={cn(
-        "inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-md px-2.5 text-[11px] font-semibold transition",
+        "inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-md px-2.5 text-[11px] font-medium transition",
         active
           ? "bg-violet-600 text-white shadow-sm"
           : "text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/8 dark:hover:text-white",

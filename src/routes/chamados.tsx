@@ -510,7 +510,7 @@ function TicketsPage() {
           <div className="flex-1 overflow-y-auto px-6 py-5">
             <div className="space-y-6">
               <div className="space-y-2">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                   Busca
                 </p>
                 <div className="relative">
@@ -526,7 +526,7 @@ function TicketsPage() {
               </div>
 
               <div className="space-y-2">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                   Sigla do cliente
                 </p>
                 <input
@@ -539,7 +539,7 @@ function TicketsPage() {
               </div>
 
               <div className="space-y-2">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                   Status
                 </p>
                 <div className="grid grid-cols-2 gap-2">
@@ -570,7 +570,7 @@ function TicketsPage() {
               </div>
 
               <div className="space-y-2">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                   Prioridade
                 </p>
                 <div className="grid grid-cols-2 gap-2">
@@ -602,7 +602,7 @@ function TicketsPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
-                  <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                     Tipo operador
                   </p>
                   <select
@@ -618,7 +618,7 @@ function TicketsPage() {
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                     Operador
                   </p>
                   <select
@@ -637,7 +637,7 @@ function TicketsPage() {
               </div>
 
               <div className="space-y-2">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                   Tipo data
                 </p>
                 <select
@@ -653,7 +653,7 @@ function TicketsPage() {
               </div>
 
               <div className="space-y-2">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                   Período
                 </p>
                 <DateRangeFilter
@@ -818,12 +818,12 @@ function TicketCard({
           </div>
         </div>
         <div className="flex shrink-0 flex-col items-end gap-1">
-          <span className="font-mono text-[10.5px] font-semibold text-muted-foreground">
+          <span className="font-mono text-[10.5px] font-medium text-muted-foreground">
             {ticket.protocol}
           </span>
           <Badge
             className={cn(
-              "whitespace-nowrap rounded-full border px-2 py-0.5 text-[10.5px] font-semibold",
+              "whitespace-nowrap rounded-full border px-2 py-0.5 text-[10.5px] font-medium",
               statusTone[ticket.status],
             )}
           >
@@ -1067,7 +1067,7 @@ function SortableGridHeader({
       type="button"
       onClick={() => onSort(sortKey)}
       aria-sort={active ? (sort.dir === "asc" ? "ascending" : "descending") : "none"}
-      className="flex min-w-0 cursor-pointer select-none items-center gap-1 text-left text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground transition hover:text-foreground"
+      className="flex min-w-0 cursor-pointer select-none items-center gap-1 text-left text-[10.5px] font-medium uppercase tracking-wide text-muted-foreground transition hover:text-foreground"
     >
       <span className="truncate">{label}</span>
       <Arrow
@@ -1388,7 +1388,7 @@ function TicketsListView({
             <div className="flex flex-wrap items-center gap-1.5">
               <Badge
                 className={cn(
-                  "inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-semibold",
+                  "inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-medium",
                   statusTone[ticket.status],
                 )}
               >
@@ -1397,7 +1397,7 @@ function TicketsListView({
               </Badge>
               <span
                 className={cn(
-                  "inline-flex min-w-[80px] items-center justify-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold",
+                  "inline-flex min-w-[80px] items-center justify-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-medium",
                   priorityTone[ticket.priority],
                 )}
               >
@@ -1408,7 +1408,7 @@ function TicketsListView({
                 {ticket.protocol}
               </span>
             </div>
-            <p className="mt-1.5 truncate text-[13px] font-bold text-foreground">
+            <p className="mt-1.5 truncate text-[13px] font-semibold text-foreground">
               {ticket.subject}
             </p>
             <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
@@ -1493,7 +1493,7 @@ function InfoRow({
         <dt className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
           {label}
         </dt>
-        <dd className="mt-0.5 truncate text-[12px] font-semibold text-foreground">{value}</dd>
+        <dd className="mt-0.5 truncate text-[12px] font-medium text-foreground">{value}</dd>
       </div>
     </div>
   );
@@ -1612,7 +1612,7 @@ function RevenueStyleCards({
               <div className="flex min-w-0 items-center gap-2">
                 <span
                   className={cn(
-                    "rounded-full px-2 py-1 text-[13px] font-bold",
+                    "rounded-full px-2 py-1 text-[13px] font-semibold",
                     card.positive ? "bg-emerald-100 text-emerald-600" : "bg-rose-100 text-rose-600",
                   )}
                 >
@@ -1980,7 +1980,7 @@ function DailyVolumeCard() {
             Abertos, finalizados e atrasados na semana atual.
           </p>
         </div>
-        <div className="flex rounded-full bg-primary/10 p-1 text-[11px] font-semibold text-muted-foreground">
+        <div className="flex rounded-full bg-primary/10 p-1 text-[11px] font-medium text-muted-foreground">
           {["Semana", "Mês", "Trim."].map((item) => (
             <button
               key={item}
@@ -2362,7 +2362,7 @@ function SourceModuleCard({
       </div>
 
       <div className="mt-4">
-        <p className="mb-2 inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+        <p className="mb-2 inline-flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
           <PhoneCall className="h-3 w-3" /> Origem
         </p>
         <div className="space-y-2">
@@ -2373,7 +2373,7 @@ function SourceModuleCard({
       </div>
 
       <div className="mt-5">
-        <p className="mb-2 inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+        <p className="mb-2 inline-flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
           <Layers className="h-3 w-3" /> Módulo
         </p>
         <div className="space-y-2">
@@ -2404,7 +2404,7 @@ function BarRow({
       <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
         <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: color }} />
       </div>
-      <span className="text-right text-[12px] font-semibold tabular-nums text-foreground">{value}</span>
+      <span className="text-right text-[12px] font-medium tabular-nums text-foreground">{value}</span>
     </div>
   );
 }

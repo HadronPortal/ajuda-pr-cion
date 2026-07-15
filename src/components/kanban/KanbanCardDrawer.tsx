@@ -477,7 +477,7 @@ export function KanbanCardDrawer({
                       className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card px-3 py-2"
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="h-8 w-8 shrink-0 grid place-items-center rounded bg-muted text-[10px] font-semibold uppercase text-muted-foreground">
+                        <div className="h-8 w-8 shrink-0 grid place-items-center rounded bg-muted text-[10px] font-medium uppercase text-muted-foreground">
                           {a.kind.slice(0, 4)}
                         </div>
                         <div className="min-w-0">
@@ -644,7 +644,7 @@ export function KanbanCardDrawer({
                           <Avatar className="h-8 w-8 shrink-0">
                             <AvatarFallback
                               className={cn(
-                                "text-[10px] font-semibold",
+                                "text-[10px] font-medium",
                                 author?.color,
                               )}
                             >
@@ -677,7 +677,7 @@ export function KanbanCardDrawer({
                   <Avatar className="h-8 w-8 shrink-0 mt-1">
                     <AvatarFallback
                       className={cn(
-                        "text-[10px] font-semibold",
+                        "text-[10px] font-medium",
                         memberById(CURRENT_USER_ID)?.color,
                       )}
                     >
@@ -794,7 +794,7 @@ export function KanbanCardDrawer({
                 {assignee && (
                   <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
                     <Avatar className="h-6 w-6">
-                      <AvatarFallback className={cn("text-[10px] font-semibold", assignee.color)}>
+                      <AvatarFallback className={cn("text-[10px] font-medium", assignee.color)}>
                         {assignee.initials}
                       </AvatarFallback>
                     </Avatar>
@@ -844,7 +844,7 @@ export function KanbanCardDrawer({
                               )}
                             >
                               <Avatar className="h-6 w-6">
-                                <AvatarFallback className={cn("text-[10px] font-semibold", m.color)}>
+                                <AvatarFallback className={cn("text-[10px] font-medium", m.color)}>
                                   {m.initials}
                                 </AvatarFallback>
                               </Avatar>

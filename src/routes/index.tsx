@@ -88,10 +88,10 @@ function ResumoHojeSlide() {
   return (
     <>
       <div className="flex items-center justify-between gap-4">
-        <p className="text-[11px] font-bold uppercase tracking-wider text-white/86">
+        <p className="text-[11px] font-medium uppercase tracking-wider text-white/86">
           Resumo de hoje
         </p>
-        <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-white/66">
+        <span className="inline-flex items-center gap-1.5 text-[10px] font-medium text-white/66">
           <BarChart3 className="h-3.5 w-3.5" />
           Volume
         </span>
@@ -102,7 +102,7 @@ function ResumoHojeSlide() {
         <p className="mt-1 text-[30px] font-extrabold leading-none tracking-normal md:text-[34px]">
           48 chamados
         </p>
-        <p className="mt-2 text-[12px] font-semibold text-white/76">
+        <p className="mt-2 text-[12px] font-medium text-white/76">
           39 foram finalizados pela equipe
         </p>
       </div>
@@ -130,12 +130,12 @@ function ResumoHojeSlide() {
         <div className="relative flex h-full items-end justify-between gap-3 px-5">
           {bars.map((bar) => (
             <div key={bar.label} className="flex h-full flex-1 flex-col items-center justify-end">
-              <span className="mb-1 text-[12px] font-bold text-white">{bar.value}</span>
+              <span className="mb-1 text-[12px] font-medium text-white">{bar.value}</span>
               <span
                 className="w-full max-w-[44px] rounded-t-lg bg-[linear-gradient(180deg,#49d4ff_0%,#5a5cf7_100%)] shadow-[0_10px_22px_rgba(33,118,255,0.38)]"
                 style={{ height: bar.height }}
               />
-              <span className="mt-2 whitespace-nowrap text-[10px] font-semibold text-white/74">
+              <span className="mt-2 whitespace-nowrap text-[10px] font-medium text-white/74">
                 {bar.label}
               </span>
             </div>
@@ -155,10 +155,10 @@ function SlaSlide() {
   return (
     <>
       <div className="flex items-center justify-between gap-4">
-        <p className="text-[11px] font-bold uppercase tracking-wider text-white/86">
+        <p className="text-[11px] font-medium uppercase tracking-wider text-white/86">
           SLA e atrasos
         </p>
-        <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-white/66">
+        <span className="inline-flex items-center gap-1.5 text-[10px] font-medium text-white/66">
           <AlertTriangle className="h-3.5 w-3.5" />
           Prioridade
         </span>
@@ -169,7 +169,7 @@ function SlaSlide() {
         <p className="mt-1 text-[30px] font-extrabold leading-none tracking-normal md:text-[34px]">
           7 chamados <span className="text-[#ffd166]">em risco</span>
         </p>
-        <p className="mt-2 text-[12px] font-semibold text-white/76">
+        <p className="mt-2 text-[12px] font-medium text-white/76">
           3 já ultrapassaram o SLA
         </p>
       </div>
@@ -193,10 +193,10 @@ function FilaSlide() {
   return (
     <>
       <div className="flex items-center justify-between gap-4">
-        <p className="text-[11px] font-bold uppercase tracking-wider text-white/86">
+        <p className="text-[11px] font-medium uppercase tracking-wider text-white/86">
           Fila de atendimento
         </p>
-        <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-white/66">
+        <span className="inline-flex items-center gap-1.5 text-[10px] font-medium text-white/66">
           <Users className="h-3.5 w-3.5" />
           Por atendente
         </span>
@@ -207,7 +207,7 @@ function FilaSlide() {
         <p className="mt-1 text-[30px] font-extrabold leading-none tracking-normal md:text-[34px]">
           5 em atendimento
         </p>
-        <p className="mt-2 text-[12px] font-semibold text-white/76">
+        <p className="mt-2 text-[12px] font-medium text-white/76">
           12 aguardando primeira resposta
         </p>
       </div>
@@ -215,7 +215,7 @@ function FilaSlide() {
       <div className="relative z-10 mt-4 space-y-1.5">
         {rows.map((r) => (
           <div key={r.label} className="flex items-center gap-3">
-            <span className="w-[110px] shrink-0 truncate text-[11px] font-semibold text-white/85">
+            <span className="w-[110px] shrink-0 truncate text-[11px] font-medium text-white/85">
               {r.label}
             </span>
             <div className="relative h-2 flex-1 overflow-hidden rounded-full bg-white/12">
@@ -228,7 +228,7 @@ function FilaSlide() {
                 style={{ width: r.width }}
               />
             </div>
-            <span className="w-6 text-right text-[11px] font-bold text-white">{r.value}</span>
+            <span className="w-6 text-right text-[11px] font-medium text-white">{r.value}</span>
           </div>
         ))}
       </div>
@@ -310,7 +310,7 @@ function SummaryProgress({
         : "from-[#54e1a7] to-[#6bd9ff]";
   return (
     <div className="rounded-xl border border-white/10 bg-white/10 px-3 py-1.5">
-      <div className="flex items-center justify-between gap-3 text-[11px] font-semibold">
+      <div className="flex items-center justify-between gap-3 text-[11px] font-medium">
         <span className="inline-flex items-center gap-2 text-white/86">
           <span className={`grid h-4 w-4 shrink-0 place-items-center rounded-full bg-white/12 ${iconColor}`}>
             <Icon className="h-3 w-3" />
@@ -439,7 +439,7 @@ function HomePage() {
           <div className="min-w-0">
             <div className="relative flex h-full min-h-[200px] flex-col overflow-hidden rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur-md lg:h-[266px]">
               <div className="flex items-center justify-between">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-white/80">
+                <p className="text-[11px] font-medium uppercase tracking-wider text-white/80">
                   Resumo de ontem
                 </p>
                 <span className="text-[10px] font-medium text-white/60">

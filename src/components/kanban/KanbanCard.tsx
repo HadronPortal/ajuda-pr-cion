@@ -115,7 +115,7 @@ export function KanbanCardItem({
 
       <div className="mb-2 flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="line-clamp-2 text-[12px] font-semibold leading-snug text-slate-900 dark:text-white">
+          <p className="line-clamp-2 text-[12px] font-medium leading-snug text-slate-900 dark:text-white">
             {card.title}
           </p>
           <p className="mt-1 text-[11px] font-medium text-slate-500 line-clamp-1 dark:text-slate-400">
