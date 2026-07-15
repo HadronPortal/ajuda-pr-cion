@@ -102,32 +102,34 @@ export function TicketHistoryList({
 
   if (timeline) {
     return (
-      <ul className="relative space-y-2.5 py-1 before:absolute before:bottom-5 before:left-[20px] before:top-5 before:w-px before:bg-border dark:before:bg-[#435568] sm:before:left-[26px]">
+      <ul className="relative space-y-2.5 py-1 before:absolute before:bottom-6 before:left-[7px] before:top-[22px] before:w-px before:bg-border dark:before:bg-[#435568]">
         {items.map((item) => {
           const date = formatTimelineDate(item.date);
 
           return (
             <li
               key={item.id}
-              className="relative grid grid-cols-[42px_minmax(0,1fr)] gap-3 sm:grid-cols-[54px_minmax(0,1fr)] sm:gap-4"
+              className="relative grid grid-cols-[58px_minmax(0,1fr)] gap-3 sm:grid-cols-[64px_minmax(0,1fr)] sm:gap-4"
             >
-              <div className="relative z-10 flex flex-col items-center pt-3 text-center">
+              <div className="relative z-10 flex items-start gap-1.5 pt-3">
                 <span
                   aria-hidden
                   className={cn(
-                    "mb-2 h-3 w-3 rounded-full border-2 border-background shadow-[0_0_0_1px_rgba(255,255,255,0.08)]",
+                    "mt-[5px] h-3 w-3 shrink-0 rounded-full border-2 border-background shadow-[0_0_0_1px_rgba(255,255,255,0.08)]",
                     priorityAccent[item.priority],
                   )}
                 />
-                <span className="text-[15px] font-medium leading-none text-foreground dark:text-[#eef4fa]">
-                  {date.day}
-                </span>
-                <span className="mt-1 text-[9px] font-medium uppercase tracking-wide text-muted-foreground dark:text-[#a9b7c5]">
-                  {date.month}
-                </span>
-                <span className="mt-2 text-[9px] text-muted-foreground dark:text-[#7f91a3]">
-                  {date.time}
-                </span>
+                <div className="flex min-w-0 flex-col leading-none">
+                  <span className="text-[15px] font-medium text-foreground dark:text-[#eef4fa]">
+                    {date.day}
+                  </span>
+                  <span className="mt-1 text-[9px] font-medium uppercase tracking-wide text-muted-foreground dark:text-[#a9b7c5]">
+                    {date.month}
+                  </span>
+                  <span className="mt-2 text-[9px] text-muted-foreground dark:text-[#7f91a3]">
+                    {date.time}
+                  </span>
+                </div>
               </div>
 
               <article className="grid min-h-[82px] grid-cols-1 gap-3 rounded-lg border border-border bg-card px-3.5 py-3 shadow-[0_5px_16px_rgba(20,30,45,0.05)] dark:border-[#25384a] dark:bg-[#102335] dark:shadow-[0_8px_20px_rgba(0,0,0,0.18)] sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
