@@ -222,24 +222,36 @@ export function TicketFloatingChat({ ticket }: { ticket: SupportTicket }) {
       {/* FAB */}
       <button
         type="button"
-        onClick={() => {
+        onPointerDown={(e) => e.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
           setOpen(true);
           setMinimized(false);
         }}
         title="Abrir chat"
         aria-label="Abrir chat"
+        style={{ cursor: "pointer" }}
         className={cn(
-          "fixed bottom-6 right-6 z-[80] grid h-12 w-12 cursor-pointer place-items-center rounded-full bg-primary text-primary-foreground shadow-[0_10px_30px_rgba(0,0,0,0.25)] transition hover:brightness-110",
+          "fixed bottom-6 right-6 z-[100] grid place-items-center rounded-full bg-primary text-primary-foreground shadow-[0_10px_30px_rgba(0,0,0,0.25)] transition hover:brightness-110",
           open && !minimized && "hidden",
         )}
       >
-        <MessageSquare className="h-5 w-5" />
+        <span
+          aria-hidden
+          style={{ width: 52, height: 52, cursor: "pointer" }}
+          className="grid place-items-center rounded-full"
+        >
+          <MessageSquare style={{ width: 22, height: 22 }} />
+        </span>
         {unread > 0 && (
-          <span className="absolute -right-0.5 -top-0.5 grid h-5 min-w-5 place-items-center rounded-full bg-destructive px-1 text-[10px] font-semibold text-destructive-foreground ring-2 ring-background">
+          <span className="pointer-events-none absolute right-0 top-0 grid h-5 min-w-5 place-items-center rounded-full bg-destructive px-1 text-[10px] font-semibold text-destructive-foreground ring-2 ring-background">
             {unread > 9 ? "9+" : unread}
           </span>
         )}
       </button>
+
 
       {showWindow &&
         (isMobile ? (
