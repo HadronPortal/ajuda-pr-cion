@@ -213,7 +213,7 @@ export function PastAttendanceDetailModal({
                   {attendance.priority}
                 </Badge>
               </div>
-              <h2 className="mt-1 text-[18px] font-bold leading-tight text-foreground">
+              <h2 className="mt-1 text-[18px] font-medium leading-tight text-foreground">
                 {attendance.title}
               </h2>
               {ticket && (
