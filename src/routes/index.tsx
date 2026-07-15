@@ -121,30 +121,6 @@ function HomePage() {
 
   const displayName = `PRC ${currentUser.name}`;
 
-  const slides = [
-    {
-      eyebrow: "Volume",
-      primary: "Ontem foram abertos 48 chamados",
-      secondary: "39 foram finalizados pela equipe",
-    },
-    {
-      eyebrow: "Performance",
-      primary: "SLA médio: 82%",
-      secondary: "Tempo médio de atendimento: 1h42",
-    },
-    {
-      eyebrow: "Destaques",
-      primary: "Módulo mais acionado: Vendas - NFE",
-      secondary: "Cliente com maior volume: Coopertransc",
-    },
-  ];
-
-  const [slideIdx, setSlideIdx] = useState(0);
-  useEffect(() => {
-    const id = setInterval(() => setSlideIdx((i) => (i + 1) % slides.length), 4500);
-    return () => clearInterval(id);
-  }, [slides.length]);
-
   const personalTicketsCount = personalTickets.length;
   const personalTicketsLabel = personalTicketsCount === 1 ? "chamado" : "chamados";
 
@@ -152,84 +128,9 @@ function HomePage() {
     <AppShell>
       {/* Hero */}
       <section className="mb-6">
-        <div className="grid gap-3 xl:grid-cols-[minmax(0,1.75fr)_minmax(360px,0.95fr)]">
-          <SefazStatusPanel />
-          <TodaySummaryCard />
-        </div>
-
+        <SefazStatusPanel />
       </section>
 
-      <section className="hidden">
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)] lg:items-stretch">
-          {/* Esquerda: saudação + chips + busca */}
-          <div className="min-w-0">
-            <p className="text-xs font-semibold uppercase tracking-wider text-white/80">
-              Portal Prócion
-            </p>
-            <h1 className="mt-2 text-[24px] font-bold leading-tight md:text-[30px]">
-              {greeting}, {displayName}
-            </h1>
-
-            <div className="mt-4 flex flex-wrap gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 border border-white/15 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-sm">
-                <span className="text-sm font-bold">{personalTicketsCount}</span>
-                <span className="text-white/85">{personalTicketsLabel}</span>
-              </span>
-            </div>
-
-            <div className="mt-5 max-w-2xl lg:h-[266px]">
-              <SefazStatusPanel />
-            </div>
-
-          </div>
-
-          {/* Direita: carrossel */}
-          <div className="min-w-0">
-            <div className="relative flex h-full min-h-[200px] flex-col overflow-hidden rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur-md lg:h-[266px]">
-              <div className="flex items-center justify-between">
-                <p className="text-[11px] font-medium uppercase tracking-wider text-white/80">
-                  Resumo de ontem
-                </p>
-                <span className="text-[10px] font-medium text-white/60">
-                  {slides[slideIdx].eyebrow}
-                </span>
-              </div>
-
-              <div className="relative mt-3 flex-1">
-                {slides.map((s, i) => (
-                  <div
-                    key={i}
-                    className={`absolute inset-0 transition-all duration-500 ease-out ${
-                      i === slideIdx
-                        ? "opacity-100 translate-y-0"
-                        : "pointer-events-none opacity-0 translate-y-2"
-                    }`}
-                  >
-                    <p className="text-base font-semibold leading-snug text-white md:text-lg">
-                      {s.primary}
-                    </p>
-                    <p className="mt-1.5 text-[12.5px] leading-snug text-white/80">{s.secondary}</p>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-3 flex gap-1.5">
-                {slides.map((_, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    aria-label={`Slide ${i + 1}`}
-                    onClick={() => setSlideIdx(i)}
-                    className={`h-1.5 rounded-full transition-all ${
-                      i === slideIdx ? "w-6 bg-white" : "w-1.5 bg-white/40 hover:bg-white/60"
-                    }`}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Atalhos */}
       <section className="mb-10">
