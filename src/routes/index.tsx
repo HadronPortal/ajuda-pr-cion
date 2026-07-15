@@ -122,7 +122,7 @@ function HomePage() {
       {/* Atalhos */}
       <section className="mb-10">
         <div className="mb-4 flex items-end justify-between">
-          <h2 className="text-lg font-bold text-foreground">Atalhos</h2>
+          <h2 className="text-lg font-medium text-foreground">Atalhos</h2>
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {shortcuts.map((s) => (
@@ -151,7 +151,7 @@ function HomePage() {
         <Card className="min-w-0 overflow-hidden rounded-[14px] border-0 bg-white dark:bg-[#20263d] p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
           <div className="mb-5 flex items-end justify-between">
             <div>
-              <h3 className="text-base font-bold text-foreground">Últimos artigos</h3>
+              <h3 className="text-base font-medium text-foreground">Últimos artigos</h3>
               <p className="mt-0.5 text-xs text-muted-foreground">
                 Atualizações recentes na base de conhecimento.
               </p>
@@ -208,7 +208,7 @@ function HomePage() {
         <Card className="min-w-0 overflow-hidden rounded-[14px] border-0 bg-white dark:bg-[#20263d] p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
           <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
             <div className="min-w-0">
-              <h3 className="truncate text-base font-bold text-foreground">Últimas versões</h3>
+              <h3 className="truncate text-base font-medium text-foreground">Últimas versões</h3>
               <p className="mt-0.5 text-xs text-muted-foreground">Release notes recentes.</p>
             </div>
             <Button asChild variant="ghost" size="sm" className="shrink-0 text-primary hover:text-primary">

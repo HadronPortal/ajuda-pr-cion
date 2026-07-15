@@ -34,7 +34,7 @@ export function TicketNotesModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex max-h-[80vh] w-[calc(100vw-1rem)] max-w-none flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-background p-0 sm:w-[calc(100vw-2rem)] md:w-[560px]">
         <DialogHeader className="shrink-0 border-b border-border bg-card px-5 py-4">
-          <DialogTitle className="flex items-center gap-2 text-[16px] font-bold text-foreground">
+          <DialogTitle className="flex items-center gap-2 text-[16px] font-medium text-foreground">
             <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary/10 text-primary">
               <NotebookText className="h-4 w-4" />
             </span>

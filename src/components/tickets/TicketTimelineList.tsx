@@ -7,6 +7,7 @@ import {
   PlayCircle,
   Send,
   ShieldCheck,
+  Sparkles,
   UserPlus,
 } from "lucide-react";
 import type { TicketEvent } from "@/lib/tickets-store";
@@ -56,6 +57,12 @@ export const timelineEventPresentation: Record<
     color: "#d79531",
     softColor: "rgba(215, 149, 49, 0.24)",
     icon: FileText,
+  },
+  solution: {
+    label: "Solução aplicada",
+    color: "#20ad74",
+    softColor: "rgba(32, 173, 116, 0.24)",
+    icon: Sparkles,
   },
   closed: {
     label: "Chamado encerrado",

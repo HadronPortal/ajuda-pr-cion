@@ -501,7 +501,7 @@ function KanbanPage() {
       <div className="min-h-[calc(100vh-92px)] rounded-[18px] border border-slate-200 bg-slate-50 p-5 text-slate-900 shadow-[0_8px_24px_rgba(15,23,42,0.06)] dark:border-white/8 dark:bg-[#050c18] dark:text-slate-100 dark:shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
         <div className="mb-5 flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
           <div>
-            <h1 className="text-[22px] font-black tracking-tight text-slate-900 dark:text-white">Kanban Prócion</h1>
+            <h1 className="text-[22px] font-medium tracking-tight text-slate-900 dark:text-white">Kanban Prócion</h1>
             <p className="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400">Gestão inteligente de demandas e projetos internos</p>
           </div>
 

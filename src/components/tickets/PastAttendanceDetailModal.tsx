@@ -10,7 +10,6 @@ import {
   History,
   Layers,
   MessageSquare,
-  Play,
   Sparkles,
   Tag,
   UserRound,
@@ -24,7 +23,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { SupportTicket, TicketPriority } from "@/lib/support-tickets-data";
-import type { PastAttendance } from "@/lib/tickets-store";
+import type { PastAttendance, TicketEvent } from "@/lib/tickets-store";
+import { TicketTimelineList } from "./TicketTimelineList";
 
 const priorityChip: Record<TicketPriority, string> = {
   Alta: "bg-destructive/12 text-destructive border-destructive/25",
@@ -134,31 +134,46 @@ export function PastAttendanceDetailModal({
   const problem = PROBLEM_TEMPLATES[h % PROBLEM_TEMPLATES.length];
   const solution = SOLUTION_TEMPLATES[h % SOLUTION_TEMPLATES.length];
 
-  const timeline = [
-    { icon: FileText, label: "Chamado aberto", when: attendance.date, actor: "Cliente" },
+  const timelineEvents: TicketEvent[] = [
     {
-      icon: UserRound,
-      label: "Chamado assumido",
+      id: `${attendance.id}-evt-created`,
+      kind: "created",
+      when: attendance.date,
+      actor: "Cliente",
+      actorType: "cliente",
+      description: `Chamado aberto pelo cliente — ${attendance.title}.`,
+    },
+    {
+      id: `${attendance.id}-evt-assumed`,
+      kind: "assumed",
       when: addMinutes(attendance.date, Math.max(5, Math.floor(durationMinutes * 0.08))),
       actor: attendance.operator,
+      actorType: "suporte",
+      description: `${attendance.operator} assumiu o atendimento.`,
     },
     {
-      icon: Play,
-      label: "Atendimento iniciado",
+      id: `${attendance.id}-evt-attend`,
+      kind: "attend",
       when: addMinutes(attendance.date, Math.max(10, Math.floor(durationMinutes * 0.15))),
       actor: attendance.operator,
+      actorType: "suporte",
+      description: "Atendimento iniciado e análise do problema em andamento.",
     },
     {
-      icon: Sparkles,
-      label: "Solução aplicada",
+      id: `${attendance.id}-evt-solution`,
+      kind: "solution",
       when: addMinutes(attendance.date, Math.max(20, Math.floor(durationMinutes * 0.8))),
       actor: attendance.operator,
+      actorType: "suporte",
+      description: solution,
     },
     {
-      icon: CheckCircle2,
-      label: "Chamado finalizado",
+      id: `${attendance.id}-evt-closed`,
+      kind: "closed",
       when: closedAt,
       actor: attendance.operator,
+      actorType: "suporte",
+      description: "Chamado finalizado após validação com o cliente.",
     },
   ];
 
@@ -213,7 +228,7 @@ export function PastAttendanceDetailModal({
                   {attendance.priority}
                 </Badge>
               </div>
-              <h2 className="mt-1 text-[18px] font-bold leading-tight text-foreground">
+              <h2 className="mt-1 text-[18px] font-medium leading-tight text-foreground">
                 {attendance.title}
               </h2>
               {ticket && (
@@ -245,7 +260,7 @@ export function PastAttendanceDetailModal({
 
 
         {/* Body */}
-        <div className="flex-1 space-y-5 overflow-y-auto bg-muted/30 px-4 py-5 md:px-6">
+        <div className="flex-1 space-y-5 overflow-y-auto bg-background px-4 py-5 md:px-6">
           {/* Info grid */}
           <section>
             <h3 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
@@ -325,41 +340,7 @@ export function PastAttendanceDetailModal({
             <h3 className="mb-3 text-[12.5px] font-medium uppercase tracking-wider text-foreground">
               Timeline
             </h3>
-            <ol className="relative space-y-3">
-              <span
-                aria-hidden
-                className="absolute left-4 top-2 bottom-2 w-px bg-border"
-              />
-              {timeline.map((step) => {
-                const Icon = step.icon;
-                return (
-                  <li
-                    key={step.label}
-                    className="relative grid grid-cols-[32px_1fr] items-start gap-3"
-                  >
-                    <span
-                      aria-hidden
-                      className="relative z-10 grid h-8 w-8 shrink-0 place-items-center rounded-full bg-card ring-2 ring-card text-muted-foreground"
-                    >
-                      <Icon className="h-3.5 w-3.5" />
-                    </span>
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-baseline justify-between gap-2">
-                        <p className="text-[12.5px] font-medium text-foreground">
-                          {step.label}
-                        </p>
-                        <p className="text-[11px] text-muted-foreground">
-                          {formatDateTime(step.when)}
-                        </p>
-                      </div>
-                      <p className="text-[11.5px] text-muted-foreground">
-                        {step.actor}
-                      </p>
-                    </div>
-                  </li>
-                );
-              })}
-            </ol>
+            <TicketTimelineList events={timelineEvents} variant="compact" />
           </section>
         </div>
 

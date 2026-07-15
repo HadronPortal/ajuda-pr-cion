@@ -53,7 +53,7 @@ export function TicketHistoryModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="flex max-h-[85vh] w-[calc(100vw-2rem)] max-w-[760px] flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-background p-0 shadow-[0_30px_80px_rgba(0,0,0,0.35)] [&>button]:hidden"
+        className="flex max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-[760px] flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-background p-0 shadow-[0_30px_80px_rgba(0,0,0,0.35)] [&>button]:hidden"
       >
         <DialogTitle className="sr-only">
           Histórico do chamado {ticket.protocol}
@@ -77,7 +77,7 @@ export function TicketHistoryModal({
               <History className="h-5 w-5" />
             </span>
             <div className="min-w-0 flex-1">
-              <h2 className="text-[18px] font-bold leading-tight text-foreground">
+              <h2 className="text-[18px] font-medium leading-tight text-foreground">
                 Histórico
               </h2>
               <p className="mt-0.5 truncate text-[12px] text-muted-foreground">
@@ -109,7 +109,7 @@ export function TicketHistoryModal({
         <div className="flex-1 overflow-y-auto bg-muted/30 px-4 py-5 md:px-6">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-baseline gap-1.5">
-              <span className="text-[13px] font-bold text-foreground">
+              <span className="text-[13px] font-medium text-foreground">
                 Atendimentos
               </span>
               <span className="text-[12px] font-medium text-muted-foreground">

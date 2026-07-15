@@ -441,7 +441,7 @@ function TicketsPage() {
     <AppShell>
       <div className="mb-5">
         <Breadcrumbs items={[{ label: "Chamados" }]} />
-        <h1 className="text-lg font-semibold tracking-tight text-foreground">Chamados</h1>
+        <h1 className="text-lg font-medium tracking-tight text-foreground">Chamados</h1>
         <p className="mt-1 max-w-2xl text-xs text-muted-foreground">
           CRM de suporte para acompanhar abertura, atendimento, atrasos e produtividade dos chamados.
         </p>
@@ -1941,7 +1941,7 @@ function TicketsHero({
         <p className="text-xs font-semibold uppercase tracking-wider text-white/70">
           Central de chamados
         </p>
-        <h2 className="mt-2 text-[24px] font-bold leading-tight">
+        <h2 className="mt-2 text-[24px] font-medium leading-tight">
           {openTickets} chamados ativos no atendimento
         </h2>
         <p className="mt-3 text-sm leading-relaxed text-white/78">

@@ -131,7 +131,7 @@ function HeroPanel() {
   return (
     <Card className="relative min-h-[250px] overflow-hidden rounded-[14px] border-0 bg-gradient-to-br from-[#0b97c4] via-[#0490d1] to-[#313866] p-8 text-white shadow-[0_18px_40px_rgba(11,151,196,0.22)]">
       <div className="relative z-10 max-w-[360px]">
-        <h2 className="text-[26px] font-bold leading-tight">
+        <h2 className="text-[26px] font-medium leading-tight">
           Gerencie suas demandas em um só lugar
         </h2>
         <p className="mt-4 text-sm leading-relaxed text-white/78">
