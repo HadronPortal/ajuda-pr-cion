@@ -7,6 +7,7 @@ import {
   PlayCircle,
   Send,
   ShieldCheck,
+  Sparkles,
   UserPlus,
 } from "lucide-react";
 import type { TicketEvent } from "@/lib/tickets-store";
