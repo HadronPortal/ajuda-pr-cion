@@ -7,6 +7,7 @@ import {
   type FormEvent,
   type PointerEvent as ReactPointerEvent,
 } from "react";
+import { createPortal } from "react-dom";
 import { MessageSquare, Minus, Paperclip, Send, Wifi, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -217,8 +218,11 @@ export function TicketFloatingChat({ ticket }: { ticket: SupportTicket }) {
   const showWindow = open;
   const showList = open && !minimized;
 
-  return (
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
     <>
+      {/* Increase z above Radix overlay/content */}
       {/* FAB */}
       <button
         type="button"
@@ -339,7 +343,8 @@ export function TicketFloatingChat({ ticket }: { ticket: SupportTicket }) {
             )}
           </div>
         ))}
-    </>
+    </>,
+    document.body,
   );
 }
 
