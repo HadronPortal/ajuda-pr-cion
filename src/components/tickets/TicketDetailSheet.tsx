@@ -186,6 +186,7 @@ const timelineIcon: Record<TicketEvent["kind"], typeof Info> = {
   status: ShieldCheck,
   message: Send,
   note: FileText,
+  solution: Sparkles,
   closed: CheckCircle2,
 };
 
