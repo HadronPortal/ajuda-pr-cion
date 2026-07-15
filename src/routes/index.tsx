@@ -99,12 +99,6 @@ function HomePage() {
     kbCategoriesFull.map((c) => [c.id, c]),
   );
 
-  const [greeting, setGreeting] = useState(() => getGreeting(new Date().getHours()));
-  useEffect(() => {
-    const id = setInterval(() => setGreeting(getGreeting(new Date().getHours())), 60_000);
-    return () => clearInterval(id);
-  }, []);
-
   // Lista única e pessoal do usuário logado — todos os chips derivam dela.
   const personalTickets = getTicketsForCurrentUser(supportTickets, currentUser);
 
@@ -119,10 +113,6 @@ function HomePage() {
     );
   }
 
-  const displayName = `PRC ${currentUser.name}`;
-
-  const personalTicketsCount = personalTickets.length;
-  const personalTicketsLabel = personalTicketsCount === 1 ? "chamado" : "chamados";
 
   return (
     <AppShell>
