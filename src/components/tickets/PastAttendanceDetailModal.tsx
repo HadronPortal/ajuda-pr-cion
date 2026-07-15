@@ -340,41 +340,7 @@ export function PastAttendanceDetailModal({
             <h3 className="mb-3 text-[12.5px] font-medium uppercase tracking-wider text-foreground">
               Timeline
             </h3>
-            <ol className="relative space-y-3">
-              <span
-                aria-hidden
-                className="absolute left-4 top-2 bottom-2 w-px bg-border"
-              />
-              {timeline.map((step) => {
-                const Icon = step.icon;
-                return (
-                  <li
-                    key={step.label}
-                    className="relative grid grid-cols-[32px_1fr] items-start gap-3"
-                  >
-                    <span
-                      aria-hidden
-                      className="relative z-10 grid h-8 w-8 shrink-0 place-items-center rounded-full bg-card ring-2 ring-card text-muted-foreground"
-                    >
-                      <Icon className="h-3.5 w-3.5" />
-                    </span>
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-baseline justify-between gap-2">
-                        <p className="text-[12.5px] font-medium text-foreground">
-                          {step.label}
-                        </p>
-                        <p className="text-[11px] text-muted-foreground">
-                          {formatDateTime(step.when)}
-                        </p>
-                      </div>
-                      <p className="text-[11.5px] text-muted-foreground">
-                        {step.actor}
-                      </p>
-                    </div>
-                  </li>
-                );
-              })}
-            </ol>
+            <TicketTimelineList events={timelineEvents} variant="compact" />
           </section>
         </div>
 
