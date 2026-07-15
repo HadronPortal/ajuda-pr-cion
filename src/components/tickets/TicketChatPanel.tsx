@@ -106,7 +106,7 @@ export function TicketChatPanel({
     >
       <header className="flex shrink-0 items-center justify-between gap-2 border-b border-border px-4 py-3">
         <div className="min-w-0">
-          <h3 className="text-[13px] font-bold text-foreground">Chat</h3>
+          <h3 className="text-[13px] font-medium text-foreground">Chat</h3>
           <p className="truncate text-[11.5px] text-muted-foreground">
             {ticket.contact} · {ticket.clientName}
           </p>

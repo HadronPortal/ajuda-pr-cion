@@ -357,7 +357,7 @@ function SectionTitle({
         <Icon className="h-5 w-5" />
       </span>
       <div className="min-w-0">
-        <h2 className="text-base font-bold text-foreground">{title}</h2>
+        <h2 className="text-base font-medium text-foreground">{title}</h2>
         <p className="mt-0.5 text-sm text-muted-foreground">{description}</p>
       </div>
     </div>

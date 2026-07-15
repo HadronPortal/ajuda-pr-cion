@@ -337,7 +337,7 @@ export function TicketDetailSheet({
                     {sourceLabels[ticket.source]}
                   </span>
                 </div>
-                <h2 className="mt-1 truncate text-[18px] font-bold leading-snug text-foreground">
+                <h2 className="mt-1 truncate text-[18px] font-medium leading-snug text-foreground">
                   {ticket.subject}
                 </h2>
                 <p className="mt-0.5 truncate text-[12.5px] text-muted-foreground">
@@ -776,7 +776,7 @@ function CloseTicketDialog({
               <CheckCircle2 className="h-5 w-5" />
             </span>
             <div className="min-w-0">
-              <DialogTitle className="text-[16px] font-bold text-foreground">
+              <DialogTitle className="text-[16px] font-medium text-foreground">
                 Encerrar chamado
               </DialogTitle>
               <p className="mt-0.5 truncate text-[12px] text-muted-foreground">
@@ -1130,7 +1130,7 @@ function TicketPastAttendancesSidePanel({
     <aside className={cn("flex min-h-0 flex-col bg-card", className)}>
       <header className="flex shrink-0 items-start justify-between gap-2 border-b border-border px-4 py-3">
         <div className="min-w-0">
-          <h3 className="text-[13px] font-bold text-foreground">Histórico</h3>
+          <h3 className="text-[13px] font-medium text-foreground">Histórico</h3>
           <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
             Cliente {ticket.clientCode}
           </p>
