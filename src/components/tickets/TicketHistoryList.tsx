@@ -91,7 +91,7 @@ export function TicketHistoryList({
       {/* Cabeçalho de colunas — desktop */}
       <div
         className={cn(
-          "mb-2 hidden gap-3 pl-4 pr-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground md:grid",
+          "mb-2 hidden gap-3 pl-4 pr-3 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground md:grid",
           cols,
         )}
       >
@@ -134,14 +134,14 @@ export function TicketHistoryList({
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-1.5">
                     <span
-                      className="truncate text-[12px] font-bold uppercase tracking-wide text-foreground"
+                      className="truncate text-[12px] font-medium uppercase tracking-wide text-foreground"
                       title={h.title}
                     >
                       {h.title}
                     </span>
                     <Badge
                       className={cn(
-                        "shrink-0 rounded-full border px-1.5 py-0 text-[9.5px] font-bold uppercase tracking-wide",
+                        "shrink-0 rounded-full border px-1.5 py-0 text-[9.5px] font-semibold uppercase tracking-wide",
                         statusTone[h.status],
                       )}
                     >
@@ -159,7 +159,7 @@ export function TicketHistoryList({
               <div className="md:justify-self-start">
                 <span
                   className={cn(
-                    "inline-flex items-center rounded-full border px-2 py-0.5 text-[10.5px] font-bold uppercase tracking-wide",
+                    "inline-flex items-center rounded-full border px-2 py-0.5 text-[10.5px] font-medium uppercase tracking-wide",
                     priorityChip[h.priority],
                   )}
                 >
@@ -168,7 +168,7 @@ export function TicketHistoryList({
               </div>
 
               {/* Atendente */}
-              <div className="flex min-w-0 items-center gap-1.5 text-[11.5px] font-semibold text-foreground">
+              <div className="flex min-w-0 items-center gap-1.5 text-[11.5px] font-medium text-foreground">
                 <span
                   aria-hidden
                   className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-primary/12 text-primary"
@@ -192,7 +192,7 @@ export function TicketHistoryList({
               {/* ID */}
               <div className="min-w-0 text-[10.5px] font-medium text-muted-foreground">
                 <p className="truncate font-mono">
-                  <span className="font-bold uppercase tracking-wide text-muted-foreground/80 md:hidden">
+                  <span className="font-semibold uppercase tracking-wide text-muted-foreground/80 md:hidden">
                     ID{" "}
                   </span>
                   {h.protocol}
@@ -203,7 +203,7 @@ export function TicketHistoryList({
               <button
                 type="button"
                 onClick={() => onSelect(h)}
-                className="inline-flex cursor-pointer items-center justify-center gap-1 rounded-lg bg-primary/10 px-2.5 py-1.5 text-[11px] font-semibold text-primary transition hover:bg-primary/20 md:justify-self-end"
+                className="inline-flex cursor-pointer items-center justify-center gap-1 rounded-lg bg-primary/10 px-2.5 py-1.5 text-[11px] font-medium text-primary transition hover:bg-primary/20 md:justify-self-end"
               >
                 Ver chamado
                 <ChevronRight className="h-3.5 w-3.5" />

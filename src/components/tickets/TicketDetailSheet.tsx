@@ -326,7 +326,7 @@ export function TicketDetailSheet({
               </span>
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-mono text-[12px] font-semibold text-muted-foreground">
+                  <span className="font-mono text-[12px] font-medium text-muted-foreground">
                     {ticket.protocol}
                   </span>
                   <span className="text-[12px] text-muted-foreground">·</span>
@@ -346,10 +346,10 @@ export function TicketDetailSheet({
             </div>
 
             <div className="mt-3 flex flex-wrap items-center gap-2">
-              <Badge className={cn("rounded-full border px-2.5 py-0.5 text-[11px] font-semibold", statusTone[ticket.status])}>
+              <Badge className={cn("rounded-full border px-2.5 py-0.5 text-[11px] font-medium", statusTone[ticket.status])}>
                 {ticket.status}
               </Badge>
-              <Badge className={cn("rounded-full border px-2.5 py-0.5 text-[11px] font-semibold", priorityTone[ticket.priority])}>
+              <Badge className={cn("rounded-full border px-2.5 py-0.5 text-[11px] font-medium", priorityTone[ticket.priority])}>
                 Prioridade {ticket.priority}
               </Badge>
               <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/50 px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
@@ -375,13 +375,13 @@ export function TicketDetailSheet({
                 navCollapsed ? "md:w-[64px]" : "md:w-[210px]",
               )}
             >
-              <div className="flex items-center justify-end border-b border-border p-2">
+              <div className="flex items-center justify-end p-2">
                 <button
                   type="button"
                   onClick={() => setNavCollapsed((v) => !v)}
                   aria-label={navCollapsed ? "Expandir menu" : "Retrair menu"}
                   title={navCollapsed ? "Expandir menu" : "Retrair menu"}
-                  className="grid h-7 w-7 cursor-pointer place-items-center rounded-md border border-border text-muted-foreground transition hover:bg-accent hover:text-foreground"
+                  className="grid h-7 w-7 cursor-pointer place-items-center rounded-md text-muted-foreground transition hover:bg-accent hover:text-foreground"
                 >
                   {navCollapsed ? (
                     <ChevronRight className="h-4 w-4" />
@@ -426,7 +426,7 @@ export function TicketDetailSheet({
                     </button>
                   </PopoverTrigger>
                   <PopoverContent side="right" align="start" className="w-56 p-1">
-                    <p className="px-2 pb-1 pt-2 text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    <p className="px-2 pb-1 pt-2 text-[10.5px] font-medium uppercase tracking-wide text-muted-foreground">
                       Novo status
                     </p>
                     <div className="max-h-72 overflow-auto">
@@ -472,10 +472,10 @@ export function TicketDetailSheet({
 
 
               {isMine && (
-                <div className="border-t border-border p-2">
+                <div className="p-2">
                   <span
                     className={cn(
-                      "flex items-center gap-1.5 rounded-lg bg-primary/10 px-2 py-1.5 text-[10.5px] font-semibold text-primary",
+                      "flex items-center gap-1.5 rounded-lg bg-primary/10 px-2 py-1.5 text-[10.5px] font-medium text-primary",
                       navCollapsed && "md:justify-center md:px-0",
                     )}
                     title={`Atendendo: ${currentUser.operator}`}
@@ -508,12 +508,12 @@ export function TicketDetailSheet({
               <Section title="Resumo do chamado" icon={LayoutGrid}>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                   <MiniStat label="Status">
-                    <Badge className={cn("rounded-full border px-2.5 py-0.5 text-[11.5px] font-semibold", statusTone[ticket.status])}>
+                    <Badge className={cn("rounded-full border px-2.5 py-0.5 text-[11.5px] font-medium", statusTone[ticket.status])}>
                       {ticket.status}
                     </Badge>
                   </MiniStat>
                   <MiniStat label="Prioridade">
-                    <Badge className={cn("rounded-full border px-2.5 py-0.5 text-[11.5px] font-semibold", priorityTone[ticket.priority])}>
+                    <Badge className={cn("rounded-full border px-2.5 py-0.5 text-[11.5px] font-medium", priorityTone[ticket.priority])}>
                       {ticket.priority}
                     </Badge>
                   </MiniStat>
@@ -539,7 +539,7 @@ export function TicketDetailSheet({
 
               <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                 <Section title="Cliente" icon={Building2} compact>
-                  <p className="text-[13.5px] font-bold text-foreground truncate">{ticket.clientName}</p>
+                  <p className="text-[13.5px] font-semibold text-foreground truncate">{ticket.clientName}</p>
                   <p className="mt-0.5 text-[11.5px] text-muted-foreground">
                     <MapPin className="mr-1 inline h-3 w-3" />
                     {mock.city} - {mock.uf}
@@ -548,7 +548,7 @@ export function TicketDetailSheet({
                 </Section>
 
                 <Section title="Contato" icon={UserRound} compact>
-                  <p className="text-[13.5px] font-bold text-foreground truncate">{ticket.contact}</p>
+                  <p className="text-[13.5px] font-semibold text-foreground truncate">{ticket.contact}</p>
                   <p className="mt-0.5 text-[11.5px] text-muted-foreground">{mock.contactRole}</p>
                   <p className="mt-0.5 inline-flex items-center gap-1 text-[11.5px] text-muted-foreground">
                     <Phone className="h-3 w-3" />
@@ -558,7 +558,7 @@ export function TicketDetailSheet({
 
                 <Section title="Módulo" icon={Folder} compact>
                   <div className="flex items-center gap-1.5">
-                    <p className="truncate text-[13.5px] font-bold text-foreground">{ticket.module}</p>
+                    <p className="truncate text-[13.5px] font-semibold text-foreground">{ticket.module}</p>
                     {notes.length > 0 && (
                       <button
                         type="button"
@@ -594,10 +594,10 @@ export function TicketDetailSheet({
                 <Section title="Timeline do chamado" icon={History}>
                   <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                     <div className="flex items-baseline gap-1.5">
-                      <span className="text-[12.5px] font-bold text-foreground">
+                      <span className="text-[12.5px] font-medium text-foreground">
                         Eventos do atendimento
                       </span>
-                      <span className="text-[11.5px] font-semibold text-muted-foreground">
+                      <span className="text-[11.5px] font-medium text-muted-foreground">
                         ({timelineEvents.length})
                       </span>
                     </div>
@@ -605,7 +605,7 @@ export function TicketDetailSheet({
                       <button
                         type="button"
                         onClick={() => setTimelineOpen(true)}
-                        className="inline-flex cursor-pointer items-center gap-1 text-[11.5px] font-semibold text-primary hover:underline"
+                        className="inline-flex cursor-pointer items-center gap-1 text-[11.5px] font-medium text-primary hover:underline"
                       >
                         Ver completa
                         <ChevronRight className="h-3.5 w-3.5" />
@@ -789,7 +789,7 @@ function CloseTicketDialog({
         <div className="space-y-4 px-6 py-4">
           {/* Solução aplicada */}
           <div>
-            <Label className="mb-1.5 flex items-center gap-1.5 text-[12.5px] font-semibold text-foreground">
+            <Label className="mb-1.5 flex items-center gap-1.5 text-[12.5px] font-medium text-foreground">
               <MessageSquare className="h-3.5 w-3.5 text-primary" />
               Solução aplicada
             </Label>
@@ -804,7 +804,7 @@ function CloseTicketDialog({
 
           {/* Tipo de encerramento */}
           <div>
-            <Label className="mb-2 block text-[12.5px] font-semibold text-foreground">
+            <Label className="mb-2 block text-[12.5px] font-medium text-foreground">
               Tipo de encerramento
             </Label>
             <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
@@ -838,7 +838,7 @@ function CloseTicketDialog({
                       <Icon className="h-4 w-4" />
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block text-[12.5px] font-semibold text-foreground">
+                      <span className="block text-[12.5px] font-medium text-foreground">
                         {opt.title}
                       </span>
                       <span className="mt-0.5 block text-[11.5px] leading-snug text-muted-foreground">
@@ -873,7 +873,7 @@ function CloseTicketDialog({
                 className="mt-0.5 cursor-pointer"
               />
               <span className="min-w-0 flex-1">
-                <span className="block text-[12.5px] font-semibold text-foreground">
+                <span className="block text-[12.5px] font-medium text-foreground">
                   Adicionar ao histórico do cliente
                 </span>
                 <span className="mt-0.5 block text-[11.5px] leading-snug text-muted-foreground">
@@ -888,7 +888,7 @@ function CloseTicketDialog({
                 className="mt-0.5 cursor-pointer"
               />
               <span className="min-w-0 flex-1">
-                <span className="flex items-center gap-1.5 text-[12.5px] font-semibold text-foreground">
+                <span className="flex items-center gap-1.5 text-[12.5px] font-medium text-foreground">
                   <Sparkles className="h-3.5 w-3.5 text-primary" />
                   Sugerir artigo para base de conhecimento
                 </span>
@@ -956,7 +956,7 @@ const Section = forwardRef<
 function MiniStat({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="rounded-xl border border-border bg-background/60 p-3">
-      <p className="mb-1.5 text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">
+      <p className="mb-1.5 text-[10.5px] font-medium uppercase tracking-wide text-muted-foreground">
         {label}
       </p>
       <div>{children}</div>
@@ -975,11 +975,11 @@ function CompactInfo({
 }) {
   return (
     <div className="min-w-0">
-      <p className="mb-1 inline-flex items-center gap-1 text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground">
+      <p className="mb-1 inline-flex items-center gap-1 text-[10.5px] font-medium uppercase tracking-wide text-muted-foreground">
         <Icon className="h-3 w-3" />
         {label}
       </p>
-      <p className="truncate text-[12.5px] font-semibold text-foreground">{value}</p>
+      <p className="truncate text-[12.5px] font-medium text-foreground">{value}</p>
     </div>
   );
 }
@@ -1044,7 +1044,7 @@ function MobileAction({
       onClick={onClick}
       aria-label={label}
       className={cn(
-        "inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11.5px] font-semibold transition",
+        "inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11.5px] font-medium transition",
         highlight
           ? "border-primary bg-primary text-primary-foreground hover:bg-primary/90"
           : "border-border bg-card text-foreground hover:bg-accent",
@@ -1086,7 +1086,7 @@ function TicketTimelineInline({ events }: { events: TicketEvent[] }) {
             </div>
             <div className="min-w-0 flex-1 pb-2">
               <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                <span className="text-[12.5px] font-semibold text-foreground">
+                <span className="text-[12.5px] font-medium text-foreground">
                   {ev.actor}
                 </span>
                 <span className="text-[11px] text-muted-foreground">
@@ -1128,7 +1128,7 @@ function TicketPastAttendancesSidePanel({
           <div className="mt-1.5 inline-flex items-center gap-1.5">
             <Badge
               className={cn(
-                "rounded-full border px-2 py-0.5 text-[10.5px] font-semibold",
+                "rounded-full border px-2 py-0.5 text-[10.5px] font-medium",
                 statusTone[ticket.status],
               )}
             >
@@ -1146,8 +1146,8 @@ function TicketPastAttendancesSidePanel({
 
       <div className="flex shrink-0 items-baseline justify-between gap-2 border-b border-border px-4 py-2">
         <div className="flex items-baseline gap-1.5">
-          <span className="text-[12px] font-bold text-foreground">Atendimentos</span>
-          <span className="text-[11px] font-semibold text-muted-foreground">
+          <span className="text-[12px] font-medium text-foreground">Atendimentos</span>
+          <span className="text-[11px] font-medium text-muted-foreground">
             ({items.length})
           </span>
         </div>
@@ -1155,7 +1155,7 @@ function TicketPastAttendancesSidePanel({
           <button
             type="button"
             onClick={onSeeAll}
-            className="inline-flex cursor-pointer items-center gap-0.5 text-[11px] font-semibold text-primary hover:underline"
+            className="inline-flex cursor-pointer items-center gap-0.5 text-[11px] font-medium text-primary hover:underline"
           >
             Ver todos
             <ChevronRight className="h-3 w-3" />
@@ -1189,7 +1189,7 @@ function TicketPastAttendancesSidePanel({
                 <div className="pl-2">
                   <div className="flex items-start gap-1.5">
                     <span
-                      className="truncate text-[11.5px] font-bold uppercase tracking-wide text-foreground"
+                      className="truncate text-[11.5px] font-medium uppercase tracking-wide text-foreground"
                       title={h.title}
                     >
                       {h.title}
@@ -1202,13 +1202,13 @@ function TicketPastAttendancesSidePanel({
                   <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                     <span
                       className={cn(
-                        "inline-flex items-center rounded-full border px-1.5 py-0 text-[9.5px] font-bold uppercase tracking-wide",
+                        "inline-flex items-center rounded-full border px-1.5 py-0 text-[9.5px] font-semibold uppercase tracking-wide",
                         priorityTone[h.priority],
                       )}
                     >
                       {h.priority}
                     </span>
-                    <span className="inline-flex items-center gap-1 text-[10.5px] font-semibold text-foreground">
+                    <span className="inline-flex items-center gap-1 text-[10.5px] font-medium text-foreground">
                       <UserRound className="h-3 w-3 text-primary" />
                       {h.operator}
                     </span>
@@ -1226,7 +1226,7 @@ function TicketPastAttendancesSidePanel({
                     <button
                       type="button"
                       onClick={() => onSelect(h)}
-                      className="inline-flex cursor-pointer items-center gap-0.5 rounded-md bg-primary/10 px-2 py-1 text-[10.5px] font-semibold text-primary transition hover:bg-primary/20"
+                      className="inline-flex cursor-pointer items-center gap-0.5 rounded-md bg-primary/10 px-2 py-1 text-[10.5px] font-medium text-primary transition hover:bg-primary/20"
                     >
                       Ver chamado
                       <ChevronRight className="h-3 w-3" />

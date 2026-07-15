@@ -250,7 +250,7 @@ function TagsDialog({
             {tags.map((t) => (
               <span
                 key={t}
-                className="inline-flex items-center gap-1 rounded-md bg-violet-500/15 px-2 py-0.5 text-[11px] font-semibold text-violet-700 dark:text-violet-200"
+                className="inline-flex items-center gap-1 rounded-md bg-violet-500/15 px-2 py-0.5 text-[11px] font-medium text-violet-700 dark:text-violet-200"
               >
                 {t}
                 <button
@@ -289,7 +289,7 @@ function TagsDialog({
         </div>
 
         <div>
-          <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+          <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
             Sugestões
           </p>
           <div className="flex flex-wrap gap-1.5">
@@ -301,7 +301,7 @@ function TagsDialog({
                   type="button"
                   onClick={() => toggle(t)}
                   className={cn(
-                    "cursor-pointer rounded-md border px-2 py-0.5 text-[11px] font-semibold transition",
+                    "cursor-pointer rounded-md border px-2 py-0.5 text-[11px] font-medium transition",
                     active
                       ? "border-violet-500/50 bg-violet-500/15 text-violet-700 dark:text-violet-200"
                       : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10",
@@ -377,7 +377,7 @@ function MembersDialog({
         </DialogHeader>
 
         <div>
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+          <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
             Responsável
           </p>
           <div className="grid grid-cols-2 gap-1.5">
@@ -408,7 +408,7 @@ function MembersDialog({
         </div>
 
         <div>
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+          <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
             Participantes
           </p>
           <div className="grid grid-cols-2 gap-1.5">
@@ -509,7 +509,7 @@ function DateDialog({
             <button
               type="button"
               onClick={() => setDate(undefined)}
-              className="cursor-pointer text-[11px] font-semibold text-rose-600 hover:underline dark:text-rose-400"
+              className="cursor-pointer text-[11px] font-medium text-rose-600 hover:underline dark:text-rose-400"
             >
               Remover data
             </button>

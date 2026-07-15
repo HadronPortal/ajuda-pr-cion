@@ -282,7 +282,7 @@ function ProjectStatistics() {
     <Card className="rounded-[14px] border-0 bg-white dark:bg-[#20263d] p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
       <div className="mb-5 flex items-center justify-between gap-4">
         <h3 className="text-base font-bold text-foreground">Estatísticas do projeto</h3>
-        <div className="flex rounded-full bg-primary/10 p-1 text-[11px] font-semibold text-muted-foreground">
+        <div className="flex rounded-full bg-primary/10 p-1 text-[11px] font-medium text-muted-foreground">
           {["Mensal", "Semanal", "Diário"].map((item) => (
             <button
               key={item}

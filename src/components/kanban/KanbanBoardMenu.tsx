@@ -320,7 +320,7 @@ function Metric({
   return (
     <div className="rounded-lg border border-slate-200 bg-white p-3 dark:border-white/10 dark:bg-white/[0.04]">
       <div className="flex items-center justify-between gap-2">
-        <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">{label}</span>
+        <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">{label}</span>
         <Icon className="h-4 w-4 text-primary" />
       </div>
       <p className="mt-1 text-xl font-black">{value}</p>

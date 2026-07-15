@@ -154,7 +154,7 @@ function KbIndexPage() {
       {hasSearch && (
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3">
           <div className="min-w-0">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-primary/80">
+            <p className="text-[11px] font-medium uppercase tracking-wide text-primary/80">
               Resultados para
             </p>
             <p className="truncate text-sm font-semibold text-foreground">
