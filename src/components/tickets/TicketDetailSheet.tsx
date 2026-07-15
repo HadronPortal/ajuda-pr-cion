@@ -1176,73 +1176,11 @@ function TicketPastAttendancesSidePanel({
             Sem atendimentos anteriores.
           </p>
         ) : (
-          <ul className="space-y-2">
-            {items.map((h) => (
-              <li
-                key={h.id}
-                className="relative overflow-hidden rounded-xl border border-border bg-card p-2.5 shadow-[0_1px_0_rgba(15,23,42,0.03)]"
-              >
-                <span
-                  aria-hidden
-                  className={cn(
-                    "absolute left-0 top-0 h-full w-1",
-                    priorityTone[h.priority].includes("destructive")
-                      ? "bg-destructive"
-                      : priorityTone[h.priority].includes("warning")
-                        ? "bg-warning"
-                        : "bg-muted-foreground/40",
-                  )}
-                />
-                <div className="pl-2">
-                  <div className="flex items-start gap-1.5">
-                    <span
-                      className="truncate text-[11.5px] font-medium uppercase tracking-wide text-foreground"
-                      title={h.title}
-                    >
-                      {h.title}
-                    </span>
-                  </div>
-                  <p className="mt-0.5 inline-flex min-w-0 items-center gap-1 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                    <Folder className="h-3 w-3 shrink-0" />
-                    <span className="truncate">{h.module}</span>
-                  </p>
-                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                    <span
-                      className={cn(
-                        "inline-flex items-center rounded-full border px-1.5 py-0 text-[9.5px] font-semibold uppercase tracking-wide",
-                        priorityTone[h.priority],
-                      )}
-                    >
-                      {h.priority}
-                    </span>
-                    <span className="inline-flex items-center gap-1 text-[10.5px] font-medium text-foreground">
-                      <UserRound className="h-3 w-3 text-primary" />
-                      {h.operator}
-                    </span>
-                  </div>
-                  <div className="mt-1.5 flex items-center justify-between gap-2">
-                    <span className="inline-flex items-center gap-1 text-[10.5px] text-muted-foreground">
-                      <CalendarClock className="h-3 w-3" />
-                      {formatDateTime(h.date)}
-                    </span>
-                    <span className="font-mono text-[10px] text-muted-foreground">
-                      {h.protocol}
-                    </span>
-                  </div>
-                  <div className="mt-1.5 flex justify-end">
-                    <button
-                      type="button"
-                      onClick={() => onSelect(h)}
-                      className="inline-flex cursor-pointer items-center gap-0.5 rounded-md bg-primary/10 px-2 py-1 text-[10.5px] font-medium text-primary transition hover:bg-primary/20"
-                    >
-                      Ver chamado
-                      <ChevronRight className="h-3 w-3" />
-                    </button>
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
+          <TicketHistoryList
+            items={items.slice(0, 4)}
+            onSelect={onSelect}
+            timeline
+          />
         )}
       </div>
     </aside>
