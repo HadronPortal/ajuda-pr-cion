@@ -1,10 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo } from "react";
 import {
   CheckCircle2,
-  ChevronLeft,
-  ChevronRight,
   FileText,
-  Info,
   MessageSquare,
   Paperclip,
   PlayCircle,
@@ -13,43 +10,73 @@ import {
   UserPlus,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { cn } from "@/lib/utils";
 import type { SupportTicket } from "@/lib/support-tickets-data";
 import type { TicketEvent } from "@/lib/tickets-store";
 
-const kindIcon: Record<TicketEvent["kind"], typeof Info> = {
-  created: MessageSquare,
-  attached: Paperclip,
-  assumed: UserPlus,
-  attend: PlayCircle,
-  status: ShieldCheck,
-  message: Send,
-  note: FileText,
-  closed: CheckCircle2,
-};
-
-const kindLabel: Record<TicketEvent["kind"], string> = {
-  created: "Chamado criado",
-  attached: "Arquivo anexado",
-  assumed: "Chamado assumido",
-  attend: "Atendimento iniciado",
-  status: "Status alterado",
-  message: "Retorno enviado",
-  note: "Nota interna",
-  closed: "Chamado encerrado",
+const eventPresentation: Record<
+  TicketEvent["kind"],
+  { label: string; color: string; softColor: string; icon: typeof FileText }
+> = {
+  created: {
+    label: "Chamado criado",
+    color: "#8b5bd6",
+    softColor: "rgba(139, 91, 214, 0.24)",
+    icon: MessageSquare,
+  },
+  attached: {
+    label: "Arquivo anexado",
+    color: "#f59b45",
+    softColor: "rgba(245, 155, 69, 0.24)",
+    icon: Paperclip,
+  },
+  assumed: {
+    label: "Chamado assumido",
+    color: "#47b985",
+    softColor: "rgba(71, 185, 133, 0.24)",
+    icon: UserPlus,
+  },
+  attend: {
+    label: "Atendimento iniciado",
+    color: "#38a6d9",
+    softColor: "rgba(56, 166, 217, 0.24)",
+    icon: PlayCircle,
+  },
+  status: {
+    label: "Status alterado",
+    color: "#e04d87",
+    softColor: "rgba(224, 77, 135, 0.24)",
+    icon: ShieldCheck,
+  },
+  message: {
+    label: "Retorno enviado",
+    color: "#5877d8",
+    softColor: "rgba(88, 119, 216, 0.24)",
+    icon: Send,
+  },
+  note: {
+    label: "Nota interna",
+    color: "#d79531",
+    softColor: "rgba(215, 149, 49, 0.24)",
+    icon: FileText,
+  },
+  closed: {
+    label: "Chamado encerrado",
+    color: "#20ad74",
+    softColor: "rgba(32, 173, 116, 0.24)",
+    icon: CheckCircle2,
+  },
 };
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("pt-BR", {
     day: "2-digit",
     month: "short",
+    year: "numeric",
   });
 }
-function formatDateTime(iso: string) {
-  return new Date(iso).toLocaleString("pt-BR", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
+
+function formatTime(iso: string) {
+  return new Date(iso).toLocaleTimeString("pt-BR", {
     hour: "2-digit",
     minute: "2-digit",
   });
@@ -74,32 +101,17 @@ export function TicketTimelineModal({
     [events],
   );
 
-  const [active, setActive] = useState(0);
-  const railRef = useRef<HTMLDivElement>(null);
-  const dotRefs = useRef<(HTMLButtonElement | null)[]>([]);
-
-  useEffect(() => {
-    if (open) setActive(Math.max(0, sorted.length - 1));
-  }, [open, sorted.length]);
-
-  useEffect(() => {
-    const el = dotRefs.current[active];
-    if (el) el.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
-  }, [active]);
-
-  const current = sorted[active];
-  const canPrev = active > 0;
-  const canNext = active < sorted.length - 1;
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[88vh] w-[calc(100vw-1rem)] max-w-none flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-background p-0 shadow-[0_30px_80px_rgba(0,0,0,0.35)] sm:w-[calc(100vw-2rem)] md:w-[820px] lg:w-[920px]">
-        <DialogTitle className="sr-only">Timeline do chamado {ticket.protocol}</DialogTitle>
+      <DialogContent className="flex max-h-[90vh] w-[calc(100vw-1rem)] max-w-none flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-background p-0 shadow-[0_30px_80px_rgba(0,0,0,0.35)] sm:w-[calc(100vw-2rem)] md:w-[760px] lg:w-[860px]">
+        <DialogTitle className="sr-only">
+          Timeline completa do chamado {ticket.protocol}
+        </DialogTitle>
 
-        <header className="shrink-0 border-b border-border bg-card px-5 py-4 md:px-6">
-          <h2 className="text-[16px] font-bold text-foreground">Timeline do chamado</h2>
-          <p className="mt-0.5 truncate text-[12px] text-muted-foreground">
-            <span className="font-mono font-semibold text-foreground">{ticket.protocol}</span>
+        <header className="shrink-0 border-b border-border bg-card px-5 py-4 pr-14 md:px-7">
+          <h2 className="text-[17px] font-medium text-foreground">Timeline completa</h2>
+          <p className="mt-1 truncate text-[12px] text-muted-foreground">
+            <span className="font-mono text-foreground">{ticket.protocol}</span>
             {" · "}
             {ticket.subject}
             {" · "}
@@ -107,148 +119,85 @@ export function TicketTimelineModal({
           </p>
         </header>
 
-        <div className="flex-1 min-h-0 overflow-y-auto bg-muted/30 px-5 py-6 md:px-8">
+        <div className="min-h-0 flex-1 overflow-y-auto bg-card px-4 py-7 sm:px-7 md:px-10">
           {sorted.length === 0 ? (
             <p className="py-16 text-center text-[13px] text-muted-foreground">
               Nenhum evento registrado ainda.
             </p>
           ) : (
-            <>
-              {/* Horizontal rail */}
-              <div className="relative">
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => canPrev && setActive((i) => i - 1)}
-                    disabled={!canPrev}
-                    aria-label="Evento anterior"
-                    className="grid h-9 w-9 shrink-0 cursor-pointer place-items-center rounded-full border border-border bg-card text-muted-foreground transition hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </button>
+            <ol className="mx-auto max-w-[720px]">
+              {sorted.map((event, index) => {
+                const presentation = eventPresentation[event.kind];
+                const Icon = presentation.icon;
+                const isLast = index === sorted.length - 1;
 
-                  <div
-                    ref={railRef}
-                    className="relative flex-1 overflow-x-auto pb-2"
+                return (
+                  <li
+                    key={event.id}
+                    className="relative grid min-h-[132px] grid-cols-[76px_minmax(0,1fr)] gap-4 sm:grid-cols-[94px_minmax(0,1fr)] sm:gap-6"
                   >
-                    <div className="relative min-w-full px-4">
-                      {/* Line */}
-                      <div className="absolute left-4 right-4 top-[42px] h-px bg-border" />
-                      <div
-                        className="absolute top-[42px] h-px bg-primary transition-all"
-                        style={{
-                          left: 16,
-                          width:
-                            sorted.length > 1
-                              ? `calc(${(active / (sorted.length - 1)) * 100}% * ((100% - 32px) / 100%))`
-                              : 0,
-                        }}
+                    {!isLast && (
+                      <span
+                        aria-hidden
+                        className="absolute left-[37px] top-[66px] h-[calc(100%-42px)] w-[3px] -translate-x-1/2 rounded-full sm:left-[47px]"
+                        style={{ backgroundColor: presentation.softColor }}
                       />
-                      <ul
-                        className="relative flex items-start justify-between gap-6"
-                        style={{ minWidth: `${sorted.length * 110}px` }}
+                    )}
+
+                    <div className="relative flex justify-center pt-1">
+                      <span
+                        aria-hidden
+                        className="absolute top-0 h-[76px] w-[76px] rounded-full border-[7px] sm:h-[88px] sm:w-[88px]"
+                        style={{ borderColor: presentation.softColor }}
+                      />
+                      <span
+                        aria-hidden
+                        className="absolute left-1/2 top-[8px] h-2.5 w-2.5 -translate-x-1/2 rounded-full"
+                        style={{ backgroundColor: presentation.color }}
+                      />
+                      <span
+                        className="relative mt-[19px] grid h-10 w-10 place-items-center rounded-full text-white shadow-sm sm:mt-[22px] sm:h-11 sm:w-11"
+                        style={{ backgroundColor: presentation.color }}
                       >
-                        {sorted.map((ev, idx) => {
-                          const isActive = idx === active;
-                          const isPast = idx < active;
-                          return (
-                            <li
-                              key={ev.id}
-                              className="flex min-w-[90px] flex-col items-center"
-                            >
-                              <span
-                                className={cn(
-                                  "mb-2 text-[10.5px] font-medium uppercase tracking-wide",
-                                  isActive ? "text-primary" : "text-muted-foreground",
-                                )}
-                              >
-                                {formatDate(ev.when)}
-                              </span>
-                              <button
-                                ref={(el) => {
-                                  dotRefs.current[idx] = el;
-                                }}
-                                type="button"
-                                onClick={() => setActive(idx)}
-                                aria-label={kindLabel[ev.kind]}
-                                className={cn(
-                                  "relative z-10 grid h-5 w-5 cursor-pointer place-items-center rounded-full border-2 bg-background transition",
-                                  isActive
-                                    ? "border-primary ring-4 ring-primary/20"
-                                    : isPast
-                                      ? "border-primary bg-primary"
-                                      : "border-border hover:border-primary/60",
-                                )}
-                              >
-                                {isActive && (
-                                  <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-                                )}
-                              </button>
-                              <span
-                                className={cn(
-                                  "mt-2 max-w-[110px] truncate text-center text-[11px] font-medium",
-                                  isActive ? "text-foreground" : "text-muted-foreground",
-                                )}
-                              >
-                                {kindLabel[ev.kind]}
-                              </span>
-                            </li>
-                          );
-                        })}
-                      </ul>
+                        <Icon className="h-5 w-5" />
+                      </span>
+                      <span
+                        aria-hidden
+                        className="absolute left-1/2 top-[72px] h-2 w-2 -translate-x-1/2 rounded-full sm:top-[84px]"
+                        style={{ backgroundColor: presentation.color }}
+                      />
                     </div>
-                  </div>
 
-                  <button
-                    type="button"
-                    onClick={() => canNext && setActive((i) => i + 1)}
-                    disabled={!canNext}
-                    aria-label="Próximo evento"
-                    className="grid h-9 w-9 shrink-0 cursor-pointer place-items-center rounded-full border border-border bg-card text-muted-foreground transition hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Event detail */}
-              {current && (
-                <div className="mt-8 rounded-2xl border border-border bg-card p-5 shadow-[0_6px_18px_rgba(25,29,51,0.05)]">
-                  <div className="flex items-start gap-4">
-                    <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
-                      {(() => {
-                        const Icon = kindIcon[current.kind];
-                        return <Icon className="h-5 w-5" />;
-                      })()}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-baseline justify-between gap-2">
-                        <h3 className="text-[15px] font-bold text-foreground">
-                          {kindLabel[current.kind]}
-                        </h3>
-                        <span className="text-[11.5px] text-muted-foreground">
-                          {formatDateTime(current.when)}
+                    <article className="min-w-0 pb-8 pt-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span
+                          className="inline-flex min-w-[112px] items-center justify-center rounded-full px-3 py-1 text-[11px] font-medium text-white shadow-sm"
+                          style={{ backgroundColor: presentation.color }}
+                        >
+                          {formatDate(event.when)}
+                        </span>
+                        <span className="text-[11px] text-muted-foreground">
+                          {formatTime(event.when)}
                         </span>
                       </div>
-                      <p className="mt-1 text-[13px] leading-relaxed text-foreground">
-                        {current.description}
+
+                      <h3
+                        className="mt-3 text-[12px] font-semibold uppercase tracking-normal"
+                        style={{ color: presentation.color }}
+                      >
+                        {presentation.label}
+                      </h3>
+                      <p className="mt-1 text-[13px] leading-5 text-foreground">
+                        {event.description}
                       </p>
-                      <div className="mt-3 flex flex-wrap items-center gap-2">
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-muted/60 px-2.5 py-1 text-[11px] font-medium text-foreground">
-                          Operador: {current.actor}
-                        </span>
-                        <span className="inline-flex items-center gap-1.5 rounded-full border border-border px-2.5 py-1 text-[11px] font-medium capitalize text-muted-foreground">
-                          {current.actorType}
-                        </span>
-                        <span className="ml-auto text-[11px] text-muted-foreground">
-                          Evento {active + 1} de {sorted.length}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </>
+                      <p className="mt-1.5 text-[11.5px] text-muted-foreground">
+                        {event.actor} · {event.actorType}
+                      </p>
+                    </article>
+                  </li>
+                );
+              })}
+            </ol>
           )}
         </div>
       </DialogContent>
