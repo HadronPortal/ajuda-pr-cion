@@ -612,7 +612,13 @@ export function TicketDetailSheet({
                       </button>
                     )}
                   </div>
-                  <TicketTimelineInline events={timelineEvents} />
+                  <div className="rounded-xl border border-border bg-card px-3 py-3">
+                    <TicketTimelineList
+                      events={timelineEvents}
+                      variant="compact"
+                      limit={5}
+                    />
+                  </div>
                 </Section>
               </div>
 
