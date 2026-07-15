@@ -17,6 +17,7 @@ const documentLabels: Record<FiscalDocument, string> = {
   nfe: "NF-e",
   nfce: "NFC-e",
   cte: "CT-e",
+  mdfe: "MDF-e",
 };
 
 function formatUpdatedAt(value?: string) {
@@ -33,15 +34,17 @@ function ChartTooltip({
   payload,
   label,
   isDark,
+  metric,
 }: {
   active?: boolean;
   payload?: Array<{ dataKey: string; value: number; payload: { status: string } }>;
   label?: string;
   isDark: boolean;
+  metric: "status" | "latency";
 }) {
   if (!active || !payload?.length) return null;
   const point = payload[0]?.payload;
-  const responseTime = Number(payload.find((item) => item.dataKey === "responseTime")?.value ?? 0);
+  const value = Number(payload.find((item) => item.dataKey === "responseTime")?.value ?? 0);
 
   return (
     <div
@@ -53,7 +56,8 @@ function ChartTooltip({
     >
       <p>SEFAZ {label}</p>
       <p className={`mt-1 ${isDark ? "text-[#b9bbc5]" : "text-muted-foreground"}`}>
-        {point.status} · {responseTime.toFixed(2)}s
+        {point.status}
+        {metric === "latency" ? ` · ${value.toFixed(2)}s` : ""}
       </p>
     </div>
   );
@@ -73,7 +77,9 @@ export function SefazStatusPanel() {
     try {
       setData(await getSefazMonitor());
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Não foi possível consultar a FiscalAPI.");
+      setError(
+        cause instanceof Error ? cause.message : "Não foi possível consultar o monitor SEFAZ.",
+      );
     } finally {
       setLoading(false);
     }
@@ -84,6 +90,9 @@ export function SefazStatusPanel() {
   }, [loadStatus]);
 
   const selected = data?.documents.find((item) => item.document === selectedDocument);
+  const availableDocuments =
+    data?.documents.map((item) => item.document) ??
+    (Object.keys(documentLabels) as FiscalDocument[]);
   const chartData = useMemo(
     () => selected?.states.map((state) => ({ ...state, normalLimit: 2 })) ?? [],
     [selected],
@@ -102,7 +111,9 @@ export function SefazStatusPanel() {
   const cardBorder = isDark ? "" : "border border-border";
   const subtitle = isDark ? "text-[#b9bbc5]" : "text-muted-foreground";
   const tabsWrap = isDark ? "border-[#5a5b63] bg-[#34353b]" : "border-border bg-background";
-  const tabInactive = isDark ? "text-[#c7c8cf] hover:bg-white/10" : "text-muted-foreground hover:bg-muted";
+  const tabInactive = isDark
+    ? "text-[#c7c8cf] hover:bg-white/10"
+    : "text-muted-foreground hover:bg-muted";
   const refreshBtn = isDark
     ? "border-[#5a5b63] bg-[#34353b] text-[#d9dae0] hover:bg-[#505159]"
     : "border-border bg-background text-muted-foreground hover:bg-muted";
@@ -117,22 +128,20 @@ export function SefazStatusPanel() {
             Falhas com a SEFAZ detectadas em tempo real
           </h2>
           <p className={`mt-1 text-[11px] ${subtitle}`}>
-            FiscalAPI ·{" "}
+            {data?.source ?? "Webmania"} ·{" "}
             {selected ? `atualizado às ${formatUpdatedAt(selected.updatedAt)}` : "consultando..."}
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           <div className={`flex rounded-md border p-0.5 ${tabsWrap}`}>
-            {(Object.keys(documentLabels) as FiscalDocument[]).map((document) => (
+            {availableDocuments.map((document) => (
               <button
                 key={document}
                 type="button"
                 onClick={() => setSelectedDocument(document)}
                 className={`cursor-pointer rounded px-3 py-1.5 text-xs transition-colors ${
-                  selectedDocument === document
-                    ? "bg-[#11a6b2] text-white"
-                    : tabInactive
+                  selectedDocument === document ? "bg-[#11a6b2] text-white" : tabInactive
                 }`}
               >
                 {documentLabels[document]}
@@ -182,7 +191,12 @@ export function SefazStatusPanel() {
                     <stop offset="100%" stopColor="#0d8d96" stopOpacity={0.25} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid stroke={gridStroke} strokeDasharray="5 6" vertical horizontal={false} />
+                <CartesianGrid
+                  stroke={gridStroke}
+                  strokeDasharray="5 6"
+                  vertical
+                  horizontal={false}
+                />
                 <XAxis
                   dataKey="uf"
                   axisLine={{ stroke: axisStroke }}
@@ -200,7 +214,7 @@ export function SefazStatusPanel() {
                   tick={{ fill: tickFill, fontSize: 11 }}
                 />
                 <Tooltip
-                  content={<ChartTooltip isDark={isDark} />}
+                  content={<ChartTooltip isDark={isDark} metric={selected?.metric ?? "status"} />}
                   cursor={{ stroke: isDark ? "#666870" : "#9ca3af" }}
                 />
                 <Area
