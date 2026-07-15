@@ -685,7 +685,7 @@ export function TicketDetailSheet({
         ticket={ticket}
       />
 
-
+      {open && <TicketFloatingChat ticket={ticket} />}
 
     </>
   );
