@@ -10,6 +10,7 @@ import {
   Tag,
 } from "lucide-react";
 import { SefazStatusPanel } from "@/components/portal/SefazStatusPanel";
+import { TicketsNewsCard } from "@/components/portal/TicketsNewsCard";
 import { AppShell } from "@/components/portal/AppShell";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -113,10 +114,11 @@ function HomePage() {
 
   return (
     <AppShell>
-      {/* Hero */}
-      <section className="mb-6">
+      <section className="mb-6 grid grid-cols-1 items-stretch gap-6 lg:grid-cols-[minmax(0,68fr)_minmax(0,32fr)]">
         <SefazStatusPanel />
+        <TicketsNewsCard />
       </section>
+
 
 
       {/* Atalhos */}
