@@ -65,14 +65,28 @@ function formatTime(iso: string) {
   });
 }
 
+function formatTimelineDate(iso: string) {
+  const date = new Date(iso);
+  return {
+    day: date.toLocaleDateString("pt-BR", { day: "2-digit" }),
+    month: date
+      .toLocaleDateString("pt-BR", { month: "short" })
+      .replace(".", "")
+      .toUpperCase(),
+    time: formatTime(iso),
+  };
+}
+
 export function TicketHistoryList({
   items,
   onSelect,
   compact = false,
+  timeline = false,
 }: {
   items: PastAttendance[];
   onSelect: (item: PastAttendance) => void;
   compact?: boolean;
+  timeline?: boolean;
 }) {
   const cols = compact
     ? "md:grid-cols-[minmax(0,1fr)_90px_110px_120px_140px_100px]"
@@ -83,6 +97,78 @@ export function TicketHistoryList({
       <div className="rounded-xl border border-border bg-card px-3 py-6 text-center text-[12px] text-muted-foreground">
         Sem atendimentos anteriores para este cliente.
       </div>
+    );
+  }
+
+  if (timeline) {
+    return (
+      <ul className="relative space-y-2.5 py-1 before:absolute before:bottom-5 before:left-[20px] before:top-5 before:w-px before:bg-border dark:before:bg-[#435568] sm:before:left-[26px]">
+        {items.map((item) => {
+          const date = formatTimelineDate(item.date);
+
+          return (
+            <li
+              key={item.id}
+              className="relative grid grid-cols-[42px_minmax(0,1fr)] gap-3 sm:grid-cols-[54px_minmax(0,1fr)] sm:gap-4"
+            >
+              <div className="relative z-10 flex flex-col items-center pt-3 text-center">
+                <span
+                  aria-hidden
+                  className={cn(
+                    "mb-2 h-3 w-3 rounded-full border-2 border-background shadow-[0_0_0_1px_rgba(255,255,255,0.08)]",
+                    priorityAccent[item.priority],
+                  )}
+                />
+                <span className="text-[15px] font-medium leading-none text-foreground dark:text-[#eef4fa]">
+                  {date.day}
+                </span>
+                <span className="mt-1 text-[9px] font-medium uppercase tracking-wide text-muted-foreground dark:text-[#a9b7c5]">
+                  {date.month}
+                </span>
+                <span className="mt-2 text-[9px] text-muted-foreground dark:text-[#7f91a3]">
+                  {date.time}
+                </span>
+              </div>
+
+              <article className="grid min-h-[82px] grid-cols-1 gap-3 rounded-lg border border-border bg-card px-3.5 py-3 shadow-[0_5px_16px_rgba(20,30,45,0.05)] dark:border-[#25384a] dark:bg-[#102335] dark:shadow-[0_8px_20px_rgba(0,0,0,0.18)] sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                <div className="min-w-0">
+                  <div className="flex min-w-0 flex-wrap items-center gap-2">
+                    <h3 className="truncate text-[11.5px] font-medium uppercase text-foreground dark:text-[#eef4fa]">
+                      {item.title}
+                    </h3>
+                    <span
+                      className={cn(
+                        "inline-flex shrink-0 rounded-full border px-1.5 py-0.5 text-[8.5px] font-medium uppercase",
+                        priorityChip[item.priority],
+                      )}
+                    >
+                      {item.priority}
+                    </span>
+                  </div>
+
+                  <p className="mt-1 truncate text-[9.5px] uppercase tracking-wide text-muted-foreground dark:text-[#9aaabc]">
+                    {item.module}
+                  </p>
+                  <p className="mt-2 text-[9.5px] text-muted-foreground dark:text-[#8194a7]">
+                    Atendente
+                    <span className="ml-2 font-medium text-foreground dark:text-[#dce7f1]">
+                      {item.operator}
+                    </span>
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => onSelect(item)}
+                  className="inline-flex h-7 cursor-pointer items-center justify-center gap-1 rounded-md bg-primary/10 px-3 text-[9.5px] font-medium text-primary transition hover:bg-primary/15 dark:bg-[#073a43] dark:text-[#20d4d0] dark:hover:bg-[#0a4650] sm:justify-self-end"
+                >
+                  Ver chamado
+                </button>
+              </article>
+            </li>
+          );
+        })}
+      </ul>
     );
   }
 

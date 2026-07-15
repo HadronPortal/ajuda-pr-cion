@@ -127,7 +127,7 @@ export function TicketHistoryModal({
             )}
           </div>
 
-          <TicketHistoryList items={shown} onSelect={setSelected} />
+          <TicketHistoryList items={shown} onSelect={setSelected} timeline />
         </div>
       </DialogContent>
       <PastAttendanceDetailModal
