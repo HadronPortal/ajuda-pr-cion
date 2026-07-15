@@ -77,7 +77,7 @@ export function TicketHistoryModal({
               <History className="h-5 w-5" />
             </span>
             <div className="min-w-0 flex-1">
-              <h2 className="text-[18px] font-bold leading-tight text-foreground">
+              <h2 className="text-[18px] font-medium leading-tight text-foreground">
                 Histórico
               </h2>
               <p className="mt-0.5 truncate text-[12px] text-muted-foreground">
