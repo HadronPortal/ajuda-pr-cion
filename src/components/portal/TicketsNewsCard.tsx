@@ -221,12 +221,12 @@ export function TicketsNewsCard() {
       onMouseLeave={() => setPaused(false)}
       className="flex h-full flex-col overflow-hidden rounded-[20px] border border-border bg-card text-card-foreground shadow-[0_14px_36px_rgba(15,16,20,0.08)] dark:shadow-[0_14px_36px_rgba(0,0,0,0.35)]"
     >
-      <header className="flex min-h-[65px] items-center justify-between gap-3 border-b border-border/60 px-6 py-3">
+      <header className="flex items-center justify-between gap-3 border-b border-border/60 px-6 py-3">
         <div className="min-w-0">
           <h2 className="truncate text-[17px] font-semibold leading-tight">
             Notícias dos chamados
           </h2>
-          <p className="mt-1 text-[11px] text-muted-foreground">
+          <p className="mt-0.5 text-[11px] text-muted-foreground">
             Insights em tempo real da sua operação
           </p>
         </div>
@@ -252,7 +252,7 @@ export function TicketsNewsCard() {
 
       <Link
         to={item.to}
-        className="group flex flex-1 cursor-pointer flex-col justify-between px-6 py-5 transition hover:bg-muted/40"
+        className="group flex flex-1 min-h-0 cursor-pointer flex-col justify-center px-6 py-4 transition hover:bg-muted/40"
       >
         <div className="flex items-start gap-4">
           <div className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${item.tone}`}>
@@ -262,12 +262,12 @@ export function TicketsNewsCard() {
             <p className="text-[15px] font-semibold leading-snug text-foreground">
               {item.title}
             </p>
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground line-clamp-3">
               {item.description}
             </p>
           </div>
         </div>
-        <div className="mt-6 flex items-center justify-between text-[11px] text-muted-foreground">
+        <div className="mt-4 flex items-center justify-between text-[11px] text-muted-foreground">
           <span>
             {item.updatedAt ? `Atualizado às ${formatTime(item.updatedAt)}` : "Atualização recente"}
           </span>
@@ -277,7 +277,7 @@ export function TicketsNewsCard() {
         </div>
       </Link>
 
-      <footer className="flex min-h-[52px] items-center justify-center gap-1.5 border-t border-border/60 px-4 py-3">
+      <footer className="flex items-center justify-center gap-1.5 border-t border-border/60 px-4 py-2.5">
         {news.map((n, i) => (
           <button
             key={n.id}
