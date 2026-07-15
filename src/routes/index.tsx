@@ -10,6 +10,7 @@ import {
   Tag,
 } from "lucide-react";
 import { SefazStatusPanel } from "@/components/portal/SefazStatusPanel";
+import { TicketsNewsCard } from "@/components/portal/TicketsNewsCard";
 import { AppShell } from "@/components/portal/AppShell";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
