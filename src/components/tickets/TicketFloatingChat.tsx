@@ -343,7 +343,8 @@ export function TicketFloatingChat({ ticket }: { ticket: SupportTicket }) {
             )}
           </div>
         ))}
-    </>
+    </>,
+    document.body,
   );
 }
 
