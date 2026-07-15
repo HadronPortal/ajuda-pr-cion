@@ -57,6 +57,12 @@ export const timelineEventPresentation: Record<
     softColor: "rgba(215, 149, 49, 0.24)",
     icon: FileText,
   },
+  solution: {
+    label: "Solução aplicada",
+    color: "#20ad74",
+    softColor: "rgba(32, 173, 116, 0.24)",
+    icon: Sparkles,
+  },
   closed: {
     label: "Chamado encerrado",
     color: "#20ad74",
