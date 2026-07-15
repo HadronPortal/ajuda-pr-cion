@@ -198,6 +198,7 @@ const timelineTone: Record<TicketEvent["kind"], string> = {
   status: "bg-[#e8f3ff] text-[#246cb5] dark:bg-[#17314e] dark:text-[#9dcaff]",
   message: "bg-[#f2eaff] text-[#7253bd] dark:bg-[#2e2549] dark:text-[#c7b8ff]",
   note: "bg-muted text-foreground",
+  solution: "bg-success/15 text-success",
   closed: "bg-success/15 text-success",
 };
 
