@@ -114,10 +114,11 @@ function HomePage() {
 
   return (
     <AppShell>
-      {/* Hero */}
-      <section className="mb-6">
+      <section className="mb-6 grid grid-cols-1 items-stretch gap-6 lg:grid-cols-[minmax(0,68fr)_minmax(0,32fr)]">
         <SefazStatusPanel />
+        <TicketsNewsCard />
       </section>
+
 
 
       {/* Atalhos */}
