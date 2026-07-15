@@ -36,7 +36,7 @@ function MessageBubble({ msg }: { msg: TicketMessage }) {
     >
       <span
         className={cn(
-          "grid h-7 w-7 shrink-0 place-items-center rounded-full text-[10.5px] font-bold",
+          "grid h-7 w-7 shrink-0 place-items-center rounded-full text-[10.5px] font-medium",
           isSupport
             ? "bg-primary/15 text-primary"
             : "bg-[#efe6d7] text-[#7a5a1e] dark:bg-[#3a2f1c] dark:text-[#e0c78c]",

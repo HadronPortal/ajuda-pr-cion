@@ -158,7 +158,7 @@ export function TicketTimelineModal({
                             >
                               <span
                                 className={cn(
-                                  "mb-2 text-[10.5px] font-semibold uppercase tracking-wide",
+                                  "mb-2 text-[10.5px] font-medium uppercase tracking-wide",
                                   isActive ? "text-primary" : "text-muted-foreground",
                                 )}
                               >
@@ -234,7 +234,7 @@ export function TicketTimelineModal({
                         {current.description}
                       </p>
                       <div className="mt-3 flex flex-wrap items-center gap-2">
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-muted/60 px-2.5 py-1 text-[11px] font-semibold text-foreground">
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-muted/60 px-2.5 py-1 text-[11px] font-medium text-foreground">
                           Operador: {current.actor}
                         </span>
                         <span className="inline-flex items-center gap-1.5 rounded-full border border-border px-2.5 py-1 text-[11px] font-medium capitalize text-muted-foreground">

@@ -102,10 +102,10 @@ function InfoRow({
         <Icon className="h-3.5 w-3.5" />
       </span>
       <div className="min-w-0">
-        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
           {label}
         </p>
-        <p className="mt-0.5 truncate text-[12.5px] font-semibold text-foreground">
+        <p className="mt-0.5 truncate text-[12.5px] font-medium text-foreground">
           {value}
         </p>
       </div>
@@ -198,15 +198,15 @@ export function PastAttendanceDetailModal({
             </span>
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                <span className="font-mono text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                   {attendance.protocol}
                 </span>
-                <Badge className="rounded-md border border-success/25 bg-success/12 px-2 py-0.5 text-[10.5px] font-bold uppercase tracking-wide text-success">
+                <Badge className="rounded-md border border-success/25 bg-success/12 px-2 py-0.5 text-[10.5px] font-medium uppercase tracking-wide text-success">
                   Finalizado
                 </Badge>
                 <Badge
                   className={cn(
-                    "rounded-md border px-2 py-0.5 text-[10.5px] font-bold uppercase tracking-wide",
+                    "rounded-md border px-2 py-0.5 text-[10.5px] font-medium uppercase tracking-wide",
                     priorityChip[attendance.priority],
                   )}
                 >
@@ -248,7 +248,7 @@ export function PastAttendanceDetailModal({
         <div className="flex-1 space-y-5 overflow-y-auto bg-muted/30 px-4 py-5 md:px-6">
           {/* Info grid */}
           <section>
-            <h3 className="mb-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+            <h3 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
               Dados do atendimento
             </h3>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -284,7 +284,7 @@ export function PastAttendanceDetailModal({
           <section className="rounded-xl border border-border bg-card p-4">
             <div className="mb-2 flex items-center gap-2">
               <MessageSquare className="h-4 w-4 text-muted-foreground" />
-              <h3 className="text-[12.5px] font-bold uppercase tracking-wider text-foreground">
+              <h3 className="text-[12.5px] font-medium uppercase tracking-wider text-foreground">
                 Descrição do problema
               </h3>
             </div>
@@ -302,14 +302,14 @@ export function PastAttendanceDetailModal({
             <div className="mb-2 flex items-center justify-between gap-2 pl-2">
               <div className="flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-success" />
-                <h3 className="text-[12.5px] font-bold uppercase tracking-wider text-success">
+                <h3 className="text-[12.5px] font-medium uppercase tracking-wider text-success">
                   Solução aplicada
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={copySolution}
-                className="inline-flex cursor-pointer items-center gap-1 rounded-md border border-success/30 bg-background/60 px-2 py-1 text-[11px] font-semibold text-success transition hover:bg-success/10"
+                className="inline-flex cursor-pointer items-center gap-1 rounded-md border border-success/30 bg-background/60 px-2 py-1 text-[11px] font-medium text-success transition hover:bg-success/10"
               >
                 <ClipboardCopy className="h-3.5 w-3.5" />
                 Copiar
@@ -322,7 +322,7 @@ export function PastAttendanceDetailModal({
 
           {/* Timeline */}
           <section className="rounded-xl border border-border bg-card p-4">
-            <h3 className="mb-3 text-[12.5px] font-bold uppercase tracking-wider text-foreground">
+            <h3 className="mb-3 text-[12.5px] font-medium uppercase tracking-wider text-foreground">
               Timeline
             </h3>
             <ol className="relative space-y-3">
@@ -345,7 +345,7 @@ export function PastAttendanceDetailModal({
                     </span>
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-baseline justify-between gap-2">
-                        <p className="text-[12.5px] font-semibold text-foreground">
+                        <p className="text-[12.5px] font-medium text-foreground">
                           {step.label}
                         </p>
                         <p className="text-[11px] text-muted-foreground">
@@ -368,7 +368,7 @@ export function PastAttendanceDetailModal({
           <button
             type="button"
             onClick={copySolution}
-            className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-[12px] font-semibold text-foreground transition hover:bg-muted"
+            className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-[12px] font-medium text-foreground transition hover:bg-muted"
           >
             <ClipboardCopy className="h-3.5 w-3.5" />
             Copiar solução
@@ -376,7 +376,7 @@ export function PastAttendanceDetailModal({
           <button
             type="button"
             onClick={() => onOpenChange(false)}
-            className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-primary px-4 py-1.5 text-[12px] font-semibold text-primary-foreground transition hover:bg-primary/90"
+            className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-primary px-4 py-1.5 text-[12px] font-medium text-primary-foreground transition hover:bg-primary/90"
           >
             Fechar
           </button>

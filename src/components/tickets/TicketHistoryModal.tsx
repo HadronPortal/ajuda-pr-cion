@@ -95,7 +95,7 @@ export function TicketHistoryModal({
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 <Badge
                   className={cn(
-                    "rounded-md border px-2 py-0.5 text-[10.5px] font-bold uppercase tracking-wide",
+                    "rounded-md border px-2 py-0.5 text-[10.5px] font-medium uppercase tracking-wide",
                     statusTone[ticket.status],
                   )}
                 >
@@ -112,7 +112,7 @@ export function TicketHistoryModal({
               <span className="text-[13px] font-bold text-foreground">
                 Atendimentos
               </span>
-              <span className="text-[12px] font-semibold text-muted-foreground">
+              <span className="text-[12px] font-medium text-muted-foreground">
                 ({historyItems.length})
               </span>
             </div>
@@ -120,7 +120,7 @@ export function TicketHistoryModal({
               <button
                 type="button"
                 onClick={() => setShowAll((v) => !v)}
-                className="cursor-pointer text-[12px] font-semibold text-primary hover:underline"
+                className="cursor-pointer text-[12px] font-medium text-primary hover:underline"
               >
                 {showAll ? "Recolher" : "Ver todos"}
               </button>
