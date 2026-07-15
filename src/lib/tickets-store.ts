@@ -14,6 +14,7 @@ export type TicketEventKind =
   | "status"
   | "message"
   | "note"
+  | "solution"
   | "closed";
 
 export type TicketEvent = {
