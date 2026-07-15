@@ -227,31 +227,45 @@ export function TicketFloatingChat({ ticket }: { ticket: SupportTicket }) {
       <button
         data-ticket-floating-chat
         type="button"
-        onPointerDown={(e) => e.stopPropagation()}
-        onMouseDown={(e) => e.stopPropagation()}
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
+        onPointerDown={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+        }}
+        onMouseDown={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+        }}
+        onClick={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
           setOpen(true);
           setMinimized(false);
         }}
         title="Abrir chat"
         aria-label="Abrir chat"
-        style={{ cursor: "pointer" }}
+        style={{
+          position: "fixed",
+          bottom: 24,
+          right: 24,
+          width: 52,
+          height: 52,
+          zIndex: 9999,
+          cursor: "pointer",
+        }}
         className={cn(
-          "fixed bottom-6 right-6 z-[100] grid place-items-center rounded-full bg-primary text-primary-foreground shadow-[0_10px_30px_rgba(0,0,0,0.25)] transition hover:brightness-110",
+          "grid place-items-center rounded-full bg-primary text-primary-foreground shadow-[0_10px_30px_rgba(0,0,0,0.25)] transition hover:brightness-110 cursor-pointer",
           open && !minimized && "hidden",
         )}
       >
-        <span
+        <MessageSquare
+          style={{ width: 22, height: 22, cursor: "pointer", pointerEvents: "none" }}
           aria-hidden
-          style={{ width: 52, height: 52, cursor: "pointer" }}
-          className="grid place-items-center rounded-full"
-        >
-          <MessageSquare style={{ width: 22, height: 22 }} />
-        </span>
+        />
         {unread > 0 && (
-          <span className="pointer-events-none absolute right-0 top-0 grid h-5 min-w-5 place-items-center rounded-full bg-destructive px-1 text-[10px] font-semibold text-destructive-foreground ring-2 ring-background">
+          <span
+            style={{ pointerEvents: "none" }}
+            className="absolute right-0 top-0 grid h-5 min-w-5 place-items-center rounded-full bg-destructive px-1 text-[10px] font-semibold text-destructive-foreground ring-2 ring-background"
+          >
             {unread > 9 ? "9+" : unread}
           </span>
         )}
