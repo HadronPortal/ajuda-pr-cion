@@ -97,7 +97,7 @@ function InfoRow({
   value: string;
 }) {
   return (
-    <div className="flex items-start gap-2.5 rounded-lg border border-border/70 bg-background px-3 py-2.5">
+    <div className="flex items-start gap-2.5 rounded-lg border border-border/70 bg-card px-3 py-2.5">
       <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center text-muted-foreground">
         <Icon className="h-3.5 w-3.5" />
       </span>
@@ -188,7 +188,7 @@ export function PastAttendanceDetailModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[90vh] w-[calc(100vw-1rem)] max-w-none flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-background p-0 shadow-[0_30px_80px_rgba(0,0,0,0.35)] sm:w-[calc(100vw-2rem)] md:w-[880px] lg:w-[960px] [&>button]:hidden">
+      <DialogContent className="flex max-h-[90vh] w-[calc(100vw-1rem)] max-w-none flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-card p-0 shadow-[0_30px_80px_rgba(0,0,0,0.35)] sm:w-[calc(100vw-2rem)] md:w-[880px] lg:w-[960px] [&>button]:hidden">
         <DialogTitle className="sr-only">
           Detalhes do atendimento {attendance.protocol}
         </DialogTitle>
@@ -260,7 +260,7 @@ export function PastAttendanceDetailModal({
 
 
         {/* Body */}
-        <div className="flex-1 space-y-5 overflow-y-auto bg-background px-4 py-5 md:px-6">
+        <div className="flex-1 space-y-5 overflow-y-auto bg-card px-4 py-5 md:px-6">
           {/* Info grid */}
           <section>
             <h3 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
@@ -324,7 +324,7 @@ export function PastAttendanceDetailModal({
               <button
                 type="button"
                 onClick={copySolution}
-                className="inline-flex cursor-pointer items-center gap-1 rounded-md border border-success/30 bg-background/60 px-2 py-1 text-[11px] font-medium text-success transition hover:bg-success/10"
+                className="inline-flex cursor-pointer items-center gap-1 rounded-md border border-success/30 bg-card px-2 py-1 text-[11px] font-medium text-success transition hover:bg-success/10"
               >
                 <ClipboardCopy className="h-3.5 w-3.5" />
                 Copiar
@@ -345,11 +345,11 @@ export function PastAttendanceDetailModal({
         </div>
 
         {/* Footer */}
-        <footer className="flex shrink-0 flex-wrap items-center justify-end gap-2 border-t border-border bg-background px-4 py-3 md:px-6">
+        <footer className="flex shrink-0 flex-wrap items-center justify-end gap-2 border-t border-border bg-card px-4 py-3 md:px-6">
           <button
             type="button"
             onClick={copySolution}
-            className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-[12px] font-medium text-foreground transition hover:bg-muted"
+            className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-border bg-card px-3 py-1.5 text-[12px] font-medium text-foreground transition hover:bg-muted"
           >
             <ClipboardCopy className="h-3.5 w-3.5" />
             Copiar solução
