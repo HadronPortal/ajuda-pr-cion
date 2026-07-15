@@ -218,8 +218,11 @@ export function TicketFloatingChat({ ticket }: { ticket: SupportTicket }) {
   const showWindow = open;
   const showList = open && !minimized;
 
-  return (
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
     <>
+      {/* Increase z above Radix overlay/content */}
       {/* FAB */}
       <button
         type="button"
