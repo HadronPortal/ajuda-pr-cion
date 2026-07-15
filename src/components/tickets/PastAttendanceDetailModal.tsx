@@ -10,7 +10,6 @@ import {
   History,
   Layers,
   MessageSquare,
-  Play,
   Sparkles,
   Tag,
   UserRound,
@@ -24,7 +23,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { SupportTicket, TicketPriority } from "@/lib/support-tickets-data";
-import type { PastAttendance } from "@/lib/tickets-store";
+import type { PastAttendance, TicketEvent } from "@/lib/tickets-store";
+import { TicketTimelineList } from "./TicketTimelineList";
 
 const priorityChip: Record<TicketPriority, string> = {
   Alta: "bg-destructive/12 text-destructive border-destructive/25",
@@ -134,31 +134,46 @@ export function PastAttendanceDetailModal({
   const problem = PROBLEM_TEMPLATES[h % PROBLEM_TEMPLATES.length];
   const solution = SOLUTION_TEMPLATES[h % SOLUTION_TEMPLATES.length];
 
-  const timeline = [
-    { icon: FileText, label: "Chamado aberto", when: attendance.date, actor: "Cliente" },
+  const timelineEvents: TicketEvent[] = [
     {
-      icon: UserRound,
-      label: "Chamado assumido",
+      id: `${attendance.id}-evt-created`,
+      kind: "created",
+      when: attendance.date,
+      actor: "Cliente",
+      actorType: "cliente",
+      description: `Chamado aberto pelo cliente — ${attendance.title}.`,
+    },
+    {
+      id: `${attendance.id}-evt-assumed`,
+      kind: "assumed",
       when: addMinutes(attendance.date, Math.max(5, Math.floor(durationMinutes * 0.08))),
       actor: attendance.operator,
+      actorType: "suporte",
+      description: `${attendance.operator} assumiu o atendimento.`,
     },
     {
-      icon: Play,
-      label: "Atendimento iniciado",
+      id: `${attendance.id}-evt-attend`,
+      kind: "attend",
       when: addMinutes(attendance.date, Math.max(10, Math.floor(durationMinutes * 0.15))),
       actor: attendance.operator,
+      actorType: "suporte",
+      description: "Atendimento iniciado e análise do problema em andamento.",
     },
     {
-      icon: Sparkles,
-      label: "Solução aplicada",
+      id: `${attendance.id}-evt-solution`,
+      kind: "solution",
       when: addMinutes(attendance.date, Math.max(20, Math.floor(durationMinutes * 0.8))),
       actor: attendance.operator,
+      actorType: "suporte",
+      description: solution,
     },
     {
-      icon: CheckCircle2,
-      label: "Chamado finalizado",
+      id: `${attendance.id}-evt-closed`,
+      kind: "closed",
       when: closedAt,
       actor: attendance.operator,
+      actorType: "suporte",
+      description: "Chamado finalizado após validação com o cliente.",
     },
   ];
 
@@ -245,7 +260,7 @@ export function PastAttendanceDetailModal({
 
 
         {/* Body */}
-        <div className="flex-1 space-y-5 overflow-y-auto bg-muted/30 px-4 py-5 md:px-6">
+        <div className="flex-1 space-y-5 overflow-y-auto bg-background px-4 py-5 md:px-6">
           {/* Info grid */}
           <section>
             <h3 className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
