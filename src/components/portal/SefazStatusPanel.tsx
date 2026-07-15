@@ -1,319 +1,160 @@
-import { useEffect, useState } from "react";
-import { Activity, AlertTriangle, CheckCircle2, MapPin, RefreshCw, XCircle } from "lucide-react";
 import {
   Area,
+  Bar,
   CartesianGrid,
   ComposedChart,
+  Legend,
   Line,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import {
-  getSefazStatus,
-  sefazStatusTone,
-  type SefazService,
-  type SefazServiceStatus,
-  type SefazStatus,
-} from "@/lib/sefaz-status";
 
-const statusHistory = [
-  { time: "15:00", nfe: 82, nfce: 74, cte: 78, mdfe: 72 },
-  { time: "16:30", nfe: 79, nfce: 61, cte: 84, mdfe: 68 },
-  { time: "18:00", nfe: 84, nfce: 48, cte: 71, mdfe: 74 },
-  { time: "19:30", nfe: 77, nfce: 88, cte: 65, mdfe: 70 },
-  { time: "21:00", nfe: 81, nfce: 42, cte: 82, mdfe: 66 },
-  { time: "22:30", nfe: 86, nfce: 70, cte: 74, mdfe: 78 },
-  { time: "00:00", nfe: 80, nfce: 55, cte: 88, mdfe: 71 },
-  { time: "01:30", nfe: 83, nfce: 92, cte: 62, mdfe: 75 },
-  { time: "03:00", nfe: 78, nfce: 46, cte: 79, mdfe: 68 },
-  { time: "04:30", nfe: 85, nfce: 68, cte: 86, mdfe: 73 },
-  { time: "06:00", nfe: 80, nfce: 38, cte: 70, mdfe: 77 },
-  { time: "07:30", nfe: 87, nfce: 82, cte: 83, mdfe: 65 },
-  { time: "09:00", nfe: 82, nfce: 58, cte: 66, mdfe: 79 },
-  { time: "10:30", nfe: 78, nfce: 90, cte: 81, mdfe: 69 },
-  { time: "12:00", nfe: 84, nfce: 52, cte: 74, mdfe: 76 },
-  { time: "13:30", nfe: 81, nfce: 76, cte: 87, mdfe: 71 },
-  { time: "15:00", nfe: 85, nfce: 64, cte: 72, mdfe: 74 },
+const sefazChartData = [
+  { time: "00h", autorizacoes: 34, ocorrencias: 8, disponibilidade: 89 },
+  { time: "02h", autorizacoes: 65, ocorrencias: 12, disponibilidade: 98 },
+  { time: "04h", autorizacoes: 46, ocorrencias: 7, disponibilidade: 68 },
+  { time: "06h", autorizacoes: 68, ocorrencias: 17, disponibilidade: 109 },
+  { time: "08h", autorizacoes: 49, ocorrencias: 21, disponibilidade: 77 },
+  { time: "10h", autorizacoes: 61, ocorrencias: 11, disponibilidade: 84 },
+  { time: "12h", autorizacoes: 42, ocorrencias: 5, disponibilidade: 51 },
+  { time: "14h", autorizacoes: 44, ocorrencias: 9, disponibilidade: 29 },
+  { time: "16h", autorizacoes: 78, ocorrencias: 7, disponibilidade: 92 },
+  { time: "18h", autorizacoes: 52, ocorrencias: 29, disponibilidade: 41 },
+  { time: "20h", autorizacoes: 63, ocorrencias: 12, disponibilidade: 88 },
 ];
 
+const chartColors = {
+  primary: "#465a91",
+  accent: "#0eae98",
+  line: "#f6ad3c",
+  grid: "#e7eaf0",
+  text: "#7b8098",
+};
 
-function StatusIcon({ status, className }: { status: SefazServiceStatus; className?: string }) {
-  const Icon =
-    status === "Normal"
-      ? CheckCircle2
-      : status === "Fora do ar"
-        ? XCircle
-        : AlertTriangle;
-  return <Icon className={className} />;
-}
+function ChartTooltip({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean;
+  payload?: Array<{ name: string; value: number; color: string }>;
+  label?: string;
+}) {
+  if (!active || !payload?.length) return null;
 
-function formatTime(d: Date) {
-  return d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-}
-
-function ServiceCard({ svc }: { svc: SefazService }) {
-  const tone = sefazStatusTone(svc.status);
   return (
-    <div
-      className={cn(
-        "flex min-h-[66px] min-w-0 items-start gap-2.5 rounded-xl border bg-[#eef8ff]/95 px-3.5 py-3 shadow-[0_12px_26px_rgba(20,76,135,0.12)] dark:bg-[#eaf6ff]/95",
-        tone.border,
-      )}
-    >
-      <span
-        className={cn(
-          "mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg",
-          tone.bg,
-          tone.text,
-        )}
-      >
-        <StatusIcon status={svc.status} className="h-4 w-4" />
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="text-[13px] font-semibold leading-none text-foreground">{svc.name}</p>
-        <p className={cn("mt-1 text-[10.5px] font-medium leading-none", tone.text)}>
-          {svc.status}
-        </p>
-        {svc.affectedUf && svc.affectedUf.length > 0 && (
-          <p className="mt-1 truncate text-[10px] text-muted-foreground">
-            UFs: {svc.affectedUf.join(", ")}
-          </p>
-        )}
-      </div>
+    <div className="rounded-lg border border-[#e4e6eb] bg-white px-3 py-2 shadow-lg">
+      <p className="mb-1.5 text-[11px] text-[#555b6f]">{label}</p>
+      {payload.map((item) => (
+        <div key={item.name} className="flex items-center justify-between gap-5 text-[11px]">
+          <span className="inline-flex items-center gap-1.5 text-[#777d91]">
+            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color }} />
+            {item.name}
+          </span>
+          <span className="text-[#30364a]">{item.value}</span>
+        </div>
+      ))}
     </div>
   );
 }
 
-function ChartLegendDot({ color, label }: { color: string; label: string }) {
-  return (
-    <span className="inline-flex items-center gap-1.5">
-      <span className="h-2 w-2 rounded-full" style={{ background: color }} />
-      {label}
-    </span>
-  );
-}
-
 export function SefazStatusPanel() {
-  const [data, setData] = useState<SefazStatus | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [open, setOpen] = useState(false);
-
-  const load = async () => {
-    setLoading(true);
-    try {
-      const s = await getSefazStatus();
-      setData(s);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    void load();
-  }, []);
-
-  const tone = data ? sefazStatusTone(data.generalStatus) : sefazStatusTone("Normal");
-
   return (
-    <>
-      <div className="relative h-full min-h-[356px] overflow-hidden rounded-2xl border border-white/14 bg-[linear-gradient(180deg,rgba(48,177,231,0.66)_0%,rgba(37,145,215,0.52)_54%,rgba(29,108,188,0.38)_100%)] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.16)] backdrop-blur-md">
-        <div className="pointer-events-none absolute -left-20 top-10 h-56 w-56 rounded-full bg-cyan-200/18 blur-3xl" />
-        <div className="pointer-events-none absolute bottom-0 right-0 h-72 w-72 rounded-full bg-blue-950/12 blur-3xl" />
-        <div className="relative z-10">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <span className="grid h-10 w-10 place-items-center rounded-full bg-white/14 text-[#8ee8ff]">
-              <Activity className="h-5 w-5" />
-            </span>
-            <div className="min-w-0">
-              <p className="text-[11px] font-medium uppercase tracking-wider text-white/80">
-                Status SEFAZ
-              </p>
-              <p className="text-[10.5px] text-white/70">
-                {data ? `Atualizado há 2 min · ${formatTime(data.updatedAt)}` : "Carregando..."}
-              </p>
-            </div>
-          </div>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/18 px-3 py-1.5 text-[11px] font-medium text-white">
-            <span className={cn("h-1.5 w-1.5 rounded-full", tone.dot)} />
-            {data?.generalStatus ?? "-"}
-          </span>
-        </div>
+    <section className="flex h-full min-h-[356px] flex-col overflow-hidden rounded-lg border border-[#e4e6eb] bg-white shadow-[0_10px_28px_rgba(35,42,68,0.06)]">
+      <header className="border-b border-[#e4e6eb] px-5 py-4">
+        <h2 className="text-[17px] font-medium text-[#30364a]">Status SEFAZ</h2>
+        <p className="mt-0.5 text-[11px] text-[#7b8098]">
+          Autorizações, ocorrências e disponibilidade nas últimas 24 horas
+        </p>
+      </header>
 
-        <div className="mt-4 flex flex-wrap gap-1.5">
-          {(data?.services ?? []).map((s) => {
-            const t = sefazStatusTone(s.status);
-            return (
-              <span
-                key={s.name}
-                className="inline-flex items-center gap-1.5 rounded-full bg-white/12 px-2.5 py-1 text-[10.5px] font-medium text-white"
-              >
-                <span className={cn("h-1.5 w-1.5 rounded-full", t.dot)} />
-                {s.name}
-              </span>
-            );
-          })}
-        </div>
-
-        <div className="mt-4">
-          <p className="mb-2 text-[11px] font-medium text-white/86">
-            Histórico de status (últimas 24h)
-          </p>
-          <div className="h-[132px] overflow-visible">
-            <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={statusHistory} margin={{ top: 12, right: 12, left: 12, bottom: 8 }}>
-                <defs>
-                  {[
-                    { id: "fillNfe", color: "#55e3ad" },
-                    { id: "fillNfce", color: "#ffd04d" },
-                    { id: "fillCte", color: "#59d9ff" },
-                    { id: "fillMdfe", color: "#8cf45f" },
-                  ].map((g) => (
-                    <linearGradient key={g.id} id={g.id} x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={g.color} stopOpacity={0.45} />
-                      <stop offset="100%" stopColor={g.color} stopOpacity={0} />
-                    </linearGradient>
-                  ))}
-                </defs>
-                <CartesianGrid stroke="rgba(255,255,255,0.14)" strokeDasharray="4 4" />
-                <XAxis dataKey="time" tickLine={false} axisLine={false} tick={{ fill: "rgba(255,255,255,0.72)", fontSize: 10 }} />
-                <YAxis tickFormatter={(v) => `${v}%`} tickLine={false} axisLine={false} tick={{ fill: "rgba(255,255,255,0.70)", fontSize: 10 }} domain={[0, 100]} ticks={[0, 25, 50, 75, 100]} width={44} />
-                <Tooltip
-                  contentStyle={{
-                    border: "0",
-                    borderRadius: 12,
-                    background: "rgba(25,29,51,0.94)",
-                    color: "#fff",
-                    fontSize: 11,
-                  }}
-                />
-                <Area type="monotone" dataKey="nfe" stroke="none" fill="url(#fillNfe)" isAnimationActive={false} activeDot={false} />
-                <Area type="monotone" dataKey="nfce" stroke="none" fill="url(#fillNfce)" isAnimationActive={false} activeDot={false} />
-                <Area type="monotone" dataKey="cte" stroke="none" fill="url(#fillCte)" isAnimationActive={false} activeDot={false} />
-                <Area type="monotone" dataKey="mdfe" stroke="none" fill="url(#fillMdfe)" isAnimationActive={false} activeDot={false} />
-                <Line type="monotone" dataKey="nfe" stroke="#55e3ad" strokeWidth={2.5} dot={false} />
-                <Line type="monotone" dataKey="nfce" stroke="#ffd04d" strokeWidth={2.5} dot={false} />
-                <Line type="monotone" dataKey="cte" stroke="#59d9ff" strokeWidth={2.5} dot={false} />
-                <Line type="monotone" dataKey="mdfe" stroke="#8cf45f" strokeWidth={2.5} dot={false} />
-              </ComposedChart>
-            </ResponsiveContainer>
-        </div>
-
-        {(() => {
-          const ufs = data
-            ? Array.from(new Set(data.services.flatMap((s) => s.affectedUf ?? [])))
-            : [];
-          if (ufs.length === 0) return null;
-          return (
-            <div className="mt-3 flex items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-[11.5px] text-white/90">
-              <MapPin className="h-3.5 w-3.5 shrink-0 text-[#ffd04d]" />
-              <span className="font-semibold">UFs com instabilidade:</span>
-              <span className="truncate">{ufs.join(", ")}</span>
-            </div>
-          );
-        })()}
-          <div className="mt-1 flex justify-center gap-5 text-[10px] font-medium text-white/82">
-            <ChartLegendDot color="#55e3ad" label="NF-e" />
-            <ChartLegendDot color="#ffd04d" label="NFC-e" />
-            <ChartLegendDot color="#59d9ff" label="CT-e" />
-            <ChartLegendDot color="#8cf45f" label="MDF-e" />
-          </div>
-        </div>
-
-
-        <div className="mt-3 flex items-center justify-between gap-2">
-          <button
-            type="button"
-            onClick={() => void load()}
-            disabled={loading}
-            className="inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-[11px] font-medium text-white transition hover:bg-white/20 disabled:opacity-60"
+      <div className="min-h-0 flex-1 px-2 pb-2 pt-4 sm:px-4">
+        <ResponsiveContainer width="100%" height="100%" minHeight={270}>
+          <ComposedChart
+            data={sefazChartData}
+            margin={{ top: 8, right: 12, left: 0, bottom: 0 }}
+            barGap={2}
+            barCategoryGap="54%"
           >
-            <RefreshCw className={cn("h-3 w-3", loading && "animate-spin")} />
-            Atualizar
-          </button>
-          <Button
-            size="sm"
-            onClick={() => setOpen(true)}
-            className="h-8 cursor-pointer rounded-full bg-[#191d33] px-4 text-[12px] text-white hover:bg-[#191d33]/90"
-          >
-            Ver detalhes
-          </Button>
-        </div>
-        </div>
+            <defs>
+              <linearGradient id="sefazAvailabilityFill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={chartColors.line} stopOpacity={0.18} />
+                <stop offset="100%" stopColor={chartColors.line} stopOpacity={0.04} />
+              </linearGradient>
+            </defs>
+
+            <CartesianGrid
+              stroke={chartColors.grid}
+              strokeWidth={1}
+              vertical
+              horizontal={false}
+            />
+            <XAxis
+              dataKey="time"
+              axisLine={false}
+              tickLine={false}
+              tick={{ fill: chartColors.text, fontSize: 11 }}
+              dy={8}
+            />
+            <YAxis
+              axisLine={false}
+              tickLine={false}
+              width={44}
+              domain={[0, 120]}
+              ticks={[0, 20, 40, 60, 80, 100, 120]}
+              tick={{ fill: chartColors.text, fontSize: 10.5 }}
+              tickFormatter={(value) => Number(value).toFixed(2)}
+            />
+            <Tooltip content={<ChartTooltip />} cursor={{ fill: "rgba(70,90,145,0.04)" }} />
+            <Legend
+              verticalAlign="bottom"
+              iconType="circle"
+              iconSize={9}
+              wrapperStyle={{
+                color: chartColors.text,
+                fontSize: 11,
+                paddingTop: 20,
+              }}
+            />
+
+            <Area
+              type="monotone"
+              dataKey="disponibilidade"
+              name="Disponibilidade"
+              legendType="none"
+              stroke="none"
+              fill="url(#sefazAvailabilityFill)"
+              isAnimationActive={false}
+            />
+            <Bar
+              dataKey="autorizacoes"
+              name="Autorizações"
+              fill={chartColors.primary}
+              maxBarSize={20}
+              radius={[0, 0, 0, 0]}
+            />
+            <Bar
+              dataKey="ocorrencias"
+              name="Ocorrências"
+              fill={chartColors.accent}
+              maxBarSize={20}
+              radius={[0, 0, 0, 0]}
+            />
+            <Line
+              type="monotone"
+              dataKey="disponibilidade"
+              name="Disponibilidade"
+              stroke={chartColors.line}
+              strokeWidth={1.25}
+              strokeDasharray="3 3"
+              dot={{ r: 3.5, fill: chartColors.line, stroke: chartColors.line }}
+              activeDot={{ r: 5, fill: chartColors.line, stroke: "#fff", strokeWidth: 2 }}
+            />
+          </ComposedChart>
+        </ResponsiveContainer>
       </div>
-
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-lg rounded-2xl border border-border bg-background p-6">
-          <DialogHeader>
-            <DialogTitle className="text-[16px] font-bold text-foreground">
-              Status SEFAZ - detalhes
-            </DialogTitle>
-            {data && (
-              <p className="text-[12px] text-muted-foreground">
-                Ultima atualizacao: {data.updatedAt.toLocaleString("pt-BR")}
-              </p>
-            )}
-          </DialogHeader>
-
-          {data && (
-            <div className="mt-2 space-y-2">
-              {data.services.map((svc) => {
-                const t = sefazStatusTone(svc.status);
-                return (
-                  <div
-                    key={svc.name}
-                    className={cn(
-                      "flex items-start gap-3 rounded-xl border bg-card px-3 py-2.5",
-                      t.border,
-                    )}
-                  >
-                    <span
-                      className={cn(
-                        "grid h-8 w-8 shrink-0 place-items-center rounded-lg",
-                        t.bg,
-                        t.text,
-                      )}
-                    >
-                      <StatusIcon status={svc.status} className="h-4 w-4" />
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="text-[13px] font-semibold text-foreground">{svc.name}</p>
-                        <span className={cn("rounded-full px-2 py-0.5 text-[11px] font-medium", t.badge)}>
-                          {svc.status}
-                        </span>
-                      </div>
-                      {svc.affectedUf && svc.affectedUf.length > 0 ? (
-                        <p className="mt-1 text-[11.5px] text-muted-foreground">
-                          UFs afetadas: {svc.affectedUf.join(", ")}
-                        </p>
-                      ) : (
-                        <p className="mt-1 text-[11.5px] text-muted-foreground">
-                          Sem ocorrencias no momento.
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          <p className="mt-4 text-[11px] text-muted-foreground">
-            Dados atualmente mockados - integracao com fonte oficial em breve.
-          </p>
-        </DialogContent>
-      </Dialog>
-    </>
+    </section>
   );
 }

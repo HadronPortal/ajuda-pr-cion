@@ -403,7 +403,7 @@ function HomePage() {
   return (
     <AppShell>
       {/* Hero */}
-      <section className="mb-6 overflow-hidden rounded-[18px] bg-[radial-gradient(circle_at_20%_10%,rgba(51,195,232,0.42),transparent_34%),linear-gradient(135deg,#0c9fd4_0%,#087ee0_42%,#263276_100%)] p-4 text-white shadow-[0_22px_54px_rgba(11,151,196,0.28)] md:p-5">
+      <section className="mb-6">
         <div className="grid gap-3 xl:grid-cols-[minmax(0,1.75fr)_minmax(360px,0.95fr)]">
           <SefazStatusPanel />
           <TodaySummaryCard />
