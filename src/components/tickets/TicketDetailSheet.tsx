@@ -75,6 +75,7 @@ import { PastAttendanceDetailModal } from "./PastAttendanceDetailModal";
 import type { PastAttendance } from "@/lib/tickets-store";
 import { TicketNotesModal } from "./TicketNotesModal";
 import { TicketTimelineModal } from "./TicketTimelineModal";
+import { TicketTimelineList } from "./TicketTimelineList";
 
 import ticketAssumeIconUrl from "@/assets/ticket-assume.png?url";
 import ticketAttendIconUrl from "@/assets/ticket-attend.png?url";
@@ -612,7 +613,13 @@ export function TicketDetailSheet({
                       </button>
                     )}
                   </div>
-                  <TicketTimelineInline events={timelineEvents} />
+                  <div className="rounded-xl border border-border bg-card px-3 py-3">
+                    <TicketTimelineList
+                      events={timelineEvents}
+                      variant="compact"
+                      limit={5}
+                    />
+                  </div>
                 </Section>
               </div>
 
