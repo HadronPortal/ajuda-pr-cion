@@ -254,7 +254,6 @@ export function TicketFloatingChat({ ticket }: { ticket: SupportTicket }) {
         }}
         className={cn(
           "grid place-items-center rounded-full bg-primary text-primary-foreground shadow-[0_10px_30px_rgba(0,0,0,0.25)] transition hover:brightness-110 cursor-pointer",
-          open && !minimized && "hidden",
         )}
       >
         <MessageSquare
