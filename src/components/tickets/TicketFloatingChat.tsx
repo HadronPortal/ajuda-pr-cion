@@ -251,6 +251,7 @@ export function TicketFloatingChat({ ticket }: { ticket: SupportTicket }) {
           height: 52,
           zIndex: 9999,
           cursor: "pointer",
+          pointerEvents: "auto",
         }}
         className={cn(
           "grid place-items-center rounded-full bg-primary text-primary-foreground shadow-[0_10px_30px_rgba(0,0,0,0.25)] transition hover:brightness-110 cursor-pointer",
@@ -275,6 +276,7 @@ export function TicketFloatingChat({ ticket }: { ticket: SupportTicket }) {
         (isMobile ? (
           <div
             data-ticket-floating-chat
+            style={{ pointerEvents: "auto" }}
             className="fixed inset-x-2 bottom-2 top-2 z-[110] flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl"
           >
             <ChatHeader
@@ -318,6 +320,7 @@ export function TicketFloatingChat({ ticket }: { ticket: SupportTicket }) {
               width: WIDTH,
               height: minimized ? undefined : HEIGHT,
               willChange: dragging ? "transform" : undefined,
+              pointerEvents: "auto",
             }}
             className={cn(
               "fixed left-0 top-0 z-[110] flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-[0_20px_60px_rgba(0,0,0,0.35)]",

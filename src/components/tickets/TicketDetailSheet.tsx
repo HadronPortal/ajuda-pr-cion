@@ -296,7 +296,7 @@ export function TicketDetailSheet({
 
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
+      <Dialog open={open} onOpenChange={onOpenChange} modal={false}>
         <DialogContent
           onPointerDownOutside={(event) => {
             const target = event.target;
