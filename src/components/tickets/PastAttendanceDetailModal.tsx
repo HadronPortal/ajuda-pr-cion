@@ -97,7 +97,7 @@ function InfoRow({
   value: string;
 }) {
   return (
-    <div className="flex items-start gap-2.5 rounded-lg border border-border/70 bg-muted/30 px-3 py-2.5">
+    <div className="flex items-start gap-2.5 rounded-lg border border-border/70 bg-background px-3 py-2.5">
       <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center text-muted-foreground">
         <Icon className="h-3.5 w-3.5" />
       </span>
