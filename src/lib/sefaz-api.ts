@@ -20,7 +20,7 @@ export type SefazDocumentStatus = {
 export type SefazMonitorResponse = {
   documents: SefazDocumentStatus[];
   cached: boolean;
-  source: "Webmania" | "FiscalAPI";
+  source: "Webmania" | "FiscalAPI" | "Webmania + FiscalAPI";
 };
 
 type FiscalApiPayload = {
@@ -160,16 +160,57 @@ async function fetchFiscalApiFallback(apiKey: string): Promise<SefazMonitorRespo
   return { documents, cached: false, source: "FiscalAPI" };
 }
 
+function mergeWebmaniaWithLatency(
+  webmania: SefazMonitorResponse,
+  fiscalApi: SefazMonitorResponse,
+): SefazMonitorResponse {
+  const documents = webmania.documents.map((document) => {
+    const latencyDocument = fiscalApi.documents.find(
+      (candidate) => candidate.document === document.document,
+    );
+    if (!latencyDocument) return document;
+
+    const latencyByUf = new Map(
+      latencyDocument.states.map((state) => [state.uf, state.responseTime]),
+    );
+    return {
+      ...document,
+      metric: "latency" as const,
+      states: document.states.map((state) => ({
+        ...state,
+        responseTime: latencyByUf.get(state.uf) ?? state.responseTime,
+      })),
+    };
+  });
+
+  return {
+    documents,
+    cached: false,
+    source: "Webmania + FiscalAPI",
+  };
+}
+
 export const getSefazMonitor = createServerFn({ method: "GET" }).handler(
   async (): Promise<SefazMonitorResponse> => {
     const now = Date.now();
     if (cache && cache.expiresAt > now) return { ...cache.data, cached: true };
 
     let result: SefazMonitorResponse;
+    const apiKey = process.env.FISCAL_API_KEY;
     try {
       result = await fetchWebmaniaStatus();
+      if (apiKey) {
+        try {
+          const fiscalApi = await fetchFiscalApiFallback(apiKey);
+          result = mergeWebmaniaWithLatency(result, fiscalApi);
+        } catch (fiscalApiError) {
+          console.warn(
+            "FiscalAPI indisponível; exibindo somente o status da Webmania.",
+            fiscalApiError,
+          );
+        }
+      }
     } catch (webmaniaError) {
-      const apiKey = process.env.FISCAL_API_KEY;
       if (!apiKey) throw webmaniaError;
       console.warn("Monitor Webmania indisponível; usando FiscalAPI como fallback.", webmaniaError);
       result = await fetchFiscalApiFallback(apiKey);

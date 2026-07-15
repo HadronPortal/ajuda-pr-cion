@@ -87,6 +87,11 @@ export function SefazStatusPanel() {
 
   useEffect(() => {
     void loadStatus();
+    const refreshInterval = window.setInterval(() => {
+      void loadStatus();
+    }, 60_000);
+
+    return () => window.clearInterval(refreshInterval);
   }, [loadStatus]);
 
   const selected = data?.documents.find((item) => item.document === selectedDocument);
