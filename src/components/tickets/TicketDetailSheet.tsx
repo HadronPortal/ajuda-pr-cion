@@ -75,6 +75,7 @@ import { PastAttendanceDetailModal } from "./PastAttendanceDetailModal";
 import type { PastAttendance } from "@/lib/tickets-store";
 import { TicketNotesModal } from "./TicketNotesModal";
 import { TicketTimelineModal } from "./TicketTimelineModal";
+import { TicketTimelineList } from "./TicketTimelineList";
 
 import ticketAssumeIconUrl from "@/assets/ticket-assume.png?url";
 import ticketAttendIconUrl from "@/assets/ticket-attend.png?url";
