@@ -187,8 +187,9 @@ export function SefazStatusPanel() {
                   dataKey="uf"
                   axisLine={{ stroke: axisStroke }}
                   tickLine={{ stroke: axisStroke }}
-                  interval={2}
-                  tick={{ fill: tickFill, fontSize: 11 }}
+                  interval={0}
+                  minTickGap={0}
+                  tick={{ fill: tickFill, fontSize: 9 }}
                   dy={8}
                 />
                 <YAxis
