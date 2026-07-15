@@ -375,13 +375,13 @@ export function TicketDetailSheet({
                 navCollapsed ? "md:w-[64px]" : "md:w-[210px]",
               )}
             >
-              <div className="flex items-center justify-end border-b border-border p-2">
+              <div className="flex items-center justify-end p-2">
                 <button
                   type="button"
                   onClick={() => setNavCollapsed((v) => !v)}
                   aria-label={navCollapsed ? "Expandir menu" : "Retrair menu"}
                   title={navCollapsed ? "Expandir menu" : "Retrair menu"}
-                  className="grid h-7 w-7 cursor-pointer place-items-center rounded-md border border-border text-muted-foreground transition hover:bg-accent hover:text-foreground"
+                  className="grid h-7 w-7 cursor-pointer place-items-center rounded-md text-muted-foreground transition hover:bg-accent hover:text-foreground"
                 >
                   {navCollapsed ? (
                     <ChevronRight className="h-4 w-4" />
