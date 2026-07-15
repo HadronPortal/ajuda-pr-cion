@@ -126,10 +126,7 @@ export function TicketHistoryList({
               {/* Chamado */}
               <div className="flex min-w-0 items-start gap-2.5">
                 <span
-                  className={cn(
-                    "grid h-8 w-8 shrink-0 place-items-center rounded-full",
-                    priorityIconWrap[h.priority],
-                  )}
+                  className="grid h-8 w-8 shrink-0 place-items-center text-muted-foreground"
                   aria-hidden
                 >
                   <FileText className="h-3.5 w-3.5" />
