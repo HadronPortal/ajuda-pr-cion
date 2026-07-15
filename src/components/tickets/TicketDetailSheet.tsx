@@ -298,6 +298,24 @@ export function TicketDetailSheet({
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent
+          onPointerDownOutside={(event) => {
+            const target = event.target;
+            if (
+              target instanceof Element &&
+              target.closest("[data-ticket-floating-chat]")
+            ) {
+              event.preventDefault();
+            }
+          }}
+          onInteractOutside={(event) => {
+            const target = event.target;
+            if (
+              target instanceof Element &&
+              target.closest("[data-ticket-floating-chat]")
+            ) {
+              event.preventDefault();
+            }
+          }}
           className="grid max-h-none w-[92vw] max-w-[1500px] gap-4 border-0 bg-transparent p-0 shadow-none xl:grid-cols-[minmax(0,1fr)_360px] xl:gap-6 [&>button]:hidden"
         >
           <DialogTitle className="sr-only">

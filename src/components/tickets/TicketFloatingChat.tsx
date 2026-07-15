@@ -225,6 +225,7 @@ export function TicketFloatingChat({ ticket }: { ticket: SupportTicket }) {
       {/* Increase z above Radix overlay/content */}
       {/* FAB */}
       <button
+        data-ticket-floating-chat
         type="button"
         onPointerDown={(e) => e.stopPropagation()}
         onMouseDown={(e) => e.stopPropagation()}
@@ -259,7 +260,10 @@ export function TicketFloatingChat({ ticket }: { ticket: SupportTicket }) {
 
       {showWindow &&
         (isMobile ? (
-          <div className="fixed inset-x-2 bottom-2 top-2 z-[90] flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl">
+          <div
+            data-ticket-floating-chat
+            className="fixed inset-x-2 bottom-2 top-2 z-[110] flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl"
+          >
             <ChatHeader
               ticket={ticket}
               onMinimize={() => setMinimized(true)}
@@ -292,6 +296,7 @@ export function TicketFloatingChat({ ticket }: { ticket: SupportTicket }) {
           </div>
         ) : (
           <div
+            data-ticket-floating-chat
             ref={winRef}
             style={{
               transform: pos
@@ -302,7 +307,7 @@ export function TicketFloatingChat({ ticket }: { ticket: SupportTicket }) {
               willChange: dragging ? "transform" : undefined,
             }}
             className={cn(
-              "fixed left-0 top-0 z-[90] flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-[0_20px_60px_rgba(0,0,0,0.35)]",
+              "fixed left-0 top-0 z-[110] flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-[0_20px_60px_rgba(0,0,0,0.35)]",
               dragging && "select-none",
             )}
           >
