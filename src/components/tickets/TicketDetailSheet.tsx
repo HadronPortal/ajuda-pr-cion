@@ -472,7 +472,7 @@ export function TicketDetailSheet({
 
 
               {isMine && (
-                <div className="border-t border-border p-2">
+                <div className="p-2">
                   <span
                     className={cn(
                       "flex items-center gap-1.5 rounded-lg bg-primary/10 px-2 py-1.5 text-[10.5px] font-semibold text-primary",
