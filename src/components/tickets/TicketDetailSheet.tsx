@@ -646,6 +646,8 @@ export function TicketDetailSheet({
             className="hidden max-h-[90vh] overflow-hidden rounded-2xl border border-border bg-card shadow-[0_30px_80px_rgba(0,0,0,0.35)] xl:flex"
           />
 
+          <TicketFloatingChat ticket={ticket} />
+
         </DialogContent>
 
       </Dialog>
@@ -685,7 +687,7 @@ export function TicketDetailSheet({
         ticket={ticket}
       />
 
-      {open && <TicketFloatingChat ticket={ticket} />}
+      
 
     </>
   );
