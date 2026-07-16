@@ -424,6 +424,48 @@ export function RichTextEditor({
         </ToolbarBtn>
       </div>
 
+      {imageStatus.kind !== "idle" && (
+        <div
+          className={cn(
+            "flex items-center gap-2 border-b border-border px-3 py-1.5 text-[11.5px]",
+            imageStatus.kind === "error"
+              ? "bg-destructive/10 text-destructive"
+              : "bg-muted/60 text-muted-foreground",
+          )}
+          role="status"
+        >
+          {imageStatus.kind === "uploading" ? (
+            <>
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              <span>
+                Enviando imagem{imageStatus.filename ? ` "${imageStatus.filename}"` : ""}…
+              </span>
+            </>
+          ) : (
+            <>
+              <span className="font-medium">Erro:</span>
+              <span>{imageStatus.message}</span>
+              <button
+                type="button"
+                className="ml-auto cursor-pointer text-[11px] underline"
+                onClick={() => setImageStatus({ kind: "idle" })}
+              >
+                Fechar
+              </button>
+            </>
+          )}
+        </div>
+      )}
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/png,image/jpeg,image/jpg,image/webp,image/gif"
+        multiple
+        className="hidden"
+        onChange={handleFileInputChange}
+      />
+
       <div className="relative">
         {isEmpty && placeholder && (
           <div className="pointer-events-none absolute left-3 top-3 text-[13px] text-muted-foreground">
@@ -442,6 +484,10 @@ export function RichTextEditor({
           }}
           onKeyUp={updateFromSelection}
           onMouseUp={updateFromSelection}
+          onPaste={handlePaste}
+          onDrop={handleDrop}
+          onDragOver={(e) => e.preventDefault()}
+          onDoubleClick={handleEditorDblClick}
           onBlur={() => {
             saveSelection();
             emit();
@@ -454,6 +500,146 @@ export function RichTextEditor({
         />
       </div>
     </div>
+  );
+}
+
+function ImageMenuButton({
+  onBeforeOpen,
+  onPickFromComputer,
+  onPickFromUrl,
+}: {
+  onBeforeOpen?: () => void;
+  onPickFromComputer: () => void;
+  onPickFromUrl: () => void;
+}) {
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
+
+  useLayoutEffect(() => {
+    if (!open) return;
+    const btn = btnRef.current;
+    if (!btn) return;
+    const rect = btn.getBoundingClientRect();
+    setPos({ top: rect.bottom + 4, left: rect.left });
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleDown = (e: MouseEvent) => {
+      const t = e.target as Node;
+      if (menuRef.current?.contains(t) || btnRef.current?.contains(t)) return;
+      setOpen(false);
+    };
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", handleDown);
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("mousedown", handleDown);
+      document.removeEventListener("keydown", handleKey);
+    };
+  }, [open]);
+
+  const select = (action: () => void) => {
+    setOpen(false);
+    action();
+  };
+
+  return (
+    <>
+      <button
+        ref={btnRef}
+        type="button"
+        title="Inserir imagem"
+        aria-label="Inserir imagem"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        data-rich-text-menu="true"
+        onMouseDown={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onBeforeOpen?.();
+        }}
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setOpen((v) => !v);
+        }}
+        className="grid h-7 w-7 cursor-pointer place-items-center rounded text-foreground/80 transition hover:bg-accent hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        style={{ pointerEvents: "auto" }}
+      >
+        <ImageIcon className="h-3.5 w-3.5" />
+      </button>
+      {open &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            ref={menuRef}
+            role="menu"
+            data-rich-text-menu="true"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
+            className="fixed z-[2147483000] min-w-[200px] overflow-hidden rounded-md border border-border bg-popover py-1 text-popover-foreground shadow-lg"
+            style={{ top: pos.top, left: pos.left, pointerEvents: "auto" }}
+          >
+            <button
+              type="button"
+              role="menuitem"
+              data-rich-text-menu="true"
+              onPointerDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                select(onPickFromComputer);
+              }}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              className="flex w-full cursor-pointer items-center gap-2 px-2.5 py-1.5 text-left text-[12.5px] transition hover:bg-accent hover:text-accent-foreground"
+              style={{ pointerEvents: "auto" }}
+            >
+              <Upload className="h-3.5 w-3.5 opacity-70" />
+              <span>Enviar do computador</span>
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              data-rich-text-menu="true"
+              onPointerDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                select(onPickFromUrl);
+              }}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              className="flex w-full cursor-pointer items-center gap-2 px-2.5 py-1.5 text-left text-[12.5px] transition hover:bg-accent hover:text-accent-foreground"
+              style={{ pointerEvents: "auto" }}
+            >
+              <Link2 className="h-3.5 w-3.5 opacity-70" />
+              <span>Inserir por URL</span>
+            </button>
+          </div>,
+          document.body,
+        )}
+    </>
   );
 }
 
