@@ -13,7 +13,6 @@ import {
   Headphones,
   Layers,
   MessageSquare,
-  MoreVertical,
   ReceiptText,
   Settings2,
   Shield,
@@ -22,7 +21,6 @@ import {
   Truck,
   UserRound,
   Wallet,
-  X,
 } from "lucide-react";
 import {
   Dialog,
