@@ -12,6 +12,7 @@ import {
 } from "recharts";
 import { getSefazMonitor, type FiscalDocument, type SefazMonitorResponse } from "@/lib/sefaz-api";
 import { useTheme } from "@/lib/theme-store";
+import { NfeConsultDialog } from "@/components/portal/NfeConsultDialog";
 
 const documentLabels: Record<FiscalDocument, string> = {
   nfe: "NF-e",
@@ -139,6 +140,7 @@ export function SefazStatusPanel() {
         </div>
 
         <div className="flex items-center gap-2">
+          <NfeConsultDialog />
           <div className={`flex rounded-md border p-0.5 ${tabsWrap}`}>
             {availableDocuments.map((document) => (
               <button
