@@ -1551,7 +1551,7 @@ function RevenueStyleCards({
       title: "Em Atendimento",
       value: inProgressTickets,
       change: "+8%",
-      helper: "Chamados em execucao",
+      helper: "Chamados em atendimento",
       tone: "from-[#0b97c4] to-[#36b9df]",
       arrow: "bg-[#087fa6]",
       positive: true,
