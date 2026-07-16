@@ -1,9 +1,5 @@
 import { useCallback, useSyncExternalStore } from "react";
-import {
-  supportTickets,
-  type SupportTicket,
-  type TicketStatus,
-} from "./support-tickets-data";
+import { supportTickets, type SupportTicket, type TicketStatus } from "./support-tickets-data";
 import { currentUser } from "./mock-data";
 
 export type TicketEventKind =
@@ -42,7 +38,20 @@ export type PastAttendance = {
 
 export type ClosurePayload = {
   solution: string;
-  type: "Resolvido" | "Duplicado" | "Sem retorno do cliente" | "Cancelado";
+  type:
+    | "Não definido"
+    | "Dúvida"
+    | "Configuração"
+    | "Atualização do Hádron"
+    | "Problema Hádron"
+    | "Problema Externo"
+    | "Treinamento"
+    | "Solicitação/Sugestão"
+    | "Outros";
+  hadronOption: string;
+  permission: "Público" | "Clientes" | "Empresa";
+  relatedArticles: string[];
+  relatedForms: string[];
   addToClientHistory: boolean;
   generateKbArticle: boolean;
 };
@@ -361,10 +370,7 @@ export const ticketsStore = {
     emit();
   },
 
-  forwardToSpecialist(
-    id: string,
-    input: { specialist: string; area: string; reason: string },
-  ) {
+  forwardToSpecialist(id: string, input: { specialist: string; area: string; reason: string }) {
     const op = operator();
     updateTicket(id, {
       status: "Com especialista",
@@ -403,26 +409,16 @@ export function useTicket(id: string | null | undefined): SupportTicket | null {
 }
 
 export function useTicketNotes(id: string | null | undefined): InternalNote[] {
-  const getSnap = useCallback(
-    () => (id ? ticketsStore.getInternalNotes(id) : EMPTY_NOTES),
-    [id],
-  );
+  const getSnap = useCallback(() => (id ? ticketsStore.getInternalNotes(id) : EMPTY_NOTES), [id]);
   return useSyncExternalStore(ticketsStore.subscribe, getSnap, getSnap);
 }
 
 export function useTicketEvents(id: string | null | undefined): TicketEvent[] {
-  const getSnap = useCallback(
-    () => (id ? ticketsStore.getEvents(id) : EMPTY_EVENTS),
-    [id],
-  );
+  const getSnap = useCallback(() => (id ? ticketsStore.getEvents(id) : EMPTY_EVENTS), [id]);
   return useSyncExternalStore(ticketsStore.subscribe, getSnap, getSnap);
 }
 
 export function useTicketHistory(id: string | null | undefined): PastAttendance[] {
-  const getSnap = useCallback(
-    () => (id ? ticketsStore.getHistory(id) : EMPTY_HISTORY),
-    [id],
-  );
+  const getSnap = useCallback(() => (id ? ticketsStore.getHistory(id) : EMPTY_HISTORY), [id]);
   return useSyncExternalStore(ticketsStore.subscribe, getSnap, getSnap);
 }
-

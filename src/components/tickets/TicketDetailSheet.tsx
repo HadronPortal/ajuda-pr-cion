@@ -22,6 +22,7 @@ import {
   NotebookText,
   Paperclip,
   Phone,
+  Plus,
   PlayCircle,
   ReceiptText,
   Send,
@@ -48,6 +49,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import finishIconUrl from "@/assets/ticket-finish-solid.png";
 import transferIconUrl from "@/assets/ticket-transfer-solid.png";
 import startAttendanceIconUrl from "@/assets/ticket-start-solid.png";
@@ -81,6 +83,7 @@ import { ScheduleEventModal } from "./ScheduleEventModal";
 import { ForwardSpecialistModal } from "./ForwardSpecialistModal";
 import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import { ModuleKnowledgeLink } from "@/lib/module-link";
+import { kbArticlesFull } from "@/lib/kb-data";
 
 const statusTone: Record<TicketStatus, string> = {
   Atrasado: "bg-destructive/12 text-destructive border-destructive/20",
@@ -357,12 +360,13 @@ export function TicketDetailSheet({
               meta={
                 <span className="inline-flex items-center gap-1">
                   <span className="font-semibold text-primary">{ticket.clientCode}</span>
-                  <span aria-hidden className="text-border">·</span>
+                  <span aria-hidden className="text-border">
+                    ·
+                  </span>
                   <span className="truncate text-foreground">{ticket.clientName}</span>
                 </span>
               }
             />
-
 
             {/* Body: sidebar (menu + ações) | conteúdo | chat */}
             <div className="flex flex-1 min-h-0 flex-col bg-muted/30 md:flex-row md:gap-4 md:p-4">
@@ -447,7 +451,6 @@ export function TicketDetailSheet({
                     }}
                   />
                 </div>
-
 
                 {isMine && (
                   <div className="p-2">
@@ -713,17 +716,9 @@ export function TicketDetailSheet({
         ticket={ticket}
       />
 
-      <ScheduleEventModal
-        open={scheduleOpen}
-        onOpenChange={setScheduleOpen}
-        ticket={ticket}
-      />
+      <ScheduleEventModal open={scheduleOpen} onOpenChange={setScheduleOpen} ticket={ticket} />
 
-      <ForwardSpecialistModal
-        open={forwardOpen}
-        onOpenChange={setForwardOpen}
-        ticket={ticket}
-      />
+      <ForwardSpecialistModal open={forwardOpen} onOpenChange={setForwardOpen} ticket={ticket} />
     </>
   );
 }
@@ -740,71 +735,79 @@ function CloseTicketDialog({
   ticket: SupportTicket;
 }) {
   const [solution, setSolution] = useState("");
-  const [type, setType] = useState<ClosurePayload["type"]>("Resolvido");
+  const [hadronOption, setHadronOption] = useState("");
+  const [permission, setPermission] = useState<ClosurePayload["permission"]>("Clientes");
+  const [type, setType] = useState<ClosurePayload["type"]>("Não definido");
+  const [articleQuery, setArticleQuery] = useState("");
+  const [formQuery, setFormQuery] = useState("");
+  const [relatedArticles, setRelatedArticles] = useState<string[]>([]);
+  const [relatedForms, setRelatedForms] = useState<string[]>([]);
   const [addToClientHistory, setAddToClientHistory] = useState(true);
-  const [generateKbArticle, setGenerateKbArticle] = useState(false);
-
-  const submit = () => {
-    onConfirm({
-      solution: solution.trim(),
-      type,
-      addToClientHistory,
-      generateKbArticle,
-    });
-    setSolution("");
-    setType("Resolvido");
-    setAddToClientHistory(true);
-    setGenerateKbArticle(false);
-  };
-
-  const closureOptions: {
-    value: ClosurePayload["type"];
-    title: string;
-    description: string;
-    icon: typeof CheckCircle2;
-    tone: "primary" | "danger" | "neutral";
-  }[] = [
-    {
-      value: "Resolvido",
-      title: "Resolvido",
-      description: "Problema solucionado com sucesso.",
-      icon: CheckCircle2,
-      tone: "primary",
-    },
-    {
-      value: "Sem retorno do cliente",
-      title: "Sem retorno do cliente",
-      description: "Cliente não retornou ao contato.",
-      icon: XCircle,
-      tone: "danger",
-    },
-    {
-      value: "Duplicado",
-      title: "Duplicado",
-      description: "Chamado duplicado ou já tratado.",
-      icon: Folder,
-      tone: "neutral",
-    },
-    {
-      value: "Cancelado",
-      title: "Cancelado",
-      description: "Encerrado sem continuidade.",
-      icon: AlertCircle,
-      tone: "neutral",
-    },
+  const typeOptions: ClosurePayload["type"][] = [
+    "Não definido",
+    "Dúvida",
+    "Configuração",
+    "Atualização do Hádron",
+    "Problema Hádron",
+    "Problema Externo",
+    "Treinamento",
+    "Solicitação/Sugestão",
+    "Outros",
   ];
+  const formOptions = [
+    "Checklist de validação fiscal",
+    "Formulário de configuração",
+    "Roteiro de treinamento",
+    "Termo de aceite do cliente",
+    "Relatório de diagnóstico",
+  ];
+  const articleSuggestions = kbArticlesFull
+    .filter((article) =>
+      `${article.title} ${article.module}`.toLowerCase().includes(articleQuery.toLowerCase()),
+    )
+    .filter((article) => !relatedArticles.includes(article.title))
+    .slice(0, 5);
+  const formSuggestions = formOptions
+    .filter((form) => form.toLowerCase().includes(formQuery.toLowerCase()))
+    .filter((form) => !relatedForms.includes(form));
+
+  const reset = () => {
+    setSolution("");
+    setHadronOption("");
+    setPermission("Clientes");
+    setType("Não definido");
+    setArticleQuery("");
+    setFormQuery("");
+    setRelatedArticles([]);
+    setRelatedForms([]);
+    setAddToClientHistory(true);
+  };
 
   const handleSubmit = () => {
     if (!solution.trim()) {
       toast.error("Informe a solução aplicada para finalizar o chamado.");
       return;
     }
-    submit();
+    onConfirm({
+      solution: solution.trim(),
+      type,
+      hadronOption: hadronOption.trim(),
+      permission,
+      relatedArticles,
+      relatedForms,
+      addToClientHistory,
+      generateKbArticle: false,
+    });
+    reset();
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] w-[calc(100vw-24px)] max-w-[960px] overflow-y-auto rounded-2xl border border-border bg-background p-0 shadow-[0_30px_80px_rgba(0,0,0,0.45)] sm:w-[92vw] md:w-[92vw] lg:h-auto lg:max-h-none lg:w-[960px] lg:overflow-visible [&>button]:hidden">
+      <DialogContent
+        onPointerDownOutside={(event) => event.preventDefault()}
+        onInteractOutside={(event) => event.preventDefault()}
+        className="max-h-[92vh] w-[calc(100vw-24px)] max-w-[940px] overflow-y-auto rounded-2xl border border-border bg-background p-0 shadow-[0_30px_80px_rgba(0,0,0,0.45)] sm:w-[92vw] [&>button]:hidden"
+      >
         {/* Header */}
         <div className="flex items-start justify-between gap-3 border-b border-border px-6 py-5">
           <div className="flex items-start gap-3">
@@ -816,7 +819,7 @@ function CloseTicketDialog({
                 Finalizar chamado
               </DialogTitle>
               <p className="mt-0.5 truncate text-[12px] text-muted-foreground">
-                {ticket.protocol} · {ticket.clientName}
+                {ticket.protocol} · {ticket.clientCode} · {ticket.clientName}
               </p>
             </div>
           </div>
@@ -831,134 +834,200 @@ function CloseTicketDialog({
         </div>
 
         {/* Body */}
-        <div className="space-y-4 px-6 py-4">
-          {/* Solução aplicada */}
-          <div>
+        <div className="grid gap-4 px-6 py-5 sm:grid-cols-2">
+          <Field label="Opção Hádron">
+            <Input
+              value={hadronOption}
+              onChange={(event) => setHadronOption(event.target.value)}
+              placeholder="Informe a opção ou rotina utilizada"
+              className="h-10 rounded-lg bg-card"
+            />
+          </Field>
+          <Field label="Permissão">
+            <select
+              value={permission}
+              onChange={(event) =>
+                setPermission(event.target.value as ClosurePayload["permission"])
+              }
+              className="h-10 w-full cursor-pointer rounded-lg border border-input bg-card px-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring"
+            >
+              {(["Público", "Clientes", "Empresa"] as const).map((item) => (
+                <option key={item}>{item}</option>
+              ))}
+            </select>
+          </Field>
+
+          <div className="sm:col-span-2">
             <Label className="mb-1.5 flex items-center gap-1.5 text-[12.5px] font-medium text-foreground">
               <MessageSquare className="h-3.5 w-3.5 text-primary" />
-              Solução aplicada
+              Mensagem de finalização
             </Label>
             <textarea
               value={solution}
               onChange={(e) => setSolution(e.target.value)}
               rows={3}
-              placeholder="Descreva a solução ou o motivo da finalização..."
-              className="min-h-[110px] w-full resize-none rounded-xl border border-border bg-background p-3 text-[13px] leading-relaxed outline-none transition focus:border-primary/40 focus:ring-2 focus:ring-ring"
+              placeholder="Descreva a solução aplicada e as orientações finais ao cliente..."
+              className="min-h-[120px] w-full resize-none rounded-xl border border-border bg-card p-3 text-[13px] leading-relaxed outline-none transition focus:border-primary/40 focus:ring-2 focus:ring-ring"
             />
           </div>
 
-          {/* Tipo de finalização */}
-          <div>
-            <Label className="mb-2 block text-[12.5px] font-medium text-foreground">
-              Tipo de finalização
-            </Label>
-            <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-              {closureOptions.map((opt) => {
-                const selected = type === opt.value;
-                const Icon = opt.icon;
-                const toneBg =
-                  opt.tone === "primary"
-                    ? "bg-primary/15 text-primary"
-                    : opt.tone === "danger"
-                      ? "bg-destructive/15 text-destructive"
-                      : "bg-muted text-muted-foreground";
-                return (
-                  <button
-                    type="button"
-                    key={opt.value}
-                    onClick={() => setType(opt.value)}
-                    className={cn(
-                      "group flex cursor-pointer items-start gap-3 rounded-xl border bg-card px-3.5 py-3 text-left transition",
-                      selected
-                        ? "border-primary bg-primary/5 shadow-[0_0_0_1px_hsl(var(--primary)/0.4)]"
-                        : "border-border hover:border-primary/40",
-                    )}
-                  >
-                    <span
-                      className={cn(
-                        "grid h-8 w-8 shrink-0 place-items-center rounded-full",
-                        toneBg,
-                      )}
-                    >
-                      <Icon className="h-4 w-4" />
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-[12.5px] font-medium text-foreground">
-                        {opt.title}
-                      </span>
-                      <span className="mt-0.5 block text-[11.5px] leading-snug text-muted-foreground">
-                        {opt.description}
-                      </span>
-                    </span>
-                    <span
-                      className={cn(
-                        "mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded-full border transition",
-                        selected ? "border-primary bg-primary" : "border-border bg-background",
-                      )}
-                      aria-hidden
-                    >
-                      {selected && (
-                        <span className="h-1.5 w-1.5 rounded-full bg-primary-foreground" />
-                      )}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+          <Field label="Tipo">
+            <select
+              value={type}
+              onChange={(event) => setType(event.target.value as ClosurePayload["type"])}
+              className="h-10 w-full cursor-pointer rounded-lg border border-input bg-card px-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring"
+            >
+              {typeOptions.map((item) => (
+                <option key={item}>{item}</option>
+              ))}
+            </select>
+          </Field>
+          <label className="flex cursor-pointer items-center gap-3 self-end rounded-lg border border-border bg-card px-3 py-2.5">
+            <Checkbox
+              checked={addToClientHistory}
+              onCheckedChange={(value) => setAddToClientHistory(value === true)}
+              className="cursor-pointer"
+            />
+            <span className="text-[12.5px] text-foreground">Adicionar ao histórico do cliente</span>
+          </label>
 
-          {/* Opções adicionais */}
-          <div className="space-y-2">
-            <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-card px-3.5 py-3 transition hover:border-primary/40">
-              <Checkbox
-                checked={addToClientHistory}
-                onCheckedChange={(v) => setAddToClientHistory(v === true)}
-                className="mt-0.5 cursor-pointer"
-              />
-              <span className="min-w-0 flex-1">
-                <span className="block text-[12.5px] font-medium text-foreground">
-                  Adicionar ao histórico do cliente
-                </span>
-                <span className="mt-0.5 block text-[11.5px] leading-snug text-muted-foreground">
-                  A finalização será registrada no histórico do cliente.
-                </span>
-              </span>
-            </label>
-            <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-card px-3.5 py-3 transition hover:border-primary/40">
-              <Checkbox
-                checked={generateKbArticle}
-                onCheckedChange={(v) => setGenerateKbArticle(v === true)}
-                className="mt-0.5 cursor-pointer"
-              />
-              <span className="min-w-0 flex-1">
-                <span className="flex items-center gap-1.5 text-[12.5px] font-medium text-foreground">
-                  <Sparkles className="h-3.5 w-3.5 text-primary" />
-                  Sugerir artigo para base de conhecimento
-                </span>
-                <span className="mt-0.5 block text-[11.5px] leading-snug text-muted-foreground">
-                  Criar sugestão para documentar esta solução depois.
-                </span>
-              </span>
-            </label>
-          </div>
+          <RelatedPicker
+            label="Artigos relacionados"
+            query={articleQuery}
+            setQuery={setArticleQuery}
+            selected={relatedArticles}
+            suggestions={articleSuggestions.map((article) => article.title)}
+            onAdd={(item) => {
+              setRelatedArticles((current) => [...current, item]);
+              setArticleQuery("");
+            }}
+            onRemove={(item) =>
+              setRelatedArticles((current) => current.filter((value) => value !== item))
+            }
+          />
+          <RelatedPicker
+            label="Opções/Formulários relacionados"
+            query={formQuery}
+            setQuery={setFormQuery}
+            selected={relatedForms}
+            suggestions={formSuggestions}
+            onAdd={(item) => {
+              setRelatedForms((current) => [...current, item]);
+              setFormQuery("");
+            }}
+            onRemove={(item) =>
+              setRelatedForms((current) => current.filter((value) => value !== item))
+            }
+          />
         </div>
 
         {/* Footer */}
         <DialogFooter className="gap-2 border-t border-border bg-muted/30 px-6 py-3 sm:gap-2">
           <Button
             variant="outline"
-            onClick={() => onOpenChange(false)}
+            onClick={() => {
+              reset();
+              onOpenChange(false);
+            }}
             className="cursor-pointer rounded-lg"
           >
-            Cancelar
+            Fechar
           </Button>
           <Button onClick={handleSubmit} className="cursor-pointer rounded-lg">
             <CheckCircle2 className="mr-1.5 h-4 w-4" />
-            Finalizar chamado
+            Salvar e finalizar
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <Label className="mb-1.5 block text-[12.5px] font-medium text-foreground">{label}</Label>
+      {children}
+    </div>
+  );
+}
+
+function RelatedPicker({
+  label,
+  query,
+  setQuery,
+  selected,
+  suggestions,
+  onAdd,
+  onRemove,
+}: {
+  label: string;
+  query: string;
+  setQuery: (value: string) => void;
+  selected: string[];
+  suggestions: string[];
+  onAdd: (value: string) => void;
+  onRemove: (value: string) => void;
+}) {
+  return (
+    <Field label={label}>
+      <div className="relative">
+        <div className="flex gap-2">
+          <Input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && query.trim()) {
+                event.preventDefault();
+                onAdd(suggestions[0] ?? query.trim());
+              }
+            }}
+            placeholder="Buscar e adicionar..."
+            className="h-10 rounded-lg bg-card"
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            disabled={!query.trim()}
+            onClick={() => onAdd(suggestions[0] ?? query.trim())}
+            className="h-10 w-10 shrink-0 cursor-pointer rounded-lg"
+            aria-label={`Adicionar em ${label}`}
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
+        {query.trim() && suggestions.length > 0 && (
+          <div className="absolute z-20 mt-1 max-h-36 w-[calc(100%-48px)] overflow-y-auto rounded-lg border border-border bg-popover p-1 shadow-lg">
+            {suggestions.map((item) => (
+              <button
+                type="button"
+                key={item}
+                onClick={() => onAdd(item)}
+                className="block w-full cursor-pointer rounded-md px-2.5 py-2 text-left text-xs text-popover-foreground hover:bg-accent"
+              >
+                {item}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+      {selected.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {selected.map((item) => (
+            <button
+              type="button"
+              key={item}
+              onClick={() => onRemove(item)}
+              title="Remover"
+              className="max-w-full cursor-pointer truncate rounded-full border border-primary/20 bg-primary/10 px-2.5 py-1 text-[11px] text-primary hover:bg-primary/15"
+            >
+              {item} ×
+            </button>
+          ))}
+        </div>
+      )}
+    </Field>
   );
 }
 
@@ -1066,12 +1135,7 @@ function SideItem({
         strokeWidth={2.35}
       />
       <span
-        className={cn(
-          collapsed && "md:hidden",
-          nowrap
-            ? "min-w-0 whitespace-nowrap"
-            : "truncate",
-        )}
+        className={cn(collapsed && "md:hidden", nowrap ? "min-w-0 whitespace-nowrap" : "truncate")}
         style={nowrap ? { overflow: "visible", textOverflow: "clip" } : undefined}
       >
         {label}
@@ -1079,7 +1143,6 @@ function SideItem({
     </button>
   );
 }
-
 
 function MobileAction({
   icon: Icon,
@@ -1105,7 +1168,10 @@ function MobileAction({
       )}
     >
       <Icon
-        className={cn("h-3.5 w-3.5", highlight ? "text-primary-foreground" : "text-slate-500 dark:text-slate-300")}
+        className={cn(
+          "h-3.5 w-3.5",
+          highlight ? "text-primary-foreground" : "text-slate-500 dark:text-slate-300",
+        )}
         strokeWidth={2.35}
       />
       <span>{label}</span>
