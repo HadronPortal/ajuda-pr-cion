@@ -134,14 +134,14 @@ function KbIndexPage() {
   const clearSearch = () => {
     setQuery("");
     navigate({
-      search: (prev) => ({ ...prev, search: undefined }) as KbSearch,
+      search: ((prev: KbSearch) => ({ ...prev, search: undefined })) as never,
       replace: true,
     });
   };
 
   const clearModule = () => {
     navigate({
-      search: (prev) => ({ ...prev, modulo: undefined }) as KbSearch,
+      search: ((prev: KbSearch) => ({ ...prev, modulo: undefined })) as never,
       replace: true,
     });
   };
