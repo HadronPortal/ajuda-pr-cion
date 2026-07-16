@@ -99,8 +99,18 @@ function KbIndexPage() {
   const tokens = useMemo(() => tokenize(trimmed), [trimmed]);
   const hasSearch = trimmed.length > 0;
 
+  const activeModule = useMemo(
+    () => getModuleBySlug(search.modulo),
+    [search.modulo],
+  );
+
+  const moduleFiltered = useMemo(
+    () => (activeModule ? filterArticlesByModule(kbArticlesFull, activeModule) : kbArticlesFull),
+    [activeModule],
+  );
+
   const filtered = useMemo(() => {
-    return kbArticlesFull.filter((a) => {
+    return moduleFiltered.filter((a) => {
       if (activeCategory !== "all" && a.category !== activeCategory) return false;
       if (!hasSearch) return true;
 
@@ -119,11 +129,21 @@ function KbIndexPage() {
       // Fallback: match any meaningful token
       return tokens.some((t) => haystack.includes(t));
     });
-  }, [activeCategory, hasSearch, trimmed, tokens]);
+  }, [moduleFiltered, activeCategory, hasSearch, trimmed, tokens]);
 
   const clearSearch = () => {
     setQuery("");
-    navigate({ search: {} as KbSearch, replace: true });
+    navigate({
+      search: (prev) => ({ ...prev, search: undefined }) as KbSearch,
+      replace: true,
+    });
+  };
+
+  const clearModule = () => {
+    navigate({
+      search: (prev) => ({ ...prev, modulo: undefined }) as KbSearch,
+      replace: true,
+    });
   };
 
   return (
