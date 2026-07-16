@@ -467,6 +467,8 @@ export function TicketDetailSheet({
                       handleAttend();
                     }}
                   />
+                </div>
+
 
                 {isMine && (
                   <div className="p-2">
