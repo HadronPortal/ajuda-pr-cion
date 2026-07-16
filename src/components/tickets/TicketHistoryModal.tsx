@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { PastAttendanceDetailModal } from "./PastAttendanceDetailModal";
 import { TicketHistoryList } from "./TicketHistoryList";
-import { History, X } from "lucide-react";
+import { Clock } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import type {
   SupportTicket,
   TicketStatus,
