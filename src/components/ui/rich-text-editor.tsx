@@ -11,15 +11,23 @@ import {
   Image as ImageIcon,
   Italic,
   Link as LinkIcon,
+  Link2,
   List,
   ListOrdered,
+  Loader2,
   Quote,
   Redo2,
   Strikethrough,
   Table as TableIcon,
   Undo2,
+  Upload,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  revokeUnusedFinalizationImages,
+  uploadFinalizationImage,
+  validateImageFile,
+} from "@/lib/finalization-image-upload";
 
 /**
  * Editor Rich Text leve baseado em contentEditable + document.execCommand.
@@ -58,10 +66,16 @@ export function RichTextEditor({
   minHeight?: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const savedRangeRef = useRef<Range | null>(null);
   const [, force] = useState(0);
   const [currentStyle, setCurrentStyle] = useState<string>("p");
   const [currentSize, setCurrentSize] = useState<number>(14);
+  const [imageStatus, setImageStatus] = useState<
+    | { kind: "idle" }
+    | { kind: "uploading"; filename?: string }
+    | { kind: "error"; message: string }
+  >({ kind: "idle" });
 
   useEffect(() => {
     const el = ref.current;
@@ -69,6 +83,8 @@ export function RichTextEditor({
     if (el.innerHTML !== value) {
       el.innerHTML = value || "";
     }
+    // Revoga URLs temporárias que não estão mais no conteúdo
+    revokeUnusedFinalizationImages(value || "");
   }, [value]);
 
   const emit = useCallback(() => {
@@ -193,12 +209,115 @@ export function RichTextEditor({
     runCmd("createLink", url);
   };
 
-  const handleImage = () => {
+  const escapeAttr = (s: string) =>
+    s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+
+  const insertImageHTML = (url: string, alt = "") => {
+    // Wrapper com resize proporcional via CSS `resize`. Ao selecionar/apagar,
+    // o contentEditable já lida com Backspace/Delete. Alinhamento é aplicado
+    // pelo `text-align` do bloco pai via botões da toolbar.
+    const safeUrl = escapeAttr(url);
+    const safeAlt = escapeAttr(alt);
+    const html = `<span class="rte-image" contenteditable="false" style="display:inline-block;max-width:100%;resize:horizontal;overflow:hidden;vertical-align:top;"><img src="${safeUrl}" alt="${safeAlt}" style="display:block;width:100%;height:auto;border-radius:6px;" /></span>&nbsp;`;
+    insertHTML(html);
+  };
+
+  const handleImageFromUrl = () => {
     const url = window.prompt("URL da imagem:", "https://");
     if (!url) return;
-    insertHTML(
-      `<img src="${url}" alt="" style="max-width:100%;height:auto;border-radius:6px;" />`,
-    );
+    // Aceita apenas http/https/data para evitar javascript: e outros esquemas.
+    if (!/^(https?:|data:image\/)/i.test(url)) {
+      setImageStatus({ kind: "error", message: "URL de imagem inválida." });
+      return;
+    }
+    const alt = window.prompt("Texto alternativo (opcional):", "") ?? "";
+    restoreSelection();
+    insertImageHTML(url, alt);
+    setImageStatus({ kind: "idle" });
+  };
+
+  const openFilePicker = () => {
+    saveSelection();
+    fileInputRef.current?.click();
+  };
+
+  const handleFileList = async (files: FileList | File[] | null) => {
+    if (!files) return;
+    const list = Array.from(files);
+    for (const file of list) {
+      if (!file.type.startsWith("image/")) continue;
+      const invalid = validateImageFile(file);
+      if (invalid) {
+        setImageStatus({ kind: "error", message: invalid });
+        continue;
+      }
+      setImageStatus({ kind: "uploading", filename: file.name });
+      try {
+        const result = await uploadFinalizationImage(file);
+        restoreSelection();
+        insertImageHTML(result.url, "");
+        setImageStatus({ kind: "idle" });
+      } catch (err) {
+        setImageStatus({
+          kind: "error",
+          message: err instanceof Error ? err.message : "Falha no upload.",
+        });
+      }
+    }
+  };
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    void handleFileList(e.target.files);
+    // Permite re-selecionar o mesmo arquivo depois
+    e.target.value = "";
+  };
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    const imageFiles: File[] = [];
+    for (const item of Array.from(items)) {
+      if (item.kind === "file") {
+        const f = item.getAsFile();
+        if (f && f.type.startsWith("image/")) imageFiles.push(f);
+      }
+    }
+    if (imageFiles.length > 0) {
+      e.preventDefault();
+      saveSelection();
+      void handleFileList(imageFiles);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    const dt = e.dataTransfer;
+    if (!dt || !dt.files || dt.files.length === 0) return;
+    const files = Array.from(dt.files).filter((f) => f.type.startsWith("image/"));
+    if (files.length === 0) return;
+    e.preventDefault();
+    // Coloca o caret no ponto do drop antes de inserir
+    const range = document.caretRangeFromPoint?.(e.clientX, e.clientY) ?? null;
+    if (range) {
+      const sel = window.getSelection();
+      sel?.removeAllRanges();
+      sel?.addRange(range);
+      savedRangeRef.current = range.cloneRange();
+    } else {
+      saveSelection();
+    }
+    void handleFileList(files);
+  };
+
+  const handleEditorDblClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+    if (target.tagName === "IMG") {
+      const img = target as HTMLImageElement;
+      const alt = window.prompt("Texto alternativo:", img.alt ?? "");
+      if (alt !== null) {
+        img.alt = alt;
+        emit();
+      }
+    }
   };
 
   const handleTable = () => {
@@ -297,13 +416,57 @@ export function RichTextEditor({
         <ToolbarBtn title="Inserir link" onClick={handleLink}>
           <LinkIcon className="h-3.5 w-3.5" />
         </ToolbarBtn>
-        <ToolbarBtn title="Inserir imagem" onClick={handleImage}>
-          <ImageIcon className="h-3.5 w-3.5" />
-        </ToolbarBtn>
+        <ImageMenuButton
+          onBeforeOpen={saveSelection}
+          onPickFromComputer={openFilePicker}
+          onPickFromUrl={handleImageFromUrl}
+        />
         <ToolbarBtn title="Inserir tabela" onClick={handleTable}>
           <TableIcon className="h-3.5 w-3.5" />
         </ToolbarBtn>
       </div>
+
+      {imageStatus.kind !== "idle" && (
+        <div
+          className={cn(
+            "flex items-center gap-2 border-b border-border px-3 py-1.5 text-[11.5px]",
+            imageStatus.kind === "error"
+              ? "bg-destructive/10 text-destructive"
+              : "bg-muted/60 text-muted-foreground",
+          )}
+          role="status"
+        >
+          {imageStatus.kind === "uploading" ? (
+            <>
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              <span>
+                Enviando imagem{imageStatus.filename ? ` "${imageStatus.filename}"` : ""}…
+              </span>
+            </>
+          ) : (
+            <>
+              <span className="font-medium">Erro:</span>
+              <span>{imageStatus.message}</span>
+              <button
+                type="button"
+                className="ml-auto cursor-pointer text-[11px] underline"
+                onClick={() => setImageStatus({ kind: "idle" })}
+              >
+                Fechar
+              </button>
+            </>
+          )}
+        </div>
+      )}
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/png,image/jpeg,image/jpg,image/webp,image/gif"
+        multiple
+        className="hidden"
+        onChange={handleFileInputChange}
+      />
 
       <div className="relative">
         {isEmpty && placeholder && (
@@ -323,6 +486,10 @@ export function RichTextEditor({
           }}
           onKeyUp={updateFromSelection}
           onMouseUp={updateFromSelection}
+          onPaste={handlePaste}
+          onDrop={handleDrop}
+          onDragOver={(e) => e.preventDefault()}
+          onDoubleClick={handleEditorDblClick}
           onBlur={() => {
             saveSelection();
             emit();
@@ -335,6 +502,146 @@ export function RichTextEditor({
         />
       </div>
     </div>
+  );
+}
+
+function ImageMenuButton({
+  onBeforeOpen,
+  onPickFromComputer,
+  onPickFromUrl,
+}: {
+  onBeforeOpen?: () => void;
+  onPickFromComputer: () => void;
+  onPickFromUrl: () => void;
+}) {
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
+
+  useLayoutEffect(() => {
+    if (!open) return;
+    const btn = btnRef.current;
+    if (!btn) return;
+    const rect = btn.getBoundingClientRect();
+    setPos({ top: rect.bottom + 4, left: rect.left });
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleDown = (e: MouseEvent) => {
+      const t = e.target as Node;
+      if (menuRef.current?.contains(t) || btnRef.current?.contains(t)) return;
+      setOpen(false);
+    };
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", handleDown);
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("mousedown", handleDown);
+      document.removeEventListener("keydown", handleKey);
+    };
+  }, [open]);
+
+  const select = (action: () => void) => {
+    setOpen(false);
+    action();
+  };
+
+  return (
+    <>
+      <button
+        ref={btnRef}
+        type="button"
+        title="Inserir imagem"
+        aria-label="Inserir imagem"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        data-rich-text-menu="true"
+        onMouseDown={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onBeforeOpen?.();
+        }}
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setOpen((v) => !v);
+        }}
+        className="grid h-7 w-7 cursor-pointer place-items-center rounded text-foreground/80 transition hover:bg-accent hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        style={{ pointerEvents: "auto" }}
+      >
+        <ImageIcon className="h-3.5 w-3.5" />
+      </button>
+      {open &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            ref={menuRef}
+            role="menu"
+            data-rich-text-menu="true"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
+            className="fixed z-[2147483000] min-w-[200px] overflow-hidden rounded-md border border-border bg-popover py-1 text-popover-foreground shadow-lg"
+            style={{ top: pos.top, left: pos.left, pointerEvents: "auto" }}
+          >
+            <button
+              type="button"
+              role="menuitem"
+              data-rich-text-menu="true"
+              onPointerDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                select(onPickFromComputer);
+              }}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              className="flex w-full cursor-pointer items-center gap-2 px-2.5 py-1.5 text-left text-[12.5px] transition hover:bg-accent hover:text-accent-foreground"
+              style={{ pointerEvents: "auto" }}
+            >
+              <Upload className="h-3.5 w-3.5 opacity-70" />
+              <span>Enviar do computador</span>
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              data-rich-text-menu="true"
+              onPointerDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                select(onPickFromUrl);
+              }}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              className="flex w-full cursor-pointer items-center gap-2 px-2.5 py-1.5 text-left text-[12.5px] transition hover:bg-accent hover:text-accent-foreground"
+              style={{ pointerEvents: "auto" }}
+            >
+              <Link2 className="h-3.5 w-3.5 opacity-70" />
+              <span>Inserir por URL</span>
+            </button>
+          </div>,
+          document.body,
+        )}
+    </>
   );
 }
 
