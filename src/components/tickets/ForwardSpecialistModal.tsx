@@ -85,7 +85,7 @@ export function ForwardSpecialistModal({
       area: specialist.area,
       reason: reason.trim(),
     });
-    toast.success("Chamado encaminhado", {
+    toast.success("Chamado enviado", {
       description: `${specialist.name} · ${specialist.area}`,
     });
     reset();
@@ -101,12 +101,12 @@ export function ForwardSpecialistModal({
         className="flex max-h-[90vh] w-[calc(100vw-1rem)] max-w-none flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-background p-0 sm:w-[calc(100vw-2rem)] md:w-[640px] [&>button]:hidden"
       >
         <DialogTitle className="sr-only">
-          Encaminhar chamado {ticket.protocol} a especialista
+          Enviar chamado {ticket.protocol} a especialista
         </DialogTitle>
 
         <DetailModalHeader
           icon={UserCheck}
-          title="Encaminhar a especialista"
+          title="Enviar a especialista"
           protocol={ticket.protocol}
           onClose={() => onOpenChange(false)}
           meta={
@@ -222,7 +222,7 @@ export function ForwardSpecialistModal({
           </Button>
           <Button onClick={submit} className="cursor-pointer rounded-lg">
             <UserCheck className="mr-1.5 h-4 w-4" />
-            Encaminhar
+            Enviar
           </Button>
         </DialogFooter>
       </DialogContent>

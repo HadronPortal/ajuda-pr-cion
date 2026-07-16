@@ -79,7 +79,7 @@ export const timelineEventPresentation: Record<
     icon: CalendarClock,
   },
   forwarded: {
-    label: "Encaminhado a especialista",
+    label: "Enviado a especialista",
     color: "#1f9860",
     softColor: "rgba(31, 152, 96, 0.24)",
     icon: UserCheck,
