@@ -1573,7 +1573,7 @@ function RevenueStyleCards({
       title: "Finalizados Hoje",
       value: finishedTickets,
       change: "+12%",
-      helper: "Concluidos pela equipe",
+      helper: "Concluídos pela equipe",
       tone: "from-[#18b978] to-[#36d695]",
       arrow: "bg-[#10955f]",
       positive: true,
