@@ -733,6 +733,18 @@ export function TicketDetailSheet({
         attendance={selectedHistory}
         ticket={ticket}
       />
+
+      <ScheduleEventModal
+        open={scheduleOpen}
+        onOpenChange={setScheduleOpen}
+        ticket={ticket}
+      />
+
+      <ForwardSpecialistModal
+        open={forwardOpen}
+        onOpenChange={setForwardOpen}
+        ticket={ticket}
+      />
     </>
   );
 }
