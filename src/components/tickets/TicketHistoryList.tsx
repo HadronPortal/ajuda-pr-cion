@@ -239,7 +239,7 @@ export function TicketHistoryList({
                   </div>
                   <p className="mt-0.5 inline-flex min-w-0 items-center gap-1 text-[10.5px] font-medium uppercase tracking-wide text-muted-foreground">
                     <Folder className="h-3 w-3 shrink-0" />
-                    <span className="truncate">{h.module}</span>
+                    <ModuleKnowledgeLink module={h.module} className="truncate" />
                   </p>
                 </div>
               </div>
