@@ -81,22 +81,21 @@ export function TicketHistoryModal({
               <h2 className="text-[18px] font-medium leading-tight text-foreground">
                 Histórico
               </h2>
-              <p className="mt-0.5 truncate text-[12px] text-muted-foreground">
-                <span className="font-mono font-semibold text-foreground">
-                  {ticket.protocol}
-                </span>
-                {" · "}
-                <span className="font-semibold text-foreground">
-                  {ticket.clientCode}
-                </span>
-                {" · "}
-                {ticket.clientName}
-              </p>
-
-              <div className="mt-2 flex flex-wrap items-center gap-2">
+              <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+                <p className="min-w-0 truncate text-[12px] text-muted-foreground">
+                  <span className="font-mono font-semibold text-foreground">
+                    {ticket.protocol}
+                  </span>
+                  {" · "}
+                  <span className="font-semibold text-foreground">
+                    {ticket.clientCode}
+                  </span>
+                  {" · "}
+                  {ticket.clientName}
+                </p>
                 <Badge
                   className={cn(
-                    "rounded-md border px-2 py-0.5 text-[10.5px] font-medium uppercase tracking-wide",
+                    "shrink-0 rounded-md border px-2 py-0.5 text-[10.5px] font-medium uppercase tracking-wide",
                     statusTone[ticket.status],
                   )}
                 >
