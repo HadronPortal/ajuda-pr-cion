@@ -50,7 +50,7 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import finishIconUrl from "@/assets/ticket-finalize-new.png";
+import finishIconUrl from "@/assets/ticket-finalize-animated.gif";
 import transferIconUrl from "@/assets/ticket-transfer-solid.png";
 import startAttendanceIconUrl from "@/assets/ticket-start-solid.png";
 import specialistIconUrl from "@/assets/ticket-specialist-new.png";
@@ -238,7 +238,14 @@ function createMaskedActionIcon(maskUrl: string, size: string = "contain"): Icon
 // Finish and Forward source PNGs have larger transparent padding than the
 // others; scale their mask up so they match the visual weight of Transferir,
 // Agendar and Iniciar atendimento inside the 20x20 container.
-const TicketCloseIcon = createMaskedActionIcon(finishIconUrl, "150%");
+const TicketCloseIcon: IconComponent = ({ className }) => (
+  <img
+    src={finishIconUrl}
+    alt=""
+    aria-hidden="true"
+    className={cn("block rounded-[3px] object-contain", className)}
+  />
+);
 const TicketAssumeIcon = createMaskedActionIcon(transferIconUrl);
 const TicketAttendIcon = createMaskedActionIcon(startAttendanceIconUrl);
 const TicketScheduleIcon = CalendarClock;
