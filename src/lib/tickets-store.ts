@@ -334,6 +334,53 @@ export const ticketsStore = {
     emit();
   },
 
+  scheduleEvent(
+    id: string,
+    input: {
+      title: string;
+      date: string;
+      time: string;
+      type: string;
+      responsible: string;
+      description?: string;
+      reminder?: boolean;
+    },
+  ) {
+    const op = operator();
+    pushEvent(id, {
+      kind: "scheduled",
+      when: nowIso(),
+      actor: op,
+      actorType: "suporte",
+      description:
+        `Evento agendado: "${input.title}" em ${input.date} às ${input.time} — ${input.type}. ` +
+        `Responsável: ${input.responsible}.${input.reminder ? " Lembrete ativo." : ""}` +
+        (input.description ? ` ${input.description}` : ""),
+    });
+    updateTicket(id, {});
+    emit();
+  },
+
+  forwardToSpecialist(
+    id: string,
+    input: { specialist: string; area: string; reason: string },
+  ) {
+    const op = operator();
+    updateTicket(id, {
+      status: "Com especialista",
+      owner: input.specialist,
+      lockedBy: undefined,
+    });
+    pushEvent(id, {
+      kind: "forwarded",
+      when: nowIso(),
+      actor: op,
+      actorType: "suporte",
+      description: `Encaminhado para ${input.specialist} (${input.area}) por ${op}. Motivo: ${input.reason}`,
+    });
+    emit();
+  },
+
   addNote(id: string, note: string) {
     this.addInternalNote(id, note);
   },
