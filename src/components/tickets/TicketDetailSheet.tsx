@@ -743,6 +743,7 @@ function CloseTicketDialog({
   const [formQuery, setFormQuery] = useState("");
   const [relatedArticles, setRelatedArticles] = useState<string[]>([]);
   const [relatedForms, setRelatedForms] = useState<string[]>([]);
+  const sla = useMemo(() => computeSla(ticket), [ticket]);
   const typeOptions: ClosurePayload["type"][] = [
     "Não definido",
     "Dúvida",
