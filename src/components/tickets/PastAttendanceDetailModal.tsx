@@ -1,18 +1,27 @@
 import { toast } from "sonner";
 import {
+  Boxes,
   CalendarClock,
+  Calculator,
   CheckCircle2,
   ClipboardCopy,
   Clock,
+  Cog,
   FileText,
   Folder,
+  Globe,
   Headphones,
-  History,
   Layers,
   MessageSquare,
+  MoreVertical,
+  ReceiptText,
+  Settings2,
+  Shield,
   Sparkles,
   Tag,
+  Truck,
   UserRound,
+  Wallet,
   X,
 } from "lucide-react";
 import {
@@ -25,6 +34,20 @@ import { cn } from "@/lib/utils";
 import type { SupportTicket, TicketPriority } from "@/lib/support-tickets-data";
 import type { PastAttendance, TicketEvent } from "@/lib/tickets-store";
 import { TicketTimelineList } from "./TicketTimelineList";
+
+function getModuleIconByName(module: string): typeof FileText {
+  const m = (module ?? "").toLowerCase();
+  if (/financ|caixa|banco|boleto|pagar|receber|carteira/.test(m)) return Wallet;
+  if (/nfe|nota|fiscal.*(nota|nfe|nfc|cfe)|venda/.test(m)) return ReceiptText;
+  if (/estoque|invent|produto|mercadoria/.test(m)) return Boxes;
+  if (/basico|terceiros|cadastro|parametr/.test(m)) return Settings2;
+  if (/fiscal|apura|sped|imposto/.test(m)) return Calculator;
+  if (/hadron|web|portal/.test(m)) return Globe;
+  if (/produ[cç][aã]o|manufatur/.test(m)) return Cog;
+  if (/log[ií]stic|transporte|entrega/.test(m)) return Truck;
+  if (/seguran[cç]a|acesso|permiss/.test(m)) return Shield;
+  return FileText;
+}
 
 const priorityChip: Record<TicketPriority, string> = {
   Alta: "bg-destructive/12 text-destructive border-destructive/25",
