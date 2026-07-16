@@ -809,8 +809,22 @@ function CloseTicketDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        onPointerDownOutside={(event) => event.preventDefault()}
-        onInteractOutside={(event) => event.preventDefault()}
+        onPointerDownOutside={(event) => {
+          const target = event.target as HTMLElement | null;
+          if (target?.closest?.('[data-rich-text-menu="true"]')) {
+            event.preventDefault();
+            return;
+          }
+          event.preventDefault();
+        }}
+        onInteractOutside={(event) => {
+          const target = event.target as HTMLElement | null;
+          if (target?.closest?.('[data-rich-text-menu="true"]')) {
+            event.preventDefault();
+            return;
+          }
+          event.preventDefault();
+        }}
         style={{ maxHeight: "calc(100vh - 2rem)" }}
         className="flex w-[calc(100vw-2rem)] max-w-[940px] flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-background p-0 shadow-[0_30px_80px_rgba(0,0,0,0.35)] [&>button]:hidden"
       >
