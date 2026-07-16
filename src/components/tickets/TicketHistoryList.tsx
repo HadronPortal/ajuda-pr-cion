@@ -12,6 +12,7 @@ import type {
   TicketStatus,
 } from "@/lib/support-tickets-data";
 import type { PastAttendance } from "@/lib/tickets-store";
+import { ModuleKnowledgeLink } from "@/lib/module-link";
 
 const statusTone: Record<TicketStatus, string> = {
   Atrasado: "bg-destructive/12 text-destructive border-destructive/20",
@@ -149,7 +150,7 @@ export function TicketHistoryList({
                   </div>
 
                   <p className="mt-1 truncate text-[9.5px] uppercase tracking-wide text-muted-foreground dark:text-[#9aaabc]">
-                    {item.module}
+                    <ModuleKnowledgeLink module={item.module} />
                   </p>
                   <p className="mt-2 text-[9.5px] text-muted-foreground dark:text-[#8194a7]">
                     Atendente
@@ -238,7 +239,7 @@ export function TicketHistoryList({
                   </div>
                   <p className="mt-0.5 inline-flex min-w-0 items-center gap-1 text-[10.5px] font-medium uppercase tracking-wide text-muted-foreground">
                     <Folder className="h-3 w-3 shrink-0" />
-                    <span className="truncate">{h.module}</span>
+                    <ModuleKnowledgeLink module={h.module} className="truncate" />
                   </p>
                 </div>
               </div>

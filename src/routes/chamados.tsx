@@ -73,6 +73,7 @@ const ticketPriorities: TicketPriority[] = ["Alta", "Media", "Baixa"];
 import { useTickets, useTicketHistory, ticketsStore } from "@/lib/tickets-store";
 import { FileText } from "lucide-react";
 import { getModuleIcon } from "@/lib/ticket-icons";
+import { ModuleKnowledgeLink } from "@/lib/module-link";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
@@ -835,7 +836,11 @@ function TicketCard({
       {/* Middle: info grid */}
       <dl className="grid min-w-0 grid-cols-1 gap-x-4 gap-y-2 text-[12px] sm:grid-cols-2 lg:grid-cols-3">
         <InfoRow icon={UserRound} label="Contato" value={ticket.contact} />
-        <InfoRow icon={Layers} label="Módulo" value={ticket.module} />
+        <InfoRow
+          icon={Layers}
+          label="Módulo"
+          value={<ModuleKnowledgeLink module={ticket.module} />}
+        />
         <InfoRow icon={Headphones} label="Atendente" value={ticket.attendant} />
         <InfoRow icon={UserPlus} label="Responsável" value={ticket.owner} />
         <InfoRow
@@ -861,16 +866,13 @@ function TicketCard({
           <SourceIcon className="h-3 w-3" />
           {sourceLabels[ticket.source]}
         </Chip>
-        <Link
-          to="/base-de-conhecimento"
-          search={{ search: ticket.module }}
-          onClick={(e) => e.stopPropagation()}
-          className="inline-flex cursor-pointer items-center gap-1 whitespace-nowrap rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground transition hover:bg-primary/10 hover:text-primary"
-          title={`Buscar "${ticket.module}" na Base de Conhecimento`}
+        <ModuleKnowledgeLink
+          module={ticket.module}
+          className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground hover:bg-primary/10 hover:text-primary"
         >
           <FolderKanban className="h-3 w-3" />
           {ticket.module}
-        </Link>
+        </ModuleKnowledgeLink>
         {ticket.lockedBy && (
           <Chip className="bg-warning/15 text-warning-foreground">
             <LockKeyhole className="h-3 w-3" />
@@ -1333,7 +1335,10 @@ function TicketsListView({
                     </div>
                     <div className="mt-0.5 flex min-w-0 items-center gap-1.5 text-[11.5px] text-muted-foreground/80">
                       <ModuleIcon className="h-3 w-3 shrink-0 text-primary/70" />
-                      <span className="truncate">{ticket.module}</span>
+                      <ModuleKnowledgeLink
+                        module={ticket.module}
+                        className="truncate"
+                      />
                     </div>
                   </div>
 
@@ -1424,7 +1429,8 @@ function TicketsListView({
                 {ticket.attendant}
               </div>
               <div className="col-span-2 truncate">
-                <span className="font-semibold text-foreground">Módulo:</span> {ticket.module}
+                <span className="font-semibold text-foreground">Módulo:</span>{" "}
+                <ModuleKnowledgeLink module={ticket.module} />
               </div>
               <div className="truncate">
                 <span className="font-semibold text-foreground">Resp.:</span> {ticket.owner}

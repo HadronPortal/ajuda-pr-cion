@@ -12,7 +12,12 @@ import {
   RefreshCw,
   ArrowRight,
   X,
+  Boxes,
 } from "lucide-react";
+import {
+  filterArticlesByModule,
+  getModuleBySlug,
+} from "@/lib/module-link";
 import { AppShell, PageHeader } from "@/components/portal/AppShell";
 import { EmptyState } from "@/components/portal/EmptyState";
 import { Card } from "@/components/ui/card";
@@ -27,7 +32,7 @@ import {
   type KbCategoryId,
 } from "@/lib/kb-data";
 
-type KbSearch = { search?: string };
+type KbSearch = { search?: string; modulo?: string };
 
 export const Route = createFileRoute("/base-de-conhecimento/")({
   head: () => ({
@@ -42,6 +47,7 @@ export const Route = createFileRoute("/base-de-conhecimento/")({
   }),
   validateSearch: (raw: Record<string, unknown>): KbSearch => ({
     search: typeof raw.search === "string" ? raw.search : undefined,
+    modulo: typeof raw.modulo === "string" ? raw.modulo : undefined,
   }),
   component: KbIndexPage,
 });
@@ -93,8 +99,18 @@ function KbIndexPage() {
   const tokens = useMemo(() => tokenize(trimmed), [trimmed]);
   const hasSearch = trimmed.length > 0;
 
+  const activeModule = useMemo(
+    () => getModuleBySlug(search.modulo),
+    [search.modulo],
+  );
+
+  const moduleFiltered = useMemo(
+    () => (activeModule ? filterArticlesByModule(kbArticlesFull, activeModule) : kbArticlesFull),
+    [activeModule],
+  );
+
   const filtered = useMemo(() => {
-    return kbArticlesFull.filter((a) => {
+    return moduleFiltered.filter((a) => {
       if (activeCategory !== "all" && a.category !== activeCategory) return false;
       if (!hasSearch) return true;
 
@@ -113,11 +129,21 @@ function KbIndexPage() {
       // Fallback: match any meaningful token
       return tokens.some((t) => haystack.includes(t));
     });
-  }, [activeCategory, hasSearch, trimmed, tokens]);
+  }, [moduleFiltered, activeCategory, hasSearch, trimmed, tokens]);
 
   const clearSearch = () => {
     setQuery("");
-    navigate({ search: {} as KbSearch, replace: true });
+    navigate({
+      search: { modulo: search.modulo } as KbSearch,
+      replace: true,
+    });
+  };
+
+  const clearModule = () => {
+    navigate({
+      search: { search: search.search } as KbSearch,
+      replace: true,
+    });
   };
 
   return (
@@ -150,6 +176,37 @@ function KbIndexPage() {
           )}
         </div>
       </Card>
+
+      {activeModule && (
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-primary/30 bg-primary/5 px-4 py-3">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
+              <Boxes className="h-4 w-4" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-[11px] font-medium uppercase tracking-wide text-primary/80">
+                Filtrando por módulo
+              </p>
+              <p className="truncate text-sm font-semibold text-foreground">
+                {activeModule.label}
+                <span className="ml-2 text-xs font-normal text-muted-foreground">
+                  {filtered.length} artigo(s)
+                </span>
+              </p>
+            </div>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={clearModule}
+            className="h-8 cursor-pointer rounded-lg text-[12px]"
+          >
+            <X className="mr-1 h-3.5 w-3.5" />
+            Limpar filtro
+          </Button>
+        </div>
+      )}
+
 
       {hasSearch && (
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3">

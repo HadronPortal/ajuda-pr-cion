@@ -80,6 +80,7 @@ import { TicketFloatingChat } from "./TicketFloatingChat";
 import { ScheduleEventModal } from "./ScheduleEventModal";
 import { ForwardSpecialistModal } from "./ForwardSpecialistModal";
 import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
+import { ModuleKnowledgeLink } from "@/lib/module-link";
 
 const statusTone: Record<TicketStatus, string> = {
   Atrasado: "bg-destructive/12 text-destructive border-destructive/20",
@@ -582,9 +583,10 @@ export function TicketDetailSheet({
 
                   <Section title="Módulo" icon={Folder} compact>
                     <div className="flex items-center gap-1.5">
-                      <p className="truncate text-[13.5px] font-semibold text-foreground">
-                        {ticket.module}
-                      </p>
+                      <ModuleKnowledgeLink
+                        module={ticket.module}
+                        className="truncate text-[13.5px] font-semibold text-foreground"
+                      />
                       {notes.length > 0 && (
                         <button
                           type="button"
