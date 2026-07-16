@@ -1,18 +1,27 @@
 import { toast } from "sonner";
 import {
+  Boxes,
   CalendarClock,
+  Calculator,
   CheckCircle2,
   ClipboardCopy,
   Clock,
+  Cog,
   FileText,
   Folder,
+  Globe,
   Headphones,
-  History,
   Layers,
   MessageSquare,
+  MoreVertical,
+  ReceiptText,
+  Settings2,
+  Shield,
   Sparkles,
   Tag,
+  Truck,
   UserRound,
+  Wallet,
   X,
 } from "lucide-react";
 import {
@@ -25,6 +34,20 @@ import { cn } from "@/lib/utils";
 import type { SupportTicket, TicketPriority } from "@/lib/support-tickets-data";
 import type { PastAttendance, TicketEvent } from "@/lib/tickets-store";
 import { TicketTimelineList } from "./TicketTimelineList";
+
+function getModuleIconByName(module: string): typeof FileText {
+  const m = (module ?? "").toLowerCase();
+  if (/financ|caixa|banco|boleto|pagar|receber|carteira/.test(m)) return Wallet;
+  if (/nfe|nota|fiscal.*(nota|nfe|nfc|cfe)|venda/.test(m)) return ReceiptText;
+  if (/estoque|invent|produto|mercadoria/.test(m)) return Boxes;
+  if (/basico|terceiros|cadastro|parametr/.test(m)) return Settings2;
+  if (/fiscal|apura|sped|imposto/.test(m)) return Calculator;
+  if (/hadron|web|portal/.test(m)) return Globe;
+  if (/produ[cç][aã]o|manufatur/.test(m)) return Cog;
+  if (/log[ií]stic|transporte|entrega/.test(m)) return Truck;
+  if (/seguran[cç]a|acesso|permiss/.test(m)) return Shield;
+  return FileText;
+}
 
 const priorityChip: Record<TicketPriority, string> = {
   Alta: "bg-destructive/12 text-destructive border-destructive/25",
@@ -133,6 +156,7 @@ export function PastAttendanceDetailModal({
   const closedAt = addMinutes(attendance.date, durationMinutes);
   const problem = PROBLEM_TEMPLATES[h % PROBLEM_TEMPLATES.length];
   const solution = SOLUTION_TEMPLATES[h % SOLUTION_TEMPLATES.length];
+  const ModuleIcon = getModuleIconByName(attendance.module);
 
   const timelineEvents: TicketEvent[] = [
     {
@@ -193,70 +217,108 @@ export function PastAttendanceDetailModal({
           Detalhes do atendimento {attendance.protocol}
         </DialogTitle>
 
-        {/* Header limpo em fundo branco */}
-        <header className="relative shrink-0 border-b border-border bg-card px-5 py-4 md:px-7 md:py-5">
-          <button
-            type="button"
-            onClick={() => onOpenChange(false)}
-            aria-label="Fechar"
-            className="absolute right-3 top-3 z-10 grid h-8 w-8 cursor-pointer place-items-center rounded-md text-muted-foreground transition hover:bg-accent hover:text-foreground"
-          >
-            <X className="h-4 w-4" />
-          </button>
-
-          <div className="flex flex-wrap items-start gap-3 pr-10">
+        {/* Header estilo card com faixa azul, ícone e ícone decorativo */}
+        <header className="relative shrink-0 border-b border-border bg-card px-4 pb-4 pt-4 md:px-6 md:pb-5 md:pt-5">
+          <div className="relative overflow-hidden rounded-xl border border-border bg-card shadow-[0_1px_2px_rgba(15,23,42,0.04),0_4px_12px_rgba(15,23,42,0.05)]">
+            {/* Faixa vertical azul */}
             <span
               aria-hidden
-              className="grid h-10 w-10 shrink-0 place-items-center text-muted-foreground"
+              className="absolute left-0 top-0 h-full w-1 bg-primary"
+            />
+
+            {/* Ações no canto superior direito */}
+            <div className="absolute right-2 top-2 z-10 flex items-center gap-1">
+              <button
+                type="button"
+                aria-label="Mais opções"
+                onClick={(e) => e.stopPropagation()}
+                className="grid h-8 w-8 cursor-pointer place-items-center rounded-md text-muted-foreground transition hover:bg-accent hover:text-foreground"
+              >
+                <MoreVertical className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => onOpenChange(false)}
+                aria-label="Fechar"
+                className="grid h-8 w-8 cursor-pointer place-items-center rounded-md text-muted-foreground transition hover:bg-accent hover:text-foreground"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Ícone decorativo à direita */}
+            <span
+              aria-hidden
+              className="pointer-events-none absolute right-6 top-1/2 hidden -translate-y-1/2 text-primary/10 md:block"
             >
-              <History className="h-5 w-5" />
+              <ModuleIcon className="h-24 w-24" strokeWidth={1.5} />
             </span>
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="font-mono text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                  {attendance.protocol}
-                </span>
-                <Badge className="rounded-md border border-success/25 bg-success/12 px-2 py-0.5 text-[10.5px] font-medium uppercase tracking-wide text-success">
-                  Finalizado
-                </Badge>
-                <Badge
-                  className={cn(
-                    "rounded-md border px-2 py-0.5 text-[10.5px] font-medium uppercase tracking-wide",
-                    priorityChip[attendance.priority],
-                  )}
-                >
-                  {attendance.priority}
-                </Badge>
-              </div>
-              <h2 className="mt-1 text-[18px] font-medium leading-tight text-foreground">
-                {attendance.title}
-              </h2>
-              {ticket && (
-                <p className="mt-0.5 truncate text-[12px] text-muted-foreground">
-                  <span className="font-semibold text-foreground">
-                    {ticket.clientCode}
+
+            <div className="flex items-start gap-3 pl-5 pr-24 py-4 md:gap-4 md:py-5">
+              <span
+                aria-hidden
+                className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-primary/10 text-primary"
+              >
+                <ModuleIcon className="h-5 w-5" />
+              </span>
+
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <span className="font-mono text-[12px] font-semibold uppercase tracking-wider text-foreground">
+                    {attendance.protocol}
                   </span>
-                  {" · "}
-                  {ticket.clientName}
-                </p>
-              )}
-              <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11.5px] text-muted-foreground">
-                <span className="inline-flex items-center gap-1">
-                  <CalendarClock className="h-3.5 w-3.5" />
-                  <span className="font-semibold text-foreground">
-                    {formatDateTime(attendance.date)}
+                  <Badge className="rounded-md border border-success/25 bg-success/12 px-2 py-0.5 text-[10.5px] font-medium uppercase tracking-wide text-success">
+                    Finalizado
+                  </Badge>
+                  <Badge
+                    className={cn(
+                      "rounded-md border px-2 py-0.5 text-[10.5px] font-medium uppercase tracking-wide",
+                      priorityChip[attendance.priority],
+                    )}
+                  >
+                    {attendance.priority}
+                  </Badge>
+                </div>
+
+                <h2 className="mt-1.5 text-[16px] font-medium leading-snug text-foreground">
+                  {attendance.title}
+                </h2>
+
+                {ticket && (
+                  <p className="mt-1 flex flex-wrap items-center gap-x-2 text-[12px] text-muted-foreground">
+                    <span className="font-semibold text-primary">
+                      {ticket.clientCode}
+                    </span>
+                    <span aria-hidden className="text-border">·</span>
+                    <span className="truncate text-foreground">
+                      {ticket.clientName}
+                    </span>
+                  </p>
+                )}
+
+                <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px] text-muted-foreground">
+                  <span className="inline-flex items-center gap-1">
+                    <CalendarClock className="h-3.5 w-3.5" />
+                    <span className="font-medium text-foreground">
+                      {formatDateTime(attendance.date)}
+                    </span>
                   </span>
-                </span>
-                <span className="inline-flex items-center gap-1">
-                  <UserRound className="h-3.5 w-3.5" />
-                  <span className="font-semibold text-foreground">
-                    {attendance.operator}
+                  <span
+                    aria-hidden
+                    className="hidden h-3 w-px bg-border sm:block"
+                  />
+                  <span className="inline-flex items-center gap-1">
+                    <UserRound className="h-3.5 w-3.5" />
+                    <span className="font-medium text-foreground">
+                      {attendance.operator}
+                    </span>
                   </span>
-                </span>
+                </div>
               </div>
             </div>
           </div>
         </header>
+
 
 
         {/* Body */}
