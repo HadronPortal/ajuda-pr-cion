@@ -156,6 +156,7 @@ export function PastAttendanceDetailModal({
   const closedAt = addMinutes(attendance.date, durationMinutes);
   const problem = PROBLEM_TEMPLATES[h % PROBLEM_TEMPLATES.length];
   const solution = SOLUTION_TEMPLATES[h % SOLUTION_TEMPLATES.length];
+  const ModuleIcon = getModuleIconByName(attendance.module);
 
   const timelineEvents: TicketEvent[] = [
     {
