@@ -84,6 +84,7 @@ import { ForwardSpecialistModal } from "./ForwardSpecialistModal";
 import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import { ModuleKnowledgeLink } from "@/lib/module-link";
 import { kbArticlesFull } from "@/lib/kb-data";
+import { RichTextEditor } from "@/components/ui/rich-text-editor";
 
 const statusTone: Record<TicketStatus, string> = {
   Atrasado: "bg-destructive/12 text-destructive border-destructive/20",
