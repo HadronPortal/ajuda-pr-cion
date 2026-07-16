@@ -413,6 +413,7 @@ function TicketsPage() {
   const slaMedio = 82;
 
   const statusDistribution = ticketStatuses
+    .filter((status) => status !== "Atrasado" && status !== "Cancelado")
     .map((status) => ({
       status,
       total: supportTickets.filter((ticket) => ticket.status === status).length,
@@ -2258,17 +2259,17 @@ function Gauge({ value }: { value: number }) {
   );
 }
 
-const statusChartColors = [
-  "#2f6feb",
-  "#8b5cf6",
-  "#f5c518",
-  "#f97316",
-  "#22c55e",
-  "#ef4444",
-  "#38bdf8",
-  "#ec4899",
-  "#94a3b8",
-];
+const statusChartColorMap: Record<string, string> = {
+  "Em Aberto": "#f43f5e",
+  "Em andamento": "#3b82f6",
+  Ocupado: "#f59e0b",
+  "Aguardando cliente": "#10b981",
+  "Com especialista": "#8b5cf6",
+  Agendamento: "#f97316",
+  Finalizado: "#22c55e",
+  Atrasado: "#ef4444",
+  Cancelado: "#94a3b8",
+};
 
 
 function polarPoint(cx: number, cy: number, radius: number, angle: number) {
@@ -2304,7 +2305,9 @@ function StatusCategoriesCard({
 }: {
   data: { status: TicketStatus; total: number }[];
 }) {
+  const [activeStatus, setActiveStatus] = useState<TicketStatus | null>(null);
   const max = Math.max(1, ...data.map((item) => item.total));
+  const totalAll = data.reduce((acc, item) => acc + item.total, 0) || 1;
   const cx = 140;
   const cy = 114;
   const minRadius = 72;
@@ -2312,6 +2315,9 @@ function StatusCategoriesCard({
   const angleStep = 360 / Math.max(1, data.length);
   const gap = 1.5;
   const rotation = 0;
+
+  const toggle = (status: TicketStatus) =>
+    setActiveStatus((prev) => (prev === status ? null : status));
 
   return (
     <Card className="rounded-[14px] border-0 bg-white dark:bg-[#20263d] p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
@@ -2325,17 +2331,27 @@ function StatusCategoriesCard({
             const normalized = item.total / max;
             const outerRadius = minRadius + (maxRadius - minRadius) * Math.max(0.22, normalized);
             const midAngle = (startAngle + endAngle) / 2;
-            const offset = item.total === max || index % 3 === 1 ? 7 : 0;
+            const isActive = activeStatus === item.status;
+            const hasActive = activeStatus !== null;
+            const baseOffset = item.total === max || index % 3 === 1 ? 7 : 0;
+            const offset = isActive ? baseOffset + 8 : baseOffset;
             const exploded = polarPoint(0, 0, offset, midAngle);
+            const color = statusChartColorMap[item.status] ?? "#94a3b8";
 
             return (
               <path
                 key={item.status}
                 d={polarAreaPath(cx + exploded.x, cy + exploded.y, outerRadius, startAngle, endAngle)}
-                fill={statusChartColors[index % statusChartColors.length]}
+                fill={color}
                 stroke="hsl(var(--card))"
                 strokeWidth="2"
-                className="transition duration-200 hover:opacity-90"
+                onClick={() => toggle(item.status)}
+                style={{
+                  cursor: "pointer",
+                  opacity: hasActive && !isActive ? 0.35 : 1,
+                  transition: "opacity 200ms, transform 200ms",
+                }}
+                className="hover:opacity-90"
               >
                 <title>{`${item.status}: ${item.total} chamado${item.total === 1 ? "" : "s"}`}</title>
               </path>
@@ -2343,17 +2359,49 @@ function StatusCategoriesCard({
           })}
         </svg>
       </div>
-      <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1.5">
-        {data.map((item, index) => (
-          <span key={item.status} className="inline-flex min-w-0 items-center gap-2 text-[11px] text-muted-foreground">
-            <span
-              className="h-2 w-2 shrink-0 rounded-full"
-              style={{ background: statusChartColors[index % statusChartColors.length] }}
-            />
-            <span className="truncate">{item.status}</span>
-            <span className="ml-auto font-semibold text-foreground">{item.total}</span>
-          </span>
-        ))}
+      <div className="mt-3 grid grid-cols-1 gap-x-4 divide-y divide-border/60 sm:grid-cols-2 sm:gap-x-5 sm:divide-y-0 sm:[&>*:nth-child(n+3)]:border-t sm:[&>*]:border-border/60">
+        {data.map((item) => {
+          const color = statusChartColorMap[item.status] ?? "#94a3b8";
+          const pct = Math.round((item.total / totalAll) * 100);
+          const isActive = activeStatus === item.status;
+          return (
+            <button
+              key={item.status}
+              type="button"
+              onClick={() => toggle(item.status)}
+              className={cn(
+                "group flex flex-col gap-1.5 rounded-md px-2 py-2 text-left transition",
+                "hover:bg-muted/40 dark:hover:bg-white/[0.03]",
+                isActive && "bg-muted/60 dark:bg-white/[0.05]",
+              )}
+              style={{ cursor: "pointer" }}
+            >
+              <div className="flex items-center gap-2">
+                <span
+                  className="h-2.5 w-2.5 shrink-0 rounded-full"
+                  style={{ background: color }}
+                />
+                <span className="min-w-0 flex-1 whitespace-nowrap text-[12px] font-medium text-foreground">
+                  {item.status}
+                </span>
+                <span className="ml-auto text-[13px] font-medium tabular-nums text-foreground">
+                  {item.total}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 pl-[18px]">
+                <div className="h-1 flex-1 overflow-hidden rounded-full bg-muted/70 dark:bg-white/[0.06]">
+                  <div
+                    className="h-full rounded-full transition-all"
+                    style={{ width: `${pct}%`, background: color }}
+                  />
+                </div>
+                <span className="shrink-0 text-[10px] tabular-nums text-muted-foreground">
+                  {pct}%
+                </span>
+              </div>
+            </button>
+          );
+        })}
       </div>
     </Card>
   );
