@@ -64,7 +64,6 @@ import {
   dailyTicketAnalytics,
   ticketOperators,
   ticketStatuses,
-  weeklyTicketAnalytics,
   type SupportTicket,
   type TicketPriority,
   type TicketStatus,
@@ -2055,25 +2054,35 @@ function sumDaily(key: "opened" | "finished" | "overdue") {
   return dailyTicketAnalytics.reduce((acc, item) => acc + item[key], 0);
 }
 
+const weeklyTopCompanies = [
+  { company: "MIT", nfe: 8, basic: 4, financial: 3 },
+  { company: "MRG", nfe: 7, basic: 5, financial: 2 },
+  { company: "MSS", nfe: 6, basic: 3, financial: 4 },
+  { company: "IMP", nfe: 3, basic: 7, financial: 2 },
+  { company: "CTR", nfe: 2, basic: 6, financial: 3 },
+  { company: "EPB", nfe: 3, basic: 5, financial: 2 },
+];
+
 function WeeklyBacklogCard() {
   return (
     <Card className="rounded-[14px] border-0 bg-white dark:bg-[#20263d] p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <h3 className="text-base font-bold text-foreground">Backlog semanal</h3>
+          <h3 className="text-base font-bold text-foreground">Empresas que mais ligaram na semana</h3>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Evolução de abertos, finalizados e saldo em aberto.
+            Volume de chamados por empresa e tipo de problema.
           </p>
         </div>
         <MoreVertical className="h-5 w-5 text-muted-foreground" />
       </div>
       <div className="h-[220px]">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={weeklyTicketAnalytics} margin={{ top: 16, right: 16, left: 8, bottom: 8 }}>
+          <BarChart data={weeklyTopCompanies} margin={{ top: 16, right: 16, left: 8, bottom: 8 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(139,145,173,0.18)" />
-            <XAxis dataKey="week" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#8b91ad" }} />
-            <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#8b91ad" }} width={40} />
+            <XAxis dataKey="company" axisLine={false} tickLine={false} tick={{ fontSize: 11, fontWeight: 600, fill: "#8b91ad" }} />
+            <YAxis allowDecimals={false} axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#8b91ad" }} width={40} />
             <Tooltip
+              formatter={(value, name) => [`${value} chamado${Number(value) === 1 ? "" : "s"}`, name]}
               contentStyle={{
                 border: "0",
                 borderRadius: 12,
@@ -2081,16 +2090,16 @@ function WeeklyBacklogCard() {
                 fontSize: 12,
               }}
             />
-            <Bar dataKey="opened" fill="#8d6bd8" radius={[6, 6, 0, 0]} />
-            <Bar dataKey="finished" fill="#ff9f68" radius={[6, 6, 0, 0]} />
-            <Bar dataKey="backlog" fill="#ff5fc8" radius={[6, 6, 0, 0]} />
+            <Bar dataKey="nfe" name="NF-e" fill="#8d6bd8" radius={[6, 6, 0, 0]} />
+            <Bar dataKey="basic" name="Básico / Terceiros" fill="#ff9f68" radius={[6, 6, 0, 0]} />
+            <Bar dataKey="financial" name="Financeiro" fill="#ff5fc8" radius={[6, 6, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-5 text-xs font-semibold text-muted-foreground">
-        <LegendDot color="#8d6bd8" label="Abertos" />
-        <LegendDot color="#ff9f68" label="Finalizados" />
-        <LegendDot color="#ff5fc8" label="Saldo" />
+        <LegendDot color="#8d6bd8" label="NF-e" />
+        <LegendDot color="#ff9f68" label="Básico / Terceiros" />
+        <LegendDot color="#ff5fc8" label="Financeiro" />
       </div>
     </Card>
   );
