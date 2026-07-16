@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import type { SupportTicket, TicketPriority } from "@/lib/support-tickets-data";
 import type { PastAttendance, TicketEvent } from "@/lib/tickets-store";
 import { TicketTimelineList } from "./TicketTimelineList";
