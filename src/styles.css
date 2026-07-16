@@ -215,3 +215,16 @@ iframe[src*="lovable"] {
   min-width: 40px;
 }
 .rte-content img { max-width: 100%; height: auto; border-radius: 6px; }
+.rte-content .rte-image {
+  display: inline-block;
+  max-width: 100%;
+  resize: horizontal;
+  overflow: hidden;
+  vertical-align: top;
+  line-height: 0;
+}
+.rte-content .rte-image:hover {
+  outline: 2px solid color-mix(in oklab, var(--primary) 60%, transparent);
+  outline-offset: 2px;
+}
+.rte-content .rte-image img { width: 100%; height: auto; display: block; }
