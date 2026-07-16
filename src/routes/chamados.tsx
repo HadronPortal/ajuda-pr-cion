@@ -413,6 +413,7 @@ function TicketsPage() {
   const slaMedio = 82;
 
   const statusDistribution = ticketStatuses
+    .filter((status) => status !== "Atrasado" && status !== "Cancelado")
     .map((status) => ({
       status,
       total: supportTickets.filter((ticket) => ticket.status === status).length,
