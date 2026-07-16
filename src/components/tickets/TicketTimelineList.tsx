@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import {
+  CalendarClock,
   CheckCircle2,
   FileText,
   MessageSquare,
@@ -8,6 +9,7 @@ import {
   Send,
   ShieldCheck,
   Sparkles,
+  UserCheck,
   UserPlus,
 } from "lucide-react";
 import type { TicketEvent } from "@/lib/tickets-store";
