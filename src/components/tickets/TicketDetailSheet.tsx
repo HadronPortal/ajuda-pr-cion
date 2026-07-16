@@ -278,11 +278,7 @@ export function TicketDetailSheet({
     ticketsStore.attendTicket(ticket.id);
     toast.success("Atendimento iniciado");
   };
-  const handleStatus = (s: TicketStatus) => {
-    ticketsStore.updateTicketStatus(ticket.id, s);
-    setStatusOpen(false);
-    toast.success("Status alterado", { description: s });
-  };
+  // status change removed from side menu; substituted by "Agendar evento" and "Encaminhar a especialista"
   const handleSaveNote = () => {
     const text = note.trim();
     if (!text) return;
