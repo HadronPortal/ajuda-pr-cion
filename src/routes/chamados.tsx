@@ -1429,7 +1429,8 @@ function TicketsListView({
                 {ticket.attendant}
               </div>
               <div className="col-span-2 truncate">
-                <span className="font-semibold text-foreground">Módulo:</span> {ticket.module}
+                <span className="font-semibold text-foreground">Módulo:</span>{" "}
+                <ModuleKnowledgeLink module={ticket.module} />
               </div>
               <div className="truncate">
                 <span className="font-semibold text-foreground">Resp.:</span> {ticket.owner}
