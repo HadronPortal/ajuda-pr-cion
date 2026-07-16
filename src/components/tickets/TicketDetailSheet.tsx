@@ -999,11 +999,17 @@ function RelatedPicker({
             variant="outline"
             size="icon"
             disabled={!query.trim()}
-            onClick={() => onAdd(suggestions[0] ?? query.trim())}
-            className="h-10 w-10 shrink-0 cursor-pointer rounded-lg"
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              const item = suggestions[0] ?? query.trim();
+              if (!item) return;
+              onAdd(item);
+            }}
+            className="group h-10 w-10 shrink-0 cursor-pointer rounded-lg transition hover:bg-primary hover:text-primary-foreground focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
             aria-label={`Adicionar em ${label}`}
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="pointer-events-none h-4 w-4" />
           </Button>
         </div>
         {query.trim() && suggestions.length > 0 && (
