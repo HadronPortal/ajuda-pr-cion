@@ -77,6 +77,8 @@ import { TicketNotesModal } from "./TicketNotesModal";
 import { TicketTimelineModal } from "./TicketTimelineModal";
 import { TicketTimelineList } from "./TicketTimelineList";
 import { TicketFloatingChat } from "./TicketFloatingChat";
+import { ScheduleEventModal } from "./ScheduleEventModal";
+import { ForwardSpecialistModal } from "./ForwardSpecialistModal";
 
 const statusTone: Record<TicketStatus, string> = {
   Atrasado: "bg-destructive/12 text-destructive border-destructive/20",
