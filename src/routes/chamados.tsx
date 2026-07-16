@@ -1335,7 +1335,10 @@ function TicketsListView({
                     </div>
                     <div className="mt-0.5 flex min-w-0 items-center gap-1.5 text-[11.5px] text-muted-foreground/80">
                       <ModuleIcon className="h-3 w-3 shrink-0 text-primary/70" />
-                      <span className="truncate">{ticket.module}</span>
+                      <ModuleKnowledgeLink
+                        module={ticket.module}
+                        className="truncate"
+                      />
                     </div>
                   </div>
 
