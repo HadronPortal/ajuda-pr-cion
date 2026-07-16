@@ -1036,6 +1036,7 @@ function SideItem({
   onClick,
   active,
   className,
+  nowrap,
 }: {
   icon: IconComponent;
   label: string;
@@ -1043,6 +1044,7 @@ function SideItem({
   onClick: () => void;
   active?: boolean;
   className?: string;
+  nowrap?: boolean;
 }) {
   return (
     <button
@@ -1055,15 +1057,26 @@ function SideItem({
     >
       <Icon
         className={cn(
-          "h-5 w-5 shrink-0 transition-colors",
-          active ? "text-primary-foreground" : "text-primary",
+          "h-5 w-5 shrink-0 transition-colors group-hover:text-primary",
+          active ? "text-primary-foreground" : "text-slate-500 dark:text-slate-300",
         )}
         strokeWidth={2.35}
       />
-      <span className={cn("truncate", collapsed && "md:hidden")}>{label}</span>
+      <span
+        className={cn(
+          collapsed && "md:hidden",
+          nowrap
+            ? "min-w-0 whitespace-nowrap"
+            : "truncate",
+        )}
+        style={nowrap ? { overflow: "visible", textOverflow: "clip" } : undefined}
+      >
+        {label}
+      </span>
     </button>
   );
 }
+
 
 function MobileAction({
   icon: Icon,
