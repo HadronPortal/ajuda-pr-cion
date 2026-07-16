@@ -207,12 +207,115 @@ export function RichTextEditor({
     runCmd("createLink", url);
   };
 
-  const handleImage = () => {
+  const escapeAttr = (s: string) =>
+    s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+
+  const insertImageHTML = (url: string, alt = "") => {
+    // Wrapper com resize proporcional via CSS `resize`. Ao selecionar/apagar,
+    // o contentEditable já lida com Backspace/Delete. Alinhamento é aplicado
+    // pelo `text-align` do bloco pai via botões da toolbar.
+    const safeUrl = escapeAttr(url);
+    const safeAlt = escapeAttr(alt);
+    const html = `<span class="rte-image" contenteditable="false" style="display:inline-block;max-width:100%;resize:horizontal;overflow:hidden;vertical-align:top;"><img src="${safeUrl}" alt="${safeAlt}" style="display:block;width:100%;height:auto;border-radius:6px;" /></span>&nbsp;`;
+    insertHTML(html);
+  };
+
+  const handleImageFromUrl = () => {
     const url = window.prompt("URL da imagem:", "https://");
     if (!url) return;
-    insertHTML(
-      `<img src="${url}" alt="" style="max-width:100%;height:auto;border-radius:6px;" />`,
-    );
+    // Aceita apenas http/https/data para evitar javascript: e outros esquemas.
+    if (!/^(https?:|data:image\/)/i.test(url)) {
+      setImageStatus({ kind: "error", message: "URL de imagem inválida." });
+      return;
+    }
+    const alt = window.prompt("Texto alternativo (opcional):", "") ?? "";
+    restoreSelection();
+    insertImageHTML(url, alt);
+    setImageStatus({ kind: "idle" });
+  };
+
+  const openFilePicker = () => {
+    saveSelection();
+    fileInputRef.current?.click();
+  };
+
+  const handleFileList = async (files: FileList | File[] | null) => {
+    if (!files) return;
+    const list = Array.from(files);
+    for (const file of list) {
+      if (!file.type.startsWith("image/")) continue;
+      const invalid = validateImageFile(file);
+      if (invalid) {
+        setImageStatus({ kind: "error", message: invalid });
+        continue;
+      }
+      setImageStatus({ kind: "uploading", filename: file.name });
+      try {
+        const result = await uploadFinalizationImage(file);
+        restoreSelection();
+        insertImageHTML(result.url, "");
+        setImageStatus({ kind: "idle" });
+      } catch (err) {
+        setImageStatus({
+          kind: "error",
+          message: err instanceof Error ? err.message : "Falha no upload.",
+        });
+      }
+    }
+  };
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    void handleFileList(e.target.files);
+    // Permite re-selecionar o mesmo arquivo depois
+    e.target.value = "";
+  };
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    const imageFiles: File[] = [];
+    for (const item of Array.from(items)) {
+      if (item.kind === "file") {
+        const f = item.getAsFile();
+        if (f && f.type.startsWith("image/")) imageFiles.push(f);
+      }
+    }
+    if (imageFiles.length > 0) {
+      e.preventDefault();
+      saveSelection();
+      void handleFileList(imageFiles);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    const dt = e.dataTransfer;
+    if (!dt || !dt.files || dt.files.length === 0) return;
+    const files = Array.from(dt.files).filter((f) => f.type.startsWith("image/"));
+    if (files.length === 0) return;
+    e.preventDefault();
+    // Coloca o caret no ponto do drop antes de inserir
+    const range = document.caretRangeFromPoint?.(e.clientX, e.clientY) ?? null;
+    if (range) {
+      const sel = window.getSelection();
+      sel?.removeAllRanges();
+      sel?.addRange(range);
+      savedRangeRef.current = range.cloneRange();
+    } else {
+      saveSelection();
+    }
+    void handleFileList(files);
+  };
+
+  const handleEditorDblClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+    if (target.tagName === "IMG") {
+      const img = target as HTMLImageElement;
+      const alt = window.prompt("Texto alternativo:", img.alt ?? "");
+      if (alt !== null) {
+        img.alt = alt;
+        emit();
+      }
+    }
   };
 
   const handleTable = () => {
