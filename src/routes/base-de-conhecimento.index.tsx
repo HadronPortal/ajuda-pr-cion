@@ -12,7 +12,12 @@ import {
   RefreshCw,
   ArrowRight,
   X,
+  Boxes,
 } from "lucide-react";
+import {
+  filterArticlesByModule,
+  getModuleBySlug,
+} from "@/lib/module-link";
 import { AppShell, PageHeader } from "@/components/portal/AppShell";
 import { EmptyState } from "@/components/portal/EmptyState";
 import { Card } from "@/components/ui/card";
