@@ -414,9 +414,11 @@ export function RichTextEditor({
         <ToolbarBtn title="Inserir link" onClick={handleLink}>
           <LinkIcon className="h-3.5 w-3.5" />
         </ToolbarBtn>
-        <ToolbarBtn title="Inserir imagem" onClick={handleImage}>
-          <ImageIcon className="h-3.5 w-3.5" />
-        </ToolbarBtn>
+        <ImageMenuButton
+          onBeforeOpen={saveSelection}
+          onPickFromComputer={openFilePicker}
+          onPickFromUrl={handleImageFromUrl}
+        />
         <ToolbarBtn title="Inserir tabela" onClick={handleTable}>
           <TableIcon className="h-3.5 w-3.5" />
         </ToolbarBtn>
