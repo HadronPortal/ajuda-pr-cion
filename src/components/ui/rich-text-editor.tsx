@@ -441,17 +441,21 @@ function PortalSelect({
         title={label}
         aria-haspopup="listbox"
         aria-expanded={open}
+        data-rich-text-menu="true"
         onMouseDown={(e) => {
           // Preserve editor selection
           e.preventDefault();
+          e.stopPropagation();
           onBeforeOpen?.();
         }}
+        onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => {
+          e.preventDefault();
           e.stopPropagation();
           setOpen((v) => !v);
         }}
         className="ml-1 inline-flex h-7 cursor-pointer items-center gap-1 rounded border border-input bg-card px-2 text-[11.5px] text-foreground outline-none transition hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
-        style={{ minWidth: width }}
+        style={{ minWidth: width, pointerEvents: "auto" }}
       >
         <span className="truncate">{currentLabel}</span>
         <ChevronDown className="h-3 w-3 shrink-0 opacity-60" />
