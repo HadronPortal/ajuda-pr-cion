@@ -2305,7 +2305,7 @@ function StatusCategoriesCard({
 }: {
   data: { status: TicketStatus; total: number }[];
 }) {
-  const [activeStatus, setActiveStatus] = React.useState<TicketStatus | null>(null);
+  const [activeStatus, setActiveStatus] = useState<TicketStatus | null>(null);
   const max = Math.max(1, ...data.map((item) => item.total));
   const totalAll = data.reduce((acc, item) => acc + item.total, 0) || 1;
   const cx = 140;
