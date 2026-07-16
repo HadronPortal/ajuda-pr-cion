@@ -497,7 +497,7 @@ function TicketsPage() {
           className="h-10 cursor-pointer gap-2 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white shadow-md hover:bg-blue-700"
         >
           <Filter className="h-4 w-4" />
-          Filters
+          Filtros
         </Button>
       </div>
 
@@ -505,7 +505,7 @@ function TicketsPage() {
       <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
         <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-[480px]">
           <SheetHeader className="border-b border-border px-6 py-4">
-            <SheetTitle className="text-lg font-semibold">Chamados Filters</SheetTitle>
+            <SheetTitle className="text-lg font-semibold">Filtros de chamados</SheetTitle>
           </SheetHeader>
           <div className="flex-1 overflow-y-auto px-6 py-5">
             <div className="space-y-6">
