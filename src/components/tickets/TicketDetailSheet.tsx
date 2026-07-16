@@ -1152,13 +1152,13 @@ function TicketPastAttendancesSidePanel({
       <header className="flex shrink-0 items-start justify-between gap-2 border-b border-border px-4 py-3">
         <div className="min-w-0">
           <h3 className="text-[13px] font-medium text-foreground">Histórico</h3>
-          <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
-            Cliente {ticket.clientCode}
-          </p>
-          <div className="mt-1.5 inline-flex items-center gap-1.5">
+          <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+            <p className="min-w-0 truncate text-[11px] text-muted-foreground">
+              Cliente {ticket.clientCode}
+            </p>
             <Badge
               className={cn(
-                "rounded-full border px-2 py-0.5 text-[10.5px] font-medium",
+                "shrink-0 rounded-full border px-2 py-0.5 text-[10.5px] font-medium",
                 statusTone[ticket.status],
               )}
             >
