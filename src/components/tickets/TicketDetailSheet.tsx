@@ -227,9 +227,10 @@ function createMaskedActionIcon(maskUrl: string): IconComponent {
 }
 
 const TicketCloseIcon = createMaskedActionIcon(finishIconUrl);
-const TicketStatusIcon = ListChecks;
 const TicketAssumeIcon = createMaskedActionIcon(transferIconUrl);
 const TicketAttendIcon = createMaskedActionIcon(startAttendanceIconUrl);
+const TicketScheduleIcon = CalendarClock;
+const TicketForwardIcon = UserCheck;
 const TicketTimelineIcon = History;
 
 import { getModuleIcon } from "@/lib/ticket-icons";
