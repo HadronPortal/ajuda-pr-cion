@@ -318,77 +318,50 @@ export function TicketDetailSheet({
 
           {/* Painel esquerdo — Chamado */}
           <div className="relative flex max-h-[90vh] min-h-0 flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-[0_30px_80px_rgba(0,0,0,0.35)]">
-            <button
-              type="button"
-              onClick={() => onOpenChange(false)}
-              aria-label="Fechar"
-              className="absolute right-3 top-3 z-10 grid h-8 w-8 cursor-pointer place-items-center rounded-md text-muted-foreground transition hover:bg-accent hover:text-foreground"
-            >
-              <X className="h-4 w-4" />
-            </button>
-
-            {/* Header */}
-            <header className="shrink-0 border-b border-border bg-card px-5 py-4 md:px-6">
-              <div className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3 pr-8">
-                <span
-                  aria-hidden
-                  className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary/12 text-primary ring-1 ring-primary/15"
-                >
-                  {(() => {
-                    const Icon = getModuleIcon(ticket.module, ticket.source, ticket.subject);
-                    return <Icon className="h-5 w-5" />;
-                  })()}
-                </span>
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-mono text-[12px] font-medium text-muted-foreground">
-                      {ticket.protocol}
-                    </span>
-                    <span className="text-[12px] text-muted-foreground">·</span>
-                    <span className="text-[12px] text-muted-foreground">
-                      {sourceLabels[ticket.source]}
-                    </span>
-                  </div>
-                  <h2 className="mt-1 truncate text-[18px] font-medium leading-snug text-foreground">
-                    {ticket.subject}
-                  </h2>
-                  <p className="mt-0.5 truncate text-[12.5px] text-muted-foreground">
-                    <span className="font-semibold text-foreground">{ticket.clientCode}</span>
-                    {" · "}
-                    {ticket.clientName}
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-3 flex flex-wrap items-center gap-2">
-                <Badge
-                  className={cn(
-                    "rounded-full border px-2.5 py-0.5 text-[11px] font-medium",
-                    statusTone[ticket.status],
-                  )}
-                >
-                  {ticket.status}
-                </Badge>
-                <Badge
-                  className={cn(
-                    "rounded-full border px-2.5 py-0.5 text-[11px] font-medium",
-                    priorityTone[ticket.priority],
-                  )}
-                >
-                  Prioridade {ticket.priority}
-                </Badge>
-                <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/50 px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
-                  <CalendarClock className="h-3 w-3" />
-                  SLA {sla.pct}% · {sla.hours}h
-                </span>
-                {ticket.lockedBy && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-warning/15 px-2.5 py-0.5 text-[11px] font-medium text-warning-foreground">
-                    <LockKeyhole className="h-3 w-3" />
-                    Atendendo agora: {ticket.lockedBy}
+            <DetailModalHeader
+              icon={getModuleIcon(ticket.module, ticket.source, ticket.subject)}
+              title={ticket.subject}
+              protocol={ticket.protocol}
+              onClose={() => onOpenChange(false)}
+              chips={
+                <>
+                  <Badge
+                    className={cn(
+                      "shrink-0 rounded-md border px-2 py-0.5 text-[10.5px] font-medium uppercase tracking-wide",
+                      statusTone[ticket.status],
+                    )}
+                  >
+                    {ticket.status}
+                  </Badge>
+                  <Badge
+                    className={cn(
+                      "shrink-0 rounded-md border px-2 py-0.5 text-[10.5px] font-medium",
+                      priorityTone[ticket.priority],
+                    )}
+                  >
+                    Prioridade {ticket.priority}
+                  </Badge>
+                  <span className="inline-flex shrink-0 items-center gap-1 rounded-md border border-border bg-muted/50 px-2 py-0.5 text-[10.5px] font-medium text-muted-foreground">
+                    <CalendarClock className="h-3 w-3" />
+                    SLA {sla.pct}% · {sla.hours}h
                   </span>
-                )}
-              </div>
-            </header>
+                  {ticket.lockedBy && (
+                    <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-warning/15 px-2 py-0.5 text-[10.5px] font-medium text-warning-foreground">
+                      <LockKeyhole className="h-3 w-3" />
+                      {ticket.lockedBy}
+                    </span>
+                  )}
+                </>
+              }
+              meta={
+                <span className="inline-flex items-center gap-1">
+                  <span className="font-semibold text-primary">{ticket.clientCode}</span>
+                  <span aria-hidden className="text-border">·</span>
+                  <span className="truncate text-foreground">{ticket.clientName}</span>
+                </span>
+              }
+            />
+
 
             {/* Body: sidebar (menu + ações) | conteúdo | chat */}
             <div className="flex flex-1 min-h-0 flex-col bg-muted/30 md:flex-row md:gap-4 md:p-4">
