@@ -866,16 +866,13 @@ function TicketCard({
           <SourceIcon className="h-3 w-3" />
           {sourceLabels[ticket.source]}
         </Chip>
-        <Link
-          to="/base-de-conhecimento"
-          search={{ search: ticket.module }}
-          onClick={(e) => e.stopPropagation()}
-          className="inline-flex cursor-pointer items-center gap-1 whitespace-nowrap rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground transition hover:bg-primary/10 hover:text-primary"
-          title={`Buscar "${ticket.module}" na Base de Conhecimento`}
+        <ModuleKnowledgeLink
+          module={ticket.module}
+          className="inline-flex items-center gap-1 whitespace-nowrap rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground hover:bg-primary/10 hover:text-primary"
         >
           <FolderKanban className="h-3 w-3" />
           {ticket.module}
-        </Link>
+        </ModuleKnowledgeLink>
         {ticket.lockedBy && (
           <Chip className="bg-warning/15 text-warning-foreground">
             <LockKeyhole className="h-3 w-3" />
