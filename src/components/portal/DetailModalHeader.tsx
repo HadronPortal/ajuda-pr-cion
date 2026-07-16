@@ -67,7 +67,7 @@ export function DetailModalHeader({
               iconWrapClassName,
             )}
           >
-            <Icon className="h-5 w-5" strokeWidth={2.4} fill="currentColor" />
+            <Icon className="h-5 w-5" strokeWidth={2.5} />
           </span>
 
           <div className="min-w-0 flex-1">
