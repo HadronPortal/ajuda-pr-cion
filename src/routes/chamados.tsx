@@ -836,7 +836,11 @@ function TicketCard({
       {/* Middle: info grid */}
       <dl className="grid min-w-0 grid-cols-1 gap-x-4 gap-y-2 text-[12px] sm:grid-cols-2 lg:grid-cols-3">
         <InfoRow icon={UserRound} label="Contato" value={ticket.contact} />
-        <InfoRow icon={Layers} label="Módulo" value={ticket.module} />
+        <InfoRow
+          icon={Layers}
+          label="Módulo"
+          value={<ModuleKnowledgeLink module={ticket.module} />}
+        />
         <InfoRow icon={Headphones} label="Atendente" value={ticket.attendant} />
         <InfoRow icon={UserPlus} label="Responsável" value={ticket.owner} />
         <InfoRow
