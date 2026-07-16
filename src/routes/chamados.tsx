@@ -2515,6 +2515,31 @@ function SourceModuleCard({
           ))}
         </div>
       </div>
+
+      <div className="mt-5 border-t border-border/60 pt-4">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+          Resumo do período
+        </p>
+        <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 divide-border/60 sm:grid-cols-4 sm:divide-x">
+          {[
+            { icon: PhoneCall, label: "Canal principal", value: "Telefone" },
+            { icon: Layers, label: "Módulo mais acionado", value: "NFE" },
+            { icon: MessageSquarePlus, label: "Interações", value: "10" },
+            { icon: CalendarClock, label: "Horário de pico", value: "10h–11h" },
+          ].map(({ icon: Icon, label, value }, i) => (
+            <div key={label} className={cn("flex flex-col gap-0.5", i > 0 && "sm:pl-3")}>
+              <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                <Icon className="h-3 w-3" />
+                {label}
+              </span>
+              <span className="text-sm font-bold text-foreground">{value}</span>
+            </div>
+          ))}
+        </div>
+        <p className="mt-3 rounded-lg bg-muted/40 dark:bg-white/[0.03] px-3 py-2 text-[11px] leading-relaxed text-muted-foreground">
+          Telefone concentra 40% dos contatos e NFE representa 40% das solicitações.
+        </p>
+      </div>
     </Card>
   );
 }
