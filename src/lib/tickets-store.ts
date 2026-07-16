@@ -376,7 +376,7 @@ export const ticketsStore = {
       when: nowIso(),
       actor: op,
       actorType: "suporte",
-      description: `Encaminhado para ${input.specialist} (${input.area}) por ${op}. Motivo: ${input.reason}`,
+      description: `Enviado para ${input.specialist} (${input.area}) por ${op}. Motivo: ${input.reason}`,
     });
     emit();
   },
