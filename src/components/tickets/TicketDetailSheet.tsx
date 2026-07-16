@@ -426,7 +426,8 @@ export function TicketDetailSheet({
                   />
                   <SideItem
                     icon={TicketForwardIcon}
-                    label="Encaminhar a especialista"
+                    label="Enviar a especialista"
+                    nowrap
                     collapsed={navCollapsed}
                     active={activeAction === "encaminhar"}
                     onClick={() => {
