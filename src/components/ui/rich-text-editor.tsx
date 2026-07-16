@@ -66,10 +66,16 @@ export function RichTextEditor({
   minHeight?: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const savedRangeRef = useRef<Range | null>(null);
   const [, force] = useState(0);
   const [currentStyle, setCurrentStyle] = useState<string>("p");
   const [currentSize, setCurrentSize] = useState<number>(14);
+  const [imageStatus, setImageStatus] = useState<
+    | { kind: "idle" }
+    | { kind: "uploading"; filename?: string }
+    | { kind: "error"; message: string }
+  >({ kind: "idle" });
 
   useEffect(() => {
     const el = ref.current;
