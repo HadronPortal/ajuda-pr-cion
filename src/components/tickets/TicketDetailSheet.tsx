@@ -427,54 +427,6 @@ export function TicketDetailSheet({
                       setCloseOpen(true);
                     }}
                   />
-                  <Popover open={statusOpen} onOpenChange={setStatusOpen}>
-                    <PopoverTrigger asChild>
-                      <button
-                        type="button"
-                        title={navCollapsed ? "Alterar status" : undefined}
-                        aria-label="Alterar status"
-                        onClick={() => setActiveAction("status")}
-                        className={cn(
-                          sideItemClasses(activeAction === "status"),
-                          navCollapsed && "md:justify-center md:px-0",
-                        )}
-                      >
-                        <TicketStatusIcon
-                          className={cn(
-                            "h-5 w-5 shrink-0",
-                            activeAction === "status" ? "text-primary-foreground" : "text-primary",
-                          )}
-                          strokeWidth={2.35}
-                        />
-                        <span className={cn("truncate", navCollapsed && "md:hidden")}>
-                          Alterar status
-                        </span>
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent side="right" align="start" className="w-56 p-1">
-                      <p className="px-2 pb-1 pt-2 text-[10.5px] font-medium uppercase tracking-wide text-muted-foreground">
-                        Novo status
-                      </p>
-                      <div className="max-h-72 overflow-auto">
-                        {ticketStatuses.map((s) => (
-                          <button
-                            key={s}
-                            type="button"
-                            onClick={() => handleStatus(s)}
-                            className={cn(
-                              "flex w-full cursor-pointer items-center justify-between rounded-md px-2 py-1.5 text-left text-[12.5px] transition hover:bg-accent",
-                              ticket.status === s && "bg-accent font-semibold",
-                            )}
-                          >
-                            <span>{s}</span>
-                            {ticket.status === s && (
-                              <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                    </PopoverContent>
-                  </Popover>
                   <SideItem
                     icon={TicketAssumeIcon}
                     label="Transferir chamado"
@@ -483,6 +435,26 @@ export function TicketDetailSheet({
                     onClick={() => {
                       setActiveAction("assumir");
                       handleAssume();
+                    }}
+                  />
+                  <SideItem
+                    icon={TicketScheduleIcon}
+                    label="Agendar evento"
+                    collapsed={navCollapsed}
+                    active={activeAction === "agendar"}
+                    onClick={() => {
+                      setActiveAction("agendar");
+                      setScheduleOpen(true);
+                    }}
+                  />
+                  <SideItem
+                    icon={TicketForwardIcon}
+                    label="Encaminhar a especialista"
+                    collapsed={navCollapsed}
+                    active={activeAction === "encaminhar"}
+                    onClick={() => {
+                      setActiveAction("encaminhar");
+                      setForwardOpen(true);
                     }}
                   />
                   <SideItem
@@ -495,7 +467,6 @@ export function TicketDetailSheet({
                       handleAttend();
                     }}
                   />
-                </div>
 
                 {isMine && (
                   <div className="p-2">
