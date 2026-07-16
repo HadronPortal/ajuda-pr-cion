@@ -12,6 +12,7 @@ import type {
   TicketStatus,
 } from "@/lib/support-tickets-data";
 import type { PastAttendance } from "@/lib/tickets-store";
+import { ModuleKnowledgeLink } from "@/lib/module-link";
 
 const statusTone: Record<TicketStatus, string> = {
   Atrasado: "bg-destructive/12 text-destructive border-destructive/20",
