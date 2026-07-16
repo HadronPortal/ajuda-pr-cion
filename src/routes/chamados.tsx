@@ -1551,7 +1551,7 @@ function RevenueStyleCards({
       title: "Em Atendimento",
       value: inProgressTickets,
       change: "+8%",
-      helper: "Chamados em execucao",
+      helper: "Chamados em atendimento",
       tone: "from-[#0b97c4] to-[#36b9df]",
       arrow: "bg-[#087fa6]",
       positive: true,
@@ -1573,7 +1573,7 @@ function RevenueStyleCards({
       title: "Finalizados Hoje",
       value: finishedTickets,
       change: "+12%",
-      helper: "Concluidos pela equipe",
+      helper: "Concluídos pela equipe",
       tone: "from-[#18b978] to-[#36d695]",
       arrow: "bg-[#10955f]",
       positive: true,
@@ -1608,28 +1608,41 @@ function RevenueStyleCards({
                 {card.value} chamados
               </p>
             </div>
-            <div className="flex items-end justify-between gap-4">
-              <div className="flex min-w-0 items-center gap-2">
+            <div className="flex items-end justify-between gap-3">
+              <div className="flex min-w-0 flex-1 items-center gap-2">
                 <span
                   className={cn(
-                    "rounded-full px-2 py-1 text-[13px] font-semibold",
+                    "shrink-0 rounded-full px-2 py-1 text-[13px] font-semibold",
                     card.positive ? "bg-emerald-100 text-emerald-600" : "bg-rose-100 text-rose-600",
                   )}
                 >
                   {card.change}
                 </span>
-                <span className="truncate text-[13px] text-muted-foreground">{card.helper}</span>
+                <span
+                  className="min-w-0 flex-1 text-[13px] leading-tight text-muted-foreground"
+                  style={{
+                    whiteSpace: "normal",
+                    overflow: "visible",
+                    textOverflow: "clip",
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical",
+                  }}
+                >
+                  {card.helper}
+                </span>
               </div>
-              <div className="flex h-12 shrink-0 items-end gap-2 opacity-80">
+              <div className="flex h-12 shrink-0 items-end gap-1.5 opacity-80">
                 {card.bars.map((height, index) => (
                   <span
                     key={index}
-                    className="w-1.5 rounded-t bg-[#cfc6f4]"
+                    className="w-1 rounded-t bg-[#cfc6f4]"
                     style={{ height }}
                   />
                 ))}
               </div>
             </div>
+
           </div>
         </Card>
       ))}
