@@ -1,10 +1,13 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   AlignCenter,
   AlignJustify,
   AlignLeft,
   AlignRight,
   Bold,
+  Check,
+  ChevronDown,
   Image as ImageIcon,
   Italic,
   Link as LinkIcon,
@@ -20,22 +23,24 @@ import { cn } from "@/lib/utils";
 
 /**
  * Editor Rich Text leve baseado em contentEditable + document.execCommand.
- * Não abre modais externos: comandos são aplicados diretamente sobre a seleção.
- * O valor é armazenado como HTML (string). Para exibição posterior, renderize
- * o HTML com dangerouslySetInnerHTML dentro de um container estilizado.
+ * Dropdowns "Estilo" e "Tamanho" são renderizados em Portal (document.body)
+ * para evitar recorte por overflow do modal e ficar acima do overlay.
  */
-
-type Cmd = {
-  key: string;
-  label: string;
-  icon?: React.ComponentType<{ className?: string }>;
-  run: (editor: HTMLDivElement) => void;
-  active?: () => boolean;
-};
 
 function exec(command: string, value?: string) {
   document.execCommand(command, false, value);
 }
+
+const STYLE_OPTIONS: { value: string; label: string }[] = [
+  { value: "p", label: "Texto normal" },
+  { value: "h1", label: "Título 1" },
+  { value: "h2", label: "Título 2" },
+  { value: "h3", label: "Título 3" },
+  { value: "blockquote", label: "Citação" },
+  { value: "pre", label: "Código" },
+];
+
+const SIZE_OPTIONS: number[] = [10, 12, 14, 16, 18, 20, 24, 28, 32];
 
 export function RichTextEditor({
   value,
@@ -53,9 +58,11 @@ export function RichTextEditor({
   minHeight?: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const savedRangeRef = useRef<Range | null>(null);
   const [, force] = useState(0);
+  const [currentStyle, setCurrentStyle] = useState<string>("p");
+  const [currentSize, setCurrentSize] = useState<number>(14);
 
-  // Only sync when external value differs (avoids caret reset while typing).
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
@@ -71,19 +78,114 @@ export function RichTextEditor({
     force((n) => n + 1);
   }, [onChange]);
 
-  const focusEditor = () => ref.current?.focus();
+  const saveSelection = () => {
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0) {
+      const range = sel.getRangeAt(0);
+      const editor = ref.current;
+      if (editor && editor.contains(range.commonAncestorContainer)) {
+        savedRangeRef.current = range.cloneRange();
+      }
+    }
+  };
+
+  const restoreSelection = () => {
+    const range = savedRangeRef.current;
+    if (!range) {
+      ref.current?.focus();
+      return;
+    }
+    ref.current?.focus();
+    const sel = window.getSelection();
+    if (sel) {
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+  };
 
   const runCmd = (command: string, val?: string) => {
-    focusEditor();
+    ref.current?.focus();
     exec(command, val);
     emit();
   };
 
   const insertHTML = (html: string) => {
-    focusEditor();
+    ref.current?.focus();
     exec("insertHTML", html);
     emit();
   };
+
+  const applyBlockStyle = (tag: string) => {
+    restoreSelection();
+    exec("formatBlock", tag);
+    setCurrentStyle(tag);
+    emit();
+  };
+
+  const applyFontSize = (px: number) => {
+    restoreSelection();
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return;
+    const range = sel.getRangeAt(0);
+    if (range.collapsed) {
+      // Insert a span placeholder for future typing
+      const span = document.createElement("span");
+      span.style.fontSize = `${px}px`;
+      span.appendChild(document.createTextNode("\u200B"));
+      range.insertNode(span);
+      // Place caret inside span, after zero-width char
+      const newRange = document.createRange();
+      newRange.setStart(span.firstChild!, 1);
+      newRange.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(newRange);
+    } else {
+      const contents = range.extractContents();
+      const span = document.createElement("span");
+      span.style.fontSize = `${px}px`;
+      span.appendChild(contents);
+      range.insertNode(span);
+      // Select the inserted span contents
+      const newRange = document.createRange();
+      newRange.selectNodeContents(span);
+      sel.removeAllRanges();
+      sel.addRange(newRange);
+    }
+    setCurrentSize(px);
+    emit();
+  };
+
+  // Track current block style / font size from caret
+  const updateFromSelection = useCallback(() => {
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return;
+    const node = sel.anchorNode;
+    if (!node) return;
+    const editor = ref.current;
+    if (!editor || !editor.contains(node)) return;
+    let el: HTMLElement | null =
+      node.nodeType === 1 ? (node as HTMLElement) : node.parentElement;
+    // Block style
+    let cursor = el;
+    while (cursor && cursor !== editor) {
+      const tag = cursor.tagName?.toLowerCase();
+      if (tag && ["p", "h1", "h2", "h3", "blockquote", "pre"].includes(tag)) {
+        setCurrentStyle(tag);
+        break;
+      }
+      cursor = cursor.parentElement;
+    }
+    // Font size (rounded to nearest option)
+    if (el) {
+      const size = parseFloat(window.getComputedStyle(el).fontSize);
+      if (!Number.isNaN(size)) {
+        const rounded = SIZE_OPTIONS.reduce((prev, curr) =>
+          Math.abs(curr - size) < Math.abs(prev - size) ? curr : prev,
+        );
+        setCurrentSize(rounded);
+      }
+    }
+  }, []);
 
   const handleLink = () => {
     const url = window.prompt("URL do link:", "https://");
@@ -114,7 +216,8 @@ export function RichTextEditor({
     insertHTML(html);
   };
 
-  const isEmpty = !value || value === "<br>" || value.replace(/<[^>]*>/g, "").trim() === "";
+  const isEmpty =
+    !value || value === "<br>" || value.replace(/<[^>]*>/g, "").trim() === "";
 
   return (
     <div
@@ -132,50 +235,27 @@ export function RichTextEditor({
         </ToolbarBtn>
         <Sep />
 
-        <select
-          title="Estilo do bloco"
-          onMouseDown={(e) => e.preventDefault()}
-          onChange={(e) => {
-            const v = e.target.value;
-            if (!v) return;
-            runCmd("formatBlock", v);
-            e.currentTarget.value = "";
-          }}
-          className="h-7 cursor-pointer rounded border border-input bg-card px-1.5 text-[11.5px] text-foreground outline-none hover:bg-accent"
-          defaultValue=""
-        >
-          <option value="" disabled>
-            Estilo
-          </option>
-          <option value="p">Texto normal</option>
-          <option value="h1">Título 1</option>
-          <option value="h2">Título 2</option>
-          <option value="h3">Título 3</option>
-        </select>
+        <PortalSelect
+          label="Estilo"
+          currentLabel={
+            STYLE_OPTIONS.find((o) => o.value === currentStyle)?.label ?? "Estilo"
+          }
+          options={STYLE_OPTIONS.map((o) => ({ key: o.value, label: o.label }))}
+          selectedKey={currentStyle}
+          width={140}
+          onBeforeOpen={saveSelection}
+          onSelect={(key) => applyBlockStyle(key)}
+        />
 
-        <select
-          title="Tamanho da fonte"
-          onMouseDown={(e) => e.preventDefault()}
-          onChange={(e) => {
-            const v = e.target.value;
-            if (!v) return;
-            runCmd("fontSize", v);
-            e.currentTarget.value = "";
-          }}
-          className="ml-1 h-7 cursor-pointer rounded border border-input bg-card px-1.5 text-[11.5px] text-foreground outline-none hover:bg-accent"
-          defaultValue=""
-        >
-          <option value="" disabled>
-            Tamanho
-          </option>
-          <option value="1">Muito pequeno</option>
-          <option value="2">Pequeno</option>
-          <option value="3">Normal</option>
-          <option value="4">Médio</option>
-          <option value="5">Grande</option>
-          <option value="6">Muito grande</option>
-          <option value="7">Enorme</option>
-        </select>
+        <PortalSelect
+          label="Tamanho"
+          currentLabel={`${currentSize} px`}
+          options={SIZE_OPTIONS.map((n) => ({ key: String(n), label: `${n} px` }))}
+          selectedKey={String(currentSize)}
+          width={96}
+          onBeforeOpen={saveSelection}
+          onSelect={(key) => applyFontSize(Number(key))}
+        />
 
         <Sep />
         <ToolbarBtn title="Negrito" onClick={() => runCmd("bold")}>
@@ -204,7 +284,10 @@ export function RichTextEditor({
         <ToolbarBtn title="Lista numerada" onClick={() => runCmd("insertOrderedList")}>
           <ListOrdered className="h-3.5 w-3.5" />
         </ToolbarBtn>
-        <ToolbarBtn title="Lista com marcadores" onClick={() => runCmd("insertUnorderedList")}>
+        <ToolbarBtn
+          title="Lista com marcadores"
+          onClick={() => runCmd("insertUnorderedList")}
+        >
           <List className="h-3.5 w-3.5" />
         </ToolbarBtn>
         <ToolbarBtn title="Citação" onClick={() => runCmd("formatBlock", "blockquote")}>
@@ -234,8 +317,16 @@ export function RichTextEditor({
           aria-multiline="true"
           contentEditable
           suppressContentEditableWarning
-          onInput={emit}
-          onBlur={emit}
+          onInput={() => {
+            emit();
+            updateFromSelection();
+          }}
+          onKeyUp={updateFromSelection}
+          onMouseUp={updateFromSelection}
+          onBlur={() => {
+            saveSelection();
+            emit();
+          }}
           className={cn(
             "rte-content w-full resize-y overflow-auto bg-card p-3 text-[13px] leading-relaxed text-foreground outline-none",
             editorClassName,
@@ -278,6 +369,140 @@ function ToolbarBtn({
 
 function Sep() {
   return <span aria-hidden className="mx-1 h-4 w-px bg-border" />;
+}
+
+/** Dropdown renderizado em portal com z-index alto, para não ser cortado pelo modal. */
+function PortalSelect({
+  label,
+  currentLabel,
+  options,
+  selectedKey,
+  width,
+  onSelect,
+  onBeforeOpen,
+}: {
+  label: string;
+  currentLabel: string;
+  options: { key: string; label: string }[];
+  selectedKey: string;
+  width: number;
+  onSelect: (key: string) => void;
+  onBeforeOpen?: () => void;
+}) {
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState<{ top: number; left: number; width: number }>({
+    top: 0,
+    left: 0,
+    width,
+  });
+
+  useLayoutEffect(() => {
+    if (!open) return;
+    const btn = btnRef.current;
+    if (!btn) return;
+    const rect = btn.getBoundingClientRect();
+    setPos({
+      top: rect.bottom + 4,
+      left: rect.left,
+      width: Math.max(width, rect.width),
+    });
+  }, [open, width]);
+
+  useEffect(() => {
+    if (!open) return;
+    const handlePointer = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (
+        menuRef.current?.contains(target) ||
+        btnRef.current?.contains(target)
+      ) {
+        return;
+      }
+      setOpen(false);
+    };
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", handlePointer);
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("mousedown", handlePointer);
+      document.removeEventListener("keydown", handleKey);
+    };
+  }, [open]);
+
+  return (
+    <>
+      <button
+        ref={btnRef}
+        type="button"
+        title={label}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onMouseDown={(e) => {
+          // Preserve editor selection
+          e.preventDefault();
+          onBeforeOpen?.();
+        }}
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen((v) => !v);
+        }}
+        className="ml-1 inline-flex h-7 cursor-pointer items-center gap-1 rounded border border-input bg-card px-2 text-[11.5px] text-foreground outline-none transition hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
+        style={{ minWidth: width }}
+      >
+        <span className="truncate">{currentLabel}</span>
+        <ChevronDown className="h-3 w-3 shrink-0 opacity-60" />
+      </button>
+      {open &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            ref={menuRef}
+            role="listbox"
+            onMouseDown={(e) => {
+              // Keep editor selection intact when clicking inside menu
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            onClick={(e) => e.stopPropagation()}
+            className="fixed z-[9999] max-h-72 overflow-auto rounded-md border border-border bg-popover py-1 text-popover-foreground shadow-lg"
+            style={{ top: pos.top, left: pos.left, minWidth: pos.width }}
+          >
+            {options.map((opt) => {
+              const selected = opt.key === selectedKey;
+              return (
+                <button
+                  key={opt.key}
+                  type="button"
+                  role="option"
+                  aria-selected={selected}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSelect(opt.key);
+                    setOpen(false);
+                  }}
+                  className={cn(
+                    "flex w-full cursor-pointer items-center justify-between gap-2 px-2.5 py-1.5 text-left text-[12.5px] transition hover:bg-accent hover:text-accent-foreground",
+                    selected && "bg-accent/60 font-medium",
+                  )}
+                >
+                  <span className="truncate">{opt.label}</span>
+                  {selected && <Check className="h-3.5 w-3.5 opacity-70" />}
+                </button>
+              );
+            })}
+          </div>,
+          document.body,
+        )}
+    </>
+  );
 }
 
 /** Container para exibição segura do HTML gerado (histórico/timeline). */
