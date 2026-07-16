@@ -195,28 +195,31 @@ function NewsMiniChart({ itemId }: { itemId: string }) {
   const comparison = dailyTicketAnalytics.map((point) => point.finished);
   const max = Math.max(...primary, ...comparison, 1);
   const width = 280;
-  const height = 76;
-  const baseY = 58;
+  const height = 120;
+  const baseY = 96;
+  const chartTop = 8;
+  const chartRange = baseY - chartTop;
   const step = width / dailyTicketAnalytics.length;
   const linePoints = comparison
     .map((value, index) => {
       const x = index * step + step / 2;
-      const y = baseY - (value / max) * 45;
+      const y = baseY - (value / max) * chartRange;
       return `${x},${y}`;
     })
     .join(" ");
 
   return (
-    <div className="mt-3 rounded-xl border border-border/70 bg-muted/25 px-3 pb-2 pt-3">
+    <div className="mt-2 flex-1 min-h-0 rounded-xl border border-border/70 bg-muted/25 px-3 pb-1.5 pt-2">
       <svg
         viewBox={`0 0 ${width} ${height}`}
-        className="h-[76px] w-full overflow-visible"
+        preserveAspectRatio="none"
+        className="h-full w-full overflow-visible"
         role="img"
         aria-label="Tendência dos chamados nos últimos sete dias"
       >
         <line x1="0" y1={baseY} x2={width} y2={baseY} className="stroke-border" />
         {primary.map((value, index) => {
-          const barHeight = Math.max(4, (value / max) * 45);
+          const barHeight = Math.max(4, (value / max) * chartRange);
           return (
             <rect
               key={dailyTicketAnalytics[index].day}
@@ -241,7 +244,7 @@ function NewsMiniChart({ itemId }: { itemId: string }) {
           <circle
             key={`${dailyTicketAnalytics[index].day}-point`}
             cx={index * step + step / 2}
-            cy={baseY - (value / max) * 45}
+            cy={baseY - (value / max) * chartRange}
             r="3"
             className="fill-card stroke-emerald-500"
             strokeWidth="2"
@@ -251,7 +254,7 @@ function NewsMiniChart({ itemId }: { itemId: string }) {
           <text
             key={`${point.day}-label`}
             x={index * step + step / 2}
-            y="74"
+            y={height - 8}
             textAnchor="middle"
             className="fill-muted-foreground text-[8px]"
           >
