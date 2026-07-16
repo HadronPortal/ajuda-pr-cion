@@ -50,11 +50,10 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import finishIconUrl from "@/assets/ticket-finalize-animated.gif";
-import finishIconStaticUrl from "@/assets/ticket-finalize-static.png";
+import finishIconUrl from "@/assets/ticket-finalize-v3.png";
 import transferIconUrl from "@/assets/ticket-transfer-solid.png";
 import startAttendanceIconUrl from "@/assets/ticket-start-solid.png";
-import specialistIconUrl from "@/assets/ticket-specialist-new.png";
+import specialistIconUrl from "@/assets/ticket-specialist-v3.png";
 
 import { cn } from "@/lib/utils";
 import {
@@ -236,30 +235,11 @@ function createMaskedActionIcon(maskUrl: string, size: string = "contain"): Icon
   };
 }
 
-// Finish and Forward source PNGs have larger transparent padding than the
-// others; scale their mask up so they match the visual weight of Transferir,
-// Agendar and Iniciar atendimento inside the 20x20 container.
-const TicketCloseIcon: IconComponent = ({ className }) => (
-  <span
-    aria-hidden="true"
-    className={cn("relative block scale-125 overflow-visible rounded-[3px]", className)}
-  >
-    <img
-      src={finishIconStaticUrl}
-      alt=""
-      className="absolute inset-0 h-full w-full rounded-[3px] object-contain opacity-100 transition-opacity group-hover:opacity-0"
-    />
-    <img
-      src={finishIconUrl}
-      alt=""
-      className="absolute inset-0 h-full w-full rounded-[3px] object-contain opacity-0 transition-opacity group-hover:opacity-100"
-    />
-  </span>
-);
+const TicketCloseIcon = createMaskedActionIcon(finishIconUrl, "135%");
 const TicketAssumeIcon = createMaskedActionIcon(transferIconUrl);
 const TicketAttendIcon = createMaskedActionIcon(startAttendanceIconUrl);
 const TicketScheduleIcon = CalendarClock;
-const TicketForwardIcon = createMaskedActionIcon(specialistIconUrl, "150%");
+const TicketForwardIcon = createMaskedActionIcon(specialistIconUrl, "145%");
 const TicketTimelineIcon = History;
 
 import { getModuleIcon } from "@/lib/ticket-icons";
