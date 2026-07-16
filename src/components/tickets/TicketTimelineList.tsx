@@ -216,9 +216,16 @@ export function TicketTimelineList({
               >
                 {presentation.label}
               </h3>
-              <p className={`mt-1 ${descSize} text-foreground break-words`}>
-                {event.description}
-              </p>
+              {/<[a-z][\s\S]*>/i.test(event.description) ? (
+                <div
+                  className={`rte-content mt-1 ${descSize} text-foreground break-words`}
+                  dangerouslySetInnerHTML={{ __html: event.description }}
+                />
+              ) : (
+                <p className={`mt-1 ${descSize} text-foreground break-words`}>
+                  {event.description}
+                </p>
+              )}
               <p className={`mt-1 ${metaSize} text-muted-foreground`}>
                 {event.actor} · {event.actorType}
               </p>
