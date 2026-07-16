@@ -11,15 +11,23 @@ import {
   Image as ImageIcon,
   Italic,
   Link as LinkIcon,
+  Link2,
   List,
   ListOrdered,
+  Loader2,
   Quote,
   Redo2,
   Strikethrough,
   Table as TableIcon,
   Undo2,
+  Upload,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  revokeUnusedFinalizationImages,
+  uploadFinalizationImage,
+  validateImageFile,
+} from "@/lib/finalization-image-upload";
 
 /**
  * Editor Rich Text leve baseado em contentEditable + document.execCommand.
