@@ -2183,6 +2183,23 @@ function SlaProfileCard({
   resolutionRate: number;
   portalTickets: number;
 }) {
+  const weekIndicators = [
+    { icon: Clock3, label: "Primeira resposta", value: "24 min", delta: "-3 min", tone: "text-[#20bf6b]" },
+    { icon: Headphones, label: "Em atendimento", value: "5", delta: "+1", tone: "text-[#20bf6b]" },
+    { icon: UserRound, label: "Aguardando cliente", value: "3", delta: "0", tone: "text-muted-foreground" },
+    { icon: AlertTriangle, label: "Fora do SLA", value: "1", delta: "-1", tone: "text-[#20bf6b]" },
+  ];
+  const slaSpark = [72, 75, 74, 78, 76, 80, 82];
+  const sparkMax = Math.max(...slaSpark);
+  const sparkMin = Math.min(...slaSpark);
+  const sparkPoints = slaSpark
+    .map((v, i) => {
+      const x = (i / (slaSpark.length - 1)) * 100;
+      const y = 100 - ((v - sparkMin) / Math.max(1, sparkMax - sparkMin)) * 100;
+      return `${x},${y}`;
+    })
+    .join(" ");
+
   return (
     <Card className="rounded-[14px] border-0 bg-white dark:bg-[#20263d] p-6 shadow-[0_10px_26px_rgba(25,29,51,0.06)]">
       <div className="grid gap-6 md:grid-cols-[1fr_220px] md:items-center">
@@ -2198,6 +2215,48 @@ function SlaProfileCard({
           </div>
         </div>
         <Gauge value={slaMedio} />
+      </div>
+
+      <div className="mt-5 border-t border-border/60 pt-4">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+          Indicadores da semana
+        </p>
+        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {weekIndicators.map(({ icon: Icon, label, value, delta, tone }) => (
+            <div
+              key={label}
+              className="flex flex-col gap-1 rounded-lg bg-muted/40 dark:bg-white/[0.03] px-3 py-2"
+            >
+              <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                <Icon className="h-3 w-3" />
+                {label}
+              </span>
+              <div className="flex items-baseline justify-between gap-2">
+                <span className="text-sm font-bold tabular-nums text-foreground">{value}</span>
+                <span className={cn("text-[10px] font-medium tabular-nums", tone)}>{delta}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-3 flex items-center gap-3 rounded-lg bg-muted/40 dark:bg-white/[0.03] px-3 py-2">
+          <div className="flex-1 min-w-0">
+            <p className="text-[11px] text-muted-foreground">Evolução do SLA</p>
+            <p className="text-sm font-bold text-foreground">
+              82% <span className="ml-1 text-[10px] font-medium text-[#20bf6b]">+5% na semana</span>
+            </p>
+          </div>
+          <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="h-8 w-24 shrink-0">
+            <polyline
+              fill="none"
+              stroke="#0b97c4"
+              strokeWidth="4"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              points={sparkPoints}
+            />
+          </svg>
+        </div>
       </div>
     </Card>
   );
