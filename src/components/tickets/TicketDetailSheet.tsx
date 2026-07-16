@@ -736,13 +736,12 @@ function CloseTicketDialog({
 }) {
   const [solution, setSolution] = useState("");
   const [hadronOption, setHadronOption] = useState("");
-  const [permission, setPermission] = useState<ClosurePayload["permission"]>("Clientes");
+  const [permission, setPermission] = useState<"" | ClosurePayload["permission"]>("");
   const [type, setType] = useState<ClosurePayload["type"]>("Não definido");
   const [articleQuery, setArticleQuery] = useState("");
   const [formQuery, setFormQuery] = useState("");
   const [relatedArticles, setRelatedArticles] = useState<string[]>([]);
   const [relatedForms, setRelatedForms] = useState<string[]>([]);
-  const [addToClientHistory, setAddToClientHistory] = useState(true);
   const typeOptions: ClosurePayload["type"][] = [
     "Não definido",
     "Dúvida",
@@ -774,28 +773,33 @@ function CloseTicketDialog({
   const reset = () => {
     setSolution("");
     setHadronOption("");
-    setPermission("Clientes");
+    setPermission("");
     setType("Não definido");
     setArticleQuery("");
     setFormQuery("");
     setRelatedArticles([]);
     setRelatedForms([]);
-    setAddToClientHistory(true);
   };
 
+  const solutionPlain = solution.replace(/<[^>]*>/g, "").trim();
+
   const handleSubmit = () => {
-    if (!solution.trim()) {
-      toast.error("Informe a solução aplicada para finalizar o chamado.");
+    if (!permission) {
+      toast.error("Selecione uma permissão válida.");
+      return;
+    }
+    if (!solutionPlain) {
+      toast.error("Informe a mensagem de finalização.");
       return;
     }
     onConfirm({
-      solution: solution.trim(),
+      solution,
       type,
       hadronOption: hadronOption.trim(),
       permission,
       relatedArticles,
       relatedForms,
-      addToClientHistory,
+      addToClientHistory: true,
       generateKbArticle: false,
     });
     reset();
@@ -806,35 +810,39 @@ function CloseTicketDialog({
       <DialogContent
         onPointerDownOutside={(event) => event.preventDefault()}
         onInteractOutside={(event) => event.preventDefault()}
-        className="max-h-[92vh] w-[calc(100vw-24px)] max-w-[940px] overflow-y-auto rounded-2xl border border-border bg-background p-0 shadow-[0_30px_80px_rgba(0,0,0,0.45)] sm:w-[92vw] [&>button]:hidden"
+        style={{ maxHeight: "calc(100vh - 2rem)" }}
+        className="flex w-[calc(100vw-2rem)] max-w-[940px] flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-background p-0 shadow-[0_30px_80px_rgba(0,0,0,0.35)] [&>button]:hidden"
       >
-        {/* Header */}
-        <div className="flex items-start justify-between gap-3 border-b border-border px-6 py-5">
-          <div className="flex items-start gap-3">
-            <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-primary/15 text-primary">
-              <CheckCircle2 className="h-5 w-5" />
+        <DialogTitle className="sr-only">Finalizar chamado {ticket.protocol}</DialogTitle>
+
+        <DetailModalHeader
+          icon={CheckCircle2}
+          title="Finalizar chamado"
+          protocol={ticket.protocol}
+          onClose={() => onOpenChange(false)}
+          accentClassName="bg-success"
+          iconWrapClassName="bg-success text-success-foreground"
+          chips={
+            <Badge
+              className={cn(
+                "shrink-0 rounded-md border px-2 py-0.5 text-[10.5px] font-medium uppercase tracking-wide",
+                statusTone[ticket.status],
+              )}
+            >
+              {ticket.status}
+            </Badge>
+          }
+          meta={
+            <span className="inline-flex items-center gap-1">
+              <span className="font-semibold text-primary">{ticket.clientCode}</span>
+              <span aria-hidden className="text-border">·</span>
+              <span className="truncate text-foreground">{ticket.clientName}</span>
             </span>
-            <div className="min-w-0">
-              <DialogTitle className="text-[16px] font-medium text-foreground">
-                Finalizar chamado
-              </DialogTitle>
-              <p className="mt-0.5 truncate text-[12px] text-muted-foreground">
-                {ticket.protocol} · {ticket.clientCode} · {ticket.clientName}
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => onOpenChange(false)}
-            aria-label="Fechar"
-            className="grid h-8 w-8 shrink-0 cursor-pointer place-items-center rounded-lg border border-border text-muted-foreground transition hover:bg-accent hover:text-foreground"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
+          }
+        />
 
         {/* Body */}
-        <div className="grid gap-4 px-6 py-5 sm:grid-cols-2">
+        <div className="min-h-0 grid gap-4 overflow-y-auto px-4 py-5 sm:grid-cols-2 md:px-6">
           <Field label="Opção Hádron">
             <Input
               value={hadronOption}
@@ -847,12 +855,20 @@ function CloseTicketDialog({
             <select
               value={permission}
               onChange={(event) =>
-                setPermission(event.target.value as ClosurePayload["permission"])
+                setPermission(event.target.value as "" | ClosurePayload["permission"])
               }
-              className="h-10 w-full cursor-pointer rounded-lg border border-input bg-card px-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring"
+              className={cn(
+                "h-10 w-full cursor-pointer rounded-lg border border-input bg-card px-3 text-sm outline-none focus:ring-2 focus:ring-ring",
+                permission ? "text-foreground" : "text-muted-foreground",
+              )}
             >
+              <option value="" disabled>
+                Permissão
+              </option>
               {(["Público", "Clientes", "Empresa"] as const).map((item) => (
-                <option key={item}>{item}</option>
+                <option key={item} value={item}>
+                  {item}
+                </option>
               ))}
             </select>
           </Field>
@@ -862,12 +878,11 @@ function CloseTicketDialog({
               <MessageSquare className="h-3.5 w-3.5 text-primary" />
               Mensagem de finalização
             </Label>
-            <textarea
+            <RichTextEditor
               value={solution}
-              onChange={(e) => setSolution(e.target.value)}
-              rows={3}
+              onChange={setSolution}
               placeholder="Descreva a solução aplicada e as orientações finais ao cliente..."
-              className="min-h-[120px] w-full resize-none rounded-xl border border-border bg-card p-3 text-[13px] leading-relaxed outline-none transition focus:border-primary/40 focus:ring-2 focus:ring-ring"
+              minHeight={160}
             />
           </div>
 
@@ -882,14 +897,7 @@ function CloseTicketDialog({
               ))}
             </select>
           </Field>
-          <label className="flex cursor-pointer items-center gap-3 self-end rounded-lg border border-border bg-card px-3 py-2.5">
-            <Checkbox
-              checked={addToClientHistory}
-              onCheckedChange={(value) => setAddToClientHistory(value === true)}
-              className="cursor-pointer"
-            />
-            <span className="text-[12.5px] text-foreground">Adicionar ao histórico do cliente</span>
-          </label>
+          <div />
 
           <RelatedPicker
             label="Artigos relacionados"
