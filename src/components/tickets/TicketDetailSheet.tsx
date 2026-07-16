@@ -191,6 +191,8 @@ const timelineIcon: Record<TicketEvent["kind"], typeof Info> = {
   note: FileText,
   solution: Sparkles,
   closed: CheckCircle2,
+  scheduled: CalendarClock,
+  forwarded: UserCheck,
 };
 
 const timelineTone: Record<TicketEvent["kind"], string> = {
@@ -203,6 +205,8 @@ const timelineTone: Record<TicketEvent["kind"], string> = {
   note: "bg-muted text-foreground",
   solution: "bg-success/15 text-success",
   closed: "bg-success/15 text-success",
+  scheduled: "bg-[#fff8dd] text-[#9c7610] dark:bg-[#403817] dark:text-[#f3d66d]",
+  forwarded: "bg-[#e7faf1] text-[#1f9860] dark:bg-[#14382b] dark:text-[#8ee8be]",
 };
 
 type IconComponent = ComponentType<{ className?: string; strokeWidth?: number }>;
