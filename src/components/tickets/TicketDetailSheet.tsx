@@ -220,26 +220,29 @@ const timelineTone: Record<TicketEvent["kind"], string> = {
 
 type IconComponent = ComponentType<{ className?: string; strokeWidth?: number }>;
 
-function createMaskedActionIcon(maskUrl: string): IconComponent {
+function createMaskedActionIcon(maskUrl: string, size: string = "contain"): IconComponent {
   return function MaskedActionIcon({ className }) {
     return (
       <span
         aria-hidden="true"
         className={cn("block bg-current", className)}
         style={{
-          WebkitMask: `url(${maskUrl}) center / contain no-repeat`,
-          mask: `url(${maskUrl}) center / contain no-repeat`,
+          WebkitMask: `url(${maskUrl}) center / ${size} no-repeat`,
+          mask: `url(${maskUrl}) center / ${size} no-repeat`,
         }}
       />
     );
   };
 }
 
-const TicketCloseIcon = createMaskedActionIcon(finishIconUrl);
+// Finish and Forward source PNGs have larger transparent padding than the
+// others; scale their mask up so they match the visual weight of Transferir,
+// Agendar and Iniciar atendimento inside the 20x20 container.
+const TicketCloseIcon = createMaskedActionIcon(finishIconUrl, "150%");
 const TicketAssumeIcon = createMaskedActionIcon(transferIconUrl);
 const TicketAttendIcon = createMaskedActionIcon(startAttendanceIconUrl);
 const TicketScheduleIcon = CalendarClock;
-const TicketForwardIcon = createMaskedActionIcon(specialistIconUrl);
+const TicketForwardIcon = createMaskedActionIcon(specialistIconUrl, "150%");
 const TicketTimelineIcon = History;
 
 import { getModuleIcon } from "@/lib/ticket-icons";
