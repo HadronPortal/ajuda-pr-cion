@@ -49,17 +49,9 @@ export function DetailModalHeader({
           </button>
         </div>
 
-        <span
-          aria-hidden
-          className={cn(
-            "pointer-events-none absolute right-6 top-1/2 hidden -translate-y-1/2 md:block",
-            decorativeIconClassName,
-          )}
-        >
-          <Icon className="h-24 w-24" strokeWidth={2.25} fill="currentColor" />
-        </span>
-
         <div className="flex items-start gap-3 pl-5 pr-16 py-4 md:gap-4 md:py-5">
+          {/* decorativeIconClassName intentionally unused */}
+          <span aria-hidden className={cn("hidden", decorativeIconClassName)} />
           <span
             aria-hidden
             className={cn(

@@ -77,6 +77,8 @@ import { TicketNotesModal } from "./TicketNotesModal";
 import { TicketTimelineModal } from "./TicketTimelineModal";
 import { TicketTimelineList } from "./TicketTimelineList";
 import { TicketFloatingChat } from "./TicketFloatingChat";
+import { ScheduleEventModal } from "./ScheduleEventModal";
+import { ForwardSpecialistModal } from "./ForwardSpecialistModal";
 
 const statusTone: Record<TicketStatus, string> = {
   Atrasado: "bg-destructive/12 text-destructive border-destructive/20",
@@ -191,6 +193,8 @@ const timelineIcon: Record<TicketEvent["kind"], typeof Info> = {
   note: FileText,
   solution: Sparkles,
   closed: CheckCircle2,
+  scheduled: CalendarClock,
+  forwarded: UserCheck,
 };
 
 const timelineTone: Record<TicketEvent["kind"], string> = {
@@ -203,6 +207,8 @@ const timelineTone: Record<TicketEvent["kind"], string> = {
   note: "bg-muted text-foreground",
   solution: "bg-success/15 text-success",
   closed: "bg-success/15 text-success",
+  scheduled: "bg-[#fff8dd] text-[#9c7610] dark:bg-[#403817] dark:text-[#f3d66d]",
+  forwarded: "bg-[#e7faf1] text-[#1f9860] dark:bg-[#14382b] dark:text-[#8ee8be]",
 };
 
 type IconComponent = ComponentType<{ className?: string; strokeWidth?: number }>;
@@ -223,9 +229,10 @@ function createMaskedActionIcon(maskUrl: string): IconComponent {
 }
 
 const TicketCloseIcon = createMaskedActionIcon(finishIconUrl);
-const TicketStatusIcon = ListChecks;
 const TicketAssumeIcon = createMaskedActionIcon(transferIconUrl);
 const TicketAttendIcon = createMaskedActionIcon(startAttendanceIconUrl);
+const TicketScheduleIcon = CalendarClock;
+const TicketForwardIcon = UserCheck;
 const TicketTimelineIcon = History;
 
 import { getModuleIcon } from "@/lib/ticket-icons";
@@ -245,15 +252,16 @@ export function TicketDetailSheet({
   const notes = useTicketNotes(ticketId);
 
   const [note, setNote] = useState("");
-  const [statusOpen, setStatusOpen] = useState(false);
   const [closeOpen, setCloseOpen] = useState(false);
+  const [scheduleOpen, setScheduleOpen] = useState(false);
+  const [forwardOpen, setForwardOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
   const [timelineOpen, setTimelineOpen] = useState(false);
   const [navCollapsed, setNavCollapsed] = useState(true);
   const [selectedHistory, setSelectedHistory] = useState<PastAttendance | null>(null);
   const [activeAction, setActiveAction] = useState<
-    "encerrar" | "status" | "assumir" | "atender" | "timeline"
+    "encerrar" | "assumir" | "agendar" | "encaminhar" | "atender" | "timeline"
   >("atender");
 
   const mock = useMemo(() => (ticket ? buildMock(ticket) : null), [ticket]);
@@ -273,11 +281,7 @@ export function TicketDetailSheet({
     ticketsStore.attendTicket(ticket.id);
     toast.success("Atendimento iniciado");
   };
-  const handleStatus = (s: TicketStatus) => {
-    ticketsStore.updateTicketStatus(ticket.id, s);
-    setStatusOpen(false);
-    toast.success("Status alterado", { description: s });
-  };
+  // status change removed from side menu; substituted by "Agendar evento" and "Encaminhar a especialista"
   const handleSaveNote = () => {
     const text = note.trim();
     if (!text) return;
@@ -426,54 +430,6 @@ export function TicketDetailSheet({
                       setCloseOpen(true);
                     }}
                   />
-                  <Popover open={statusOpen} onOpenChange={setStatusOpen}>
-                    <PopoverTrigger asChild>
-                      <button
-                        type="button"
-                        title={navCollapsed ? "Alterar status" : undefined}
-                        aria-label="Alterar status"
-                        onClick={() => setActiveAction("status")}
-                        className={cn(
-                          sideItemClasses(activeAction === "status"),
-                          navCollapsed && "md:justify-center md:px-0",
-                        )}
-                      >
-                        <TicketStatusIcon
-                          className={cn(
-                            "h-5 w-5 shrink-0",
-                            activeAction === "status" ? "text-primary-foreground" : "text-primary",
-                          )}
-                          strokeWidth={2.35}
-                        />
-                        <span className={cn("truncate", navCollapsed && "md:hidden")}>
-                          Alterar status
-                        </span>
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent side="right" align="start" className="w-56 p-1">
-                      <p className="px-2 pb-1 pt-2 text-[10.5px] font-medium uppercase tracking-wide text-muted-foreground">
-                        Novo status
-                      </p>
-                      <div className="max-h-72 overflow-auto">
-                        {ticketStatuses.map((s) => (
-                          <button
-                            key={s}
-                            type="button"
-                            onClick={() => handleStatus(s)}
-                            className={cn(
-                              "flex w-full cursor-pointer items-center justify-between rounded-md px-2 py-1.5 text-left text-[12.5px] transition hover:bg-accent",
-                              ticket.status === s && "bg-accent font-semibold",
-                            )}
-                          >
-                            <span>{s}</span>
-                            {ticket.status === s && (
-                              <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                    </PopoverContent>
-                  </Popover>
                   <SideItem
                     icon={TicketAssumeIcon}
                     label="Transferir chamado"
@@ -482,6 +438,26 @@ export function TicketDetailSheet({
                     onClick={() => {
                       setActiveAction("assumir");
                       handleAssume();
+                    }}
+                  />
+                  <SideItem
+                    icon={TicketScheduleIcon}
+                    label="Agendar evento"
+                    collapsed={navCollapsed}
+                    active={activeAction === "agendar"}
+                    onClick={() => {
+                      setActiveAction("agendar");
+                      setScheduleOpen(true);
+                    }}
+                  />
+                  <SideItem
+                    icon={TicketForwardIcon}
+                    label="Encaminhar a especialista"
+                    collapsed={navCollapsed}
+                    active={activeAction === "encaminhar"}
+                    onClick={() => {
+                      setActiveAction("encaminhar");
+                      setForwardOpen(true);
                     }}
                   />
                   <SideItem
@@ -495,6 +471,7 @@ export function TicketDetailSheet({
                     }}
                   />
                 </div>
+
 
                 {isMine && (
                   <div className="p-2">
@@ -521,12 +498,17 @@ export function TicketDetailSheet({
                   label="Finalizar"
                   onClick={() => setCloseOpen(true)}
                 />
-                <MobileAction
-                  icon={TicketStatusIcon}
-                  label="Status"
-                  onClick={() => setStatusOpen((v) => !v)}
-                />
                 <MobileAction icon={TicketAssumeIcon} label="Transferir" onClick={handleAssume} />
+                <MobileAction
+                  icon={TicketScheduleIcon}
+                  label="Agendar"
+                  onClick={() => setScheduleOpen(true)}
+                />
+                <MobileAction
+                  icon={TicketForwardIcon}
+                  label="Especialista"
+                  onClick={() => setForwardOpen(true)}
+                />
                 <MobileAction
                   icon={TicketAttendIcon}
                   label="Iniciar atendimento"
@@ -751,6 +733,18 @@ export function TicketDetailSheet({
         open={selectedHistory !== null}
         onOpenChange={(v) => !v && setSelectedHistory(null)}
         attendance={selectedHistory}
+        ticket={ticket}
+      />
+
+      <ScheduleEventModal
+        open={scheduleOpen}
+        onOpenChange={setScheduleOpen}
+        ticket={ticket}
+      />
+
+      <ForwardSpecialistModal
+        open={forwardOpen}
+        onOpenChange={setForwardOpen}
         ticket={ticket}
       />
     </>

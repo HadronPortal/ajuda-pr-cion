@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import {
+  CalendarClock,
   CheckCircle2,
   FileText,
   MessageSquare,
@@ -8,6 +9,7 @@ import {
   Send,
   ShieldCheck,
   Sparkles,
+  UserCheck,
   UserPlus,
 } from "lucide-react";
 import type { TicketEvent } from "@/lib/tickets-store";
@@ -69,6 +71,18 @@ export const timelineEventPresentation: Record<
     color: "#20ad74",
     softColor: "rgba(32, 173, 116, 0.24)",
     icon: CheckCircle2,
+  },
+  scheduled: {
+    label: "Evento agendado",
+    color: "#d79531",
+    softColor: "rgba(215, 149, 49, 0.24)",
+    icon: CalendarClock,
+  },
+  forwarded: {
+    label: "Encaminhado a especialista",
+    color: "#1f9860",
+    softColor: "rgba(31, 152, 96, 0.24)",
+    icon: UserCheck,
   },
 };
 
