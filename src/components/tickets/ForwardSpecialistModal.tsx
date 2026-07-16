@@ -222,7 +222,7 @@ export function ForwardSpecialistModal({
           </Button>
           <Button onClick={submit} className="cursor-pointer rounded-lg">
             <UserCheck className="mr-1.5 h-4 w-4" />
-            Encaminhar
+            Enviar
           </Button>
         </DialogFooter>
       </DialogContent>
