@@ -496,12 +496,17 @@ export function TicketDetailSheet({
                   label="Finalizar"
                   onClick={() => setCloseOpen(true)}
                 />
-                <MobileAction
-                  icon={TicketStatusIcon}
-                  label="Status"
-                  onClick={() => setStatusOpen((v) => !v)}
-                />
                 <MobileAction icon={TicketAssumeIcon} label="Transferir" onClick={handleAssume} />
+                <MobileAction
+                  icon={TicketScheduleIcon}
+                  label="Agendar"
+                  onClick={() => setScheduleOpen(true)}
+                />
+                <MobileAction
+                  icon={TicketForwardIcon}
+                  label="Especialista"
+                  onClick={() => setForwardOpen(true)}
+                />
                 <MobileAction
                   icon={TicketAttendIcon}
                   label="Iniciar atendimento"
