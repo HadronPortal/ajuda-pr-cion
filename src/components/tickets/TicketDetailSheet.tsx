@@ -1103,7 +1103,7 @@ function MobileAction({
       )}
     >
       <Icon
-        className={cn("h-3.5 w-3.5", highlight ? "text-primary-foreground" : "text-primary")}
+        className={cn("h-3.5 w-3.5", highlight ? "text-primary-foreground" : "text-slate-500 dark:text-slate-300")}
         strokeWidth={2.35}
       />
       <span>{label}</span>
