@@ -249,15 +249,16 @@ export function TicketDetailSheet({
   const notes = useTicketNotes(ticketId);
 
   const [note, setNote] = useState("");
-  const [statusOpen, setStatusOpen] = useState(false);
   const [closeOpen, setCloseOpen] = useState(false);
+  const [scheduleOpen, setScheduleOpen] = useState(false);
+  const [forwardOpen, setForwardOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
   const [timelineOpen, setTimelineOpen] = useState(false);
   const [navCollapsed, setNavCollapsed] = useState(true);
   const [selectedHistory, setSelectedHistory] = useState<PastAttendance | null>(null);
   const [activeAction, setActiveAction] = useState<
-    "encerrar" | "status" | "assumir" | "atender" | "timeline"
+    "encerrar" | "assumir" | "agendar" | "encaminhar" | "atender" | "timeline"
   >("atender");
 
   const mock = useMemo(() => (ticket ? buildMock(ticket) : null), [ticket]);
