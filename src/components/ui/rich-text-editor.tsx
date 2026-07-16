@@ -83,6 +83,8 @@ export function RichTextEditor({
     if (el.innerHTML !== value) {
       el.innerHTML = value || "";
     }
+    // Revoga URLs temporárias que não estão mais no conteúdo
+    revokeUnusedFinalizationImages(value || "");
   }, [value]);
 
   const emit = useCallback(() => {
