@@ -5,7 +5,6 @@ import {
   Boxes,
   Building2,
   CalendarClock,
-  CircleCheckBig,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
@@ -14,7 +13,6 @@ import {
   Folder,
   Globe,
   History,
-  Headset,
   Info,
   LayoutGrid,
   ListChecks,
@@ -33,7 +31,6 @@ import {
   UserCheck,
   UserPlus,
   UserRound,
-  UserRoundCog,
   Users,
   Wallet,
   X,
@@ -51,6 +48,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import finishIconUrl from "@/assets/ticket-finish-solid.png";
+import transferIconUrl from "@/assets/ticket-transfer-solid.png";
+import startAttendanceIconUrl from "@/assets/ticket-start-solid.png";
 
 import { cn } from "@/lib/utils";
 import {
@@ -207,10 +207,25 @@ const timelineTone: Record<TicketEvent["kind"], string> = {
 
 type IconComponent = ComponentType<{ className?: string; strokeWidth?: number }>;
 
-const TicketCloseIcon = CircleCheckBig;
+function createMaskedActionIcon(maskUrl: string): IconComponent {
+  return function MaskedActionIcon({ className }) {
+    return (
+      <span
+        aria-hidden="true"
+        className={cn("block bg-current", className)}
+        style={{
+          WebkitMask: `url(${maskUrl}) center / contain no-repeat`,
+          mask: `url(${maskUrl}) center / contain no-repeat`,
+        }}
+      />
+    );
+  };
+}
+
+const TicketCloseIcon = createMaskedActionIcon(finishIconUrl);
 const TicketStatusIcon = ListChecks;
-const TicketAssumeIcon = UserRoundCog;
-const TicketAttendIcon = Headset;
+const TicketAssumeIcon = createMaskedActionIcon(transferIconUrl);
+const TicketAttendIcon = createMaskedActionIcon(startAttendanceIconUrl);
 const TicketTimelineIcon = History;
 
 import { getModuleIcon } from "@/lib/ticket-icons";
@@ -403,7 +418,7 @@ export function TicketDetailSheet({
                   )}
                   <SideItem
                     icon={TicketCloseIcon}
-                    label="Encerrar"
+                    label="Finalizar"
                     collapsed={navCollapsed}
                     active={activeAction === "encerrar"}
                     onClick={() => {
@@ -423,7 +438,13 @@ export function TicketDetailSheet({
                           navCollapsed && "md:justify-center md:px-0",
                         )}
                       >
-                        <TicketStatusIcon className="h-5 w-5 shrink-0" strokeWidth={2.35} />
+                        <TicketStatusIcon
+                          className={cn(
+                            "h-5 w-5 shrink-0",
+                            activeAction === "status" ? "text-primary-foreground" : "text-primary",
+                          )}
+                          strokeWidth={2.35}
+                        />
                         <span className={cn("truncate", navCollapsed && "md:hidden")}>
                           Alterar status
                         </span>
@@ -465,7 +486,7 @@ export function TicketDetailSheet({
                   />
                   <SideItem
                     icon={TicketAttendIcon}
-                    label="Atender"
+                    label="Iniciar atendimento"
                     collapsed={navCollapsed}
                     active={activeAction === "atender"}
                     onClick={() => {
@@ -497,7 +518,7 @@ export function TicketDetailSheet({
               <div className="flex shrink-0 items-center gap-2 overflow-x-auto border-b border-border bg-card px-3 py-2 md:hidden">
                 <MobileAction
                   icon={TicketCloseIcon}
-                  label="Encerrar"
+                  label="Finalizar"
                   onClick={() => setCloseOpen(true)}
                 />
                 <MobileAction
@@ -505,10 +526,10 @@ export function TicketDetailSheet({
                   label="Status"
                   onClick={() => setStatusOpen((v) => !v)}
                 />
-                <MobileAction icon={TicketAssumeIcon} label="Assumir" onClick={handleAssume} />
+                <MobileAction icon={TicketAssumeIcon} label="Transferir" onClick={handleAssume} />
                 <MobileAction
                   icon={TicketAttendIcon}
-                  label="Atender"
+                  label="Iniciar atendimento"
                   onClick={handleAttend}
                   highlight
                 />
@@ -804,7 +825,7 @@ function CloseTicketDialog({
 
   const handleSubmit = () => {
     if (!solution.trim()) {
-      toast.error("Informe a solução aplicada para encerrar o chamado.");
+      toast.error("Informe a solução aplicada para finalizar o chamado.");
       return;
     }
     submit();
@@ -821,7 +842,7 @@ function CloseTicketDialog({
             </span>
             <div className="min-w-0">
               <DialogTitle className="text-[16px] font-medium text-foreground">
-                Encerrar chamado
+                Finalizar chamado
               </DialogTitle>
               <p className="mt-0.5 truncate text-[12px] text-muted-foreground">
                 {ticket.protocol} · {ticket.clientName}
@@ -850,15 +871,15 @@ function CloseTicketDialog({
               value={solution}
               onChange={(e) => setSolution(e.target.value)}
               rows={3}
-              placeholder="Descreva a solução ou o motivo do encerramento..."
+              placeholder="Descreva a solução ou o motivo da finalização..."
               className="min-h-[110px] w-full resize-none rounded-xl border border-border bg-background p-3 text-[13px] leading-relaxed outline-none transition focus:border-primary/40 focus:ring-2 focus:ring-ring"
             />
           </div>
 
-          {/* Tipo de encerramento */}
+          {/* Tipo de finalização */}
           <div>
             <Label className="mb-2 block text-[12.5px] font-medium text-foreground">
-              Tipo de encerramento
+              Tipo de finalização
             </Label>
             <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
               {closureOptions.map((opt) => {
@@ -928,7 +949,7 @@ function CloseTicketDialog({
                   Adicionar ao histórico do cliente
                 </span>
                 <span className="mt-0.5 block text-[11.5px] leading-snug text-muted-foreground">
-                  O encerramento será registrado no histórico do cliente.
+                  A finalização será registrada no histórico do cliente.
                 </span>
               </span>
             </label>
@@ -962,7 +983,7 @@ function CloseTicketDialog({
           </Button>
           <Button onClick={handleSubmit} className="cursor-pointer rounded-lg">
             <CheckCircle2 className="mr-1.5 h-4 w-4" />
-            Encerrar chamado
+            Finalizar chamado
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -1064,7 +1085,13 @@ function SideItem({
       aria-pressed={!!active}
       className={cn(sideItemClasses(!!active), collapsed && "md:justify-center md:px-0", className)}
     >
-      <Icon className="h-5 w-5 shrink-0" strokeWidth={2.35} />
+      <Icon
+        className={cn(
+          "h-5 w-5 shrink-0 transition-colors",
+          active ? "text-primary-foreground" : "text-primary",
+        )}
+        strokeWidth={2.35}
+      />
       <span className={cn("truncate", collapsed && "md:hidden")}>{label}</span>
     </button>
   );
@@ -1093,7 +1120,10 @@ function MobileAction({
           : "border-border bg-card text-foreground hover:bg-accent",
       )}
     >
-      <Icon className="h-3.5 w-3.5" strokeWidth={2.35} />
+      <Icon
+        className={cn("h-3.5 w-3.5", highlight ? "text-primary-foreground" : "text-primary")}
+        strokeWidth={2.35}
+      />
       <span>{label}</span>
     </button>
   );

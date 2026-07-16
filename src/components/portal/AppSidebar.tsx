@@ -1,21 +1,16 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { ProcionLogo } from "./ProcionLogo";
-import {
-  BookOpenText,
-  Building2,
-  CalendarDays,
-  ChartNoAxesCombined,
-  ChevronLeft,
-  ChevronRight,
-  CircleUserRound,
-  GitBranch,
-  Headset,
-  KanbanSquare,
-  LayoutDashboard,
-  MessageSquare,
-  Sparkles,
-} from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, MessageSquare } from "lucide-react";
 import type { ComponentType } from "react";
+import dashboardIconUrl from "@/assets/menu-dashboard-solid.png";
+import ticketsIconUrl from "@/assets/menu-tickets-solid.png";
+import baseIconUrl from "@/assets/menu-base-solid.png";
+import updatesIconUrl from "@/assets/menu-updates-solid.png";
+import versionsIconUrl from "@/assets/menu-versions-solid.png";
+import kanbanIconUrl from "@/assets/menu-kanban-solid.png";
+import analyticsIconUrl from "@/assets/menu-analytics-solid.png";
+import customersIconUrl from "@/assets/menu-customers-solid.png";
+import profileIconUrl from "@/assets/menu-profile-solid.png";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { sidebarStore, useSidebarCollapsed } from "@/lib/sidebar-store";
@@ -29,16 +24,41 @@ type NavItem = {
   exact?: boolean;
 };
 
+function createMaskedMenuIcon(maskUrl: string): NavIcon {
+  return function MaskedMenuIcon({ className }) {
+    return (
+      <span
+        aria-hidden="true"
+        className={cn("block bg-current", className)}
+        style={{
+          WebkitMask: `url(${maskUrl}) center / contain no-repeat`,
+          mask: `url(${maskUrl}) center / contain no-repeat`,
+        }}
+      />
+    );
+  };
+}
+
+const DashboardIcon = createMaskedMenuIcon(dashboardIconUrl);
+const TicketsIcon = createMaskedMenuIcon(ticketsIconUrl);
+const BaseIcon = createMaskedMenuIcon(baseIconUrl);
+const UpdatesIcon = createMaskedMenuIcon(updatesIconUrl);
+const VersionsIcon = createMaskedMenuIcon(versionsIconUrl);
+const KanbanIcon = createMaskedMenuIcon(kanbanIconUrl);
+const AnalyticsIcon = createMaskedMenuIcon(analyticsIconUrl);
+const CustomersIcon = createMaskedMenuIcon(customersIconUrl);
+const ProfileIcon = createMaskedMenuIcon(profileIconUrl);
+
 const nav: NavItem[] = [
-  { to: "/", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { to: "/chamados", label: "Chamados", icon: Headset },
-  { to: "/base-de-conhecimento", label: "Base", icon: BookOpenText },
-  { to: "/atualizacoes", label: "Atualizações", icon: Sparkles },
-  { to: "/versoes", label: "Versões", icon: GitBranch },
-  { to: "/kanban", label: "Kanban", icon: KanbanSquare },
-  { to: "/kanban-dashboard", label: "Analytics", icon: ChartNoAxesCombined },
-  { to: "/clientes", label: "Clientes", icon: Building2 },
-  { to: "/minha-conta", label: "Minha Conta", icon: CircleUserRound },
+  { to: "/", label: "Dashboard", icon: DashboardIcon, exact: true },
+  { to: "/chamados", label: "Chamados", icon: TicketsIcon },
+  { to: "/base-de-conhecimento", label: "Base", icon: BaseIcon },
+  { to: "/atualizacoes", label: "Atualizações", icon: UpdatesIcon },
+  { to: "/versoes", label: "Versões", icon: VersionsIcon },
+  { to: "/kanban", label: "Kanban", icon: KanbanIcon },
+  { to: "/kanban-dashboard", label: "Analytics", icon: AnalyticsIcon },
+  { to: "/clientes", label: "Clientes", icon: CustomersIcon },
+  { to: "/minha-conta", label: "Minha Conta", icon: ProfileIcon },
 ];
 
 function isActivePath(pathname: string, item: NavItem) {
@@ -105,12 +125,11 @@ export function AppSidebar() {
                     <span className="absolute -left-4 top-1/2 h-9 w-1.5 -translate-y-1/2 rounded-r-full bg-primary" />
                   )}
                   <Icon
-                    strokeWidth={2.35}
                     className={cn(
-                      "h-5 w-5 shrink-0 transition-colors",
+                      "h-[22px] w-[22px] shrink-0 transition-colors",
                       active
                         ? "text-primary"
-                        : "text-sidebar-foreground group-hover:text-sidebar-accent-foreground",
+                        : "text-sidebar-foreground/70 group-hover:text-primary dark:text-sidebar-foreground/85",
                     )}
                   />
                   {!collapsed && <span className="min-w-0 flex-1 truncate">{item.label}</span>}
@@ -185,7 +204,7 @@ export function MobileBottomNav() {
                   active ? "text-primary" : "text-muted-foreground",
                 )}
               >
-                <Icon className="h-5 w-5" strokeWidth={2.35} />
+                <Icon className="h-[22px] w-[22px]" />
                 <span className="max-w-[64px] truncate">{item.label.split(" ")[0]}</span>
               </Link>
             </li>
