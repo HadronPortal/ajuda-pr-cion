@@ -839,14 +839,40 @@ function CloseTicketDialog({
           accentClassName="bg-success"
           iconWrapClassName="bg-success text-success-foreground"
           chips={
-            <Badge
-              className={cn(
-                "shrink-0 rounded-md border px-2 py-0.5 text-[10.5px] font-medium uppercase tracking-wide",
-                statusTone[ticket.status],
-              )}
-            >
-              {ticket.status}
-            </Badge>
+            <>
+              <Badge
+                className={cn(
+                  "shrink-0 rounded-md border px-2 py-0.5 text-[10.5px] font-medium uppercase tracking-wide",
+                  statusTone[ticket.status],
+                )}
+              >
+                {ticket.status}
+              </Badge>
+              <Badge
+                className={cn(
+                  "shrink-0 rounded-md border px-2 py-0.5 text-[10.5px] font-medium",
+                  priorityTone[ticket.priority],
+                )}
+              >
+                Prioridade {ticket.priority}
+              </Badge>
+              <span
+                className={cn(
+                  "inline-flex shrink-0 items-center gap-1 rounded-md border px-2 py-0.5 text-[10.5px] font-medium",
+                  sla.tone === "late"
+                    ? "border-destructive/40 bg-destructive/10 text-destructive"
+                    : sla.tone === "warn"
+                      ? "border-warning/40 bg-warning/15 text-warning-foreground"
+                      : "border-border bg-muted/50 text-muted-foreground",
+                )}
+              >
+                <CalendarClock className="h-3 w-3" />
+                SLA {sla.pct}% · {sla.hours}h
+                {sla.tone === "late" && (
+                  <span className="ml-1 uppercase">· vencido</span>
+                )}
+              </span>
+            </>
           }
           meta={
             <span className="inline-flex items-center gap-1">
