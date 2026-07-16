@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { PastAttendanceDetailModal } from "./PastAttendanceDetailModal";
 import { TicketHistoryList } from "./TicketHistoryList";
-import { History, X } from "lucide-react";
+import { Clock } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import type {
   SupportTicket,
   TicketStatus,
@@ -60,51 +61,29 @@ export function TicketHistoryModal({
           Histórico do chamado {ticket.protocol}
         </DialogTitle>
 
-        <header className="relative shrink-0 border-b border-border bg-card px-5 py-4 md:px-7 md:py-5">
-          <button
-            type="button"
-            onClick={() => onOpenChange(false)}
-            aria-label="Fechar"
-            className="absolute right-3 top-3 z-10 grid h-8 w-8 cursor-pointer place-items-center rounded-md text-muted-foreground transition hover:bg-accent hover:text-foreground"
-          >
-            <X className="h-4 w-4" />
-          </button>
-
-          <div className="flex flex-wrap items-start gap-3 pr-10">
-            <span
-              aria-hidden
-              className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary"
+        <DetailModalHeader
+          icon={Clock}
+          title="Histórico"
+          protocol={ticket.protocol}
+          onClose={() => onOpenChange(false)}
+          chips={
+            <Badge
+              className={cn(
+                "shrink-0 rounded-md border px-2 py-0.5 text-[10.5px] font-medium uppercase tracking-wide",
+                statusTone[ticket.status],
+              )}
             >
-              <History className="h-5 w-5" />
+              {ticket.status}
+            </Badge>
+          }
+          meta={
+            <span className="inline-flex items-center gap-1">
+              <span className="font-semibold text-primary">{ticket.clientCode}</span>
+              <span aria-hidden className="text-border">·</span>
+              <span className="truncate text-foreground">{ticket.clientName}</span>
             </span>
-            <div className="min-w-0 flex-1">
-              <h2 className="text-[18px] font-medium leading-tight text-foreground">
-                Histórico
-              </h2>
-              <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1">
-                <p className="min-w-0 truncate text-[12px] text-muted-foreground">
-                  <span className="font-mono font-semibold text-foreground">
-                    {ticket.protocol}
-                  </span>
-                  {" · "}
-                  <span className="font-semibold text-foreground">
-                    {ticket.clientCode}
-                  </span>
-                  {" · "}
-                  {ticket.clientName}
-                </p>
-                <Badge
-                  className={cn(
-                    "shrink-0 rounded-md border px-2 py-0.5 text-[10.5px] font-medium uppercase tracking-wide",
-                    statusTone[ticket.status],
-                  )}
-                >
-                  {ticket.status}
-                </Badge>
-              </div>
-            </div>
-          </div>
-        </header>
+          }
+        />
 
         <div className="min-h-0 overflow-y-auto bg-background px-4 py-5 md:px-6">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
