@@ -481,7 +481,7 @@ export function TicketDetailSheet({
                 />
                 <MobileAction
                   icon={TicketForwardIcon}
-                  label="Especialista"
+                  label="Enviar a especialista"
                   onClick={() => setForwardOpen(true)}
                 />
                 <MobileAction
