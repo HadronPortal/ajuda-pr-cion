@@ -150,7 +150,7 @@ export function TicketHistoryList({
                   </div>
 
                   <p className="mt-1 truncate text-[9.5px] uppercase tracking-wide text-muted-foreground dark:text-[#9aaabc]">
-                    {item.module}
+                    <ModuleKnowledgeLink module={item.module} />
                   </p>
                   <p className="mt-2 text-[9.5px] text-muted-foreground dark:text-[#8194a7]">
                     Atendente
