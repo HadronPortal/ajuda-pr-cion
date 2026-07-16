@@ -50,9 +50,10 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import finishIconUrl from "@/assets/ticket-finish-solid.png";
+import finishIconUrl from "@/assets/ticket-finalize-new.png";
 import transferIconUrl from "@/assets/ticket-transfer-solid.png";
 import startAttendanceIconUrl from "@/assets/ticket-start-solid.png";
+import specialistIconUrl from "@/assets/ticket-specialist-new.png";
 
 import { cn } from "@/lib/utils";
 import {
@@ -238,7 +239,7 @@ const TicketCloseIcon = createMaskedActionIcon(finishIconUrl);
 const TicketAssumeIcon = createMaskedActionIcon(transferIconUrl);
 const TicketAttendIcon = createMaskedActionIcon(startAttendanceIconUrl);
 const TicketScheduleIcon = CalendarClock;
-const TicketForwardIcon = UserCheck;
+const TicketForwardIcon = createMaskedActionIcon(specialistIconUrl);
 const TicketTimelineIcon = History;
 
 import { getModuleIcon } from "@/lib/ticket-icons";
