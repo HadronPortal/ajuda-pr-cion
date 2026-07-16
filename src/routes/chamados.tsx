@@ -1608,8 +1608,11 @@ function RevenueStyleCards({
                 {card.value} chamados
               </p>
             </div>
-            <div className="flex items-end justify-between gap-3">
-              <div className="flex min-w-0 flex-1 items-center gap-2">
+            <div
+              className="grid items-end gap-3"
+              style={{ gridTemplateColumns: "minmax(0, 1fr) 56px" }}
+            >
+              <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
                 <span
                   className={cn(
                     "shrink-0 rounded-full px-2 py-1 text-[13px] font-semibold",
@@ -1624,20 +1627,21 @@ function RevenueStyleCards({
                     whiteSpace: "normal",
                     overflow: "visible",
                     textOverflow: "clip",
-                    display: "-webkit-box",
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: "vertical",
                   }}
                 >
                   {card.helper}
                 </span>
               </div>
-              <div className="flex h-12 shrink-0 items-end gap-1.5 opacity-80">
+              <div
+                className="ml-auto flex items-end justify-end gap-[3px] opacity-80"
+                style={{ width: 56, height: 40 }}
+                aria-hidden="true"
+              >
                 {card.bars.map((height, index) => (
                   <span
                     key={index}
-                    className="w-1 rounded-t bg-[#cfc6f4]"
-                    style={{ height }}
+                    className="w-[6px] rounded-t bg-[#cfc6f4]"
+                    style={{ height: Math.min(40, Math.round(height * 0.65)) }}
                   />
                 ))}
               </div>
