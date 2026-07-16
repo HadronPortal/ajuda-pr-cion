@@ -73,6 +73,7 @@ const ticketPriorities: TicketPriority[] = ["Alta", "Media", "Baixa"];
 import { useTickets, useTicketHistory, ticketsStore } from "@/lib/tickets-store";
 import { FileText } from "lucide-react";
 import { getModuleIcon } from "@/lib/ticket-icons";
+import { ModuleKnowledgeLink } from "@/lib/module-link";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
