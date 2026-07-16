@@ -122,9 +122,7 @@ function buildNews(tickets: SupportTicket[]): NewsItem[] {
   }
 
   // Próximos do SLA (Alta prioridade em aberto)
-  const nearSla = active.filter(
-    (t) => t.priority === "Alta" && t.status !== "Atrasado",
-  );
+  const nearSla = active.filter((t) => t.priority === "Alta" && t.status !== "Atrasado");
   if (nearSla.length > 0) {
     items.push({
       id: "near-sla",
@@ -191,6 +189,88 @@ function buildNews(tickets: SupportTicket[]): NewsItem[] {
   return items;
 }
 
+function NewsMiniChart({ itemId }: { itemId: string }) {
+  const primaryKey = itemId === "overdue" || itemId === "near-sla" ? "overdue" : "opened";
+  const primary = dailyTicketAnalytics.map((point) => point[primaryKey]);
+  const comparison = dailyTicketAnalytics.map((point) => point.finished);
+  const max = Math.max(...primary, ...comparison, 1);
+  const width = 280;
+  const height = 76;
+  const baseY = 58;
+  const step = width / dailyTicketAnalytics.length;
+  const linePoints = comparison
+    .map((value, index) => {
+      const x = index * step + step / 2;
+      const y = baseY - (value / max) * 45;
+      return `${x},${y}`;
+    })
+    .join(" ");
+
+  return (
+    <div className="mt-3 rounded-xl border border-border/70 bg-muted/25 px-3 pb-2 pt-3">
+      <svg
+        viewBox={`0 0 ${width} ${height}`}
+        className="h-[76px] w-full overflow-visible"
+        role="img"
+        aria-label="Tendência dos chamados nos últimos sete dias"
+      >
+        <line x1="0" y1={baseY} x2={width} y2={baseY} className="stroke-border" />
+        {primary.map((value, index) => {
+          const barHeight = Math.max(4, (value / max) * 45);
+          return (
+            <rect
+              key={dailyTicketAnalytics[index].day}
+              x={index * step + 8}
+              y={baseY - barHeight}
+              width={step - 16}
+              height={barHeight}
+              rx="4"
+              className="fill-primary/55"
+            />
+          );
+        })}
+        <polyline
+          points={linePoints}
+          fill="none"
+          className="stroke-emerald-500"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        {comparison.map((value, index) => (
+          <circle
+            key={`${dailyTicketAnalytics[index].day}-point`}
+            cx={index * step + step / 2}
+            cy={baseY - (value / max) * 45}
+            r="3"
+            className="fill-card stroke-emerald-500"
+            strokeWidth="2"
+          />
+        ))}
+        {dailyTicketAnalytics.map((point, index) => (
+          <text
+            key={`${point.day}-label`}
+            x={index * step + step / 2}
+            y="74"
+            textAnchor="middle"
+            className="fill-muted-foreground text-[8px]"
+          >
+            {point.day}
+          </text>
+        ))}
+      </svg>
+      <div className="flex justify-end gap-3 text-[9px] text-muted-foreground">
+        <span className="inline-flex items-center gap-1">
+          <i className="h-2 w-2 rounded-sm bg-primary/55" /> Volume
+        </span>
+        <span className="inline-flex items-center gap-1">
+          <i className="h-2 w-2 rounded-full border-2 border-emerald-500" /> Finalizados
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export function TicketsNewsCard() {
   const news = useMemo(() => buildNews(supportTickets), []);
   const [index, setIndex] = useState(0);
@@ -252,28 +332,25 @@ export function TicketsNewsCard() {
 
       <Link
         to={item.to}
-        className="group flex flex-1 min-h-0 cursor-pointer flex-col justify-center px-6 py-4 transition hover:bg-muted/40"
+        className="group flex flex-1 min-h-0 cursor-pointer flex-col px-6 py-4 transition hover:bg-muted/40"
       >
         <div className="flex items-start gap-4">
           <div className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${item.tone}`}>
             <Icon className="h-5 w-5" />
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-[15px] font-semibold leading-snug text-foreground">
-              {item.title}
-            </p>
+            <p className="text-[15px] font-semibold leading-snug text-foreground">{item.title}</p>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground line-clamp-3">
               {item.description}
             </p>
           </div>
         </div>
+        <NewsMiniChart itemId={item.id} />
         <div className="mt-4 flex items-center justify-between text-[11px] text-muted-foreground">
           <span>
             {item.updatedAt ? `Atualizado às ${formatTime(item.updatedAt)}` : "Atualização recente"}
           </span>
-          <span className="opacity-0 transition group-hover:opacity-100">
-            Ver chamados →
-          </span>
+          <span className="opacity-0 transition group-hover:opacity-100">Ver chamados →</span>
         </div>
       </Link>
 
@@ -285,7 +362,9 @@ export function TicketsNewsCard() {
             onClick={() => setIndex(i)}
             aria-label={`Ir para notícia ${i + 1}`}
             className={`h-1.5 cursor-pointer rounded-full transition-all ${
-              i === index ? "w-6 bg-primary" : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/60"
+              i === index
+                ? "w-6 bg-primary"
+                : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/60"
             }`}
           />
         ))}

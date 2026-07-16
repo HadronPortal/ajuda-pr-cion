@@ -1,26 +1,26 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { ProcionLogo } from "./ProcionLogo";
-import dashboardIconUrl from "@/assets/dashboard-menu-icon.png?url";
-import analyticsIconUrl from "@/assets/menu-analytics.png?url";
-import baseIconUrl from "@/assets/menu-base.png?url";
-import chamadosIconUrl from "@/assets/menu-chamados.png?url";
-import customersIconUrl from "@/assets/menu-customers.png?url";
-import kanbanIconUrl from "@/assets/menu-kanban.png?url";
-import updatesIconUrl from "@/assets/menu-updates.png?url";
-import userIconUrl from "@/assets/menu-user.png?url";
-import versionsIconUrl from "@/assets/menu-versions.png?url";
 import {
+  BookOpenText,
+  Building2,
   CalendarDays,
+  ChartNoAxesCombined,
   ChevronLeft,
   ChevronRight,
+  CircleUserRound,
+  GitBranch,
+  Headset,
+  KanbanSquare,
+  LayoutDashboard,
   MessageSquare,
+  Sparkles,
 } from "lucide-react";
 import type { ComponentType } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { sidebarStore, useSidebarCollapsed } from "@/lib/sidebar-store";
 
-type NavIcon = ComponentType<{ className?: string }>;
+type NavIcon = ComponentType<{ className?: string; strokeWidth?: number }>;
 
 type NavItem = {
   to: string;
@@ -29,41 +29,16 @@ type NavItem = {
   exact?: boolean;
 };
 
-function createMaskedMenuIcon(maskUrl: string): NavIcon {
-  return function MaskedMenuIcon({ className }) {
-    return (
-      <span
-        aria-hidden="true"
-        className={cn("block bg-current", className)}
-        style={{
-          WebkitMask: `url(${maskUrl}) center / contain no-repeat`,
-          mask: `url(${maskUrl}) center / contain no-repeat`,
-        }}
-      />
-    );
-  };
-}
-
-const DashboardMenuIcon = createMaskedMenuIcon(dashboardIconUrl);
-const ChamadosMenuIcon = createMaskedMenuIcon(chamadosIconUrl);
-const BaseMenuIcon = createMaskedMenuIcon(baseIconUrl);
-const UpdatesMenuIcon = createMaskedMenuIcon(updatesIconUrl);
-const VersionsMenuIcon = createMaskedMenuIcon(versionsIconUrl);
-const KanbanMenuIcon = createMaskedMenuIcon(kanbanIconUrl);
-const AnalyticsMenuIcon = createMaskedMenuIcon(analyticsIconUrl);
-const CustomersMenuIcon = createMaskedMenuIcon(customersIconUrl);
-const UserMenuIcon = createMaskedMenuIcon(userIconUrl);
-
 const nav: NavItem[] = [
-  { to: "/", label: "Dashboard", icon: DashboardMenuIcon, exact: true },
-  { to: "/chamados", label: "Chamados", icon: ChamadosMenuIcon },
-  { to: "/base-de-conhecimento", label: "Base", icon: BaseMenuIcon },
-  { to: "/atualizacoes", label: "Atualizações", icon: UpdatesMenuIcon },
-  { to: "/versoes", label: "Versões", icon: VersionsMenuIcon },
-  { to: "/kanban", label: "Kanban", icon: KanbanMenuIcon },
-  { to: "/kanban-dashboard", label: "Analytics", icon: AnalyticsMenuIcon },
-  { to: "/clientes", label: "Clientes", icon: CustomersMenuIcon },
-  { to: "/minha-conta", label: "Minha Conta", icon: UserMenuIcon },
+  { to: "/", label: "Dashboard", icon: LayoutDashboard, exact: true },
+  { to: "/chamados", label: "Chamados", icon: Headset },
+  { to: "/base-de-conhecimento", label: "Base", icon: BookOpenText },
+  { to: "/atualizacoes", label: "Atualizações", icon: Sparkles },
+  { to: "/versoes", label: "Versões", icon: GitBranch },
+  { to: "/kanban", label: "Kanban", icon: KanbanSquare },
+  { to: "/kanban-dashboard", label: "Analytics", icon: ChartNoAxesCombined },
+  { to: "/clientes", label: "Clientes", icon: Building2 },
+  { to: "/minha-conta", label: "Minha Conta", icon: CircleUserRound },
 ];
 
 function isActivePath(pathname: string, item: NavItem) {
@@ -93,7 +68,10 @@ export function AppSidebar() {
 
       <div className={cn("flex h-[88px] items-center px-5", collapsed && "justify-center px-3")}>
         {collapsed ? (
-          <ProcionLogo variant="mark" className="text-sidebar-accent-foreground dark:text-sidebar-foreground" />
+          <ProcionLogo
+            variant="mark"
+            className="text-sidebar-accent-foreground dark:text-sidebar-foreground"
+          />
         ) : (
           <div className="flex min-w-0 animate-fade-in items-center gap-3 text-sidebar-accent-foreground dark:text-sidebar-foreground">
             <ProcionLogo variant="full" />
@@ -103,9 +81,7 @@ export function AppSidebar() {
 
       <nav className="app-scrollbar flex-1 overflow-y-auto overflow-x-hidden px-4 py-2">
         {!collapsed && (
-          <p className="mb-4 px-5 text-sm font-semibold text-sidebar-foreground/25">
-            Main Menu
-          </p>
+          <p className="mb-4 px-5 text-sm font-semibold text-sidebar-foreground/25">Main Menu</p>
         )}
         <ul className="space-y-2">
           {nav.map((item) => {
@@ -129,9 +105,12 @@ export function AppSidebar() {
                     <span className="absolute -left-4 top-1/2 h-9 w-1.5 -translate-y-1/2 rounded-r-full bg-primary" />
                   )}
                   <Icon
+                    strokeWidth={2.35}
                     className={cn(
                       "h-5 w-5 shrink-0 transition-colors",
-                      active ? "text-primary" : "text-sidebar-foreground group-hover:text-sidebar-accent-foreground",
+                      active
+                        ? "text-primary"
+                        : "text-sidebar-foreground group-hover:text-sidebar-accent-foreground",
                     )}
                   />
                   {!collapsed && <span className="min-w-0 flex-1 truncate">{item.label}</span>}
@@ -151,10 +130,10 @@ export function AppSidebar() {
               </AvatarFallback>
             </Avatar>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-bold text-sidebar-accent-foreground">Ana Ribeiro</p>
-              <p className="truncate text-xs text-sidebar-foreground/65">
-                suporte@procion.com.br
+              <p className="truncate text-sm font-bold text-sidebar-accent-foreground">
+                Ana Ribeiro
               </p>
+              <p className="truncate text-xs text-sidebar-foreground/65">suporte@procion.com.br</p>
             </div>
             <ChevronRight className="h-4 w-4 rotate-90 text-sidebar-foreground/35" />
           </div>
@@ -206,7 +185,7 @@ export function MobileBottomNav() {
                   active ? "text-primary" : "text-muted-foreground",
                 )}
               >
-                <Icon className="h-5 w-5" />
+                <Icon className="h-5 w-5" strokeWidth={2.35} />
                 <span className="max-w-[64px] truncate">{item.label.split(" ")[0]}</span>
               </Link>
             </li>

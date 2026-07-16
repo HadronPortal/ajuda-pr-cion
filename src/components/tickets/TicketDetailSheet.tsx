@@ -5,6 +5,7 @@ import {
   Boxes,
   Building2,
   CalendarClock,
+  CircleCheckBig,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
@@ -13,8 +14,10 @@ import {
   Folder,
   Globe,
   History,
+  Headset,
   Info,
   LayoutGrid,
+  ListChecks,
   LockKeyhole,
   MapPin,
   MessageSquare,
@@ -30,6 +33,7 @@ import {
   UserCheck,
   UserPlus,
   UserRound,
+  UserRoundCog,
   Users,
   Wallet,
   X,
@@ -42,11 +46,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -77,13 +77,6 @@ import { TicketNotesModal } from "./TicketNotesModal";
 import { TicketTimelineModal } from "./TicketTimelineModal";
 import { TicketTimelineList } from "./TicketTimelineList";
 import { TicketFloatingChat } from "./TicketFloatingChat";
-
-import ticketAssumeIconUrl from "@/assets/ticket-assume.png?url";
-import ticketAttendIconUrl from "@/assets/ticket-attend.png?url";
-import ticketCloseIconUrl from "@/assets/ticket-close.png?url";
-
-import ticketStatusIconUrl from "@/assets/ticket-status.png?url";
-import ticketTimelineIconUrl from "@/assets/ticket-timeline.png?url";
 
 const statusTone: Record<TicketStatus, string> = {
   Atrasado: "bg-destructive/12 text-destructive border-destructive/20",
@@ -116,9 +109,14 @@ const sourceLabels: Record<SupportTicket["source"], string> = {
 };
 
 const cities = [
-  ["São Paulo", "SP"], ["Campinas", "SP"], ["Belo Horizonte", "MG"],
-  ["Curitiba", "PR"], ["Porto Alegre", "RS"], ["Goiânia", "GO"],
-  ["Recife", "PE"], ["Fortaleza", "CE"],
+  ["São Paulo", "SP"],
+  ["Campinas", "SP"],
+  ["Belo Horizonte", "MG"],
+  ["Curitiba", "PR"],
+  ["Porto Alegre", "RS"],
+  ["Goiânia", "GO"],
+  ["Recife", "PE"],
+  ["Fortaleza", "CE"],
 ];
 const contactRoles = ["Financeiro", "TI / Sistemas", "Compras", "Comercial", "Fiscal", "Diretoria"];
 
@@ -136,7 +134,8 @@ function buildMock(ticket: SupportTicket) {
   return {
     description:
       "Cliente relata dificuldade recorrente ao executar a operação descrita no assunto. Solicita análise do time de suporte e retorno com orientação técnica ou correção do comportamento identificado.",
-    city, uf,
+    city,
+    uf,
     clientPhone: `(${11 + (h % 88)}) 9${phoneA}-${phoneB}`,
     contactPhone: `(${11 + ((h >> 1) % 88)}) 9${phoneB}-${phoneA}`,
     contactRole: contactRoles[h % contactRoles.length],
@@ -149,8 +148,11 @@ function buildMock(ticket: SupportTicket) {
 
 function formatDateTime(iso: string) {
   return new Date(iso).toLocaleString("pt-BR", {
-    day: "2-digit", month: "short", year: "numeric",
-    hour: "2-digit", minute: "2-digit",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 }
 
@@ -203,33 +205,15 @@ const timelineTone: Record<TicketEvent["kind"], string> = {
   closed: "bg-success/15 text-success",
 };
 
-type IconComponent = ComponentType<{ className?: string }>;
+type IconComponent = ComponentType<{ className?: string; strokeWidth?: number }>;
 
-function createMaskedTicketIcon(maskUrl: string): IconComponent {
-  return function MaskedTicketIcon({ className }) {
-    return (
-      <span
-        aria-hidden
-        className={cn("block bg-current", className)}
-        style={{
-          WebkitMask: `url(${maskUrl}) center / contain no-repeat`,
-          mask: `url(${maskUrl}) center / contain no-repeat`,
-        }}
-      />
-    );
-  };
-}
-
-
-const TicketCloseIcon = createMaskedTicketIcon(ticketCloseIconUrl);
-const TicketStatusIcon = createMaskedTicketIcon(ticketStatusIconUrl);
-const TicketAssumeIcon = createMaskedTicketIcon(ticketAssumeIconUrl);
-const TicketAttendIcon = createMaskedTicketIcon(ticketAttendIconUrl);
-const TicketTimelineIcon = createMaskedTicketIcon(ticketTimelineIconUrl);
+const TicketCloseIcon = CircleCheckBig;
+const TicketStatusIcon = ListChecks;
+const TicketAssumeIcon = UserRoundCog;
+const TicketAttendIcon = Headset;
+const TicketTimelineIcon = History;
 
 import { getModuleIcon } from "@/lib/ticket-icons";
-
-
 
 export function TicketDetailSheet({
   ticketId,
@@ -264,9 +248,7 @@ export function TicketDetailSheet({
 
   const timelineEvents = events.filter((e) => e.kind !== "note");
 
-  const isMine =
-    ticket.owner === currentUser.operator || ticket.lockedBy === currentUser.operator;
-
+  const isMine = ticket.owner === currentUser.operator || ticket.lockedBy === currentUser.operator;
 
   const handleAssume = () => {
     ticketsStore.assumeTicket(ticket.id);
@@ -300,27 +282,19 @@ export function TicketDetailSheet({
         <DialogContent
           onPointerDownOutside={(event) => {
             const target = event.target;
-            if (
-              target instanceof Element &&
-              target.closest("[data-ticket-floating-chat]")
-            ) {
+            if (target instanceof Element && target.closest("[data-ticket-floating-chat]")) {
               event.preventDefault();
             }
           }}
           onInteractOutside={(event) => {
             const target = event.target;
-            if (
-              target instanceof Element &&
-              target.closest("[data-ticket-floating-chat]")
-            ) {
+            if (target instanceof Element && target.closest("[data-ticket-floating-chat]")) {
               event.preventDefault();
             }
           }}
           className="grid max-h-none w-[92vw] max-w-[1500px] gap-4 border-0 bg-transparent p-0 shadow-none xl:grid-cols-[minmax(0,1fr)_360px] xl:gap-6 [&>button]:hidden"
         >
-          <DialogTitle className="sr-only">
-            Detalhes do chamado {ticket.protocol}
-          </DialogTitle>
+          <DialogTitle className="sr-only">Detalhes do chamado {ticket.protocol}</DialogTitle>
 
           {/* Painel esquerdo — Chamado */}
           <div className="relative flex max-h-[90vh] min-h-0 flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-[0_30px_80px_rgba(0,0,0,0.35)]">
@@ -335,325 +309,381 @@ export function TicketDetailSheet({
 
             {/* Header */}
             <header className="shrink-0 border-b border-border bg-card px-5 py-4 md:px-6">
-            <div className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3 pr-8">
-              <span
-                aria-hidden
-                className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary/12 text-primary ring-1 ring-primary/15"
-              >
-
-                {(() => {
-                  const Icon = getModuleIcon(ticket.module, ticket.source, ticket.subject);
-                  return <Icon className="h-5 w-5" />;
-                })()}
-              </span>
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-mono text-[12px] font-medium text-muted-foreground">
-                    {ticket.protocol}
-                  </span>
-                  <span className="text-[12px] text-muted-foreground">·</span>
-                  <span className="text-[12px] text-muted-foreground">
-                    {sourceLabels[ticket.source]}
-                  </span>
-                </div>
-                <h2 className="mt-1 truncate text-[18px] font-medium leading-snug text-foreground">
-                  {ticket.subject}
-                </h2>
-                <p className="mt-0.5 truncate text-[12.5px] text-muted-foreground">
-                  <span className="font-semibold text-foreground">{ticket.clientCode}</span>
-                  {" · "}
-                  {ticket.clientName}
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              <Badge className={cn("rounded-full border px-2.5 py-0.5 text-[11px] font-medium", statusTone[ticket.status])}>
-                {ticket.status}
-              </Badge>
-              <Badge className={cn("rounded-full border px-2.5 py-0.5 text-[11px] font-medium", priorityTone[ticket.priority])}>
-                Prioridade {ticket.priority}
-              </Badge>
-              <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/50 px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
-                <CalendarClock className="h-3 w-3" />
-                SLA {sla.pct}% · {sla.hours}h
-              </span>
-              {ticket.lockedBy && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-warning/15 px-2.5 py-0.5 text-[11px] font-medium text-warning-foreground">
-                  <LockKeyhole className="h-3 w-3" />
-                  Atendendo agora: {ticket.lockedBy}
-                </span>
-              )}
-            </div>
-          </header>
-
-
-          {/* Body: sidebar (menu + ações) | conteúdo | chat */}
-          <div className="flex flex-1 min-h-0 flex-col bg-muted/30 md:flex-row md:gap-4 md:p-4">
-            {/* Sidebar */}
-            <aside
-              className={cn(
-                "hidden shrink-0 flex-col overflow-hidden rounded-2xl border border-border bg-card transition-[width] duration-200 md:flex",
-                navCollapsed ? "md:w-[64px]" : "md:w-[210px]",
-              )}
-            >
-              <div className="flex items-center justify-end p-2">
-                <button
-                  type="button"
-                  onClick={() => setNavCollapsed((v) => !v)}
-                  aria-label={navCollapsed ? "Expandir menu" : "Retrair menu"}
-                  title={navCollapsed ? "Expandir menu" : "Retrair menu"}
-                  className="grid h-7 w-7 cursor-pointer place-items-center rounded-md text-muted-foreground transition hover:bg-accent hover:text-foreground"
+              <div className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3 pr-8">
+                <span
+                  aria-hidden
+                  className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary/12 text-primary ring-1 ring-primary/15"
                 >
-                  {navCollapsed ? (
-                    <ChevronRight className="h-4 w-4" />
-                  ) : (
-                    <ChevronLeft className="h-4 w-4" />
-                  )}
-                </button>
+                  {(() => {
+                    const Icon = getModuleIcon(ticket.module, ticket.source, ticket.subject);
+                    return <Icon className="h-5 w-5" />;
+                  })()}
+                </span>
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-mono text-[12px] font-medium text-muted-foreground">
+                      {ticket.protocol}
+                    </span>
+                    <span className="text-[12px] text-muted-foreground">·</span>
+                    <span className="text-[12px] text-muted-foreground">
+                      {sourceLabels[ticket.source]}
+                    </span>
+                  </div>
+                  <h2 className="mt-1 truncate text-[18px] font-medium leading-snug text-foreground">
+                    {ticket.subject}
+                  </h2>
+                  <p className="mt-0.5 truncate text-[12.5px] text-muted-foreground">
+                    <span className="font-semibold text-foreground">{ticket.clientCode}</span>
+                    {" · "}
+                    {ticket.clientName}
+                  </p>
+                </div>
               </div>
 
-              <div className="flex-1 space-y-1 overflow-y-auto p-2">
-                {!navCollapsed && (
-                  <p className="px-2 pb-1 pt-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                    Ações
-                  </p>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <Badge
+                  className={cn(
+                    "rounded-full border px-2.5 py-0.5 text-[11px] font-medium",
+                    statusTone[ticket.status],
+                  )}
+                >
+                  {ticket.status}
+                </Badge>
+                <Badge
+                  className={cn(
+                    "rounded-full border px-2.5 py-0.5 text-[11px] font-medium",
+                    priorityTone[ticket.priority],
+                  )}
+                >
+                  Prioridade {ticket.priority}
+                </Badge>
+                <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/50 px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
+                  <CalendarClock className="h-3 w-3" />
+                  SLA {sla.pct}% · {sla.hours}h
+                </span>
+                {ticket.lockedBy && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-warning/15 px-2.5 py-0.5 text-[11px] font-medium text-warning-foreground">
+                    <LockKeyhole className="h-3 w-3" />
+                    Atendendo agora: {ticket.lockedBy}
+                  </span>
                 )}
-                <SideItem
-                  icon={TicketCloseIcon}
-                  label="Encerrar"
-                  collapsed={navCollapsed}
-                  active={activeAction === "encerrar"}
-                  onClick={() => {
-                    setActiveAction("encerrar");
-                    setCloseOpen(true);
-                  }}
-                />
-                <Popover open={statusOpen} onOpenChange={setStatusOpen}>
-                  <PopoverTrigger asChild>
-                    <button
-                      type="button"
-                      title={navCollapsed ? "Alterar status" : undefined}
-                      aria-label="Alterar status"
-                      onClick={() => setActiveAction("status")}
+              </div>
+            </header>
+
+            {/* Body: sidebar (menu + ações) | conteúdo | chat */}
+            <div className="flex flex-1 min-h-0 flex-col bg-muted/30 md:flex-row md:gap-4 md:p-4">
+              {/* Sidebar */}
+              <aside
+                className={cn(
+                  "hidden shrink-0 flex-col overflow-hidden rounded-2xl border border-border bg-card transition-[width] duration-200 md:flex",
+                  navCollapsed ? "md:w-[64px]" : "md:w-[210px]",
+                )}
+              >
+                <div className="flex items-center justify-end p-2">
+                  <button
+                    type="button"
+                    onClick={() => setNavCollapsed((v) => !v)}
+                    aria-label={navCollapsed ? "Expandir menu" : "Retrair menu"}
+                    title={navCollapsed ? "Expandir menu" : "Retrair menu"}
+                    className="grid h-7 w-7 cursor-pointer place-items-center rounded-md text-muted-foreground transition hover:bg-accent hover:text-foreground"
+                  >
+                    {navCollapsed ? (
+                      <ChevronRight className="h-4 w-4" />
+                    ) : (
+                      <ChevronLeft className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
+
+                <div className="flex-1 space-y-1 overflow-y-auto p-2">
+                  {!navCollapsed && (
+                    <p className="px-2 pb-1 pt-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                      Ações
+                    </p>
+                  )}
+                  <SideItem
+                    icon={TicketCloseIcon}
+                    label="Encerrar"
+                    collapsed={navCollapsed}
+                    active={activeAction === "encerrar"}
+                    onClick={() => {
+                      setActiveAction("encerrar");
+                      setCloseOpen(true);
+                    }}
+                  />
+                  <Popover open={statusOpen} onOpenChange={setStatusOpen}>
+                    <PopoverTrigger asChild>
+                      <button
+                        type="button"
+                        title={navCollapsed ? "Alterar status" : undefined}
+                        aria-label="Alterar status"
+                        onClick={() => setActiveAction("status")}
+                        className={cn(
+                          sideItemClasses(activeAction === "status"),
+                          navCollapsed && "md:justify-center md:px-0",
+                        )}
+                      >
+                        <TicketStatusIcon className="h-5 w-5 shrink-0" strokeWidth={2.35} />
+                        <span className={cn("truncate", navCollapsed && "md:hidden")}>
+                          Alterar status
+                        </span>
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent side="right" align="start" className="w-56 p-1">
+                      <p className="px-2 pb-1 pt-2 text-[10.5px] font-medium uppercase tracking-wide text-muted-foreground">
+                        Novo status
+                      </p>
+                      <div className="max-h-72 overflow-auto">
+                        {ticketStatuses.map((s) => (
+                          <button
+                            key={s}
+                            type="button"
+                            onClick={() => handleStatus(s)}
+                            className={cn(
+                              "flex w-full cursor-pointer items-center justify-between rounded-md px-2 py-1.5 text-left text-[12.5px] transition hover:bg-accent",
+                              ticket.status === s && "bg-accent font-semibold",
+                            )}
+                          >
+                            <span>{s}</span>
+                            {ticket.status === s && (
+                              <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                  <SideItem
+                    icon={TicketAssumeIcon}
+                    label="Transferir chamado"
+                    collapsed={navCollapsed}
+                    active={activeAction === "assumir"}
+                    onClick={() => {
+                      setActiveAction("assumir");
+                      handleAssume();
+                    }}
+                  />
+                  <SideItem
+                    icon={TicketAttendIcon}
+                    label="Atender"
+                    collapsed={navCollapsed}
+                    active={activeAction === "atender"}
+                    onClick={() => {
+                      setActiveAction("atender");
+                      handleAttend();
+                    }}
+                  />
+                </div>
+
+                {isMine && (
+                  <div className="p-2">
+                    <span
                       className={cn(
-                        sideItemClasses(activeAction === "status"),
+                        "flex items-center gap-1.5 rounded-lg bg-primary/10 px-2 py-1.5 text-[10.5px] font-medium text-primary",
                         navCollapsed && "md:justify-center md:px-0",
                       )}
+                      title={`Atendendo: ${currentUser.operator}`}
                     >
-                      <TicketStatusIcon className="h-5 w-5 shrink-0" />
+                      <UserCheck className="h-3.5 w-3.5 shrink-0" />
                       <span className={cn("truncate", navCollapsed && "md:hidden")}>
-                        Alterar status
+                        {currentUser.operator}
                       </span>
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent side="right" align="start" className="w-56 p-1">
-                    <p className="px-2 pb-1 pt-2 text-[10.5px] font-medium uppercase tracking-wide text-muted-foreground">
-                      Novo status
-                    </p>
-                    <div className="max-h-72 overflow-auto">
-                      {ticketStatuses.map((s) => (
-                        <button
-                          key={s}
-                          type="button"
-                          onClick={() => handleStatus(s)}
-                          className={cn(
-                            "flex w-full cursor-pointer items-center justify-between rounded-md px-2 py-1.5 text-left text-[12.5px] transition hover:bg-accent",
-                            ticket.status === s && "bg-accent font-semibold",
-                          )}
-                        >
-                          <span>{s}</span>
-                          {ticket.status === s && <CheckCircle2 className="h-3.5 w-3.5 text-primary" />}
-                        </button>
-                      ))}
-                    </div>
-                  </PopoverContent>
-                </Popover>
-                <SideItem
-                  icon={TicketAssumeIcon}
-                  label="Transferir chamado"
-                  collapsed={navCollapsed}
-                  active={activeAction === "assumir"}
-                  onClick={() => {
-                    setActiveAction("assumir");
-                    handleAssume();
-                  }}
+                    </span>
+                  </div>
+                )}
+              </aside>
+
+              {/* Mobile action bar (topo, rolável) */}
+              <div className="flex shrink-0 items-center gap-2 overflow-x-auto border-b border-border bg-card px-3 py-2 md:hidden">
+                <MobileAction
+                  icon={TicketCloseIcon}
+                  label="Encerrar"
+                  onClick={() => setCloseOpen(true)}
                 />
-                <SideItem
+                <MobileAction
+                  icon={TicketStatusIcon}
+                  label="Status"
+                  onClick={() => setStatusOpen((v) => !v)}
+                />
+                <MobileAction icon={TicketAssumeIcon} label="Assumir" onClick={handleAssume} />
+                <MobileAction
                   icon={TicketAttendIcon}
                   label="Atender"
-                  collapsed={navCollapsed}
-                  active={activeAction === "atender"}
-                  onClick={() => {
-                    setActiveAction("atender");
-                    handleAttend();
-                  }}
+                  onClick={handleAttend}
+                  highlight
                 />
-
+                <MobileAction
+                  icon={TicketTimelineIcon}
+                  label="Timeline"
+                  onClick={() => setTimelineOpen(true)}
+                />
               </div>
 
-
-              {isMine && (
-                <div className="p-2">
-                  <span
-                    className={cn(
-                      "flex items-center gap-1.5 rounded-lg bg-primary/10 px-2 py-1.5 text-[10.5px] font-medium text-primary",
-                      navCollapsed && "md:justify-center md:px-0",
-                    )}
-                    title={`Atendendo: ${currentUser.operator}`}
-                  >
-                    <UserCheck className="h-3.5 w-3.5 shrink-0" />
-                    <span className={cn("truncate", navCollapsed && "md:hidden")}>
-                      {currentUser.operator}
-                    </span>
-                  </span>
-                </div>
-              )}
-            </aside>
-
-            {/* Mobile action bar (topo, rolável) */}
-            <div className="flex shrink-0 items-center gap-2 overflow-x-auto border-b border-border bg-card px-3 py-2 md:hidden">
-              <MobileAction icon={TicketCloseIcon} label="Encerrar" onClick={() => setCloseOpen(true)} />
-              <MobileAction
-                icon={TicketStatusIcon}
-                label="Status"
-                onClick={() => setStatusOpen((v) => !v)}
-              />
-              <MobileAction icon={TicketAssumeIcon} label="Assumir" onClick={handleAssume} />
-              <MobileAction icon={TicketAttendIcon} label="Atender" onClick={handleAttend} highlight />
-              <MobileAction icon={TicketTimelineIcon} label="Timeline" onClick={() => setTimelineOpen(true)} />
-            </div>
-
-            {/* Main content */}
-            <div className="flex-1 min-w-0 overflow-y-auto rounded-2xl border border-border bg-background px-5 py-5 md:px-6">
-              {/* Resumo */}
-              <Section title="Resumo do chamado" icon={LayoutGrid}>
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                  <MiniStat label="Status">
-                    <Badge className={cn("rounded-full border px-2.5 py-0.5 text-[11.5px] font-medium", statusTone[ticket.status])}>
-                      {ticket.status}
-                    </Badge>
-                  </MiniStat>
-                  <MiniStat label="Prioridade">
-                    <Badge className={cn("rounded-full border px-2.5 py-0.5 text-[11.5px] font-medium", priorityTone[ticket.priority])}>
-                      {ticket.priority}
-                    </Badge>
-                  </MiniStat>
-                  <MiniStat label="SLA">
-                    <div className="flex items-center gap-2">
-                      <span className={cn("text-[22px] font-bold leading-none", slaTextTone[sla.tone])}>
-                        {sla.pct}%
-                      </span>
-                      <div className="flex-1">
-                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                          <div className={cn("h-full rounded-full transition-all", slaBarTone[sla.tone])} style={{ width: `${sla.pct}%` }} />
+              {/* Main content */}
+              <div className="flex-1 min-w-0 overflow-y-auto rounded-2xl border border-border bg-background px-5 py-5 md:px-6">
+                {/* Resumo */}
+                <Section title="Resumo do chamado" icon={LayoutGrid}>
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                    <MiniStat label="Status">
+                      <Badge
+                        className={cn(
+                          "rounded-full border px-2.5 py-0.5 text-[11.5px] font-medium",
+                          statusTone[ticket.status],
+                        )}
+                      >
+                        {ticket.status}
+                      </Badge>
+                    </MiniStat>
+                    <MiniStat label="Prioridade">
+                      <Badge
+                        className={cn(
+                          "rounded-full border px-2.5 py-0.5 text-[11.5px] font-medium",
+                          priorityTone[ticket.priority],
+                        )}
+                      >
+                        {ticket.priority}
+                      </Badge>
+                    </MiniStat>
+                    <MiniStat label="SLA">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={cn(
+                            "text-[22px] font-bold leading-none",
+                            slaTextTone[sla.tone],
+                          )}
+                        >
+                          {sla.pct}%
+                        </span>
+                        <div className="flex-1">
+                          <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                            <div
+                              className={cn(
+                                "h-full rounded-full transition-all",
+                                slaBarTone[sla.tone],
+                              )}
+                              style={{ width: `${sla.pct}%` }}
+                            />
+                          </div>
+                          <p className="mt-1 text-[10.5px] text-muted-foreground">
+                            {sla.hours}h decorridas
+                          </p>
                         </div>
-                        <p className="mt-1 text-[10.5px] text-muted-foreground">{sla.hours}h decorridas</p>
                       </div>
+                    </MiniStat>
+                  </div>
+                </Section>
+
+                <Section title="Descrição do problema" icon={FileText}>
+                  <p className="text-[13px] leading-relaxed text-foreground">{mock.description}</p>
+                </Section>
+
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                  <Section title="Cliente" icon={Building2} compact>
+                    <p className="text-[13.5px] font-semibold text-foreground truncate">
+                      {ticket.clientName}
+                    </p>
+                    <p className="mt-0.5 text-[11.5px] text-muted-foreground">
+                      <MapPin className="mr-1 inline h-3 w-3" />
+                      {mock.city} - {mock.uf}
+                    </p>
+                    <p className="mt-0.5 text-[11px] text-muted-foreground">
+                      Código {ticket.clientCode}
+                    </p>
+                  </Section>
+
+                  <Section title="Contato" icon={UserRound} compact>
+                    <p className="text-[13.5px] font-semibold text-foreground truncate">
+                      {ticket.contact}
+                    </p>
+                    <p className="mt-0.5 text-[11.5px] text-muted-foreground">{mock.contactRole}</p>
+                    <p className="mt-0.5 inline-flex items-center gap-1 text-[11.5px] text-muted-foreground">
+                      <Phone className="h-3 w-3" />
+                      {mock.contactPhone}
+                    </p>
+                  </Section>
+
+                  <Section title="Módulo" icon={Folder} compact>
+                    <div className="flex items-center gap-1.5">
+                      <p className="truncate text-[13.5px] font-semibold text-foreground">
+                        {ticket.module}
+                      </p>
+                      {notes.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setNotesOpen(true)}
+                          title={`Ver ${notes.length} nota(s) interna(s)`}
+                          aria-label="Ver notas internas"
+                          className="grid h-5 w-5 shrink-0 cursor-pointer place-items-center rounded-md bg-primary/10 text-primary transition hover:bg-primary/20"
+                        >
+                          <NotebookText className="h-3 w-3" />
+                        </button>
+                      )}
                     </div>
-                  </MiniStat>
-                </div>
-              </Section>
-
-              <Section title="Descrição do problema" icon={FileText}>
-                <p className="text-[13px] leading-relaxed text-foreground">{mock.description}</p>
-              </Section>
-
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-                <Section title="Cliente" icon={Building2} compact>
-                  <p className="text-[13.5px] font-semibold text-foreground truncate">{ticket.clientName}</p>
-                  <p className="mt-0.5 text-[11.5px] text-muted-foreground">
-                    <MapPin className="mr-1 inline h-3 w-3" />
-                    {mock.city} - {mock.uf}
-                  </p>
-                  <p className="mt-0.5 text-[11px] text-muted-foreground">Código {ticket.clientCode}</p>
-                </Section>
-
-                <Section title="Contato" icon={UserRound} compact>
-                  <p className="text-[13.5px] font-semibold text-foreground truncate">{ticket.contact}</p>
-                  <p className="mt-0.5 text-[11.5px] text-muted-foreground">{mock.contactRole}</p>
-                  <p className="mt-0.5 inline-flex items-center gap-1 text-[11.5px] text-muted-foreground">
-                    <Phone className="h-3 w-3" />
-                    {mock.contactPhone}
-                  </p>
-                </Section>
-
-                <Section title="Módulo" icon={Folder} compact>
-                  <div className="flex items-center gap-1.5">
-                    <p className="truncate text-[13.5px] font-semibold text-foreground">{ticket.module}</p>
+                    <p className="mt-0.5 text-[11.5px] text-muted-foreground">
+                      Origem: {sourceLabels[ticket.source]}
+                    </p>
                     {notes.length > 0 && (
-                      <button
-                        type="button"
-                        onClick={() => setNotesOpen(true)}
-                        title={`Ver ${notes.length} nota(s) interna(s)`}
-                        aria-label="Ver notas internas"
-                        className="grid h-5 w-5 shrink-0 cursor-pointer place-items-center rounded-md bg-primary/10 text-primary transition hover:bg-primary/20"
-                      >
-                        <NotebookText className="h-3 w-3" />
-                      </button>
+                      <p className="mt-0.5 text-[11px] text-primary">
+                        {notes.length} nota(s) interna(s)
+                      </p>
                     )}
-                  </div>
-                  <p className="mt-0.5 text-[11.5px] text-muted-foreground">Origem: {sourceLabels[ticket.source]}</p>
-                  {notes.length > 0 && (
-                    <p className="mt-0.5 text-[11px] text-primary">{notes.length} nota(s) interna(s)</p>
-                  )}
-                </Section>
-              </div>
+                  </Section>
+                </div>
 
-              {/* Datas e responsável — card próprio */}
-              <div className="mt-4 grid grid-cols-1 gap-3 rounded-2xl border border-border bg-card p-3 shadow-[0_6px_18px_rgba(25,29,51,0.04)] sm:grid-cols-3">
-                <CompactInfo icon={CalendarClock} label="Abertura" value={formatDateTime(ticket.openedAt)} />
-                <CompactInfo icon={Clock3} label="Última atualização" value={formatDateTime(ticket.updatedAt)} />
-                <CompactInfo
-                  icon={UserRound}
-                  label="Responsável atual"
-                  value={ticket.lockedBy ? `${ticket.owner} · ${ticket.lockedBy}` : ticket.owner}
-                />
-              </div>
+                {/* Datas e responsável — card próprio */}
+                <div className="mt-4 grid grid-cols-1 gap-3 rounded-2xl border border-border bg-card p-3 shadow-[0_6px_18px_rgba(25,29,51,0.04)] sm:grid-cols-3">
+                  <CompactInfo
+                    icon={CalendarClock}
+                    label="Abertura"
+                    value={formatDateTime(ticket.openedAt)}
+                  />
+                  <CompactInfo
+                    icon={Clock3}
+                    label="Última atualização"
+                    value={formatDateTime(ticket.updatedAt)}
+                  />
+                  <CompactInfo
+                    icon={UserRound}
+                    label="Responsável atual"
+                    value={ticket.lockedBy ? `${ticket.owner} · ${ticket.lockedBy}` : ticket.owner}
+                  />
+                </div>
 
-              {/* Timeline do chamado atual — embutida */}
-              <div className="mt-4">
-                <Section title="Timeline do chamado" icon={History}>
-                  <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                    <div className="flex items-baseline gap-1.5">
-                      <span className="text-[12.5px] font-medium text-foreground">
-                        Eventos do atendimento
-                      </span>
-                      <span className="text-[11.5px] font-medium text-muted-foreground">
-                        ({timelineEvents.length})
-                      </span>
+                {/* Timeline do chamado atual — embutida */}
+                <div className="mt-4">
+                  <Section title="Timeline do chamado" icon={History}>
+                    <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-baseline gap-1.5">
+                        <span className="text-[12.5px] font-medium text-foreground">
+                          Eventos do atendimento
+                        </span>
+                        <span className="text-[11.5px] font-medium text-muted-foreground">
+                          ({timelineEvents.length})
+                        </span>
+                      </div>
+                      {timelineEvents.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setTimelineOpen(true)}
+                          className="inline-flex cursor-pointer items-center gap-1 text-[11.5px] font-medium text-primary hover:underline"
+                        >
+                          Ver completa
+                          <ChevronRight className="h-3.5 w-3.5" />
+                        </button>
+                      )}
                     </div>
-                    {timelineEvents.length > 0 && (
-                      <button
-                        type="button"
-                        onClick={() => setTimelineOpen(true)}
-                        className="inline-flex cursor-pointer items-center gap-1 text-[11.5px] font-medium text-primary hover:underline"
-                      >
-                        Ver completa
-                        <ChevronRight className="h-3.5 w-3.5" />
-                      </button>
-                    )}
-                  </div>
-                  <div className="rounded-xl border border-border bg-card px-3 py-3">
-                    <TicketTimelineList
-                      events={timelineEvents}
-                      variant="compact"
-                      limit={5}
-                    />
-                  </div>
-                </Section>
+                    <div className="rounded-xl border border-border bg-card px-3 py-3">
+                      <TicketTimelineList events={timelineEvents} variant="compact" limit={5} />
+                    </div>
+                  </Section>
+                </div>
+
+                <div className="h-2" />
               </div>
-
-
-
-              <div className="h-2" />
             </div>
-
-          </div>
-          {/* fim body wrapper */}
+            {/* fim body wrapper */}
           </div>
           {/* fim painel esquerdo */}
-
 
           {/* Painel direito — Histórico de atendimentos anteriores */}
           <TicketPastAttendancesSidePanel
@@ -665,9 +695,7 @@ export function TicketDetailSheet({
           />
 
           <TicketFloatingChat ticket={ticket} />
-
         </DialogContent>
-
       </Dialog>
 
       <CloseTicketDialog
@@ -704,9 +732,6 @@ export function TicketDetailSheet({
         attendance={selectedHistory}
         ticket={ticket}
       />
-
-      
-
     </>
   );
 }
@@ -787,9 +812,7 @@ function CloseTicketDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        className="max-h-[90vh] w-[calc(100vw-24px)] max-w-[960px] overflow-y-auto rounded-2xl border border-border bg-background p-0 shadow-[0_30px_80px_rgba(0,0,0,0.45)] sm:w-[92vw] md:w-[92vw] lg:h-auto lg:max-h-none lg:w-[960px] lg:overflow-visible [&>button]:hidden"
-      >
+      <DialogContent className="max-h-[90vh] w-[calc(100vw-24px)] max-w-[960px] overflow-y-auto rounded-2xl border border-border bg-background p-0 shadow-[0_30px_80px_rgba(0,0,0,0.45)] sm:w-[92vw] md:w-[92vw] lg:h-auto lg:max-h-none lg:w-[960px] lg:overflow-visible [&>button]:hidden">
         {/* Header */}
         <div className="flex items-start justify-between gap-3 border-b border-border px-6 py-5">
           <div className="flex items-start gap-3">
@@ -878,9 +901,7 @@ function CloseTicketDialog({
                     <span
                       className={cn(
                         "mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded-full border transition",
-                        selected
-                          ? "border-primary bg-primary"
-                          : "border-border bg-background",
+                        selected ? "border-primary bg-primary" : "border-border bg-background",
                       )}
                       aria-hidden
                     >
@@ -939,10 +960,7 @@ function CloseTicketDialog({
           >
             Cancelar
           </Button>
-          <Button
-            onClick={handleSubmit}
-            className="cursor-pointer rounded-lg"
-          >
+          <Button onClick={handleSubmit} className="cursor-pointer rounded-lg">
             <CheckCircle2 className="mr-1.5 h-4 w-4" />
             Encerrar chamado
           </Button>
@@ -981,7 +999,6 @@ const Section = forwardRef<
     </section>
   );
 });
-
 
 function MiniStat({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -1045,13 +1062,9 @@ function SideItem({
       title={collapsed ? label : undefined}
       aria-label={label}
       aria-pressed={!!active}
-      className={cn(
-        sideItemClasses(!!active),
-        collapsed && "md:justify-center md:px-0",
-        className,
-      )}
+      className={cn(sideItemClasses(!!active), collapsed && "md:justify-center md:px-0", className)}
     >
-      <Icon className="h-5 w-5 shrink-0" />
+      <Icon className="h-5 w-5 shrink-0" strokeWidth={2.35} />
       <span className={cn("truncate", collapsed && "md:hidden")}>{label}</span>
     </button>
   );
@@ -1080,7 +1093,7 @@ function MobileAction({
           : "border-border bg-card text-foreground hover:bg-accent",
       )}
     >
-      <Icon className="h-3.5 w-3.5" />
+      <Icon className="h-3.5 w-3.5" strokeWidth={2.35} />
       <span>{label}</span>
     </button>
   );
@@ -1110,18 +1123,12 @@ function TicketTimelineInline({ events }: { events: TicketEvent[] }) {
               >
                 <Icon className="h-4 w-4" />
               </span>
-              {!isLast && (
-                <span className="mt-1 w-px flex-1 bg-border" aria-hidden />
-              )}
+              {!isLast && <span className="mt-1 w-px flex-1 bg-border" aria-hidden />}
             </div>
             <div className="min-w-0 flex-1 pb-2">
               <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                <span className="text-[12.5px] font-medium text-foreground">
-                  {ev.actor}
-                </span>
-                <span className="text-[11px] text-muted-foreground">
-                  {formatDateTime(ev.when)}
-                </span>
+                <span className="text-[12.5px] font-medium text-foreground">{ev.actor}</span>
+                <span className="text-[11px] text-muted-foreground">{formatDateTime(ev.when)}</span>
               </div>
               <p className="mt-0.5 text-[12.5px] leading-relaxed text-muted-foreground">
                 {ev.description}
@@ -1177,9 +1184,7 @@ function TicketPastAttendancesSidePanel({
       <div className="flex shrink-0 items-baseline justify-between gap-2 border-b border-border px-4 py-2">
         <div className="flex items-baseline gap-1.5">
           <span className="text-[12px] font-medium text-foreground">Atendimentos</span>
-          <span className="text-[11px] font-medium text-muted-foreground">
-            ({items.length})
-          </span>
+          <span className="text-[11px] font-medium text-muted-foreground">({items.length})</span>
         </div>
         {items.length > 0 && (
           <button
@@ -1199,16 +1204,9 @@ function TicketPastAttendancesSidePanel({
             Sem atendimentos anteriores.
           </p>
         ) : (
-          <TicketHistoryList
-            items={items.slice(0, 4)}
-            onSelect={onSelect}
-            timeline
-          />
+          <TicketHistoryList items={items.slice(0, 4)} onSelect={onSelect} timeline />
         )}
       </div>
     </aside>
   );
 }
-
-
-
