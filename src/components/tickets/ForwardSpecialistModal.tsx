@@ -85,7 +85,7 @@ export function ForwardSpecialistModal({
       area: specialist.area,
       reason: reason.trim(),
     });
-    toast.success("Chamado encaminhado", {
+    toast.success("Chamado enviado", {
       description: `${specialist.name} · ${specialist.area}`,
     });
     reset();
