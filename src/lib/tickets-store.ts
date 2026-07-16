@@ -15,7 +15,9 @@ export type TicketEventKind =
   | "message"
   | "note"
   | "solution"
-  | "closed";
+  | "closed"
+  | "scheduled"
+  | "forwarded";
 
 export type TicketEvent = {
   id: string;
