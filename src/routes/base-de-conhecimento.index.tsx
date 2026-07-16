@@ -32,7 +32,7 @@ import {
   type KbCategoryId,
 } from "@/lib/kb-data";
 
-type KbSearch = { search?: string };
+type KbSearch = { search?: string; modulo?: string };
 
 export const Route = createFileRoute("/base-de-conhecimento/")({
   head: () => ({
@@ -47,6 +47,7 @@ export const Route = createFileRoute("/base-de-conhecimento/")({
   }),
   validateSearch: (raw: Record<string, unknown>): KbSearch => ({
     search: typeof raw.search === "string" ? raw.search : undefined,
+    modulo: typeof raw.modulo === "string" ? raw.modulo : undefined,
   }),
   component: KbIndexPage,
 });
