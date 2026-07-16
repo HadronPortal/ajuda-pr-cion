@@ -80,6 +80,7 @@ import { TicketFloatingChat } from "./TicketFloatingChat";
 import { ScheduleEventModal } from "./ScheduleEventModal";
 import { ForwardSpecialistModal } from "./ForwardSpecialistModal";
 import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
+import { ModuleKnowledgeLink } from "@/lib/module-link";
 
 const statusTone: Record<TicketStatus, string> = {
   Atrasado: "bg-destructive/12 text-destructive border-destructive/20",
