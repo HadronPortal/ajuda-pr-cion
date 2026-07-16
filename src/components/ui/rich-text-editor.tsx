@@ -462,36 +462,56 @@ function PortalSelect({
           <div
             ref={menuRef}
             role="listbox"
+            data-rich-text-menu="true"
             onMouseDown={(e) => {
               // Keep editor selection intact when clicking inside menu
               e.preventDefault();
               e.stopPropagation();
             }}
+            onPointerDown={(e) => {
+              e.stopPropagation();
+            }}
             onClick={(e) => e.stopPropagation()}
-            className="fixed z-[9999] max-h-72 overflow-auto rounded-md border border-border bg-popover py-1 text-popover-foreground shadow-lg"
-            style={{ top: pos.top, left: pos.left, minWidth: pos.width }}
+            className="fixed z-[2147483000] max-h-72 overflow-auto rounded-md border border-border bg-popover py-1 text-popover-foreground shadow-lg"
+            style={{
+              top: pos.top,
+              left: pos.left,
+              minWidth: pos.width,
+              pointerEvents: "auto",
+            }}
           >
             {options.map((opt) => {
               const selected = opt.key === selectedKey;
+              const handleSelect = (
+                e: React.PointerEvent | React.MouseEvent,
+              ) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onSelect(opt.key);
+                setOpen(false);
+              };
               return (
                 <button
                   key={opt.key}
                   type="button"
                   role="option"
                   aria-selected={selected}
+                  data-rich-text-menu="true"
+                  onPointerDown={handleSelect}
                   onMouseDown={(e) => {
+                    // Fallback for browsers dispatching mousedown without pointerdown
                     e.preventDefault();
                     e.stopPropagation();
                   }}
                   onClick={(e) => {
+                    e.preventDefault();
                     e.stopPropagation();
-                    onSelect(opt.key);
-                    setOpen(false);
                   }}
                   className={cn(
                     "flex w-full cursor-pointer items-center justify-between gap-2 px-2.5 py-1.5 text-left text-[12.5px] transition hover:bg-accent hover:text-accent-foreground",
                     selected && "bg-accent/60 font-medium",
                   )}
+                  style={{ pointerEvents: "auto" }}
                 >
                   <span className="truncate">{opt.label}</span>
                   {selected && <Check className="h-3.5 w-3.5 opacity-70" />}
