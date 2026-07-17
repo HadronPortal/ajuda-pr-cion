@@ -451,3 +451,31 @@ export function useTicketHistory(id: string | null | undefined): PastAttendance[
   const getSnap = useCallback(() => (id ? ticketsStore.getHistory(id) : EMPTY_HISTORY), [id]);
   return useSyncExternalStore(ticketsStore.subscribe, getSnap, getSnap);
 }
+
+/**
+ * Retorna todos os chamados de um cliente pela sua sigla (clientCode).
+ * TODO: substituir por chamada à API quando disponível.
+ */
+export function getTicketsByClient(clientCode: string): SupportTicket[] {
+  const code = clientCode.trim().toUpperCase();
+  if (!code) return [];
+  return ticketsStore
+    .getTickets()
+    .filter((t) => t.clientCode.toUpperCase() === code);
+}
+
+/** Converte um SupportTicket em PastAttendance para reuso da timeline. */
+export function ticketToPastAttendance(t: SupportTicket): PastAttendance {
+  return {
+    id: t.id,
+    title: t.subject,
+    status: t.status,
+    module: t.module,
+    priority: t.priority,
+    operator: t.owner,
+    date: t.openedAt,
+    protocol: t.protocol,
+    description: t.subject,
+  };
+}
+
