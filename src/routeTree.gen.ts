@@ -14,6 +14,7 @@ import { Route as MinhaContaRouteImport } from './routes/minha-conta'
 import { Route as KanbanDashboardRouteImport } from './routes/kanban-dashboard'
 import { Route as KanbanRouteImport } from './routes/kanban'
 import { Route as ChamadosRouteImport } from './routes/chamados'
+import { Route as CalendarioRouteImport } from './routes/calendario'
 import { Route as BaseDeConhecimentoRouteImport } from './routes/base-de-conhecimento'
 import { Route as AtualizacoesRouteImport } from './routes/atualizacoes'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
@@ -47,6 +48,11 @@ const KanbanRoute = KanbanRouteImport.update({
 const ChamadosRoute = ChamadosRouteImport.update({
   id: '/chamados',
   path: '/chamados',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CalendarioRoute = CalendarioRouteImport.update({
+  id: '/calendario',
+  path: '/calendario',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BaseDeConhecimentoRoute = BaseDeConhecimentoRouteImport.update({
@@ -100,6 +106,7 @@ export interface FileRoutesByFullPath {
   '/analytics': typeof AnalyticsRoute
   '/atualizacoes': typeof AtualizacoesRoute
   '/base-de-conhecimento': typeof BaseDeConhecimentoRouteWithChildren
+  '/calendario': typeof CalendarioRoute
   '/chamados': typeof ChamadosRouteWithChildren
   '/kanban': typeof KanbanRoute
   '/kanban-dashboard': typeof KanbanDashboardRoute
@@ -115,6 +122,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
   '/atualizacoes': typeof AtualizacoesRoute
+  '/calendario': typeof CalendarioRoute
   '/chamados': typeof ChamadosRouteWithChildren
   '/kanban': typeof KanbanRoute
   '/kanban-dashboard': typeof KanbanDashboardRoute
@@ -132,6 +140,7 @@ export interface FileRoutesById {
   '/analytics': typeof AnalyticsRoute
   '/atualizacoes': typeof AtualizacoesRoute
   '/base-de-conhecimento': typeof BaseDeConhecimentoRouteWithChildren
+  '/calendario': typeof CalendarioRoute
   '/chamados': typeof ChamadosRouteWithChildren
   '/kanban': typeof KanbanRoute
   '/kanban-dashboard': typeof KanbanDashboardRoute
@@ -150,6 +159,7 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/atualizacoes'
     | '/base-de-conhecimento'
+    | '/calendario'
     | '/chamados'
     | '/kanban'
     | '/kanban-dashboard'
@@ -165,6 +175,7 @@ export interface FileRouteTypes {
     | '/'
     | '/analytics'
     | '/atualizacoes'
+    | '/calendario'
     | '/chamados'
     | '/kanban'
     | '/kanban-dashboard'
@@ -181,6 +192,7 @@ export interface FileRouteTypes {
     | '/analytics'
     | '/atualizacoes'
     | '/base-de-conhecimento'
+    | '/calendario'
     | '/chamados'
     | '/kanban'
     | '/kanban-dashboard'
@@ -198,6 +210,7 @@ export interface RootRouteChildren {
   AnalyticsRoute: typeof AnalyticsRoute
   AtualizacoesRoute: typeof AtualizacoesRoute
   BaseDeConhecimentoRoute: typeof BaseDeConhecimentoRouteWithChildren
+  CalendarioRoute: typeof CalendarioRoute
   ChamadosRoute: typeof ChamadosRouteWithChildren
   KanbanRoute: typeof KanbanRoute
   KanbanDashboardRoute: typeof KanbanDashboardRoute
@@ -242,6 +255,13 @@ declare module '@tanstack/react-router' {
       path: '/chamados'
       fullPath: '/chamados'
       preLoaderRoute: typeof ChamadosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/calendario': {
+      id: '/calendario'
+      path: '/calendario'
+      fullPath: '/calendario'
+      preLoaderRoute: typeof CalendarioRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/base-de-conhecimento': {
@@ -340,6 +360,7 @@ const rootRouteChildren: RootRouteChildren = {
   AnalyticsRoute: AnalyticsRoute,
   AtualizacoesRoute: AtualizacoesRoute,
   BaseDeConhecimentoRoute: BaseDeConhecimentoRouteWithChildren,
+  CalendarioRoute: CalendarioRoute,
   ChamadosRoute: ChamadosRouteWithChildren,
   KanbanRoute: KanbanRoute,
   KanbanDashboardRoute: KanbanDashboardRoute,
@@ -351,3 +372,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
