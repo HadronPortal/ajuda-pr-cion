@@ -846,15 +846,17 @@ function Section({
   icon: Icon,
   children,
   className,
+  titleClassName,
 }: {
   title: string;
   icon: typeof Building2;
   children: React.ReactNode;
   className?: string;
+  titleClassName?: string;
 }) {
   return (
     <Card className={cn("p-5", className)}>
-      <h3 className="mb-4 flex items-center gap-2 font-medium">
+      <h3 className={cn("mb-4 flex items-center gap-2 font-medium", titleClassName)}>
         <span className="grid h-8 w-8 place-items-center rounded-md bg-primary/10 text-primary">
           <Icon className="h-4 w-4" />
         </span>
