@@ -504,7 +504,7 @@ export function TicketDetailSheet({
               </div>
 
               {/* Main content */}
-              <div className="flex-1 min-w-0 overflow-y-auto rounded-2xl border border-border bg-background px-5 py-5 md:px-6">
+              <div className="flex-1 min-w-0 overflow-y-auto rounded-2xl border border-border bg-card px-5 py-5 md:px-6">
                 {/* Resumo */}
                 <Section title="Resumo do chamado" icon={LayoutGrid}>
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
