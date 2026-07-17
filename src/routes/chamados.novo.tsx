@@ -858,27 +858,6 @@ function Field({
   );
 }
 
-function IconButton({
-  label,
-  onClick,
-  children,
-}: {
-  label: string;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={label}
-      title={label}
-      className="grid h-11 w-11 shrink-0 cursor-pointer place-items-center rounded-xl border border-border bg-card text-muted-foreground transition hover:bg-accent hover:text-foreground"
-    >
-      {children}
-    </button>
-  );
-}
 
 function PreviewItem({
   icon: Icon,
