@@ -17,6 +17,7 @@ import { Route as ClientesRouteImport } from './routes/clientes'
 import { Route as ChamadosRouteImport } from './routes/chamados'
 import { Route as BaseDeConhecimentoRouteImport } from './routes/base-de-conhecimento'
 import { Route as AtualizacoesRouteImport } from './routes/atualizacoes'
+import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BaseDeConhecimentoIndexRouteImport } from './routes/base-de-conhecimento.index'
 import { Route as ChamadosNovoRouteImport } from './routes/chamados.novo'
@@ -62,6 +63,11 @@ const AtualizacoesRoute = AtualizacoesRouteImport.update({
   path: '/atualizacoes',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AnalyticsRoute = AnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -85,6 +91,7 @@ const BaseDeConhecimentoSlugRoute = BaseDeConhecimentoSlugRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/analytics': typeof AnalyticsRoute
   '/atualizacoes': typeof AtualizacoesRoute
   '/base-de-conhecimento': typeof BaseDeConhecimentoRouteWithChildren
   '/chamados': typeof ChamadosRouteWithChildren
@@ -99,6 +106,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/analytics': typeof AnalyticsRoute
   '/atualizacoes': typeof AtualizacoesRoute
   '/chamados': typeof ChamadosRouteWithChildren
   '/clientes': typeof ClientesRoute
@@ -113,6 +121,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/analytics': typeof AnalyticsRoute
   '/atualizacoes': typeof AtualizacoesRoute
   '/base-de-conhecimento': typeof BaseDeConhecimentoRouteWithChildren
   '/chamados': typeof ChamadosRouteWithChildren
@@ -129,6 +138,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/analytics'
     | '/atualizacoes'
     | '/base-de-conhecimento'
     | '/chamados'
@@ -143,6 +153,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/analytics'
     | '/atualizacoes'
     | '/chamados'
     | '/clientes'
@@ -156,6 +167,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/analytics'
     | '/atualizacoes'
     | '/base-de-conhecimento'
     | '/chamados'
@@ -171,6 +183,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AnalyticsRoute: typeof AnalyticsRoute
   AtualizacoesRoute: typeof AtualizacoesRoute
   BaseDeConhecimentoRoute: typeof BaseDeConhecimentoRouteWithChildren
   ChamadosRoute: typeof ChamadosRouteWithChildren
@@ -239,6 +252,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AtualizacoesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/analytics': {
+      id: '/analytics'
+      path: '/analytics'
+      fullPath: '/analytics'
+      preLoaderRoute: typeof AnalyticsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -297,6 +317,7 @@ const ChamadosRouteWithChildren = ChamadosRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AnalyticsRoute: AnalyticsRoute,
   AtualizacoesRoute: AtualizacoesRoute,
   BaseDeConhecimentoRoute: BaseDeConhecimentoRouteWithChildren,
   ChamadosRoute: ChamadosRouteWithChildren,
