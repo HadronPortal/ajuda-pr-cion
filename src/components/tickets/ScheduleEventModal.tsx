@@ -52,30 +52,30 @@ export function ScheduleEventModal({ open, onOpenChange, ticket }: { open: boole
   };
 
   return <Dialog open={open} onOpenChange={onOpenChange}>
-    <DialogContent onPointerDownOutside={preventOutsideClose} onInteractOutside={preventOutsideClose} onEscapeKeyDown={preventOutsideClose} style={{ maxHeight: "calc(100vh - 2rem)" }} className="flex w-[calc(100vw-2rem)] max-w-[940px] flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-background p-0 shadow-[0_30px_80px_rgba(0,0,0,0.35)] [&>button]:hidden">
+    <DialogContent onPointerDownOutside={preventOutsideClose} onInteractOutside={preventOutsideClose} onEscapeKeyDown={preventOutsideClose} style={{ maxHeight: "calc(100vh - 2rem)" }} className="flex w-[calc(100vw-2rem)] max-w-[940px] flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-card p-0 shadow-[0_30px_80px_rgba(0,0,0,0.35)] [&>button]:hidden">
       <DialogTitle className="sr-only">Agendar evento {ticket.protocol}</DialogTitle>
       <DetailModalHeader icon={CalendarClock} title="Agendar evento" protocol={ticket.protocol} onClose={() => onOpenChange(false)} meta={<span className="inline-flex items-center gap-1"><span className="text-primary">{ticket.clientCode}</span><span className="text-border">·</span><span>{ticket.clientName}</span></span>} />
-      <div className="flex-1 space-y-4 overflow-y-auto px-5 py-4 md:px-6">
-        <div className="grid gap-3 sm:grid-cols-2">
+      <div className="flex-1 space-y-2.5 overflow-y-auto bg-card px-5 py-3 md:px-6">
+        <div className="grid gap-2.5 sm:grid-cols-2">
           <Field label="Tipo do evento" required><select value={type} onChange={(e) => setType(e.target.value)} className={selectClass}>{EVENT_TYPES.map((item) => <option key={item}>{item}</option>)}</select></Field>
           <Field label="Responsável" required><select value={responsible} onChange={(e) => setResponsible(e.target.value)} className={selectClass}>{RESPONSIBLES.map((item) => <option key={item}>{item}</option>)}</select></Field>
         </div>
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid gap-2.5 sm:grid-cols-3">
           <Field label="Data" required><Input type="date" value={date} onChange={(e) => setDate(e.target.value)} /></Field>
           <Field label="Início" required><div className="relative"><Clock3 className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"/><Input className="pl-8" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} /></div></Field>
           <Field label="Término" required><Input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} /></Field>
         </div>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-2.5 sm:grid-cols-2">
           <Field label="Módulo" required><Input value={module} onChange={(e) => setModule(e.target.value)} /></Field>
           <Field label="Submódulo" required><Input value={submodule} onChange={(e) => setSubmodule(e.target.value)} /></Field>
         </div>
-        <div className={type === "Visita" ? "grid gap-3 sm:grid-cols-2" : "grid gap-3"}>
+        <div className={type === "Visita" ? "grid gap-2.5 sm:grid-cols-2" : "grid gap-2.5"}>
           <Field label="Convidados"><div className="relative"><Users className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"/><Input className="pl-8" value={guests} onChange={(e) => setGuests(e.target.value)} placeholder="Nomes ou e-mails, separados por vírgula" /></div></Field>
           {type === "Visita" && <Field label="Veículo"><div className="relative"><Car className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"/><select value={vehicle} onChange={(e) => setVehicle(e.target.value)} className={`${selectClass} pl-8`}>{VEHICLES.map((item) => <option key={item}>{item}</option>)}</select></div></Field>}
         </div>
-        <Field label="Observações"><textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} maxLength={700} placeholder="Objetivo, orientações e informações para o atendimento..." className="min-h-[88px] w-full resize-none rounded-md border border-input bg-background p-3 text-[13px] outline-none focus:ring-2 focus:ring-ring" /></Field>
+        <Field label="Observações"><textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} maxLength={700} placeholder="Objetivo, orientações e informações para o atendimento..." className="min-h-[64px] w-full resize-none rounded-md border border-input bg-background p-2.5 text-[13px] outline-none focus:ring-2 focus:ring-ring" /></Field>
       </div>
-      <DialogFooter className="flex shrink-0 items-center justify-between gap-3 border-t border-border bg-card px-5 py-3 sm:justify-between">
+      <DialogFooter className="flex shrink-0 items-center justify-between gap-3 border-t border-border bg-card px-5 py-2.5 sm:justify-between">
         <label className="flex cursor-pointer items-center gap-2 text-[11.5px] text-muted-foreground">
           <Checkbox checked={reminder} onCheckedChange={(value) => setReminder(value === true)} className="h-4 w-4 cursor-pointer"/>
           Gerar lembrete
