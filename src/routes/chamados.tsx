@@ -401,42 +401,8 @@ function TicketsPage() {
     });
   }, [filters, supportTickets]);
 
-  const openTickets = supportTickets.filter(
-    (ticket) => !["Finalizado", "Cancelado"].includes(ticket.status),
-  ).length;
-  const inProgressTickets = supportTickets.filter((ticket) => ticket.status === "Em andamento").length;
-  const overdueTickets = supportTickets.filter((ticket) => ticket.status === "Atrasado").length;
-  const portalTickets = supportTickets.filter((ticket) => ticket.source === "Portal do cliente").length;
-  const finishedTickets = supportTickets.filter((ticket) => ticket.status === "Finalizado").length;
-  const resolutionRate = Math.round((finishedTickets / supportTickets.length) * 100);
-  const avgHandlingLabel = "01h 47min";
-  const slaMedio = 82;
 
-  const statusDistribution = ticketStatuses
-    .filter((status) => status !== "Atrasado" && status !== "Cancelado")
-    .map((status) => ({
-      status,
-      total: supportTickets.filter((ticket) => ticket.status === status).length,
-    }))
-    .filter((item) => item.total > 0);
 
-  const sourceDistribution = (["Portal do cliente", "Telefone", "WhatsApp", "Email"] as const).map(
-    (source) => ({
-      source,
-      label: sourceLabels[source],
-      total: supportTickets.filter((ticket) => ticket.source === source).length,
-    }),
-  );
-
-  const moduleMap = new Map<string, number>();
-  supportTickets.forEach((ticket) => {
-    const key = ticket.module.split(" - ").pop() ?? ticket.module;
-    moduleMap.set(key, (moduleMap.get(key) ?? 0) + 1);
-  });
-  const moduleDistribution = Array.from(moduleMap.entries())
-    .map(([label, total]) => ({ label, total }))
-    .sort((a, b) => b.total - a.total)
-    .slice(0, 5);
 
   return (
     <AppShell>
