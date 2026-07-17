@@ -622,7 +622,7 @@ function CalendarEventPill({ event }: { event: CalendarEvent }) {
     <span
       title={`${event.type} · ${fullText}`}
       className={cn(
-        "flex items-center gap-1.5 overflow-hidden rounded px-1.5 py-1 text-[10px] text-white",
+        "flex items-center gap-2 overflow-hidden rounded px-2 py-1 text-[10px] text-white",
         style.dot,
       )}
     >
