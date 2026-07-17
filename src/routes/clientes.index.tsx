@@ -1077,32 +1077,52 @@ export function TerminalsTab() {
   );
 }
 export function CompaniesTab() {
+  const rows: Array<{ icon: typeof Monitor; label: string; value: string }> = [
+    { icon: Building2, label: "Codigo / Empresa", value: "001 - CENTER GLASS ACESSORIOS" },
+    { icon: FileText, label: "CNPJ", value: "66.613.387/0001-60" },
+    { icon: Monitor, label: "Terminais", value: "3" },
+    { icon: Server, label: "Filiais", value: "1" },
+    { icon: Database, label: "Versao", value: "2026-07-02" },
+    { icon: Cpu, label: "Sistema operacional", value: "Windows 7" },
+    { icon: Cpu, label: "Versao do SO", value: "6.2" },
+    { icon: FileText, label: "Emite NF-e", value: "Sim" },
+    { icon: FileText, label: "Notas emitidas", value: "0" },
+    { icon: Cpu, label: "Memoria usada / total", value: "0 / 2097151" },
+    { icon: HardDrive, label: "Drive P", value: "P" },
+    { icon: HardDrive, label: "Drive P usado / total", value: "6 / 312.4" },
+    { icon: HardDrive, label: "Drive T", value: "C" },
+    { icon: HardDrive, label: "Drive T usado / total", value: "57.1 / 237.4" },
+    { icon: HardDrive, label: "Drive A", value: "P" },
+    { icon: HardDrive, label: "Drive A usado / total", value: "6 / 312.4" },
+    { icon: ShieldCheck, label: "Tipo de certificado", value: "P" },
+    { icon: ShieldCheck, label: "Validade do certificado", value: "08/05/2027" },
+    { icon: ShieldCheck, label: "Ambiente", value: "N" },
+    { icon: RefreshCw, label: "Atualizado em", value: "17/07/2026 08:44:37" },
+    { icon: CalendarDays, label: "Registrado em", value: "09/05/2026 08:44:38" },
+  ];
   return (
     <Section title="Empresas vinculadas" icon={Server}>
-      <div className="grid gap-5 lg:grid-cols-[1.2fr_1fr]">
-        <div className="rounded-md border border-border p-5">
-          <p className="text-sm text-primary">001</p>
-          <h3 className="mt-1 text-lg font-medium">CENTER GLASS ACESSORIOS</h3>
-          <p className="mt-1 text-sm text-muted-foreground">CNPJ 66.613.387/0001-60</p>
-          <div className="mt-5 grid grid-cols-2 gap-4">
-            <Field label="Terminais" value="3" />
-            <Field label="Filiais" value="1" />
-            <Field label="Versao" value="2026-07-02" />
-            <Field label="Documentos" value="NF-e" />
-          </div>
-        </div>
-        <div className="rounded-md border border-border p-5">
-          <h3 className="font-medium">Ambiente</h3>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <Field label="Sistema operacional" value="Windows 7 (6.2)" />
-            <Field label="Unidade" value="P:" />
-            <Field label="Notas emitidas" value="0" />
-            <Field label="Status" value="Operacional" />
-          </div>
-        </div>
+      <div className="grid divide-y divide-border border-y border-border sm:grid-cols-2 sm:divide-y-0 sm:[&>*]:border-b sm:[&>*]:border-border lg:grid-cols-3">
+        {rows.map((r) => {
+          const Icon = r.icon;
+          return (
+            <div key={r.label} className="flex items-start gap-3 px-4 py-3 sm:border-r sm:border-border">
+              <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-md bg-muted text-muted-foreground">
+                <Icon className="h-4 w-4" />
+              </span>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium text-foreground">{r.value}</p>
+                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                  {r.label}
+                </p>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </Section>
   );
+}
 }
 function DataTable({ headers, rows }: { headers: string[]; rows: string[][] }) {
   return (
