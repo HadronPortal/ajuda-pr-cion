@@ -2,16 +2,15 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
   ArrowLeft,
+  ArrowUp,
   Building2,
-  Check,
   ChevronDown,
   FileText,
   Info,
   Mail,
   MessageSquarePlus,
-  Pencil,
+  Minus,
   Phone,
-  Plus,
   Search,
   Send,
   Sparkles,
@@ -175,34 +174,33 @@ const priorityTone: Record<TicketPriority, string> = {
 const priorityOptions: {
   value: TicketPriority;
   label: string;
-  dot: string;
-  ring: string;
-  bg: string;
-  text: string;
+  icon: typeof ArrowUp;
+  activeClass: string;
+  iconClass: string;
 }[] = [
   {
     value: "Baixa",
     label: "Baixa",
-    dot: "bg-success",
-    ring: "ring-success/40",
-    bg: "bg-success/10",
-    text: "text-success",
+    icon: ChevronDown,
+    activeClass:
+      "border-success/40 bg-success/10 text-success ring-1 ring-success/30",
+    iconClass: "text-success",
   },
   {
     value: "Media",
     label: "Média",
-    dot: "bg-warning",
-    ring: "ring-warning/40",
-    bg: "bg-warning/10",
-    text: "text-warning-foreground",
+    icon: Minus,
+    activeClass:
+      "border-warning/50 bg-warning/12 text-warning-foreground ring-1 ring-warning/30",
+    iconClass: "text-warning-foreground",
   },
   {
     value: "Alta",
     label: "Alta",
-    dot: "bg-destructive",
-    ring: "ring-destructive/40",
-    bg: "bg-destructive/10",
-    text: "text-destructive",
+    icon: ArrowUp,
+    activeClass:
+      "border-destructive/40 bg-destructive/10 text-destructive ring-1 ring-destructive/30",
+    iconClass: "text-destructive",
   },
 ];
 
@@ -276,11 +274,6 @@ function NewTicketPage() {
       phones: [...c.defaultContact.phones],
     }));
   };
-
-  const addEmail = () =>
-    setForm((prev) => ({ ...prev, emails: [...prev.emails, ""] }));
-  const addPhone = () =>
-    setForm((prev) => ({ ...prev, phones: [...prev.phones, ""] }));
 
   const updateEmail = (i: number, v: string) =>
     setForm((prev) => ({
@@ -388,70 +381,40 @@ function NewTicketPage() {
               title="Contato"
               description="Quem está solicitando o atendimento."
             />
-            <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,1fr)]">
+            <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
               <Field label="Nome do contato" required>
-                <div className="flex gap-2">
-                  <Input
-                    value={form.contactName}
-                    onChange={(e) =>
-                      setForm((prev) => ({ ...prev, contactName: e.target.value }))
-                    }
-                    placeholder="Nome completo"
-                    className="h-11 rounded-xl"
-                  />
-                  <IconButton
-                    label="Editar contato"
-                    onClick={() => toast.info("Edição de contato em breve.")}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </IconButton>
-                </div>
+                <Input
+                  value={form.contactName}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, contactName: e.target.value }))
+                  }
+                  placeholder="Nome completo"
+                  className="h-11 rounded-xl"
+                />
               </Field>
 
               <Field label="E-mail do contato" required>
-                <div className="space-y-2">
-                  {form.emails.map((email, i) => (
-                    <div key={i} className="flex gap-2">
-                      <div className="relative flex-1">
-                        <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                        <Input
-                          type="email"
-                          value={email}
-                          onChange={(e) => updateEmail(i, e.target.value)}
-                          placeholder="email@empresa.com"
-                          className="h-11 rounded-xl pl-9"
-                        />
-                      </div>
-                      {i === form.emails.length - 1 && (
-                        <IconButton label="Adicionar outro e-mail" onClick={addEmail}>
-                          <Plus className="h-4 w-4" />
-                        </IconButton>
-                      )}
-                    </div>
-                  ))}
+                <div className="relative">
+                  <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    type="email"
+                    value={form.emails[0] ?? ""}
+                    onChange={(e) => updateEmail(0, e.target.value)}
+                    placeholder="email@empresa.com"
+                    className="h-11 rounded-xl pl-9"
+                  />
                 </div>
               </Field>
 
               <Field label="Telefone" required>
-                <div className="space-y-2">
-                  {form.phones.map((phone, i) => (
-                    <div key={i} className="flex gap-2">
-                      <div className="relative flex-1">
-                        <Phone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                        <Input
-                          value={phone}
-                          onChange={(e) => updatePhone(i, e.target.value)}
-                          placeholder="(00) 00000-0000"
-                          className="h-11 rounded-xl pl-9"
-                        />
-                      </div>
-                      {i === form.phones.length - 1 && (
-                        <IconButton label="Adicionar outro telefone" onClick={addPhone}>
-                          <Plus className="h-4 w-4" />
-                        </IconButton>
-                      )}
-                    </div>
-                  ))}
+                <div className="relative">
+                  <Phone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    value={form.phones[0] ?? ""}
+                    onChange={(e) => updatePhone(0, e.target.value)}
+                    placeholder="(00) 00000-0000"
+                    className="h-11 rounded-xl pl-9"
+                  />
                 </div>
               </Field>
             </div>
@@ -510,8 +473,7 @@ function NewTicketPage() {
                   <SelectContent>
                     {operators.map((op) => (
                       <SelectItem key={op.code} value={op.code}>
-                        <span className="font-mono text-xs mr-2">{op.code}</span>
-                        {op.name}
+                        <span className="font-mono text-xs">{op.code}</span>
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -577,10 +539,11 @@ function NewTicketPage() {
                   <div
                     role="radiogroup"
                     aria-label="Prioridade"
-                    className="grid grid-cols-3 gap-2"
+                    className="grid grid-cols-3 gap-1.5 rounded-xl border border-border bg-muted/30 p-1"
                   >
                     {priorityOptions.map((opt) => {
                       const active = form.priority === opt.value;
+                      const Icon = opt.icon;
                       return (
                         <button
                           key={opt.value}
@@ -591,26 +554,18 @@ function NewTicketPage() {
                             setForm((prev) => ({ ...prev, priority: opt.value }))
                           }
                           className={cn(
-                            "flex flex-col items-center justify-center gap-1 rounded-xl border px-2 py-2.5 text-xs font-medium transition cursor-pointer",
+                            "flex h-9 w-full items-center justify-center gap-1.5 rounded-lg border text-xs font-medium transition cursor-pointer",
+                            "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background",
                             active
-                              ? cn(opt.bg, opt.text, "border-transparent ring-2", opt.ring)
-                              : "border-border bg-card text-muted-foreground hover:bg-accent",
+                              ? opt.activeClass
+                              : "border-transparent bg-card text-muted-foreground hover:text-foreground",
                           )}
                         >
-                          <span className="flex items-center gap-1.5">
-                            <span
-                              className={cn(
-                                "grid h-4 w-4 place-items-center rounded-full border-2",
-                                active
-                                  ? "border-current bg-current/10"
-                                  : "border-muted-foreground/40",
-                              )}
-                            >
-                              {active && <Check className="h-2.5 w-2.5" strokeWidth={4} />}
-                            </span>
-                            <span className={cn("h-2 w-2 rounded-full", opt.dot)} />
-                          </span>
-                          {opt.label}
+                          <Icon
+                            className={cn("h-3.5 w-3.5", active ? opt.iconClass : "")}
+                            strokeWidth={active ? 2.5 : 2}
+                          />
+                          <span>{opt.label}</span>
                         </button>
                       );
                     })}
@@ -700,7 +655,7 @@ function NewTicketPage() {
                 <PreviewItem
                   icon={UserRound}
                   label="Operador"
-                  value={operatorObj ? `${operatorObj.code} ${operatorObj.name}` : "-"}
+                  value={operatorObj ? operatorObj.code : "-"}
                 />
                 <PreviewItem icon={FileText} label="Tipo" value={form.type} />
                 <PreviewItem icon={Phone} label="Origem" value={form.source} />
@@ -903,27 +858,6 @@ function Field({
   );
 }
 
-function IconButton({
-  label,
-  onClick,
-  children,
-}: {
-  label: string;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={label}
-      title={label}
-      className="grid h-11 w-11 shrink-0 cursor-pointer place-items-center rounded-xl border border-border bg-card text-muted-foreground transition hover:bg-accent hover:text-foreground"
-    >
-      {children}
-    </button>
-  );
-}
 
 function PreviewItem({
   icon: Icon,
