@@ -2,16 +2,15 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
   ArrowLeft,
+  ArrowUp,
   Building2,
-  Check,
   ChevronDown,
   FileText,
   Info,
   Mail,
   MessageSquarePlus,
-  Pencil,
+  Minus,
   Phone,
-  Plus,
   Search,
   Send,
   Sparkles,
