@@ -8,6 +8,7 @@ import {
   CircleUserRound,
   Database,
   Filter,
+  RefreshCw,
   HardDrive,
   Monitor,
   Phone,
