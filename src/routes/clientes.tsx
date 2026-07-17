@@ -446,11 +446,11 @@ function ClientsPage() {
                       {client.group || "Sem grupo"}
                     </div>
                   </td>
-                  <td className="max-w-[340px] px-4 py-4">
-                    <div className="truncate text-[14px] font-normal leading-[1.25]">
+                  <td className="min-w-[280px] px-4 py-4">
+                    <div className="text-[12px] font-normal leading-[1.2] [display:-webkit-box] [-webkit-line-clamp:2] [-webkit-box-orient:vertical] overflow-hidden">
                       {client.razaoSocial}
                     </div>
-                    <div className="truncate text-[12px] font-normal text-muted-foreground">
+                    <div className="text-[11px] font-normal text-muted-foreground">
                       {client.segment} · {client.size}
                     </div>
                   </td>
