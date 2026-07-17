@@ -174,34 +174,33 @@ const priorityTone: Record<TicketPriority, string> = {
 const priorityOptions: {
   value: TicketPriority;
   label: string;
-  dot: string;
-  ring: string;
-  bg: string;
-  text: string;
+  icon: typeof ArrowUp;
+  activeClass: string;
+  iconClass: string;
 }[] = [
   {
     value: "Baixa",
     label: "Baixa",
-    dot: "bg-success",
-    ring: "ring-success/40",
-    bg: "bg-success/10",
-    text: "text-success",
+    icon: ChevronDown,
+    activeClass:
+      "border-success/40 bg-success/10 text-success ring-1 ring-success/30",
+    iconClass: "text-success",
   },
   {
     value: "Media",
     label: "Média",
-    dot: "bg-warning",
-    ring: "ring-warning/40",
-    bg: "bg-warning/10",
-    text: "text-warning-foreground",
+    icon: Minus,
+    activeClass:
+      "border-warning/50 bg-warning/12 text-warning-foreground ring-1 ring-warning/30",
+    iconClass: "text-warning-foreground",
   },
   {
     value: "Alta",
     label: "Alta",
-    dot: "bg-destructive",
-    ring: "ring-destructive/40",
-    bg: "bg-destructive/10",
-    text: "text-destructive",
+    icon: ArrowUp,
+    activeClass:
+      "border-destructive/40 bg-destructive/10 text-destructive ring-1 ring-destructive/30",
+    iconClass: "text-destructive",
   },
 ];
 
