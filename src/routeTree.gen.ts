@@ -20,6 +20,7 @@ import { Route as AtualizacoesRouteImport } from './routes/atualizacoes'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BaseDeConhecimentoIndexRouteImport } from './routes/base-de-conhecimento.index'
+import { Route as ClientesClienteIdRouteImport } from './routes/clientes.$clienteId'
 import { Route as ChamadosNovoRouteImport } from './routes/chamados.novo'
 import { Route as BaseDeConhecimentoSlugRouteImport } from './routes/base-de-conhecimento.$slug'
 
@@ -78,6 +79,11 @@ const BaseDeConhecimentoIndexRoute = BaseDeConhecimentoIndexRouteImport.update({
   path: '/',
   getParentRoute: () => BaseDeConhecimentoRoute,
 } as any)
+const ClientesClienteIdRoute = ClientesClienteIdRouteImport.update({
+  id: '/$clienteId',
+  path: '/$clienteId',
+  getParentRoute: () => ClientesRoute,
+} as any)
 const ChamadosNovoRoute = ChamadosNovoRouteImport.update({
   id: '/novo',
   path: '/novo',
@@ -95,13 +101,14 @@ export interface FileRoutesByFullPath {
   '/atualizacoes': typeof AtualizacoesRoute
   '/base-de-conhecimento': typeof BaseDeConhecimentoRouteWithChildren
   '/chamados': typeof ChamadosRouteWithChildren
-  '/clientes': typeof ClientesRoute
+  '/clientes': typeof ClientesRouteWithChildren
   '/kanban': typeof KanbanRoute
   '/kanban-dashboard': typeof KanbanDashboardRoute
   '/minha-conta': typeof MinhaContaRoute
   '/versoes': typeof VersoesRoute
   '/base-de-conhecimento/$slug': typeof BaseDeConhecimentoSlugRoute
   '/chamados/novo': typeof ChamadosNovoRoute
+  '/clientes/$clienteId': typeof ClientesClienteIdRoute
   '/base-de-conhecimento/': typeof BaseDeConhecimentoIndexRoute
 }
 export interface FileRoutesByTo {
@@ -109,13 +116,14 @@ export interface FileRoutesByTo {
   '/analytics': typeof AnalyticsRoute
   '/atualizacoes': typeof AtualizacoesRoute
   '/chamados': typeof ChamadosRouteWithChildren
-  '/clientes': typeof ClientesRoute
+  '/clientes': typeof ClientesRouteWithChildren
   '/kanban': typeof KanbanRoute
   '/kanban-dashboard': typeof KanbanDashboardRoute
   '/minha-conta': typeof MinhaContaRoute
   '/versoes': typeof VersoesRoute
   '/base-de-conhecimento/$slug': typeof BaseDeConhecimentoSlugRoute
   '/chamados/novo': typeof ChamadosNovoRoute
+  '/clientes/$clienteId': typeof ClientesClienteIdRoute
   '/base-de-conhecimento': typeof BaseDeConhecimentoIndexRoute
 }
 export interface FileRoutesById {
@@ -125,13 +133,14 @@ export interface FileRoutesById {
   '/atualizacoes': typeof AtualizacoesRoute
   '/base-de-conhecimento': typeof BaseDeConhecimentoRouteWithChildren
   '/chamados': typeof ChamadosRouteWithChildren
-  '/clientes': typeof ClientesRoute
+  '/clientes': typeof ClientesRouteWithChildren
   '/kanban': typeof KanbanRoute
   '/kanban-dashboard': typeof KanbanDashboardRoute
   '/minha-conta': typeof MinhaContaRoute
   '/versoes': typeof VersoesRoute
   '/base-de-conhecimento/$slug': typeof BaseDeConhecimentoSlugRoute
   '/chamados/novo': typeof ChamadosNovoRoute
+  '/clientes/$clienteId': typeof ClientesClienteIdRoute
   '/base-de-conhecimento/': typeof BaseDeConhecimentoIndexRoute
 }
 export interface FileRouteTypes {
@@ -149,6 +158,7 @@ export interface FileRouteTypes {
     | '/versoes'
     | '/base-de-conhecimento/$slug'
     | '/chamados/novo'
+    | '/clientes/$clienteId'
     | '/base-de-conhecimento/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -163,6 +173,7 @@ export interface FileRouteTypes {
     | '/versoes'
     | '/base-de-conhecimento/$slug'
     | '/chamados/novo'
+    | '/clientes/$clienteId'
     | '/base-de-conhecimento'
   id:
     | '__root__'
@@ -178,6 +189,7 @@ export interface FileRouteTypes {
     | '/versoes'
     | '/base-de-conhecimento/$slug'
     | '/chamados/novo'
+    | '/clientes/$clienteId'
     | '/base-de-conhecimento/'
   fileRoutesById: FileRoutesById
 }
@@ -187,7 +199,7 @@ export interface RootRouteChildren {
   AtualizacoesRoute: typeof AtualizacoesRoute
   BaseDeConhecimentoRoute: typeof BaseDeConhecimentoRouteWithChildren
   ChamadosRoute: typeof ChamadosRouteWithChildren
-  ClientesRoute: typeof ClientesRoute
+  ClientesRoute: typeof ClientesRouteWithChildren
   KanbanRoute: typeof KanbanRoute
   KanbanDashboardRoute: typeof KanbanDashboardRoute
   MinhaContaRoute: typeof MinhaContaRoute
@@ -273,6 +285,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BaseDeConhecimentoIndexRouteImport
       parentRoute: typeof BaseDeConhecimentoRoute
     }
+    '/clientes/$clienteId': {
+      id: '/clientes/$clienteId'
+      path: '/$clienteId'
+      fullPath: '/clientes/$clienteId'
+      preLoaderRoute: typeof ClientesClienteIdRouteImport
+      parentRoute: typeof ClientesRoute
+    }
     '/chamados/novo': {
       id: '/chamados/novo'
       path: '/novo'
@@ -315,13 +334,25 @@ const ChamadosRouteWithChildren = ChamadosRoute._addFileChildren(
   ChamadosRouteChildren,
 )
 
+interface ClientesRouteChildren {
+  ClientesClienteIdRoute: typeof ClientesClienteIdRoute
+}
+
+const ClientesRouteChildren: ClientesRouteChildren = {
+  ClientesClienteIdRoute: ClientesClienteIdRoute,
+}
+
+const ClientesRouteWithChildren = ClientesRoute._addFileChildren(
+  ClientesRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AnalyticsRoute: AnalyticsRoute,
   AtualizacoesRoute: AtualizacoesRoute,
   BaseDeConhecimentoRoute: BaseDeConhecimentoRouteWithChildren,
   ChamadosRoute: ChamadosRouteWithChildren,
-  ClientesRoute: ClientesRoute,
+  ClientesRoute: ClientesRouteWithChildren,
   KanbanRoute: KanbanRoute,
   KanbanDashboardRoute: KanbanDashboardRoute,
   MinhaContaRoute: MinhaContaRoute,
