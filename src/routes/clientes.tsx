@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
   Building2,
   CalendarDays,
@@ -24,10 +24,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/clientes")({
@@ -35,7 +33,7 @@ export const Route = createFileRoute("/clientes")({
   component: ClientsPage,
 });
 
-type ClientRow = {
+export type ClientRow = {
   id: string;
   registered: string; // dd/MM/yyyy
   acronym: string;
@@ -57,7 +55,7 @@ type ClientRow = {
   status: "Ativo" | "Inativo";
 };
 
-const clientRows: ClientRow[] = [
+export const clientRows: ClientRow[] = [
   {
     id: "avc",
     registered: "06/05/2026",
@@ -246,11 +244,18 @@ function countActive(f: Filters): number {
   return n;
 }
 
+// Cache de filtros preservado ao navegar entre lista e ficha detalhada.
+let lastFilters: Filters = { ...emptyFilters };
+
 function ClientsPage() {
-  const [filters, setFilters] = useState<Filters>(emptyFilters);
-  const [draft, setDraft] = useState<Filters>(emptyFilters);
+  const navigate = useNavigate();
+  const [filters, setFilters] = useState<Filters>(() => lastFilters);
+  const [draft, setDraft] = useState<Filters>(() => lastFilters);
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [selected, setSelected] = useState<ClientRow | null>(null);
+
+  useEffect(() => {
+    lastFilters = filters;
+  }, [filters]);
 
   useEffect(() => {
     if (filtersOpen) setDraft(filters);
@@ -434,7 +439,12 @@ function ClientsPage() {
               {filtered.map((client) => (
                 <tr
                   key={client.id}
-                  onClick={() => setSelected(client)}
+                  onClick={() =>
+                    navigate({
+                      to: "/clientes/$clienteId",
+                      params: { clienteId: client.id },
+                    })
+                  }
                   className="cursor-pointer transition-colors hover:bg-primary/[0.04]"
                 >
                   <td className="whitespace-nowrap px-4 py-4 text-muted-foreground">
@@ -512,8 +522,6 @@ function ClientsPage() {
         }}
         onClear={() => setDraft(emptyFilters)}
       />
-
-      <ClientDetail client={selected} onOpenChange={(open) => !open && setSelected(null)} />
     </AppShell>
   );
 }
@@ -820,98 +828,8 @@ function DateField({
   );
 }
 
-function ClientDetail({
-  client,
-  onOpenChange,
-}: {
-  client: ClientRow | null;
-  onOpenChange: (open: boolean) => void;
-}) {
-  const isAvc = client?.id === "avc";
-  return (
-    <Dialog open={!!client} onOpenChange={onOpenChange}>
-      <DialogContent className="h-[92vh] max-h-[920px] w-[96vw] max-w-[1500px] gap-0 overflow-hidden border-border bg-background p-0">
-        <DialogTitle className="sr-only">Ficha do cliente {client?.acronym}</DialogTitle>
-        <DialogDescription className="sr-only">
-          Dados completos, ambiente e relacionamento do cliente.
-        </DialogDescription>
-        {client && (
-          <>
-            <header className="border-b border-border px-7 py-5 pr-14">
-              <div className="flex flex-wrap items-start justify-between gap-5">
-                <div className="flex min-w-0 gap-4">
-                  <div className="grid h-12 w-12 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
-                    <Building2 className="h-6 w-6" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-sm font-medium text-primary">{client.acronym}</span>
-                      <Badge className="bg-emerald-500/12 text-emerald-600 dark:text-emerald-400">
-                        {client.status}
-                      </Badge>
-                    </div>
-                    <h2 className="mt-1 truncate text-xl font-medium">
-                      {client.razaoSocial} {client.group && `(${client.group})`}
-                    </h2>
-                    <p className="text-sm text-muted-foreground">{client.fantasia}</p>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm lg:grid-cols-4">
-                  <Summary label="Atendimento" value="Sao Carlos" />
-                  <Summary label="Versao Hadron" value={isAvc ? "02/07/2026" : client.version} />
-                  <Summary
-                    label="Atualizacao"
-                    value={isAvc ? "09/07/2026 09:14" : client.updated}
-                  />
-                  <Summary label="Cidade" value={client.city} />
-                </div>
-              </div>
-            </header>
-            <Tabs defaultValue="cliente" className="flex min-h-0 flex-1 flex-col">
-              <TabsList className="h-auto justify-start gap-1 rounded-none border-b border-border bg-transparent px-7 py-0">
-                {[
-                  ["cliente", "Cliente", Building2],
-                  ["hadron", "Hadron", Database],
-                  ["usuarios", "Usuarios", UsersRound],
-                  ["terminais", "Terminais", Monitor],
-                  ["empresas", "Empresas", Server],
-                ].map(([value, label, Icon]) => (
-                  <TabsTrigger
-                    key={value as string}
-                    value={value as string}
-                    className="gap-2 rounded-none border-b-2 border-transparent px-4 py-3 data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none"
-                  >
-                    <Icon className="h-4 w-4" />
-                    {label as string}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-              <div className="min-h-0 flex-1 overflow-y-auto bg-muted/10 p-6">
-                <TabsContent value="cliente" className="m-0 space-y-5">
-                  <ClientTab />
-                </TabsContent>
-                <TabsContent value="hadron" className="m-0 space-y-5">
-                  <HadronTab />
-                </TabsContent>
-                <TabsContent value="usuarios" className="m-0">
-                  <UsersTab />
-                </TabsContent>
-                <TabsContent value="terminais" className="m-0">
-                  <TerminalsTab />
-                </TabsContent>
-                <TabsContent value="empresas" className="m-0">
-                  <CompaniesTab />
-                </TabsContent>
-              </div>
-            </Tabs>
-          </>
-        )}
-      </DialogContent>
-    </Dialog>
-  );
-}
 
-function Summary({ label, value }: { label: string; value: string }) {
+export function Summary({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <p className="text-[11px] uppercase text-muted-foreground">{label}</p>
@@ -951,7 +869,7 @@ function Field({ label, value }: { label: string; value: string }) {
   );
 }
 
-function ClientTab() {
+export function ClientTab() {
   return (
     <>
       <div className="grid gap-5 xl:grid-cols-2">
@@ -1056,7 +974,7 @@ function SupportRows() {
   );
 }
 
-function HadronTab() {
+export function HadronTab() {
   return (
     <>
       <Section title="Ambiente Hadron" icon={Database}>
@@ -1125,7 +1043,7 @@ function HadronTab() {
   );
 }
 
-function UsersTab() {
+export function UsersTab() {
   return (
     <Section title="Usuarios do portal" icon={UsersRound}>
       <DataTable
@@ -1144,7 +1062,7 @@ function UsersTab() {
     </Section>
   );
 }
-function TerminalsTab() {
+export function TerminalsTab() {
   return (
     <Section title="Terminais instalados" icon={Monitor}>
       <DataTable
@@ -1154,7 +1072,7 @@ function TerminalsTab() {
     </Section>
   );
 }
-function CompaniesTab() {
+export function CompaniesTab() {
   return (
     <Section title="Empresas vinculadas" icon={Server}>
       <div className="grid gap-5 lg:grid-cols-[1.2fr_1fr]">
