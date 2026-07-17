@@ -447,8 +447,10 @@ function ClientsPage() {
                     </div>
                   </td>
                   <td className="max-w-[340px] px-4 py-4">
-                    <div className="truncate font-medium">{client.razaoSocial}</div>
-                    <div className="truncate text-xs text-muted-foreground">
+                    <div className="truncate text-[14px] font-normal leading-[1.25]">
+                      {client.razaoSocial}
+                    </div>
+                    <div className="truncate text-[12px] font-normal text-muted-foreground">
                       {client.segment} · {client.size}
                     </div>
                   </td>
