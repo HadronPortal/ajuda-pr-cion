@@ -74,9 +74,17 @@ export function ScheduleEventModal({ open, onOpenChange, ticket }: { open: boole
           {type === "Visita" && <Field label="Veículo"><div className="relative"><Car className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"/><select value={vehicle} onChange={(e) => setVehicle(e.target.value)} className={`${selectClass} pl-8`}>{VEHICLES.map((item) => <option key={item}>{item}</option>)}</select></div></Field>}
         </div>
         <Field label="Observações"><textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} maxLength={700} placeholder="Objetivo, orientações e informações para o atendimento..." className="min-h-[88px] w-full resize-none rounded-md border border-input bg-background p-3 text-[13px] outline-none focus:ring-2 focus:ring-ring" /></Field>
-        <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-border bg-card px-3 py-2.5"><Checkbox checked={reminder} onCheckedChange={(value) => setReminder(value === true)} className="cursor-pointer"/><span className="text-[12.5px]">Gerar lembrete para o responsável</span></label>
       </div>
-      <DialogFooter className="shrink-0 gap-2 border-t border-border bg-card px-5 py-3 sm:gap-2"><Button variant="outline" onClick={() => onOpenChange(false)} className="cursor-pointer">Cancelar</Button><Button onClick={submit} className="cursor-pointer"><CalendarClock className="mr-1.5 h-4 w-4"/>Agendar evento</Button></DialogFooter>
+      <DialogFooter className="flex shrink-0 items-center justify-between gap-3 border-t border-border bg-card px-5 py-3 sm:justify-between">
+        <label className="flex cursor-pointer items-center gap-2 text-[11.5px] text-muted-foreground">
+          <Checkbox checked={reminder} onCheckedChange={(value) => setReminder(value === true)} className="h-4 w-4 cursor-pointer"/>
+          Gerar lembrete
+        </label>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => onOpenChange(false)} className="cursor-pointer">Cancelar</Button>
+          <Button onClick={submit} className="cursor-pointer"><CalendarClock className="mr-1.5 h-4 w-4"/>Agendar evento</Button>
+        </div>
+      </DialogFooter>
     </DialogContent>
   </Dialog>;
 }
