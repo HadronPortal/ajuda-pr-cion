@@ -387,8 +387,11 @@ export const ticketsStore = {
       reason: string;
       permission: string;
       priority: SupportTicket["priority"];
+      type: string;
       module: string;
       submodule: string;
+      relatedArticles: string[];
+      relatedForms: string[];
     },
   ) {
     const op = operator();
@@ -405,7 +408,9 @@ export const ticketsStore = {
       actorType: "suporte",
       description:
         `Enviado para ${input.specialist} (${input.operator}) — ${input.area}; ${input.waitingArea}. ` +
-        `Módulo: ${input.module} / ${input.submodule}. Permissão: ${input.permission}. ` +
+        `Tipo: ${input.type}. Módulo: ${input.module} / ${input.submodule}. Permissão: ${input.permission}. ` +
+        (input.relatedArticles.length ? `Artigos: ${input.relatedArticles.join(", ")}. ` : "") +
+        (input.relatedForms.length ? `Opções/Formulários: ${input.relatedForms.join(", ")}. ` : "") +
         `Mensagem: ${input.reason}`,
     });
     emit();

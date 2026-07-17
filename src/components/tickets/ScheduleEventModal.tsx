@@ -52,7 +52,7 @@ export function ScheduleEventModal({ open, onOpenChange, ticket }: { open: boole
   };
 
   return <Dialog open={open} onOpenChange={onOpenChange}>
-    <DialogContent onPointerDownOutside={preventOutsideClose} onInteractOutside={preventOutsideClose} onEscapeKeyDown={preventOutsideClose} className="flex max-h-[90vh] w-[calc(100vw-1rem)] max-w-none flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-background p-0 sm:w-[calc(100vw-2rem)] md:w-[720px] [&>button]:hidden">
+    <DialogContent onPointerDownOutside={preventOutsideClose} onInteractOutside={preventOutsideClose} onEscapeKeyDown={preventOutsideClose} style={{ maxHeight: "calc(100vh - 2rem)" }} className="flex w-[calc(100vw-2rem)] max-w-[940px] flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-background p-0 shadow-[0_30px_80px_rgba(0,0,0,0.35)] [&>button]:hidden">
       <DialogTitle className="sr-only">Agendar evento {ticket.protocol}</DialogTitle>
       <DetailModalHeader icon={CalendarClock} title="Agendar evento" protocol={ticket.protocol} onClose={() => onOpenChange(false)} meta={<span className="inline-flex items-center gap-1"><span className="text-primary">{ticket.clientCode}</span><span className="text-border">·</span><span>{ticket.clientName}</span></span>} />
       <div className="flex-1 space-y-4 overflow-y-auto px-5 py-4 md:px-6">
