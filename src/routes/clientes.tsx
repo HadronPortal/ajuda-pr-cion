@@ -439,7 +439,12 @@ function ClientsPage() {
               {filtered.map((client) => (
                 <tr
                   key={client.id}
-                  onClick={() => setSelected(client)}
+                  onClick={() =>
+                    navigate({
+                      to: "/clientes/$clienteId",
+                      params: { clienteId: client.id },
+                    })
+                  }
                   className="cursor-pointer transition-colors hover:bg-primary/[0.04]"
                 >
                   <td className="whitespace-nowrap px-4 py-4 text-muted-foreground">
