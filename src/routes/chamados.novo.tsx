@@ -490,6 +490,7 @@ function NewTicketPage() {
                     ))}
                   </SelectContent>
                 </Select>
+              </Field>
             </div>
           </Card>
 
