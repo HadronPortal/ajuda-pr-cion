@@ -158,18 +158,6 @@ export function ForwardSpecialistModal({ open, onOpenChange, ticket }: { open: b
           <RelatedPicker label="Opções/Formulários relacionados" query={formQuery} onQuery={setFormQuery} selected={relatedForms} onSelected={setRelatedForms} />
         </div>
       </div>
-        </div>
-        <div className="grid gap-3 sm:grid-cols-3">
-          <Field label="Área de espera"><select value={waitingArea} onChange={(e) => setWaitingArea(e.target.value)} className={selectClass}>{AREAS.map((item) => <option key={item}>{item}</option>)}</select></Field>
-          <Field label="Módulo"><Input value={module} onChange={(e) => setModule(e.target.value)} /></Field>
-          <Field label="Submódulo"><Input value={submodule} onChange={(e) => setSubmodule(e.target.value)} /></Field>
-        </div>
-        <Field label="Mensagem para o especialista" required><textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={4} maxLength={1000} placeholder="Descreva o diagnóstico, testes realizados e o que precisa ser analisado..." className="min-h-[108px] w-full resize-none rounded-md border border-input bg-background p-3 text-[13px] outline-none focus:ring-2 focus:ring-ring"/></Field>
-        <div className="grid gap-4 md:grid-cols-2">
-          <RelatedPicker label="Artigos relacionados" query={articleQuery} onQuery={setArticleQuery} selected={relatedArticles} onSelected={setRelatedArticles} />
-          <RelatedPicker label="Opções/Formulários relacionados" query={formQuery} onQuery={setFormQuery} selected={relatedForms} onSelected={setRelatedForms} />
-        </div>
-      </div>
       <DialogFooter className="shrink-0 gap-2 border-t border-border bg-card px-5 py-3 sm:gap-2"><Button variant="outline" onClick={() => onOpenChange(false)} className="cursor-pointer">Cancelar</Button><Button onClick={submit} className="cursor-pointer"><UserCheck className="mr-1.5 h-4 w-4"/>Enviar a especialista</Button></DialogFooter>
     </DialogContent>
   </Dialog>;
