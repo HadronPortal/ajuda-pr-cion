@@ -67,6 +67,8 @@ function ClientDetailPage() {
   const { tab } = Route.useSearch();
   const navigate = useNavigate();
   const isAvc = client.id === "avc";
+  const [historyOpen, setHistoryOpen] = useState(false);
+
 
   const currentTab: TabValue = (tabs as readonly string[]).includes(tab)
     ? (tab as TabValue)
