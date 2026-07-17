@@ -85,7 +85,7 @@ export function TicketHistoryModal({
           }
         />
 
-        <div className="min-h-0 overflow-y-auto bg-background px-4 py-5 md:px-6">
+        <div className="min-h-0 overflow-y-auto bg-card px-4 py-5 md:px-6">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-baseline gap-1.5">
               <span className="text-[13px] font-medium text-foreground">
