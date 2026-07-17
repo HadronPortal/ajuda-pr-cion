@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   Building2,
@@ -7,18 +7,25 @@ import {
   ChevronRight,
   CircleUserRound,
   Database,
+  Filter,
   HardDrive,
   Monitor,
   Phone,
-  Search,
   Server,
+  SlidersHorizontal,
   UsersRound,
+  X,
 } from "lucide-react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { AppShell, PageHeader } from "@/components/portal/AppShell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Calendar } from "@/components/ui/calendar";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 
@@ -27,18 +34,41 @@ export const Route = createFileRoute("/clientes")({
   component: ClientsPage,
 });
 
-const clientRows = [
+type ClientRow = {
+  id: string;
+  registered: string; // dd/MM/yyyy
+  acronym: string;
+  group: string;
+  name: string; // apelido / nome curto
+  razaoSocial: string;
+  fantasia: string;
+  segment: string; // ramo
+  size: string; // porte
+  version: string;
+  updated: string;
+  city: string; // "Cidade - UF"
+  uf: string;
+  cep: string;
+  cnpj: string;
+  status: "Ativo" | "Inativo";
+};
+
+const clientRows: ClientRow[] = [
   {
     id: "avc",
     registered: "06/05/2026",
     acronym: "AVC",
     group: "ASC",
-    name: "CENTER GLASS ACESSORIOS AUTOMOBILISTICOS LTDA",
+    name: "CENTER GLASS",
+    razaoSocial: "CENTER GLASS ACESSORIOS AUTOMOBILISTICOS LTDA",
+    fantasia: "CENTER GLASS CATANDUVA",
     segment: "Comercio",
     size: "Pequeno",
     version: "2.0",
     updated: "15/06/2026 09:58",
     city: "Catanduva - SP",
+    uf: "SP",
+    cep: "15805-254",
     cnpj: "66.613.387/0001-60",
     status: "Ativo",
   },
@@ -47,12 +77,16 @@ const clientRows = [
     registered: "12/03/2019",
     acronym: "MIT",
     group: "",
-    name: "MINERACAO ITAPORANGA LTDA",
+    name: "MINERACAO ITAPORANGA",
+    razaoSocial: "MINERACAO ITAPORANGA LTDA",
+    fantasia: "MIT MINERADORA",
     segment: "Industria",
     size: "Medio",
     version: "2.0",
     updated: "08/07/2026 08:24",
     city: "Curitiba - PR",
+    uf: "PR",
+    cep: "80010-010",
     cnpj: "18.447.221/0001-40",
     status: "Ativo",
   },
@@ -61,12 +95,16 @@ const clientRows = [
     registered: "18/09/2020",
     acronym: "MRG",
     group: "",
-    name: "MERCEARIA E SACOLAO GOMES",
+    name: "MERCEARIA GOMES",
+    razaoSocial: "MERCEARIA E SACOLAO GOMES",
+    fantasia: "SACOLAO GOMES",
     segment: "Comercio",
     size: "Pequeno",
     version: "2.0",
     updated: "08/07/2026 08:17",
     city: "Belo Horizonte - MG",
+    uf: "MG",
+    cep: "30130-010",
     cnpj: "31.095.640/0001-12",
     status: "Ativo",
   },
@@ -76,15 +114,23 @@ const clientRows = [
     acronym: "EPB",
     group: "",
     name: "EPAPER BOX",
+    razaoSocial: "EPAPER BOX EMBALAGENS LTDA",
+    fantasia: "EPAPER BOX",
     segment: "Industria",
     size: "Medio",
     version: "2.0",
     updated: "08/07/2026 08:40",
     city: "Sao Paulo - SP",
+    uf: "SP",
+    cep: "01310-100",
     cnpj: "47.510.982/0001-73",
     status: "Ativo",
   },
 ];
+
+const sizes = Array.from(new Set(clientRows.map((c) => c.size)));
+const segments = Array.from(new Set(clientRows.map((c) => c.segment)));
+const ufs = Array.from(new Set(clientRows.map((c) => c.uf))).sort();
 
 const modules = [
   "Faturamento",
@@ -113,20 +159,187 @@ const terminals = [
   ["01", "177.21.58.91", "P:/PROGEST/", "11/05/2026", "26/05/2026 11:29"],
 ];
 
+type StatusFilter = "Todos" | "Ativo" | "Inativo";
+
+type Filters = {
+  sigla: string;
+  siglaGrupo: string;
+  nome: string;
+  razaoSocial: string;
+  fantasia: string;
+  porte: string; // "" = todos
+  ramo: string;
+  cep: string;
+  cidade: string;
+  uf: string;
+  cnpj: string;
+  status: StatusFilter;
+  dateStart?: Date;
+  dateEnd?: Date;
+};
+
+const emptyFilters: Filters = {
+  sigla: "",
+  siglaGrupo: "",
+  nome: "",
+  razaoSocial: "",
+  fantasia: "",
+  porte: "",
+  ramo: "",
+  cep: "",
+  cidade: "",
+  uf: "",
+  cnpj: "",
+  status: "Todos",
+  dateStart: undefined,
+  dateEnd: undefined,
+};
+
+function normalize(v: string) {
+  return v
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+function digits(v: string) {
+  return v.replace(/\D+/g, "");
+}
+
+function parseBRDate(s: string): Date {
+  const [d, m, y] = s.split("/").map(Number);
+  return new Date(y, (m ?? 1) - 1, d ?? 1);
+}
+
+function countActive(f: Filters): number {
+  let n = 0;
+  if (f.sigla.trim()) n++;
+  if (f.siglaGrupo.trim()) n++;
+  if (f.nome.trim()) n++;
+  if (f.razaoSocial.trim()) n++;
+  if (f.fantasia.trim()) n++;
+  if (f.porte) n++;
+  if (f.ramo) n++;
+  if (f.cep.trim()) n++;
+  if (f.cidade.trim()) n++;
+  if (f.uf) n++;
+  if (f.cnpj.trim()) n++;
+  if (f.status !== "Todos") n++;
+  if (f.dateStart || f.dateEnd) n++;
+  return n;
+}
+
 function ClientsPage() {
-  const [query, setQuery] = useState("");
-  const [status, setStatus] = useState("Todos");
-  const [selected, setSelected] = useState<(typeof clientRows)[number] | null>(null);
-  const filtered = useMemo(
-    () =>
-      clientRows.filter((client) => {
-        const text = `${client.acronym} ${client.name} ${client.cnpj} ${client.city}`.toLowerCase();
-        return (
-          text.includes(query.toLowerCase()) && (status === "Todos" || client.status === status)
-        );
-      }),
-    [query, status],
-  );
+  const [filters, setFilters] = useState<Filters>(emptyFilters);
+  const [draft, setDraft] = useState<Filters>(emptyFilters);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [selected, setSelected] = useState<ClientRow | null>(null);
+
+  useEffect(() => {
+    if (filtersOpen) setDraft(filters);
+  }, [filtersOpen, filters]);
+
+  const filtered = useMemo(() => {
+    return clientRows.filter((c) => {
+      if (filters.sigla && !normalize(c.acronym).includes(normalize(filters.sigla))) return false;
+      if (filters.siglaGrupo && !normalize(c.group).includes(normalize(filters.siglaGrupo)))
+        return false;
+      if (filters.nome && !normalize(c.name).includes(normalize(filters.nome))) return false;
+      if (
+        filters.razaoSocial &&
+        !normalize(c.razaoSocial).includes(normalize(filters.razaoSocial))
+      )
+        return false;
+      if (filters.fantasia && !normalize(c.fantasia).includes(normalize(filters.fantasia)))
+        return false;
+      if (filters.porte && c.size !== filters.porte) return false;
+      if (filters.ramo && c.segment !== filters.ramo) return false;
+      if (filters.cep && !digits(c.cep).includes(digits(filters.cep))) return false;
+      if (filters.cidade && !normalize(c.city).includes(normalize(filters.cidade))) return false;
+      if (filters.uf && c.uf !== filters.uf) return false;
+      if (filters.cnpj && !digits(c.cnpj).includes(digits(filters.cnpj))) return false;
+      if (filters.status !== "Todos" && c.status !== filters.status) return false;
+      if (filters.dateStart || filters.dateEnd) {
+        const d = parseBRDate(c.registered);
+        const day = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+        if (filters.dateStart) {
+          const s = filters.dateStart;
+          const start = new Date(s.getFullYear(), s.getMonth(), s.getDate()).getTime();
+          if (day < start) return false;
+        }
+        if (filters.dateEnd) {
+          const e = filters.dateEnd;
+          const end = new Date(e.getFullYear(), e.getMonth(), e.getDate()).getTime();
+          if (day > end) return false;
+        }
+      }
+      return true;
+    });
+  }, [filters]);
+
+  const activeCount = countActive(filters);
+
+  const removeChip = (key: keyof Filters) => {
+    setFilters((p) => ({
+      ...p,
+      [key]:
+        key === "status" ? "Todos" : key === "dateStart" || key === "dateEnd" ? undefined : "",
+    }));
+  };
+
+  const clearDates = () =>
+    setFilters((p) => ({ ...p, dateStart: undefined, dateEnd: undefined }));
+
+  const chips: Array<{ key: string; label: string; onRemove: () => void }> = [];
+  if (filters.sigla)
+    chips.push({ key: "sigla", label: `Sigla: ${filters.sigla}`, onRemove: () => removeChip("sigla") });
+  if (filters.siglaGrupo)
+    chips.push({
+      key: "siglaGrupo",
+      label: `Grupo: ${filters.siglaGrupo}`,
+      onRemove: () => removeChip("siglaGrupo"),
+    });
+  if (filters.nome)
+    chips.push({ key: "nome", label: `Nome: ${filters.nome}`, onRemove: () => removeChip("nome") });
+  if (filters.razaoSocial)
+    chips.push({
+      key: "razaoSocial",
+      label: `Razão social: ${filters.razaoSocial}`,
+      onRemove: () => removeChip("razaoSocial"),
+    });
+  if (filters.fantasia)
+    chips.push({
+      key: "fantasia",
+      label: `Fantasia: ${filters.fantasia}`,
+      onRemove: () => removeChip("fantasia"),
+    });
+  if (filters.porte)
+    chips.push({ key: "porte", label: `Porte: ${filters.porte}`, onRemove: () => removeChip("porte") });
+  if (filters.ramo)
+    chips.push({ key: "ramo", label: `Ramo: ${filters.ramo}`, onRemove: () => removeChip("ramo") });
+  if (filters.cep)
+    chips.push({ key: "cep", label: `CEP: ${filters.cep}`, onRemove: () => removeChip("cep") });
+  if (filters.cidade)
+    chips.push({
+      key: "cidade",
+      label: `Cidade: ${filters.cidade}`,
+      onRemove: () => removeChip("cidade"),
+    });
+  if (filters.uf) chips.push({ key: "uf", label: `UF: ${filters.uf}`, onRemove: () => removeChip("uf") });
+  if (filters.cnpj)
+    chips.push({ key: "cnpj", label: `CNPJ: ${filters.cnpj}`, onRemove: () => removeChip("cnpj") });
+  if (filters.status !== "Todos")
+    chips.push({
+      key: "status",
+      label: `Status: ${filters.status}`,
+      onRemove: () => removeChip("status"),
+    });
+  if (filters.dateStart || filters.dateEnd) {
+    const s = filters.dateStart ? format(filters.dateStart, "dd/MM/yyyy") : "…";
+    const e = filters.dateEnd ? format(filters.dateEnd, "dd/MM/yyyy") : "…";
+    chips.push({ key: "date", label: `Cadastro: ${s} – ${e}`, onRemove: clearDates });
+  }
 
   return (
     <AppShell>
@@ -135,28 +348,51 @@ function ClientsPage() {
         description="Cadastro, ambiente e relacionamento dos clientes."
         breadcrumbs={[{ label: "Clientes" }]}
       />
-      <Card className="mb-4 p-4">
-        <div className="grid gap-3 md:grid-cols-[minmax(260px,1fr)_220px]">
-          <label className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Buscar por sigla, nome, CNPJ ou cidade..."
-              className="h-10 w-full rounded-md border border-border bg-background pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-primary/30"
-            />
-          </label>
-          <select
-            value={status}
-            onChange={(event) => setStatus(event.target.value)}
-            className="h-10 rounded-md border border-border bg-background px-3 text-sm"
+
+      <div className="mb-4 flex justify-end">
+        <Button
+          type="button"
+          onClick={() => setFiltersOpen(true)}
+          className="h-10 cursor-pointer gap-2 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white shadow-md hover:bg-blue-700"
+        >
+          <Filter className="h-4 w-4" />
+          Filtros
+          {activeCount > 0 && (
+            <span className="ml-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-white/25 px-1.5 text-[11px] font-semibold">
+              {activeCount}
+            </span>
+          )}
+        </Button>
+      </div>
+
+      {chips.length > 0 && (
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          {chips.map((chip) => (
+            <span
+              key={chip.key}
+              className="inline-flex max-w-full items-center gap-1.5 whitespace-nowrap rounded-full border border-border bg-muted/50 px-3 py-1 text-xs text-foreground"
+            >
+              <span className="truncate">{chip.label}</span>
+              <button
+                type="button"
+                onClick={chip.onRemove}
+                aria-label={`Remover filtro ${chip.label}`}
+                className="grid h-4 w-4 shrink-0 cursor-pointer place-items-center rounded-full text-muted-foreground hover:bg-background hover:text-foreground"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          ))}
+          <button
+            type="button"
+            onClick={() => setFilters(emptyFilters)}
+            className="cursor-pointer text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
           >
-            <option>Todos</option>
-            <option>Ativo</option>
-            <option>Inativo</option>
-          </select>
+            Limpar todos
+          </button>
         </div>
-      </Card>
+      )}
+
       <Card className="overflow-hidden p-0">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[1050px] text-sm">
@@ -172,7 +408,7 @@ function ClientsPage() {
                   "Status",
                   "",
                 ].map((label) => (
-                  <th key={label} className="px-4 py-3 text-left font-medium">
+                  <th key={label} className="whitespace-nowrap px-4 py-3 text-left font-medium">
                     {label}
                   </th>
                 ))}
@@ -185,27 +421,37 @@ function ClientsPage() {
                   onClick={() => setSelected(client)}
                   className="cursor-pointer transition-colors hover:bg-primary/[0.04]"
                 >
-                  <td className="px-4 py-4 text-muted-foreground">{client.registered}</td>
-                  <td className="px-4 py-4">
+                  <td className="whitespace-nowrap px-4 py-4 text-muted-foreground">
+                    {client.registered}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-4">
                     <div className="font-medium text-primary">{client.acronym}</div>
                     <div className="text-xs text-muted-foreground">
                       {client.group || "Sem grupo"}
                     </div>
                   </td>
                   <td className="max-w-[340px] px-4 py-4">
-                    <div className="truncate font-medium">{client.name}</div>
-                    <div className="text-xs text-muted-foreground">
+                    <div className="truncate font-medium">{client.razaoSocial}</div>
+                    <div className="truncate text-xs text-muted-foreground">
                       {client.segment} · {client.size}
                     </div>
                   </td>
-                  <td className="px-4 py-4">
+                  <td className="whitespace-nowrap px-4 py-4">
                     <div>{client.version}</div>
                     <div className="text-xs text-muted-foreground">{client.updated}</div>
                   </td>
-                  <td className="px-4 py-4">{client.city}</td>
-                  <td className="px-4 py-4 text-muted-foreground">{client.cnpj}</td>
-                  <td className="px-4 py-4">
-                    <Badge className="bg-emerald-500/12 text-emerald-600 dark:text-emerald-400">
+                  <td className="whitespace-nowrap px-4 py-4">{client.city}</td>
+                  <td className="whitespace-nowrap px-4 py-4 text-muted-foreground">
+                    {client.cnpj}
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-4">
+                    <Badge
+                      className={cn(
+                        client.status === "Ativo"
+                          ? "bg-emerald-500/12 text-emerald-600 dark:text-emerald-400"
+                          : "bg-slate-500/15 text-slate-600 dark:text-slate-300",
+                      )}
+                    >
                       {client.status}
                     </Badge>
                   </td>
@@ -214,12 +460,334 @@ function ClientsPage() {
                   </td>
                 </tr>
               ))}
+              {filtered.length === 0 && (
+                <tr>
+                  <td colSpan={8} className="px-4 py-10 text-center text-sm text-muted-foreground">
+                    Nenhum cliente encontrado com os filtros atuais.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
       </Card>
+
+      <FiltersPanel
+        open={filtersOpen}
+        onOpenChange={setFiltersOpen}
+        draft={draft}
+        setDraft={setDraft}
+        onApply={() => {
+          setFilters(draft);
+          setFiltersOpen(false);
+        }}
+        onClear={() => setDraft(emptyFilters)}
+      />
+
       <ClientDetail client={selected} onOpenChange={(open) => !open && setSelected(null)} />
     </AppShell>
+  );
+}
+
+function FiltersPanel({
+  open,
+  onOpenChange,
+  draft,
+  setDraft,
+  onApply,
+  onClear,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  draft: Filters;
+  setDraft: React.Dispatch<React.SetStateAction<Filters>>;
+  onApply: () => void;
+  onClear: () => void;
+}) {
+  const update = <K extends keyof Filters>(k: K, v: Filters[K]) =>
+    setDraft((p) => ({ ...p, [k]: v }));
+
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-[480px]">
+        <SheetHeader className="border-b border-border px-6 py-4">
+          <SheetTitle className="text-lg font-semibold">Filtros de clientes</SheetTitle>
+        </SheetHeader>
+        <div className="flex-1 overflow-y-auto px-6 py-5">
+          <div className="space-y-5">
+            <div className="grid grid-cols-2 gap-3">
+              <FieldText
+                label="Sigla"
+                value={draft.sigla}
+                onChange={(v) => update("sigla", v.toUpperCase())}
+                placeholder="Ex.: AVC"
+                uppercase
+              />
+              <FieldText
+                label="Sigla do grupo"
+                value={draft.siglaGrupo}
+                onChange={(v) => update("siglaGrupo", v.toUpperCase())}
+                placeholder="Ex.: ASC"
+                uppercase
+              />
+            </div>
+
+            <FieldText
+              label="Nome (apelido)"
+              value={draft.nome}
+              onChange={(v) => update("nome", v)}
+              placeholder="Nome curto"
+            />
+            <FieldText
+              label="Razão social"
+              value={draft.razaoSocial}
+              onChange={(v) => update("razaoSocial", v)}
+              placeholder="Razão social completa"
+            />
+            <FieldText
+              label="Nome fantasia"
+              value={draft.fantasia}
+              onChange={(v) => update("fantasia", v)}
+              placeholder="Nome fantasia"
+            />
+
+            <div className="grid grid-cols-2 gap-3">
+              <FieldSelect
+                label="Porte"
+                value={draft.porte}
+                onChange={(v) => update("porte", v)}
+                options={[{ value: "", label: "Todos" }, ...sizes.map((s) => ({ value: s, label: s }))]}
+              />
+              <FieldSelect
+                label="Ramo"
+                value={draft.ramo}
+                onChange={(v) => update("ramo", v)}
+                options={[{ value: "", label: "Todos" }, ...segments.map((s) => ({ value: s, label: s }))]}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <FieldText
+                label="CEP"
+                value={draft.cep}
+                onChange={(v) => update("cep", v)}
+                placeholder="00000-000"
+              />
+              <FieldSelect
+                label="UF"
+                value={draft.uf}
+                onChange={(v) => update("uf", v)}
+                options={[{ value: "", label: "Todas" }, ...ufs.map((u) => ({ value: u, label: u }))]}
+              />
+            </div>
+
+            <FieldText
+              label="Cidade"
+              value={draft.cidade}
+              onChange={(v) => update("cidade", v)}
+              placeholder="Cidade"
+            />
+
+            <FieldText
+              label="CNPJ"
+              value={draft.cnpj}
+              onChange={(v) => update("cnpj", v)}
+              placeholder="Com ou sem pontuação"
+            />
+
+            <div className="space-y-2">
+              <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                Status
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                {(["Todos", "Ativo", "Inativo"] as StatusFilter[]).map((s) => {
+                  const active = draft.status === s;
+                  return (
+                    <label
+                      key={s}
+                      className={cn(
+                        "flex cursor-pointer items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm transition",
+                        active
+                          ? "border-primary bg-primary/5 text-foreground"
+                          : "border-border bg-background text-muted-foreground hover:text-foreground",
+                      )}
+                    >
+                      <input
+                        type="radio"
+                        name="client-status"
+                        className="h-4 w-4 cursor-pointer accent-primary"
+                        checked={active}
+                        onChange={() => update("status", s)}
+                      />
+                      <span>{s}</span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                Período de cadastro
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <DateField
+                  label="Data inicial"
+                  value={draft.dateStart}
+                  onChange={(d) => update("dateStart", d)}
+                />
+                <DateField
+                  label="Data final"
+                  value={draft.dateEnd}
+                  onChange={(d) => update("dateEnd", d)}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center justify-between gap-3 border-t border-border bg-background px-6 py-4">
+          <Button
+            type="button"
+            variant="ghost"
+            className="h-10 cursor-pointer rounded-lg text-sm"
+            onClick={onClear}
+          >
+            <SlidersHorizontal className="mr-1.5 h-4 w-4" />
+            Limpar filtros
+          </Button>
+          <Button
+            type="button"
+            onClick={onApply}
+            className="h-10 cursor-pointer rounded-lg bg-blue-600 px-5 text-sm font-medium text-white hover:bg-blue-700"
+          >
+            Aplicar filtros
+          </Button>
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+function FieldText({
+  label,
+  value,
+  onChange,
+  placeholder,
+  uppercase,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  uppercase?: boolean;
+}) {
+  return (
+    <div className="space-y-2">
+      <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+        {label}
+      </p>
+      <input
+        type="text"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className={cn(
+          "h-10 w-full rounded-lg border border-border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring",
+          uppercase && "uppercase",
+        )}
+      />
+    </div>
+  );
+}
+
+function FieldSelect({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: { value: string; label: string }[];
+}) {
+  return (
+    <div className="space-y-2">
+      <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+        {label}
+      </p>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="h-10 w-full cursor-pointer rounded-lg border border-border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+      >
+        {options.map((opt) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+function DateField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value?: Date;
+  onChange: (d?: Date) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="space-y-2">
+      <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+        {label}
+      </p>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            className={cn(
+              "inline-flex h-10 w-full cursor-pointer items-center gap-2 truncate rounded-lg border border-border bg-background px-3 text-sm outline-none transition focus:ring-2 focus:ring-ring",
+              !value && "text-muted-foreground",
+            )}
+          >
+            <CalendarDays className="h-4 w-4 shrink-0 opacity-70" />
+            <span className="truncate">{value ? format(value, "dd/MM/yyyy") : "dd/mm/aaaa"}</span>
+          </button>
+        </PopoverTrigger>
+        <PopoverContent align="start" className="w-auto p-0">
+          <Calendar
+            mode="single"
+            selected={value}
+            onSelect={(d) => {
+              onChange(d);
+              setOpen(false);
+            }}
+            locale={ptBR}
+            initialFocus
+            className={cn("pointer-events-auto p-3")}
+          />
+          <div className="flex items-center justify-end border-t border-border px-3 py-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-8 cursor-pointer"
+              onClick={() => {
+                onChange(undefined);
+                setOpen(false);
+              }}
+            >
+              Limpar
+            </Button>
+          </div>
+        </PopoverContent>
+      </Popover>
+    </div>
   );
 }
 
@@ -227,7 +795,7 @@ function ClientDetail({
   client,
   onOpenChange,
 }: {
-  client: (typeof clientRows)[number] | null;
+  client: ClientRow | null;
   onOpenChange: (open: boolean) => void;
 }) {
   const isAvc = client?.id === "avc";
@@ -254,9 +822,9 @@ function ClientDetail({
                       </Badge>
                     </div>
                     <h2 className="mt-1 truncate text-xl font-medium">
-                      {client.name} {client.group && `(${client.group})`}
+                      {client.razaoSocial} {client.group && `(${client.group})`}
                     </h2>
-                    <p className="text-sm text-muted-foreground">{client.name}</p>
+                    <p className="text-sm text-muted-foreground">{client.fantasia}</p>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm lg:grid-cols-4">
