@@ -551,7 +551,7 @@ function NewTicketPage() {
                   <div
                     role="radiogroup"
                     aria-label="Prioridade"
-                    className="grid grid-cols-3 gap-1.5 rounded-xl border border-border bg-muted/30 p-1"
+                    className="grid grid-cols-3 gap-2"
                   >
                     {priorityOptions.map((opt) => {
                       const active = form.priority === opt.value;
@@ -566,18 +566,33 @@ function NewTicketPage() {
                             setForm((prev) => ({ ...prev, priority: opt.value }))
                           }
                           className={cn(
-                            "flex h-9 w-full items-center justify-center gap-1.5 rounded-lg border text-xs font-medium transition cursor-pointer",
+                            "relative flex h-11 w-full items-center justify-center gap-2 rounded-xl border text-xs font-medium transition cursor-pointer",
                             "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background",
-                            active
-                              ? opt.activeClass
-                              : "border-transparent bg-card text-muted-foreground hover:text-foreground",
+                            opt.baseClass,
+                            active && opt.activeClass,
                           )}
                         >
-                          <Icon
-                            className={cn("h-3.5 w-3.5", active ? opt.iconClass : "")}
-                            strokeWidth={active ? 2.5 : 2}
-                          />
-                          <span>{opt.label}</span>
+                          <span
+                            className={cn(
+                              "grid h-5 w-5 shrink-0 place-items-center rounded-full",
+                              opt.iconWrapClass,
+                            )}
+                          >
+                            <Icon className="h-3 w-3" strokeWidth={3} />
+                          </span>
+                          <span className={cn("font-medium", opt.textClass)}>
+                            {opt.label}
+                          </span>
+                          {active && (
+                            <Check
+                              className={cn(
+                                "absolute right-1.5 top-1.5 h-3 w-3",
+                                opt.textClass,
+                              )}
+                              strokeWidth={3}
+                              aria-hidden
+                            />
+                          )}
                         </button>
                       );
                     })}
