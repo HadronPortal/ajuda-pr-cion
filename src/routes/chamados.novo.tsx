@@ -478,8 +478,7 @@ function NewTicketPage() {
                   <SelectContent>
                     {operators.map((op) => (
                       <SelectItem key={op.code} value={op.code}>
-                        <span className="font-mono text-xs mr-2">{op.code}</span>
-                        {op.name}
+                        <span className="font-mono text-xs">{op.code}</span>
                       </SelectItem>
                     ))}
                   </SelectContent>
