@@ -108,6 +108,7 @@ function CalendarPage() {
   const [selectedDate, setSelectedDate] = useState("2026-07-17");
   const [events, setEvents] = useState(initialEvents);
   const [createOpen, setCreateOpen] = useState(false);
+  const [agendaOpen, setAgendaOpen] = useState(false);
 
   const [filters, setFilters] = useState<Filters>(emptyFilters);
   const [filtersOpen, setFiltersOpen] = useState(false);
