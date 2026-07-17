@@ -924,7 +924,7 @@ export function ClientTab() {
           </div>
         </Section>
       </div>
-      <Section title="Historico de suporte" icon={HardDrive}>
+      <Section title="Historico de suporte" icon={HardDrive} titleClassName="text-[16px] font-normal">
         <SupportRows />
       </Section>
     </>
