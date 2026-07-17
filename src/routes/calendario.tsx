@@ -108,6 +108,7 @@ function CalendarPage() {
   const [selectedDate, setSelectedDate] = useState("2026-07-17");
   const [events, setEvents] = useState(initialEvents);
   const [createOpen, setCreateOpen] = useState(false);
+  const [agendaOpen, setAgendaOpen] = useState(false);
 
   const [filters, setFilters] = useState<Filters>(emptyFilters);
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -206,6 +207,15 @@ function CalendarPage() {
           <div className="flex items-center gap-2">
             <Button
               type="button"
+              variant="outline"
+              onClick={() => setAgendaOpen(true)}
+              className="h-10 cursor-pointer gap-2 rounded-lg px-4 text-sm font-medium"
+            >
+              <CalendarDays className="h-4 w-4" />
+              Agenda
+            </Button>
+            <Button
+              type="button"
               onClick={() => setFiltersOpen(true)}
               className="h-10 cursor-pointer gap-2 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white shadow-md hover:bg-blue-700"
             >
@@ -253,113 +263,121 @@ function CalendarPage() {
         </div>
       )}
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
-        <Card className="overflow-hidden p-0">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4">
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="icon" onClick={() => moveMonth(-1)} className="cursor-pointer">
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <Button variant="outline" size="icon" onClick={() => moveMonth(1)} className="cursor-pointer">
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-            <h2 className="capitalize text-lg font-medium">{monthTitle}</h2>
-            <div className="flex flex-wrap gap-3">
-              {Object.entries(typeStyles).map(([name, style]) => (
-                <span key={name} className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <span className={cn("h-2 w-2 rounded-full", style.dot)} />
-                  {name}
-                </span>
-              ))}
-            </div>
+      <Card className="overflow-hidden p-0">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4">
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="icon" onClick={() => moveMonth(-1)} className="cursor-pointer">
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" size="icon" onClick={() => moveMonth(1)} className="cursor-pointer">
+              <ChevronRight className="h-4 w-4" />
+            </Button>
           </div>
-          <div className="grid grid-cols-7 border-b border-border bg-muted/20">
-            {["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].map((day) => (
-              <div key={day} className="px-2 py-2.5 text-center text-xs font-medium text-muted-foreground">
-                {day}
-              </div>
+          <h2 className="capitalize text-lg font-medium">{monthTitle}</h2>
+          <div className="flex flex-wrap gap-3">
+            {Object.entries(typeStyles).map(([name, style]) => (
+              <span key={name} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <span className={cn("h-2 w-2 rounded-full", style.dot)} />
+                {name}
+              </span>
             ))}
           </div>
-          <div className="grid grid-cols-7">
-            {cells.map((cell) => {
-              const dayEvents = filtered
-                .filter((event) => event.date === cell.key)
-                .sort((a, b) => a.time.localeCompare(b.time));
-              const selected = selectedDate === cell.key;
-              const today = cell.key === "2026-07-17";
-              return (
-                <button
-                  type="button"
-                  key={cell.key}
-                  onClick={() => setSelectedDate(cell.key)}
+        </div>
+        <div className="grid grid-cols-7 border-b border-border bg-muted/20">
+          {["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].map((day) => (
+            <div key={day} className="px-2 py-2.5 text-center text-xs font-medium text-muted-foreground">
+              {day}
+            </div>
+          ))}
+        </div>
+        <div className="grid grid-cols-7">
+          {cells.map((cell) => {
+            const dayEvents = filtered
+              .filter((event) => event.date === cell.key)
+              .sort((a, b) => a.time.localeCompare(b.time));
+            const selected = selectedDate === cell.key;
+            const today = cell.key === "2026-07-17";
+            return (
+              <button
+                type="button"
+                key={cell.key}
+                onClick={() => {
+                  setSelectedDate(cell.key);
+                  setAgendaOpen(true);
+                }}
+                className={cn(
+                  "group min-h-[118px] cursor-pointer border-b border-r border-border p-2 text-left align-top transition-colors hover:bg-primary/[0.035]",
+                  !cell.current && "bg-muted/15 text-muted-foreground/45",
+                  selected && "bg-primary/[0.06] ring-1 ring-inset ring-primary/25",
+                )}
+              >
+                <span
                   className={cn(
-                    "group min-h-[118px] cursor-pointer border-b border-r border-border p-2 text-left align-top transition-colors hover:bg-primary/[0.035]",
-                    !cell.current && "bg-muted/15 text-muted-foreground/45",
-                    selected && "bg-primary/[0.06] ring-1 ring-inset ring-primary/25",
+                    "mb-1.5 grid h-7 w-7 place-items-center rounded-full text-xs",
+                    today && "bg-primary text-primary-foreground",
+                    selected && !today && "bg-primary/10 text-primary",
                   )}
                 >
-                  <span
-                    className={cn(
-                      "mb-1.5 grid h-7 w-7 place-items-center rounded-full text-xs",
-                      today && "bg-primary text-primary-foreground",
-                      selected && !today && "bg-primary/10 text-primary",
-                    )}
-                  >
-                    {cell.day}
-                  </span>
-                  <div className="space-y-1">
-                    {dayEvents.slice(0, 3).map((event) => (
-                      <CalendarEventPill key={event.id} event={event} />
-                    ))}
-                    {dayEvents.length > 3 && (
-                      <span className="block pl-1 text-[10px] text-primary">
-                        +{dayEvents.length - 3} eventos
-                      </span>
-                    )}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </Card>
-
-        <aside className="space-y-4">
-          <Card className="p-5">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-xs uppercase text-muted-foreground">Agenda do dia</p>
-                <h2 className="mt-1 text-lg font-medium">
-                  {new Intl.DateTimeFormat("pt-BR", { weekday: "long", day: "2-digit", month: "long" }).format(new Date(`${selectedDate}T12:00:00`))}
-                </h2>
-              </div>
-              <Badge variant="secondary">{selectedEvents.length}</Badge>
-            </div>
-            <div className="mt-5 space-y-3">
-              {selectedEvents.length ? (
-                selectedEvents.map((event) => <AgendaItem key={event.id} event={event} />)
-              ) : (
-                <div className="rounded-md border border-dashed border-border px-4 py-10 text-center">
-                  <CalendarDays className="mx-auto h-8 w-8 text-muted-foreground/45" />
-                  <p className="mt-3 text-sm text-muted-foreground">Nenhum compromisso neste dia.</p>
-                  <Button variant="link" onClick={() => setCreateOpen(true)} className="mt-1 cursor-pointer">
-                    Adicionar evento
-                  </Button>
+                  {cell.day}
+                </span>
+                <div className="space-y-1">
+                  {dayEvents.slice(0, 3).map((event) => (
+                    <CalendarEventPill key={event.id} event={event} />
+                  ))}
+                  {dayEvents.length > 3 && (
+                    <span className="block pl-1 text-[10px] text-primary">
+                      +{dayEvents.length - 3} eventos
+                    </span>
+                  )}
                 </div>
-              )}
-            </div>
-          </Card>
-          <Card className="p-5">
-            <p className="text-xs uppercase text-muted-foreground">Resumo do mês</p>
-            <div className="mt-4 grid grid-cols-2 gap-3">
-              <Metric value={filtered.filter((e) => e.type === "Visita").length} label="Visitas" color="text-emerald-500" />
-              <Metric value={filtered.filter((e) => e.type.includes("Reunião")).length} label="Reuniões" color="text-sky-500" />
-              <Metric value={new Set(filtered.map((e) => e.operator)).size} label="Operadores" color="text-violet-500" />
-              <Metric value={filtered.filter((e) => e.type === "Pessoal").length} label="Pessoais" color="text-amber-500" />
-            </div>
-          </Card>
-        </aside>
-      </div>
+              </button>
+            );
+          })}
+        </div>
+      </Card>
+
+      <Sheet open={agendaOpen} onOpenChange={setAgendaOpen}>
+        <SheetContent
+          side="right"
+          className="flex w-[90vw] flex-col gap-0 p-0 sm:max-w-[380px]"
+        >
+          <SheetHeader className="border-b border-border px-5 py-4">
+            <SheetTitle className="text-base font-medium">
+              {new Intl.DateTimeFormat("pt-BR", { weekday: "long", day: "2-digit", month: "long" }).format(new Date(`${selectedDate}T12:00:00`))}
+            </SheetTitle>
+          </SheetHeader>
+          <div className="flex-1 min-h-0 overflow-y-auto px-5 py-5 space-y-6">
+            <section>
+              <div className="mb-3 flex items-center justify-between">
+                <p className="text-xs uppercase text-muted-foreground">Agenda do dia</p>
+                <Badge variant="secondary">{selectedEvents.length}</Badge>
+              </div>
+              <div className="space-y-3">
+                {selectedEvents.length ? (
+                  selectedEvents.map((event) => <AgendaItem key={event.id} event={event} />)
+                ) : (
+                  <div className="rounded-md border border-dashed border-border px-4 py-10 text-center">
+                    <CalendarDays className="mx-auto h-8 w-8 text-muted-foreground/45" />
+                    <p className="mt-3 text-sm text-muted-foreground">Nenhum compromisso neste dia.</p>
+                    <Button variant="link" onClick={() => setCreateOpen(true)} className="mt-1 cursor-pointer">
+                      Adicionar evento
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </section>
+            <section>
+              <p className="mb-3 text-xs uppercase text-muted-foreground">Resumo do mês</p>
+              <div className="grid grid-cols-2 gap-3">
+                <Metric value={filtered.filter((e) => e.type === "Visita").length} label="Visitas" color="text-emerald-500" />
+                <Metric value={filtered.filter((e) => e.type.includes("Reunião")).length} label="Reuniões" color="text-sky-500" />
+                <Metric value={new Set(filtered.map((e) => e.operator)).size} label="Operadores" color="text-violet-500" />
+                <Metric value={filtered.filter((e) => e.type === "Pessoal").length} label="Pessoais" color="text-amber-500" />
+              </div>
+            </section>
+          </div>
+        </SheetContent>
+      </Sheet>
 
       <CreateEventDialog
         open={createOpen}
@@ -383,6 +401,7 @@ function CalendarPage() {
         }}
         onClear={() => setDraft(emptyFilters)}
       />
+
     </AppShell>
   );
 }
@@ -603,7 +622,7 @@ function CalendarEventPill({ event }: { event: CalendarEvent }) {
     <span
       title={`${event.type} · ${fullText}`}
       className={cn(
-        "flex items-center gap-1.5 overflow-hidden rounded px-1.5 py-1 text-[10px] text-white",
+        "flex items-center gap-2 overflow-hidden rounded px-2 py-1 text-[10px] text-white",
         style.dot,
       )}
     >
