@@ -4,6 +4,7 @@ import {
   ArrowLeft,
   ArrowUp,
   Building2,
+  Check,
   ChevronDown,
   FileText,
   Info,
@@ -175,32 +176,43 @@ const priorityOptions: {
   value: TicketPriority;
   label: string;
   icon: typeof ArrowUp;
+  baseClass: string;
   activeClass: string;
-  iconClass: string;
+  iconWrapClass: string;
+  textClass: string;
 }[] = [
   {
     value: "Baixa",
     label: "Baixa",
     icon: ChevronDown,
+    baseClass:
+      "border-success/25 bg-success/10 dark:bg-success/15",
     activeClass:
-      "border-success/40 bg-success/10 text-success ring-1 ring-success/30",
-    iconClass: "text-success",
+      "border-success/70 ring-2 ring-success/40 shadow-sm bg-success/15 dark:bg-success/20",
+    iconWrapClass: "bg-success text-success-foreground",
+    textClass: "text-success",
   },
   {
     value: "Media",
     label: "Média",
     icon: Minus,
+    baseClass:
+      "border-warning/30 bg-warning/12 dark:bg-warning/15",
     activeClass:
-      "border-warning/50 bg-warning/12 text-warning-foreground ring-1 ring-warning/30",
-    iconClass: "text-warning-foreground",
+      "border-warning/70 ring-2 ring-warning/40 shadow-sm bg-warning/20 dark:bg-warning/25",
+    iconWrapClass: "bg-warning text-warning-foreground",
+    textClass: "text-warning-foreground",
   },
   {
     value: "Alta",
     label: "Alta",
     icon: ArrowUp,
+    baseClass:
+      "border-destructive/25 bg-destructive/10 dark:bg-destructive/15",
     activeClass:
-      "border-destructive/40 bg-destructive/10 text-destructive ring-1 ring-destructive/30",
-    iconClass: "text-destructive",
+      "border-destructive/70 ring-2 ring-destructive/40 shadow-sm bg-destructive/15 dark:bg-destructive/20",
+    iconWrapClass: "bg-destructive text-destructive-foreground",
+    textClass: "text-destructive",
   },
 ];
 
@@ -473,7 +485,7 @@ function NewTicketPage() {
                   <SelectContent>
                     {operators.map((op) => (
                       <SelectItem key={op.code} value={op.code}>
-                        <span className="font-mono text-xs">{op.code}</span>
+                        {op.code}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -539,7 +551,7 @@ function NewTicketPage() {
                   <div
                     role="radiogroup"
                     aria-label="Prioridade"
-                    className="grid grid-cols-3 gap-1.5 rounded-xl border border-border bg-muted/30 p-1"
+                    className="grid grid-cols-3 gap-2"
                   >
                     {priorityOptions.map((opt) => {
                       const active = form.priority === opt.value;
@@ -554,18 +566,33 @@ function NewTicketPage() {
                             setForm((prev) => ({ ...prev, priority: opt.value }))
                           }
                           className={cn(
-                            "flex h-9 w-full items-center justify-center gap-1.5 rounded-lg border text-xs font-medium transition cursor-pointer",
+                            "relative flex h-11 w-full items-center justify-center gap-2 rounded-xl border text-xs font-medium transition cursor-pointer",
                             "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background",
-                            active
-                              ? opt.activeClass
-                              : "border-transparent bg-card text-muted-foreground hover:text-foreground",
+                            opt.baseClass,
+                            active && opt.activeClass,
                           )}
                         >
-                          <Icon
-                            className={cn("h-3.5 w-3.5", active ? opt.iconClass : "")}
-                            strokeWidth={active ? 2.5 : 2}
-                          />
-                          <span>{opt.label}</span>
+                          <span
+                            className={cn(
+                              "grid h-5 w-5 shrink-0 place-items-center rounded-full",
+                              opt.iconWrapClass,
+                            )}
+                          >
+                            <Icon className="h-3 w-3" strokeWidth={3} />
+                          </span>
+                          <span className={cn("font-medium", opt.textClass)}>
+                            {opt.label}
+                          </span>
+                          {active && (
+                            <Check
+                              className={cn(
+                                "absolute right-1.5 top-1.5 h-3 w-3",
+                                opt.textClass,
+                              )}
+                              strokeWidth={3}
+                              aria-hidden
+                            />
+                          )}
                         </button>
                       );
                     })}
