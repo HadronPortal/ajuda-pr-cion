@@ -56,7 +56,7 @@ const nav: NavItem[] = [
   { to: "/atualizacoes", label: "Atualizações", icon: UpdatesIcon },
   { to: "/versoes", label: "Versões", icon: VersionsIcon },
   { to: "/kanban", label: "Kanban", icon: KanbanIcon },
-  { to: "/kanban-dashboard", label: "Analytics", icon: AnalyticsIcon },
+  { to: "/analytics", label: "Analytics", icon: AnalyticsIcon },
   { to: "/clientes", label: "Clientes", icon: CustomersIcon },
   { to: "/minha-conta", label: "Minha Conta", icon: ProfileIcon },
 ];
