@@ -544,10 +544,11 @@ function NewTicketPage() {
                   <div
                     role="radiogroup"
                     aria-label="Prioridade"
-                    className="grid grid-cols-3 gap-2"
+                    className="grid grid-cols-3 gap-1.5 rounded-xl border border-border bg-muted/30 p-1"
                   >
                     {priorityOptions.map((opt) => {
                       const active = form.priority === opt.value;
+                      const Icon = opt.icon;
                       return (
                         <button
                           key={opt.value}
@@ -558,26 +559,18 @@ function NewTicketPage() {
                             setForm((prev) => ({ ...prev, priority: opt.value }))
                           }
                           className={cn(
-                            "flex flex-col items-center justify-center gap-1 rounded-xl border px-2 py-2.5 text-xs font-medium transition cursor-pointer",
+                            "flex h-9 w-full items-center justify-center gap-1.5 rounded-lg border text-xs font-medium transition cursor-pointer",
+                            "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background",
                             active
-                              ? cn(opt.bg, opt.text, "border-transparent ring-2", opt.ring)
-                              : "border-border bg-card text-muted-foreground hover:bg-accent",
+                              ? opt.activeClass
+                              : "border-transparent bg-card text-muted-foreground hover:text-foreground",
                           )}
                         >
-                          <span className="flex items-center gap-1.5">
-                            <span
-                              className={cn(
-                                "grid h-4 w-4 place-items-center rounded-full border-2",
-                                active
-                                  ? "border-current bg-current/10"
-                                  : "border-muted-foreground/40",
-                              )}
-                            >
-                              {active && <Check className="h-2.5 w-2.5" strokeWidth={4} />}
-                            </span>
-                            <span className={cn("h-2 w-2 rounded-full", opt.dot)} />
-                          </span>
-                          {opt.label}
+                          <Icon
+                            className={cn("h-3.5 w-3.5", active ? opt.iconClass : "")}
+                            strokeWidth={active ? 2.5 : 2}
+                          />
+                          <span>{opt.label}</span>
                         </button>
                       );
                     })}
