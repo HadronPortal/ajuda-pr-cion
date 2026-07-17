@@ -119,6 +119,20 @@ function ClientDetailPage() {
                   <Badge className="bg-emerald-500/12 text-emerald-600 dark:text-emerald-400">
                     {client.status}
                   </Badge>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setHistoryOpen(true);
+                    }}
+                    className="h-7 cursor-pointer gap-1.5 rounded-md px-2.5 text-[11.5px] font-medium"
+                  >
+                    <History className="h-3.5 w-3.5" />
+                    Histórico de chamados
+                  </Button>
                 </div>
                 <h2 className="mt-1 truncate text-xl font-medium">
                   {client.razaoSocial} {client.group && `(${client.group})`}
@@ -126,6 +140,7 @@ function ClientDetailPage() {
                 <p className="text-sm text-muted-foreground">{client.fantasia}</p>
               </div>
             </div>
+
             <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm lg:grid-cols-4">
               <Summary label="Atendimento" value="Sao Carlos" />
               <Summary label="Versao Hadron" value={isAvc ? "02/07/2026" : client.version} />
