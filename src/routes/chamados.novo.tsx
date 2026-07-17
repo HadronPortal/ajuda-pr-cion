@@ -176,32 +176,43 @@ const priorityOptions: {
   value: TicketPriority;
   label: string;
   icon: typeof ArrowUp;
+  baseClass: string;
   activeClass: string;
-  iconClass: string;
+  iconWrapClass: string;
+  textClass: string;
 }[] = [
   {
     value: "Baixa",
     label: "Baixa",
     icon: ChevronDown,
+    baseClass:
+      "border-success/25 bg-success/10 dark:bg-success/15",
     activeClass:
-      "border-success/40 bg-success/10 text-success ring-1 ring-success/30",
-    iconClass: "text-success",
+      "border-success/70 ring-2 ring-success/40 shadow-sm bg-success/15 dark:bg-success/20",
+    iconWrapClass: "bg-success text-success-foreground",
+    textClass: "text-success",
   },
   {
     value: "Media",
     label: "Média",
     icon: Minus,
+    baseClass:
+      "border-warning/30 bg-warning/12 dark:bg-warning/15",
     activeClass:
-      "border-warning/50 bg-warning/12 text-warning-foreground ring-1 ring-warning/30",
-    iconClass: "text-warning-foreground",
+      "border-warning/70 ring-2 ring-warning/40 shadow-sm bg-warning/20 dark:bg-warning/25",
+    iconWrapClass: "bg-warning text-warning-foreground",
+    textClass: "text-warning-foreground",
   },
   {
     value: "Alta",
     label: "Alta",
     icon: ArrowUp,
+    baseClass:
+      "border-destructive/25 bg-destructive/10 dark:bg-destructive/15",
     activeClass:
-      "border-destructive/40 bg-destructive/10 text-destructive ring-1 ring-destructive/30",
-    iconClass: "text-destructive",
+      "border-destructive/70 ring-2 ring-destructive/40 shadow-sm bg-destructive/15 dark:bg-destructive/20",
+    iconWrapClass: "bg-destructive text-destructive-foreground",
+    textClass: "text-destructive",
   },
 ];
 
