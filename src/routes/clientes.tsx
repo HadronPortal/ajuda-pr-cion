@@ -8,6 +8,7 @@ import {
   CircleUserRound,
   Database,
   Filter,
+  RefreshCw,
   HardDrive,
   Monitor,
   Phone,
@@ -45,7 +46,10 @@ type ClientRow = {
   segment: string; // ramo
   size: string; // porte
   version: string;
+  versionDate: string; // data da versão (release)
+  versionUpdatedAt: string; // data/hora em que a versão foi instalada no cliente
   updated: string;
+  updatedAt: string; // última alteração do cadastro no CRM
   city: string; // "Cidade - UF"
   uf: string;
   cep: string;
@@ -65,7 +69,10 @@ const clientRows: ClientRow[] = [
     segment: "Comercio",
     size: "Pequeno",
     version: "2.0",
+    versionDate: "02/07/2026",
+    versionUpdatedAt: "14/07/2026 09:02",
     updated: "15/06/2026 09:58",
+    updatedAt: "17/07/2026 10:17",
     city: "Catanduva - SP",
     uf: "SP",
     cep: "15805-254",
@@ -83,7 +90,10 @@ const clientRows: ClientRow[] = [
     segment: "Industria",
     size: "Medio",
     version: "2.0",
+    versionDate: "02/07/2026",
+    versionUpdatedAt: "10/07/2026 15:41",
     updated: "08/07/2026 08:24",
+    updatedAt: "16/07/2026 14:22",
     city: "Curitiba - PR",
     uf: "PR",
     cep: "80010-010",
@@ -100,8 +110,11 @@ const clientRows: ClientRow[] = [
     fantasia: "SACOLAO GOMES",
     segment: "Comercio",
     size: "Pequeno",
-    version: "2.0",
+    version: "1.9",
+    versionDate: "18/06/2026",
+    versionUpdatedAt: "25/06/2026 10:12",
     updated: "08/07/2026 08:17",
+    updatedAt: "15/07/2026 09:05",
     city: "Belo Horizonte - MG",
     uf: "MG",
     cep: "30130-010",
@@ -119,7 +132,10 @@ const clientRows: ClientRow[] = [
     segment: "Industria",
     size: "Medio",
     version: "2.0",
+    versionDate: "02/07/2026",
+    versionUpdatedAt: "09/07/2026 18:30",
     updated: "08/07/2026 08:40",
+    updatedAt: "17/07/2026 08:47",
     city: "Sao Paulo - SP",
     uf: "SP",
     cep: "01310-100",
@@ -437,23 +453,34 @@ function ClientsPage() {
                     </div>
                   </td>
                   <td className="whitespace-nowrap px-4 py-4">
-                    <div>{client.version}</div>
-                    <div className="text-xs text-muted-foreground">{client.updated}</div>
+                    <div>
+                      Versão: {client.version} ({client.versionDate})
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <span>{client.versionUpdatedAt}</span>
+                      <RefreshCw className="h-3 w-3" />
+                    </div>
                   </td>
                   <td className="whitespace-nowrap px-4 py-4">{client.city}</td>
                   <td className="whitespace-nowrap px-4 py-4 text-muted-foreground">
                     {client.cnpj}
                   </td>
                   <td className="whitespace-nowrap px-4 py-4">
-                    <Badge
-                      className={cn(
-                        client.status === "Ativo"
-                          ? "bg-emerald-500/12 text-emerald-600 dark:text-emerald-400"
-                          : "bg-slate-500/15 text-slate-600 dark:text-slate-300",
-                      )}
-                    >
-                      {client.status}
-                    </Badge>
+                    <div className="flex flex-col items-start gap-1">
+                      <Badge
+                        className={cn(
+                          client.status === "Ativo"
+                            ? "bg-emerald-500/12 text-emerald-600 dark:text-emerald-400"
+                            : "bg-slate-500/15 text-slate-600 dark:text-slate-300",
+                        )}
+                      >
+                        {client.status}
+                      </Badge>
+                      <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                        <RefreshCw className="h-3 w-3" />
+                        <span>{client.updatedAt}</span>
+                      </div>
+                    </div>
                   </td>
                   <td className="px-4 py-4">
                     <ChevronRight className="h-4 w-4 text-muted-foreground" />
