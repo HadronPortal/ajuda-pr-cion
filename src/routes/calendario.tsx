@@ -263,16 +263,6 @@ function CalendarPage() {
               <Button variant="outline" size="icon" onClick={() => moveMonth(1)} className="cursor-pointer">
                 <ChevronRight className="h-4 w-4" />
               </Button>
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  setCursor(new Date(2026, 6, 1));
-                  setSelectedDate("2026-07-17");
-                }}
-                className="cursor-pointer"
-              >
-                Hoje
-              </Button>
             </div>
             <h2 className="capitalize text-lg font-medium">{monthTitle}</h2>
             <div className="flex flex-wrap gap-3">
