@@ -141,14 +141,16 @@ function ClientDetailPage() {
         </header>
 
         <Tabs value={currentTab} onValueChange={setTab} className="flex flex-col">
-          <TabsList className="h-auto justify-start gap-1 rounded-none border-b border-border bg-transparent px-7 py-0">
-            {[
-              ["cliente", "Cliente", Building2],
-              ["hadron", "Hadron", Database],
-              ["usuarios", "Usuarios", UsersRound],
-              ["terminais", "Terminais", Monitor],
-              ["empresas", "Empresas", Server],
-            ].map(([value, label, Icon]) => {
+          <div className="flex flex-wrap items-center gap-2 border-b border-border px-7">
+            <TabsList className="h-auto justify-start gap-1 rounded-none border-0 bg-transparent p-0">
+              {[
+                ["cliente", "Cliente", Building2],
+                ["hadron", "Hadron", Database],
+                ["usuarios", "Usuarios", UsersRound],
+                ["terminais", "Terminais", Monitor],
+                ["empresas", "Empresas", Server],
+              ].map(([value, label, Icon]) => {
+
               const V = value as string;
               const L = label as string;
               const I = Icon as typeof Building2;
