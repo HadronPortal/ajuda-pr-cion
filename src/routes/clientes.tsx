@@ -45,7 +45,10 @@ type ClientRow = {
   segment: string; // ramo
   size: string; // porte
   version: string;
+  versionDate: string; // data da versão (release)
+  versionUpdatedAt: string; // data/hora em que a versão foi instalada no cliente
   updated: string;
+  updatedAt: string; // última alteração do cadastro no CRM
   city: string; // "Cidade - UF"
   uf: string;
   cep: string;
