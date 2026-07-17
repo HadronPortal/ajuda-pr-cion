@@ -165,7 +165,23 @@ function ClientDetailPage() {
                 </TabsTrigger>
               );
             })}
-          </TabsList>
+            </TabsList>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setHistoryOpen(true);
+              }}
+              className="ml-auto h-9 cursor-pointer gap-1.5 whitespace-nowrap rounded-md px-3 text-[12.5px] font-medium text-muted-foreground hover:text-foreground"
+            >
+              <History className="h-4 w-4" />
+              Histórico de chamados
+            </Button>
+          </div>
+
           <div className="bg-muted/10 p-6">
             <TabsContent value="cliente" className="m-0 space-y-5">
               <ClientTab />
