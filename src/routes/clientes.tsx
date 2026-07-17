@@ -522,8 +522,6 @@ function ClientsPage() {
         }}
         onClear={() => setDraft(emptyFilters)}
       />
-
-      <ClientDetail client={selected} onOpenChange={(open) => !open && setSelected(null)} />
     </AppShell>
   );
 }
