@@ -207,6 +207,15 @@ function CalendarPage() {
           <div className="flex items-center gap-2">
             <Button
               type="button"
+              variant="outline"
+              onClick={() => setAgendaOpen(true)}
+              className="h-10 cursor-pointer gap-2 rounded-lg px-4 text-sm font-medium"
+            >
+              <CalendarDays className="h-4 w-4" />
+              Agenda
+            </Button>
+            <Button
+              type="button"
               onClick={() => setFiltersOpen(true)}
               className="h-10 cursor-pointer gap-2 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white shadow-md hover:bg-blue-700"
             >
