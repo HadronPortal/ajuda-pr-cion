@@ -453,34 +453,8 @@ function TicketsPage() {
 
 
 
-      <section className="mb-6 space-y-6">
-        <RevenueStyleCards
-          openTickets={openTickets}
-          inProgressTickets={inProgressTickets}
-          overdueTickets={overdueTickets}
-          finishedTickets={finishedTickets}
-        />
 
-        <div id="analytics-detalhado" className="grid scroll-mt-24 grid-cols-1 gap-6 xl:grid-cols-[0.92fr_1.35fr]">
-          <TopAgentsCard tickets={supportTickets} />
-          <StatisticsCard />
-        </div>
 
-        <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-          <WeeklyBacklogCard />
-          <SlaProfileCard
-            slaMedio={slaMedio}
-            avgHandlingLabel={avgHandlingLabel}
-            resolutionRate={resolutionRate}
-            portalTickets={portalTickets}
-          />
-        </div>
-
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <StatusCategoriesCard data={statusDistribution} />
-          <SourceModuleCard sources={sourceDistribution} modules={moduleDistribution} />
-        </div>
-      </section>
 
 
       <div className="mb-6 flex justify-end gap-2">
