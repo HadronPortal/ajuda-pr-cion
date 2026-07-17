@@ -995,26 +995,24 @@ export function HadronTab() {
       </Section>
       <div className="grid gap-5 xl:grid-cols-2">
         <Section title="Modulos adquiridos" icon={CheckCircle2}>
-          <div className="grid gap-2 sm:grid-cols-2">
+          <div className="grid gap-1.5 sm:grid-cols-2">
             {modules.map((m) => (
-              <div
-                key={m}
-                className="flex items-center gap-2 rounded-md bg-emerald-500/8 px-3 py-2 text-sm"
-              >
-                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                {m}
+              <div key={m} className="flex items-center gap-2 px-1 py-1.5 text-sm">
+                <Check className="h-4 w-4 shrink-0 text-emerald-500" />
+                <span>{m}</span>
               </div>
             ))}
           </div>
         </Section>
         <Section title="Modulos nao contratados" icon={Database}>
-          <div className="grid gap-2 sm:grid-cols-2">
+          <div className="grid gap-1.5 sm:grid-cols-2">
             {unavailableModules.map((m) => (
               <div
                 key={m}
-                className="rounded-md bg-muted/50 px-3 py-2 text-sm text-muted-foreground"
+                className="flex items-center gap-2 px-1 py-1.5 text-sm text-muted-foreground"
               >
-                {m}
+                <X className="h-4 w-4 shrink-0 text-red-500" />
+                <span>{m}</span>
               </div>
             ))}
           </div>
