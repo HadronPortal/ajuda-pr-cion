@@ -206,14 +206,13 @@ function CalendarPage() {
           <div className="flex items-center gap-2">
             <Button
               type="button"
-              variant="outline"
               onClick={() => setFiltersOpen(true)}
-              className="h-10 cursor-pointer gap-2 rounded-lg px-4 text-sm font-medium"
+              className="h-10 cursor-pointer gap-2 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white shadow-md hover:bg-blue-700"
             >
               <Filter className="h-4 w-4" />
               Filtros
               {activeCount > 0 && (
-                <span className="ml-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary/15 px-1.5 text-[11px] font-semibold text-primary">
+                <span className="ml-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-white/25 px-1.5 text-[11px] font-semibold">
                   {activeCount}
                 </span>
               )}
@@ -263,16 +262,6 @@ function CalendarPage() {
               </Button>
               <Button variant="outline" size="icon" onClick={() => moveMonth(1)} className="cursor-pointer">
                 <ChevronRight className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  setCursor(new Date(2026, 6, 1));
-                  setSelectedDate("2026-07-17");
-                }}
-                className="cursor-pointer"
-              >
-                Hoje
               </Button>
             </div>
             <h2 className="capitalize text-lg font-medium">{monthTitle}</h2>
