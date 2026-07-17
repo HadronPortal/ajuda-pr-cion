@@ -964,14 +964,14 @@ function SupportRows() {
       ].map((row) => (
         <div
           key={row[5]}
-          className="grid gap-3 px-4 py-3 text-sm sm:grid-cols-[1.4fr_1.2fr_.6fr_.5fr_.7fr_auto]"
+          className="grid items-center gap-3 px-4 py-2 sm:grid-cols-[1.4fr_1.2fr_.6fr_.5fr_.7fr_auto]"
         >
-          <span className="font-medium">{row[0]}</span>
-          <span className="text-muted-foreground">{row[1]}</span>
-          <span>{row[2]}</span>
-          <span>{row[3]}</span>
-          <span>{row[4]}</span>
-          <Button variant="ghost" size="sm">
+          <span className="text-[13px] font-normal">{row[0]}</span>
+          <span className="text-[12px] text-muted-foreground">{row[1]}</span>
+          <span className="text-[12px]">{row[2]}</span>
+          <span className="text-[12px]">{row[3]}</span>
+          <span className="text-[12px]">{row[4]}</span>
+          <Button variant="ghost" size="sm" className="h-7 px-2 text-[12px] font-normal">
             Ver
           </Button>
         </div>
