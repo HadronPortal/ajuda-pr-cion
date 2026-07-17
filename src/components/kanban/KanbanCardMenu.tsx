@@ -581,7 +581,7 @@ function MoveDialog({
                   className={cn(
                     "flex w-full items-center justify-between rounded-md border px-3 py-2 text-left text-[13px] font-semibold transition",
                     active
-                      ? "cursor-not-allowed border-slate-200 bg-slate-50 text-slate-400 dark:border-white/10 dark:bg-white/5 dark:text-slate-500"
+                      ? "cursor-not-allowed border-slate-200 bg-white text-slate-400 dark:border-white/10 dark:bg-white/5 dark:text-slate-500"
                       : "cursor-pointer border-slate-200 bg-white text-slate-700 hover:border-violet-500/50 hover:bg-violet-500/5 hover:text-slate-900 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-white/10",
                   )}
                 >

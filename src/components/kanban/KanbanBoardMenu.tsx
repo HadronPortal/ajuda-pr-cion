@@ -125,7 +125,7 @@ export function KanbanBoardMenu({
 
             <ScrollArea className="min-h-0 flex-1">
               <TabsContent value="about" className="m-0 space-y-5 p-5">
-                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/[0.04]">
+                <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-white/10 dark:bg-white/[0.04]">
                   <p className="text-sm font-black">Kanban Procion</p>
                   <p className="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-400">
                     Quadro para demandas internas, projetos, melhorias e tarefas da equipe.
