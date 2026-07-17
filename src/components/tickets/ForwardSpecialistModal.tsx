@@ -61,7 +61,7 @@ export function ForwardSpecialistModal({ open, onOpenChange, ticket }: { open: b
       onInteractOutside={preventOutsideClose}
       onEscapeKeyDown={preventOutsideClose}
       style={{ maxHeight: "calc(100vh - 2rem)" }}
-      className="flex w-[calc(100vw-2rem)] max-w-[940px] flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-background p-0 shadow-[0_30px_80px_rgba(0,0,0,0.35)] [&>button]:hidden"
+      className="flex w-[calc(100vw-2rem)] max-w-[940px] flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-card p-0 shadow-[0_30px_80px_rgba(0,0,0,0.35)] [&>button]:hidden"
     >
       <DialogTitle className="sr-only">Enviar chamado {ticket.protocol} a especialista</DialogTitle>
       <DetailModalHeader icon={UserCheck} title="Enviar a especialista" protocol={ticket.protocol} onClose={() => onOpenChange(false)} meta={<span className="inline-flex items-center gap-1"><span className="text-primary">{ticket.clientCode}</span><span className="text-border">·</span><span>{ticket.clientName}</span></span>} />
