@@ -485,6 +485,15 @@ function NewTicketPage() {
                   <SelectContent>
                     {operators.map((op) => (
                       <SelectItem key={op.code} value={op.code}>
+                        {op.code}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
+                  <SelectContent>
+                    {operators.map((op) => (
+                      <SelectItem key={op.code} value={op.code}>
                         <span className="font-mono text-xs">{op.code}</span>
                       </SelectItem>
                     ))}
