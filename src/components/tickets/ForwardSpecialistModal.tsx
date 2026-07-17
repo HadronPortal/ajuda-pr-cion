@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import { Plus, UserCheck, X } from "lucide-react";
+import { ArrowUp, ChevronDown, Minus, Plus, UserCheck, X } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogFooter, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,77 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import { ticketsStore } from "@/lib/tickets-store";
+import { cn } from "@/lib/utils";
 import type { SupportTicket, TicketPriority } from "@/lib/support-tickets-data";
+
+const PRIORITY_OPTIONS: {
+  value: TicketPriority;
+  label: string;
+  icon: typeof ArrowUp;
+  baseClass: string;
+  activeClass: string;
+  iconWrapClass: string;
+  textClass: string;
+}[] = [
+  {
+    value: "Baixa",
+    label: "Baixa",
+    icon: ChevronDown,
+    baseClass: "border-success/25 bg-success/10 dark:bg-success/15",
+    activeClass: "border-success/70 ring-2 ring-success/40 shadow-sm bg-success/15 dark:bg-success/20",
+    iconWrapClass: "bg-success text-success-foreground",
+    textClass: "text-success",
+  },
+  {
+    value: "Media",
+    label: "Média",
+    icon: Minus,
+    baseClass: "border-warning/30 bg-warning/12 dark:bg-warning/15",
+    activeClass: "border-warning/70 ring-2 ring-warning/40 shadow-sm bg-warning/20 dark:bg-warning/25",
+    iconWrapClass: "bg-warning text-warning-foreground",
+    textClass: "text-warning-foreground",
+  },
+  {
+    value: "Alta",
+    label: "Alta",
+    icon: ArrowUp,
+    baseClass: "border-destructive/25 bg-destructive/10 dark:bg-destructive/15",
+    activeClass: "border-destructive/70 ring-2 ring-destructive/40 shadow-sm bg-destructive/15 dark:bg-destructive/20",
+    iconWrapClass: "bg-destructive text-destructive-foreground",
+    textClass: "text-destructive",
+  },
+];
+
+function PrioritySegmented({ value, onChange }: { value: TicketPriority; onChange: (v: TicketPriority) => void }) {
+  return (
+    <div role="radiogroup" aria-label="Prioridade" className="grid grid-cols-3 gap-2">
+      {PRIORITY_OPTIONS.map((opt) => {
+        const active = value === opt.value;
+        const Icon = opt.icon;
+        return (
+          <button
+            key={opt.value}
+            type="button"
+            role="radio"
+            aria-checked={active}
+            onClick={() => onChange(opt.value)}
+            className={cn(
+              "relative flex h-9 w-full cursor-pointer items-center justify-center gap-2 rounded-lg border text-xs font-medium transition",
+              "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background",
+              opt.baseClass,
+              active && opt.activeClass,
+            )}
+          >
+            <span className={cn("grid h-4 w-4 shrink-0 place-items-center rounded-full", opt.iconWrapClass)}>
+              <Icon className="h-2.5 w-2.5" strokeWidth={3} />
+            </span>
+            <span className={cn("font-medium", opt.textClass)}>{opt.label}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 const SPECIALISTS = [
   { operator: "PRCMAR", name: "Ana Ribeiro", area: "Fiscal / SPED" },
@@ -75,14 +145,14 @@ export function ForwardSpecialistModal({ open, onOpenChange, ticket }: { open: b
           </Field>
           <Field label="Tipo"><select value={type} onChange={(e) => setType(e.target.value)} className={selectClass}>{TYPES.map((item) => <option key={item}>{item}</option>)}</select></Field>
           <Field label="Permissão"><select value={permission} onChange={(e) => setPermission(e.target.value)} className={selectClass}>{PERMISSIONS.map((item) => <option key={item}>{item}</option>)}</select></Field>
-          <Field label="Prioridade"><select value={priority} onChange={(e) => setPriority(e.target.value as TicketPriority)} className={selectClass}><option>Baixa</option><option value="Media">Média</option><option>Alta</option></select></Field>
+          <Field label="Prioridade"><PrioritySegmented value={priority} onChange={setPriority} /></Field>
         </div>
         <div className="grid gap-3 sm:grid-cols-3">
           <Field label="Área de espera"><select value={waitingArea} onChange={(e) => setWaitingArea(e.target.value)} className={selectClass}>{AREAS.map((item) => <option key={item}>{item}</option>)}</select></Field>
           <Field label="Módulo"><Input value={module} onChange={(e) => setModule(e.target.value)} /></Field>
           <Field label="Submódulo"><Input value={submodule} onChange={(e) => setSubmodule(e.target.value)} /></Field>
         </div>
-        <Field label="Mensagem para o especialista" required><textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={4} maxLength={1000} placeholder="Descreva o diagnóstico, testes realizados e o que precisa ser analisado..." className="min-h-[108px] w-full resize-none rounded-md border border-input bg-background p-3 text-[13px] outline-none focus:ring-2 focus:ring-ring"/></Field>
+        <Field label="Mensagem para o especialista" required><textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={3} maxLength={1000} placeholder="Descreva o diagnóstico, testes realizados e o que precisa ser analisado..." className="min-h-[84px] w-full resize-none rounded-md border border-input bg-background p-3 text-[13px] outline-none focus:ring-2 focus:ring-ring"/></Field>
         <div className="grid gap-4 md:grid-cols-2">
           <RelatedPicker label="Artigos relacionados" query={articleQuery} onQuery={setArticleQuery} selected={relatedArticles} onSelected={setRelatedArticles} />
           <RelatedPicker label="Opções/Formulários relacionados" query={formQuery} onQuery={setFormQuery} selected={relatedForms} onSelected={setRelatedForms} />
