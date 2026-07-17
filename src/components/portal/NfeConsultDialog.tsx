@@ -137,7 +137,7 @@ export function NfeConsultDialog() {
             </div>
           </div>
 
-          <div className="rounded-xl border border-border bg-muted/40 px-4 py-3 text-xs leading-relaxed text-muted-foreground">
+          <div className="rounded-xl border border-border bg-card px-4 py-3 text-xs leading-relaxed text-muted-foreground dark:bg-muted/40">
             Por segurança, a SEFAZ abrirá em uma nova aba. A chave será copiada automaticamente para
             facilitar a consulta.
           </div>

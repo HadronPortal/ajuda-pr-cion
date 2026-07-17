@@ -323,7 +323,7 @@ export function TicketDetailSheet({
           <DialogTitle className="sr-only">Detalhes do chamado {ticket.protocol}</DialogTitle>
 
           {/* Painel esquerdo — Chamado */}
-          <div className="relative flex max-h-[90vh] min-h-0 flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-[0_30px_80px_rgba(0,0,0,0.35)]">
+          <div className="relative flex max-h-[90vh] min-h-0 flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-[0_30px_80px_rgba(0,0,0,0.35)]">
             <DetailModalHeader
               icon={getModuleIcon(ticket.module, ticket.source, ticket.subject)}
               title={ticket.subject}
@@ -371,7 +371,7 @@ export function TicketDetailSheet({
             />
 
             {/* Body: sidebar (menu + ações) | conteúdo | chat */}
-            <div className="flex flex-1 min-h-0 flex-col bg-muted/30 md:flex-row md:gap-4 md:p-4">
+            <div className="flex flex-1 min-h-0 flex-col bg-card md:flex-row md:gap-4 md:p-4 dark:bg-muted/30">
               {/* Sidebar */}
               <aside
                 className={cn(
@@ -504,7 +504,7 @@ export function TicketDetailSheet({
               </div>
 
               {/* Main content */}
-              <div className="flex-1 min-w-0 overflow-y-auto rounded-2xl border border-border bg-background px-5 py-5 md:px-6">
+              <div className="flex-1 min-w-0 overflow-y-auto rounded-2xl border border-border bg-card px-5 py-5 md:px-6">
                 {/* Resumo */}
                 <Section title="Resumo do chamado" icon={LayoutGrid}>
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -828,7 +828,7 @@ function CloseTicketDialog({
           event.preventDefault();
         }}
         style={{ maxHeight: "calc(100vh - 2rem)" }}
-        className="flex w-[calc(100vw-2rem)] max-w-[940px] flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-background p-0 shadow-[0_30px_80px_rgba(0,0,0,0.35)] [&>button]:hidden"
+        className="flex w-[calc(100vw-2rem)] max-w-[940px] flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-card p-0 shadow-[0_30px_80px_rgba(0,0,0,0.35)] [&>button]:hidden"
       >
         <DialogTitle className="sr-only">Finalizar chamado {ticket.protocol}</DialogTitle>
 
@@ -973,7 +973,7 @@ function CloseTicketDialog({
         </div>
 
         {/* Footer */}
-        <DialogFooter className="gap-2 border-t border-border bg-muted/30 px-6 py-3 sm:gap-2">
+        <DialogFooter className="gap-2 border-t border-border bg-card px-6 py-3 sm:gap-2">
           <Button
             variant="outline"
             onClick={() => {
