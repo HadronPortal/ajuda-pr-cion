@@ -323,7 +323,7 @@ export function TicketDetailSheet({
           <DialogTitle className="sr-only">Detalhes do chamado {ticket.protocol}</DialogTitle>
 
           {/* Painel esquerdo — Chamado */}
-          <div className="relative flex max-h-[90vh] min-h-0 flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-[0_30px_80px_rgba(0,0,0,0.35)]">
+          <div className="relative flex max-h-[90vh] min-h-0 flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-[0_30px_80px_rgba(0,0,0,0.35)]">
             <DetailModalHeader
               icon={getModuleIcon(ticket.module, ticket.source, ticket.subject)}
               title={ticket.subject}
