@@ -660,7 +660,7 @@ function NewTicketPage() {
                 <PreviewItem
                   icon={UserRound}
                   label="Operador"
-                  value={operatorObj ? `${operatorObj.code} ${operatorObj.name}` : "-"}
+                  value={operatorObj ? operatorObj.code : "-"}
                 />
                 <PreviewItem icon={FileText} label="Tipo" value={form.type} />
                 <PreviewItem icon={Phone} label="Origem" value={form.source} />
