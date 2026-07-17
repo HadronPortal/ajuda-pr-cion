@@ -1,7 +1,10 @@
+import { useState } from "react";
 import { createFileRoute, Link, useNavigate, notFound } from "@tanstack/react-router";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
-import { ArrowLeft, Building2, Database, Monitor, Server, UsersRound } from "lucide-react";
+import { ArrowLeft, Building2, Database, History, Monitor, Server, UsersRound } from "lucide-react";
+import { ClientTicketsHistoryModal } from "@/components/tickets/ClientTicketsHistoryModal";
+
 import { AppShell } from "@/components/portal/AppShell";
 import { Breadcrumbs } from "@/components/portal/Breadcrumbs";
 import { Badge } from "@/components/ui/badge";
