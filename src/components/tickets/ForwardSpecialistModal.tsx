@@ -145,7 +145,19 @@ export function ForwardSpecialistModal({ open, onOpenChange, ticket }: { open: b
           </Field>
           <Field label="Tipo"><select value={type} onChange={(e) => setType(e.target.value)} className={selectClass}>{TYPES.map((item) => <option key={item}>{item}</option>)}</select></Field>
           <Field label="Permissão"><select value={permission} onChange={(e) => setPermission(e.target.value)} className={selectClass}>{PERMISSIONS.map((item) => <option key={item}>{item}</option>)}</select></Field>
-          <Field label="Prioridade"><select value={priority} onChange={(e) => setPriority(e.target.value as TicketPriority)} className={selectClass}><option>Baixa</option><option value="Media">Média</option><option>Alta</option></select></Field>
+          <Field label="Prioridade"><PrioritySegmented value={priority} onChange={setPriority} /></Field>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <Field label="Área de espera"><select value={waitingArea} onChange={(e) => setWaitingArea(e.target.value)} className={selectClass}>{AREAS.map((item) => <option key={item}>{item}</option>)}</select></Field>
+          <Field label="Módulo"><Input value={module} onChange={(e) => setModule(e.target.value)} /></Field>
+          <Field label="Submódulo"><Input value={submodule} onChange={(e) => setSubmodule(e.target.value)} /></Field>
+        </div>
+        <Field label="Mensagem para o especialista" required><textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={3} maxLength={1000} placeholder="Descreva o diagnóstico, testes realizados e o que precisa ser analisado..." className="min-h-[84px] w-full resize-none rounded-md border border-input bg-background p-3 text-[13px] outline-none focus:ring-2 focus:ring-ring"/></Field>
+        <div className="grid gap-4 md:grid-cols-2">
+          <RelatedPicker label="Artigos relacionados" query={articleQuery} onQuery={setArticleQuery} selected={relatedArticles} onSelected={setRelatedArticles} />
+          <RelatedPicker label="Opções/Formulários relacionados" query={formQuery} onQuery={setFormQuery} selected={relatedForms} onSelected={setRelatedForms} />
+        </div>
+      </div>
         </div>
         <div className="grid gap-3 sm:grid-cols-3">
           <Field label="Área de espera"><select value={waitingArea} onChange={(e) => setWaitingArea(e.target.value)} className={selectClass}>{AREAS.map((item) => <option key={item}>{item}</option>)}</select></Field>
