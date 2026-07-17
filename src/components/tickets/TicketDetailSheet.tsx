@@ -371,7 +371,7 @@ export function TicketDetailSheet({
             />
 
             {/* Body: sidebar (menu + ações) | conteúdo | chat */}
-            <div className="flex flex-1 min-h-0 flex-col bg-muted/30 md:flex-row md:gap-4 md:p-4">
+            <div className="flex flex-1 min-h-0 flex-col bg-card md:flex-row md:gap-4 md:p-4 dark:bg-muted/30">
               {/* Sidebar */}
               <aside
                 className={cn(
