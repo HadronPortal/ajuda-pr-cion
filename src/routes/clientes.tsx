@@ -244,11 +244,18 @@ function countActive(f: Filters): number {
   return n;
 }
 
+// Cache de filtros preservado ao navegar entre lista e ficha detalhada.
+let lastFilters: Filters = { ...emptyFilters };
+
 function ClientsPage() {
-  const [filters, setFilters] = useState<Filters>(emptyFilters);
-  const [draft, setDraft] = useState<Filters>(emptyFilters);
+  const navigate = useNavigate();
+  const [filters, setFilters] = useState<Filters>(() => lastFilters);
+  const [draft, setDraft] = useState<Filters>(() => lastFilters);
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [selected, setSelected] = useState<ClientRow | null>(null);
+
+  useEffect(() => {
+    lastFilters = filters;
+  }, [filters]);
 
   useEffect(() => {
     if (filtersOpen) setDraft(filters);
