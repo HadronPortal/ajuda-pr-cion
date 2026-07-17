@@ -119,21 +119,8 @@ function ClientDetailPage() {
                   <Badge className="bg-emerald-500/12 text-emerald-600 dark:text-emerald-400">
                     {client.status}
                   </Badge>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setHistoryOpen(true);
-                    }}
-                    className="h-7 cursor-pointer gap-1.5 rounded-md px-2.5 text-[11.5px] font-medium"
-                  >
-                    <History className="h-3.5 w-3.5" />
-                    Histórico de chamados
-                  </Button>
                 </div>
+
                 <h2 className="mt-1 truncate text-xl font-medium">
                   {client.razaoSocial} {client.group && `(${client.group})`}
                 </h2>
@@ -154,14 +141,16 @@ function ClientDetailPage() {
         </header>
 
         <Tabs value={currentTab} onValueChange={setTab} className="flex flex-col">
-          <TabsList className="h-auto justify-start gap-1 rounded-none border-b border-border bg-transparent px-7 py-0">
-            {[
-              ["cliente", "Cliente", Building2],
-              ["hadron", "Hadron", Database],
-              ["usuarios", "Usuarios", UsersRound],
-              ["terminais", "Terminais", Monitor],
-              ["empresas", "Empresas", Server],
-            ].map(([value, label, Icon]) => {
+          <div className="flex flex-wrap items-center gap-2 border-b border-border px-7">
+            <TabsList className="h-auto justify-start gap-1 rounded-none border-0 bg-transparent p-0">
+              {[
+                ["cliente", "Cliente", Building2],
+                ["hadron", "Hadron", Database],
+                ["usuarios", "Usuarios", UsersRound],
+                ["terminais", "Terminais", Monitor],
+                ["empresas", "Empresas", Server],
+              ].map(([value, label, Icon]) => {
+
               const V = value as string;
               const L = label as string;
               const I = Icon as typeof Building2;
@@ -176,7 +165,23 @@ function ClientDetailPage() {
                 </TabsTrigger>
               );
             })}
-          </TabsList>
+            </TabsList>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setHistoryOpen(true);
+              }}
+              className="ml-auto h-9 cursor-pointer gap-1.5 whitespace-nowrap rounded-md px-3 text-[12.5px] font-medium text-muted-foreground hover:text-foreground"
+            >
+              <History className="h-4 w-4" />
+              Histórico de chamados
+            </Button>
+          </div>
+
           <div className="bg-muted/10 p-6">
             <TabsContent value="cliente" className="m-0 space-y-5">
               <ClientTab />
