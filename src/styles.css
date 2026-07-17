@@ -53,8 +53,8 @@
 
 :root {
   --radius: 0.65rem;
-  /* Surfaces */
-  --background: oklch(0.972 0.006 248);
+  /* Surfaces — light mode: all neutral surfaces are white; separation via borders. */
+  --background: oklch(1 0 0);
   --foreground: oklch(0.20 0.035 260);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.20 0.035 260);
@@ -63,12 +63,12 @@
   /* Prócion blue #0b97c4 */
   --primary: oklch(0.62 0.125 225);
   --primary-foreground: oklch(0.99 0.003 240);
-  /* Soft blue-gray secondary */
-  --secondary: oklch(0.958 0.010 245);
+  /* Neutral chips/panels stay white in light mode. */
+  --secondary: oklch(1 0 0);
   --secondary-foreground: oklch(0.30 0.045 260);
-  --muted: oklch(0.955 0.006 245);
+  --muted: oklch(1 0 0);
   --muted-foreground: oklch(0.55 0.018 250);
-  /* Light-blue accent */
+  /* Light-blue accent (kept semantic, not gray) */
   --accent: oklch(0.95 0.032 225);
   --accent-foreground: oklch(0.32 0.085 255);
   --destructive: oklch(0.60 0.22 25);
@@ -85,7 +85,7 @@
   --chart-3: oklch(0.66 0.14 160);
   --chart-4: oklch(0.78 0.15 75);
   --chart-5: oklch(0.50 0.13 225);
-  /* Sidebar inspired by Fillow, translated to Prócion blue. */
+  /* Sidebar */
   --sidebar: oklch(1 0 0);
   --sidebar-foreground: oklch(0.50 0.020 250);
   --sidebar-primary: oklch(0.62 0.125 225);
