@@ -53,7 +53,8 @@ import { Input } from "@/components/ui/input";
 import finishIconUrl from "@/assets/ticket-finalize-v4.png";
 import transferIconUrl from "@/assets/ticket-transfer-solid.png";
 import startAttendanceIconUrl from "@/assets/ticket-start-solid.png";
-import specialistIconUrl from "@/assets/ticket-specialist-developer.png";
+import scheduleIconUrl from "@/assets/ticket-schedule-solid.png";
+import specialistIconUrl from "@/assets/ticket-send-specialist-solid.png";
 
 import { cn } from "@/lib/utils";
 import {
@@ -238,7 +239,7 @@ function createMaskedActionIcon(maskUrl: string, size: string = "contain"): Icon
 const TicketCloseIcon = createMaskedActionIcon(finishIconUrl);
 const TicketAssumeIcon = createMaskedActionIcon(transferIconUrl);
 const TicketAttendIcon = createMaskedActionIcon(startAttendanceIconUrl);
-const TicketScheduleIcon = CalendarClock;
+const TicketScheduleIcon = createMaskedActionIcon(scheduleIconUrl);
 const TicketForwardIcon = createMaskedActionIcon(specialistIconUrl);
 const TicketTimelineIcon = History;
 
