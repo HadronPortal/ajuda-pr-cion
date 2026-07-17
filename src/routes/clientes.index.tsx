@@ -1123,7 +1123,6 @@ export function CompaniesTab() {
     </Section>
   );
 }
-}
 function DataTable({ headers, rows }: { headers: string[]; rows: string[][] }) {
   return (
     <div className="overflow-x-auto rounded-md border border-border">
