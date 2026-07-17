@@ -386,70 +386,40 @@ function NewTicketPage() {
               title="Contato"
               description="Quem está solicitando o atendimento."
             />
-            <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)_minmax(0,1fr)]">
+            <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
               <Field label="Nome do contato" required>
-                <div className="flex gap-2">
-                  <Input
-                    value={form.contactName}
-                    onChange={(e) =>
-                      setForm((prev) => ({ ...prev, contactName: e.target.value }))
-                    }
-                    placeholder="Nome completo"
-                    className="h-11 rounded-xl"
-                  />
-                  <IconButton
-                    label="Editar contato"
-                    onClick={() => toast.info("Edição de contato em breve.")}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </IconButton>
-                </div>
+                <Input
+                  value={form.contactName}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, contactName: e.target.value }))
+                  }
+                  placeholder="Nome completo"
+                  className="h-11 rounded-xl"
+                />
               </Field>
 
               <Field label="E-mail do contato" required>
-                <div className="space-y-2">
-                  {form.emails.map((email, i) => (
-                    <div key={i} className="flex gap-2">
-                      <div className="relative flex-1">
-                        <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                        <Input
-                          type="email"
-                          value={email}
-                          onChange={(e) => updateEmail(i, e.target.value)}
-                          placeholder="email@empresa.com"
-                          className="h-11 rounded-xl pl-9"
-                        />
-                      </div>
-                      {i === form.emails.length - 1 && (
-                        <IconButton label="Adicionar outro e-mail" onClick={addEmail}>
-                          <Plus className="h-4 w-4" />
-                        </IconButton>
-                      )}
-                    </div>
-                  ))}
+                <div className="relative">
+                  <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    type="email"
+                    value={form.emails[0] ?? ""}
+                    onChange={(e) => updateEmail(0, e.target.value)}
+                    placeholder="email@empresa.com"
+                    className="h-11 rounded-xl pl-9"
+                  />
                 </div>
               </Field>
 
               <Field label="Telefone" required>
-                <div className="space-y-2">
-                  {form.phones.map((phone, i) => (
-                    <div key={i} className="flex gap-2">
-                      <div className="relative flex-1">
-                        <Phone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                        <Input
-                          value={phone}
-                          onChange={(e) => updatePhone(i, e.target.value)}
-                          placeholder="(00) 00000-0000"
-                          className="h-11 rounded-xl pl-9"
-                        />
-                      </div>
-                      {i === form.phones.length - 1 && (
-                        <IconButton label="Adicionar outro telefone" onClick={addPhone}>
-                          <Plus className="h-4 w-4" />
-                        </IconButton>
-                      )}
-                    </div>
-                  ))}
+                <div className="relative">
+                  <Phone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    value={form.phones[0] ?? ""}
+                    onChange={(e) => updatePhone(0, e.target.value)}
+                    placeholder="(00) 00000-0000"
+                    className="h-11 rounded-xl pl-9"
+                  />
                 </div>
               </Field>
             </div>
