@@ -583,16 +583,6 @@ function NewTicketPage() {
                           <span className={cn("font-medium", opt.textClass)}>
                             {opt.label}
                           </span>
-                          {active && (
-                            <Check
-                              className={cn(
-                                "absolute right-1.5 top-1.5 h-3 w-3",
-                                opt.textClass,
-                              )}
-                              strokeWidth={3}
-                              aria-hidden
-                            />
-                          )}
                         </button>
                       );
                     })}
