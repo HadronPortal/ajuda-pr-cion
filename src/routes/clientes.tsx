@@ -453,23 +453,34 @@ function ClientsPage() {
                     </div>
                   </td>
                   <td className="whitespace-nowrap px-4 py-4">
-                    <div>{client.version}</div>
-                    <div className="text-xs text-muted-foreground">{client.updated}</div>
+                    <div>
+                      Versão: {client.version} ({client.versionDate})
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <span>{client.versionUpdatedAt}</span>
+                      <RefreshCw className="h-3 w-3" />
+                    </div>
                   </td>
                   <td className="whitespace-nowrap px-4 py-4">{client.city}</td>
                   <td className="whitespace-nowrap px-4 py-4 text-muted-foreground">
                     {client.cnpj}
                   </td>
                   <td className="whitespace-nowrap px-4 py-4">
-                    <Badge
-                      className={cn(
-                        client.status === "Ativo"
-                          ? "bg-emerald-500/12 text-emerald-600 dark:text-emerald-400"
-                          : "bg-slate-500/15 text-slate-600 dark:text-slate-300",
-                      )}
-                    >
-                      {client.status}
-                    </Badge>
+                    <div className="flex flex-col items-start gap-1">
+                      <Badge
+                        className={cn(
+                          client.status === "Ativo"
+                            ? "bg-emerald-500/12 text-emerald-600 dark:text-emerald-400"
+                            : "bg-slate-500/15 text-slate-600 dark:text-slate-300",
+                        )}
+                      >
+                        {client.status}
+                      </Badge>
+                      <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                        <RefreshCw className="h-3 w-3" />
+                        <span>{client.updatedAt}</span>
+                      </div>
+                    </div>
                   </td>
                   <td className="px-4 py-4">
                     <ChevronRight className="h-4 w-4 text-muted-foreground" />
