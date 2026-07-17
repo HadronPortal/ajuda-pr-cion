@@ -275,11 +275,6 @@ function NewTicketPage() {
     }));
   };
 
-  const addEmail = () =>
-    setForm((prev) => ({ ...prev, emails: [...prev.emails, ""] }));
-  const addPhone = () =>
-    setForm((prev) => ({ ...prev, phones: [...prev.phones, ""] }));
-
   const updateEmail = (i: number, v: string) =>
     setForm((prev) => ({
       ...prev,
