@@ -33,7 +33,7 @@ export const Route = createFileRoute("/clientes")({
   component: ClientsPage,
 });
 
-type ClientRow = {
+export type ClientRow = {
   id: string;
   registered: string; // dd/MM/yyyy
   acronym: string;
@@ -55,7 +55,7 @@ type ClientRow = {
   status: "Ativo" | "Inativo";
 };
 
-const clientRows: ClientRow[] = [
+export const clientRows: ClientRow[] = [
   {
     id: "avc",
     registered: "06/05/2026",
@@ -829,7 +829,7 @@ function DateField({
 }
 
 
-function Summary({ label, value }: { label: string; value: string }) {
+export function Summary({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <p className="text-[11px] uppercase text-muted-foreground">{label}</p>
@@ -869,7 +869,7 @@ function Field({ label, value }: { label: string; value: string }) {
   );
 }
 
-function ClientTab() {
+export function ClientTab() {
   return (
     <>
       <div className="grid gap-5 xl:grid-cols-2">
@@ -974,7 +974,7 @@ function SupportRows() {
   );
 }
 
-function HadronTab() {
+export function HadronTab() {
   return (
     <>
       <Section title="Ambiente Hadron" icon={Database}>
@@ -1043,7 +1043,7 @@ function HadronTab() {
   );
 }
 
-function UsersTab() {
+export function UsersTab() {
   return (
     <Section title="Usuarios do portal" icon={UsersRound}>
       <DataTable
@@ -1062,7 +1062,7 @@ function UsersTab() {
     </Section>
   );
 }
-function TerminalsTab() {
+export function TerminalsTab() {
   return (
     <Section title="Terminais instalados" icon={Monitor}>
       <DataTable
@@ -1072,7 +1072,7 @@ function TerminalsTab() {
     </Section>
   );
 }
-function CompaniesTab() {
+export function CompaniesTab() {
   return (
     <Section title="Empresas vinculadas" icon={Server}>
       <div className="grid gap-5 lg:grid-cols-[1.2fr_1fr]">
