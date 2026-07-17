@@ -3,15 +3,19 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
   Building2,
   CalendarDays,
+  Check,
   CheckCircle2,
   ChevronRight,
   CircleUserRound,
+  Cpu,
   Database,
+  FileText,
   Filter,
   RefreshCw,
   HardDrive,
   Monitor,
   Phone,
+  ShieldCheck,
   Server,
   SlidersHorizontal,
   UsersRound,
@@ -842,15 +846,17 @@ function Section({
   icon: Icon,
   children,
   className,
+  titleClassName,
 }: {
   title: string;
   icon: typeof Building2;
   children: React.ReactNode;
   className?: string;
+  titleClassName?: string;
 }) {
   return (
     <Card className={cn("p-5", className)}>
-      <h3 className="mb-4 flex items-center gap-2 font-medium">
+      <h3 className={cn("mb-4 flex items-center gap-2 font-medium", titleClassName)}>
         <span className="grid h-8 w-8 place-items-center rounded-md bg-primary/10 text-primary">
           <Icon className="h-4 w-4" />
         </span>
@@ -920,7 +926,7 @@ export function ClientTab() {
           </div>
         </Section>
       </div>
-      <Section title="Historico de suporte" icon={HardDrive}>
+      <Section title="Historico de suporte" icon={HardDrive} titleClassName="text-[16px] font-normal">
         <SupportRows />
       </Section>
     </>
@@ -958,14 +964,14 @@ function SupportRows() {
       ].map((row) => (
         <div
           key={row[5]}
-          className="grid gap-3 px-4 py-3 text-sm sm:grid-cols-[1.4fr_1.2fr_.6fr_.5fr_.7fr_auto]"
+          className="grid items-center gap-3 px-4 py-2 sm:grid-cols-[1.4fr_1.2fr_.6fr_.5fr_.7fr_auto]"
         >
-          <span className="font-medium">{row[0]}</span>
-          <span className="text-muted-foreground">{row[1]}</span>
-          <span>{row[2]}</span>
-          <span>{row[3]}</span>
-          <span>{row[4]}</span>
-          <Button variant="ghost" size="sm">
+          <span className="text-[13px] font-normal">{row[0]}</span>
+          <span className="text-[12px] text-muted-foreground">{row[1]}</span>
+          <span className="text-[12px]">{row[2]}</span>
+          <span className="text-[12px]">{row[3]}</span>
+          <span className="text-[12px]">{row[4]}</span>
+          <Button variant="ghost" size="sm" className="h-7 px-2 text-[12px] font-normal">
             Ver
           </Button>
         </div>
@@ -989,26 +995,24 @@ export function HadronTab() {
       </Section>
       <div className="grid gap-5 xl:grid-cols-2">
         <Section title="Modulos adquiridos" icon={CheckCircle2}>
-          <div className="grid gap-2 sm:grid-cols-2">
+          <div className="grid gap-1.5 sm:grid-cols-2">
             {modules.map((m) => (
-              <div
-                key={m}
-                className="flex items-center gap-2 rounded-md bg-emerald-500/8 px-3 py-2 text-sm"
-              >
-                <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                {m}
+              <div key={m} className="flex items-center gap-2 px-1 py-1.5 text-sm">
+                <Check className="h-4 w-4 shrink-0 text-emerald-500" />
+                <span>{m}</span>
               </div>
             ))}
           </div>
         </Section>
         <Section title="Modulos nao contratados" icon={Database}>
-          <div className="grid gap-2 sm:grid-cols-2">
+          <div className="grid gap-1.5 sm:grid-cols-2">
             {unavailableModules.map((m) => (
               <div
                 key={m}
-                className="rounded-md bg-muted/50 px-3 py-2 text-sm text-muted-foreground"
+                className="flex items-center gap-2 px-1 py-1.5 text-sm text-muted-foreground"
               >
-                {m}
+                <X className="h-4 w-4 shrink-0 text-red-500" />
+                <span>{m}</span>
               </div>
             ))}
           </div>
@@ -1073,29 +1077,48 @@ export function TerminalsTab() {
   );
 }
 export function CompaniesTab() {
+  const rows: Array<{ icon: typeof Monitor; label: string; value: string }> = [
+    { icon: Building2, label: "Codigo / Empresa", value: "001 - CENTER GLASS ACESSORIOS" },
+    { icon: FileText, label: "CNPJ", value: "66.613.387/0001-60" },
+    { icon: Monitor, label: "Terminais", value: "3" },
+    { icon: Server, label: "Filiais", value: "1" },
+    { icon: Database, label: "Versao", value: "2026-07-02" },
+    { icon: Cpu, label: "Sistema operacional", value: "Windows 7" },
+    { icon: Cpu, label: "Versao do SO", value: "6.2" },
+    { icon: FileText, label: "Emite NF-e", value: "Sim" },
+    { icon: FileText, label: "Notas emitidas", value: "0" },
+    { icon: Cpu, label: "Memoria usada / total", value: "0 / 2097151" },
+    { icon: HardDrive, label: "Drive P", value: "P" },
+    { icon: HardDrive, label: "Drive P usado / total", value: "6 / 312.4" },
+    { icon: HardDrive, label: "Drive T", value: "C" },
+    { icon: HardDrive, label: "Drive T usado / total", value: "57.1 / 237.4" },
+    { icon: HardDrive, label: "Drive A", value: "P" },
+    { icon: HardDrive, label: "Drive A usado / total", value: "6 / 312.4" },
+    { icon: ShieldCheck, label: "Tipo de certificado", value: "P" },
+    { icon: ShieldCheck, label: "Validade do certificado", value: "08/05/2027" },
+    { icon: ShieldCheck, label: "Ambiente", value: "N" },
+    { icon: RefreshCw, label: "Atualizado em", value: "17/07/2026 08:44:37" },
+    { icon: CalendarDays, label: "Registrado em", value: "09/05/2026 08:44:38" },
+  ];
   return (
     <Section title="Empresas vinculadas" icon={Server}>
-      <div className="grid gap-5 lg:grid-cols-[1.2fr_1fr]">
-        <div className="rounded-md border border-border p-5">
-          <p className="text-sm text-primary">001</p>
-          <h3 className="mt-1 text-lg font-medium">CENTER GLASS ACESSORIOS</h3>
-          <p className="mt-1 text-sm text-muted-foreground">CNPJ 66.613.387/0001-60</p>
-          <div className="mt-5 grid grid-cols-2 gap-4">
-            <Field label="Terminais" value="3" />
-            <Field label="Filiais" value="1" />
-            <Field label="Versao" value="2026-07-02" />
-            <Field label="Documentos" value="NF-e" />
-          </div>
-        </div>
-        <div className="rounded-md border border-border p-5">
-          <h3 className="font-medium">Ambiente</h3>
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <Field label="Sistema operacional" value="Windows 7 (6.2)" />
-            <Field label="Unidade" value="P:" />
-            <Field label="Notas emitidas" value="0" />
-            <Field label="Status" value="Operacional" />
-          </div>
-        </div>
+      <div className="grid divide-y divide-border border-y border-border sm:grid-cols-2 sm:divide-y-0 sm:[&>*]:border-b sm:[&>*]:border-border lg:grid-cols-3">
+        {rows.map((r) => {
+          const Icon = r.icon;
+          return (
+            <div key={r.label} className="flex items-start gap-3 px-4 py-3 sm:border-r sm:border-border">
+              <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-md bg-muted text-muted-foreground">
+                <Icon className="h-4 w-4" />
+              </span>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium text-foreground">{r.value}</p>
+                <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                  {r.label}
+                </p>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </Section>
   );
