@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import { Plus, UserCheck, X } from "lucide-react";
+import { ArrowUp, ChevronDown, Minus, Plus, UserCheck, X } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogFooter, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,77 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import { ticketsStore } from "@/lib/tickets-store";
+import { cn } from "@/lib/utils";
 import type { SupportTicket, TicketPriority } from "@/lib/support-tickets-data";
+
+const PRIORITY_OPTIONS: {
+  value: TicketPriority;
+  label: string;
+  icon: typeof ArrowUp;
+  baseClass: string;
+  activeClass: string;
+  iconWrapClass: string;
+  textClass: string;
+}[] = [
+  {
+    value: "Baixa",
+    label: "Baixa",
+    icon: ChevronDown,
+    baseClass: "border-success/25 bg-success/10 dark:bg-success/15",
+    activeClass: "border-success/70 ring-2 ring-success/40 shadow-sm bg-success/15 dark:bg-success/20",
+    iconWrapClass: "bg-success text-success-foreground",
+    textClass: "text-success",
+  },
+  {
+    value: "Media",
+    label: "Média",
+    icon: Minus,
+    baseClass: "border-warning/30 bg-warning/12 dark:bg-warning/15",
+    activeClass: "border-warning/70 ring-2 ring-warning/40 shadow-sm bg-warning/20 dark:bg-warning/25",
+    iconWrapClass: "bg-warning text-warning-foreground",
+    textClass: "text-warning-foreground",
+  },
+  {
+    value: "Alta",
+    label: "Alta",
+    icon: ArrowUp,
+    baseClass: "border-destructive/25 bg-destructive/10 dark:bg-destructive/15",
+    activeClass: "border-destructive/70 ring-2 ring-destructive/40 shadow-sm bg-destructive/15 dark:bg-destructive/20",
+    iconWrapClass: "bg-destructive text-destructive-foreground",
+    textClass: "text-destructive",
+  },
+];
+
+function PrioritySegmented({ value, onChange }: { value: TicketPriority; onChange: (v: TicketPriority) => void }) {
+  return (
+    <div role="radiogroup" aria-label="Prioridade" className="grid grid-cols-3 gap-2">
+      {PRIORITY_OPTIONS.map((opt) => {
+        const active = value === opt.value;
+        const Icon = opt.icon;
+        return (
+          <button
+            key={opt.value}
+            type="button"
+            role="radio"
+            aria-checked={active}
+            onClick={() => onChange(opt.value)}
+            className={cn(
+              "relative flex h-9 w-full cursor-pointer items-center justify-center gap-2 rounded-lg border text-xs font-medium transition",
+              "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background",
+              opt.baseClass,
+              active && opt.activeClass,
+            )}
+          >
+            <span className={cn("grid h-4 w-4 shrink-0 place-items-center rounded-full", opt.iconWrapClass)}>
+              <Icon className="h-2.5 w-2.5" strokeWidth={3} />
+            </span>
+            <span className={cn("font-medium", opt.textClass)}>{opt.label}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 const SPECIALISTS = [
   { operator: "PRCMAR", name: "Ana Ribeiro", area: "Fiscal / SPED" },
