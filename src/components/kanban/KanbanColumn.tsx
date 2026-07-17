@@ -78,7 +78,7 @@ export function KanbanColumnView({
         <div className="flex min-w-0 items-center gap-2">
           <span className={cn("h-2 w-2 shrink-0 rounded-full", meta.dot)} />
           <h2 className={cn("truncate text-[11px] font-black", meta.text)}>{column.title}</h2>
-          <span className="grid h-5 min-w-5 place-items-center rounded-full bg-slate-100 px-1.5 text-[10px] font-black text-slate-600 dark:bg-white/8 dark:text-slate-300">
+          <span className="grid h-5 min-w-5 place-items-center rounded-full border border-slate-200 bg-white px-1.5 text-[10px] font-black text-slate-600 dark:border-white/10 dark:bg-white/8 dark:text-slate-300">
             {cards.length}
           </span>
           {isFollowing && (
