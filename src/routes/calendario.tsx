@@ -595,20 +595,28 @@ function DateField({
 
 function CalendarEventPill({ event }: { event: CalendarEvent }) {
   const style = typeStyles[event.type];
+  const Icon = style.icon;
+  const operator = event.operator?.trim() ? event.operator : "SEM OPERADOR";
+  const label = event.client || event.title;
+  const fullText = `${event.time}  ${operator} - ${label}`;
   return (
     <span
+      title={`${event.type} · ${fullText}`}
       className={cn(
-        "flex items-center gap-1.5 overflow-hidden rounded px-1.5 py-1 text-[10px]",
-        style.soft,
-        style.text,
+        "flex items-center gap-1.5 overflow-hidden rounded px-1.5 py-1 text-[10px] text-white",
+        style.dot,
       )}
     >
-      <span className={cn("h-1.5 w-1.5 shrink-0 rounded-full", style.dot)} />
-      <span className="shrink-0">{event.time}</span>
-      <span className="truncate">{event.client || event.title}</span>
+      <span className="shrink-0 tabular-nums">{event.time}</span>
+      <Icon className="h-3 w-3 shrink-0" aria-label={event.type} />
+      <span className="truncate">
+        <span className="font-medium">{operator}</span>
+        <span> - {label}</span>
+      </span>
     </span>
   );
 }
+
 
 function AgendaItem({ event }: { event: CalendarEvent }) {
   const style = typeStyles[event.type];
