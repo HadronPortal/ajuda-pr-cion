@@ -53,7 +53,7 @@ import { Input } from "@/components/ui/input";
 import finishIconUrl from "@/assets/ticket-finalize-v4.png";
 import transferIconUrl from "@/assets/ticket-transfer-solid.png";
 import startAttendanceIconUrl from "@/assets/ticket-start-solid.png";
-import specialistIconUrl from "@/assets/ticket-specialist-v4.png";
+import specialistIconUrl from "@/assets/ticket-specialist-developer.png";
 
 import { cn } from "@/lib/utils";
 import {

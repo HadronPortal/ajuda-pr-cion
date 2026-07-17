@@ -346,11 +346,15 @@ export const ticketsStore = {
   scheduleEvent(
     id: string,
     input: {
-      title: string;
       date: string;
-      time: string;
+      startTime: string;
+      endTime: string;
       type: string;
       responsible: string;
+      guests?: string;
+      vehicle?: string;
+      module: string;
+      submodule: string;
       description?: string;
       reminder?: boolean;
     },
@@ -362,19 +366,36 @@ export const ticketsStore = {
       actor: op,
       actorType: "suporte",
       description:
-        `Evento agendado: "${input.title}" em ${input.date} às ${input.time} — ${input.type}. ` +
-        `Responsável: ${input.responsible}.${input.reminder ? " Lembrete ativo." : ""}` +
+        `Evento agendado para ${input.date}, das ${input.startTime} às ${input.endTime} — ${input.type}. ` +
+        `Responsável: ${input.responsible}. Módulo: ${input.module} / ${input.submodule}.` +
+        (input.guests ? ` Convidados: ${input.guests}.` : "") +
+        (input.vehicle ? ` Veículo: ${input.vehicle}.` : "") +
+        (input.reminder ? " Lembrete ativo." : "") +
         (input.description ? ` ${input.description}` : ""),
     });
-    updateTicket(id, {});
+    updateTicket(id, { status: "Agendamento", owner: input.responsible });
     emit();
   },
 
-  forwardToSpecialist(id: string, input: { specialist: string; area: string; reason: string }) {
+  forwardToSpecialist(
+    id: string,
+    input: {
+      specialist: string;
+      operator: string;
+      area: string;
+      waitingArea: string;
+      reason: string;
+      permission: string;
+      priority: SupportTicket["priority"];
+      module: string;
+      submodule: string;
+    },
+  ) {
     const op = operator();
     updateTicket(id, {
       status: "Com especialista",
-      owner: input.specialist,
+      owner: input.operator,
+      priority: input.priority,
       lockedBy: undefined,
     });
     pushEvent(id, {
@@ -382,7 +403,10 @@ export const ticketsStore = {
       when: nowIso(),
       actor: op,
       actorType: "suporte",
-      description: `Enviado para ${input.specialist} (${input.area}) por ${op}. Motivo: ${input.reason}`,
+      description:
+        `Enviado para ${input.specialist} (${input.operator}) — ${input.area}; ${input.waitingArea}. ` +
+        `Módulo: ${input.module} / ${input.submodule}. Permissão: ${input.permission}. ` +
+        `Mensagem: ${input.reason}`,
     });
     emit();
   },

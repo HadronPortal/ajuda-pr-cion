@@ -1,12 +1,7 @@
-import { useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
+import { CalendarClock, Car, Clock3, Users } from "lucide-react";
 import { toast } from "sonner";
-import { CalendarClock } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,197 +10,77 @@ import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import { ticketsStore } from "@/lib/tickets-store";
 import type { SupportTicket } from "@/lib/support-tickets-data";
 
-const EVENT_TYPES = [
-  "Reunião",
-  "Retorno ao cliente",
-  "Follow-up",
-  "Visita técnica",
-  "Análise interna",
-];
+const EVENT_TYPES = ["Visita", "Reunião remota", "Reunião PRC"];
+const RESPONSIBLES = ["PRCSUZ", "PRCROG", "PRCMAR", "PRCLCZ", "PRCPED", "PRCGGC"];
+const VEHICLES = ["Não definido", "Veículo 01", "Veículo 02", "Veículo 03"];
+const selectClass = "h-9 w-full cursor-pointer rounded-md border border-input bg-background px-3 text-[13px] outline-none focus:ring-2 focus:ring-ring";
+const preventOutsideClose = (event: Event) => event.preventDefault();
 
-const RESPONSIBLES = [
-  "PRCSUZ",
-  "PRCROG",
-  "PRCMAR",
-  "PRCLCZ",
-  "PRCPED",
-];
-
-function preventOutsideClose(e: Event) {
-  e.preventDefault();
-}
-
-export function ScheduleEventModal({
-  open,
-  onOpenChange,
-  ticket,
-}: {
-  open: boolean;
-  onOpenChange: (v: boolean) => void;
-  ticket: SupportTicket;
-}) {
-  const [title, setTitle] = useState("");
+export function ScheduleEventModal({ open, onOpenChange, ticket }: { open: boolean; onOpenChange: (value: boolean) => void; ticket: SupportTicket }) {
+  const defaultModule = useMemo(() => ticket.module.split(" - ")[0] || ticket.module, [ticket.module]);
+  const defaultSubmodule = useMemo(() => ticket.module.split(" - ").slice(1).join(" - ") || "Geral", [ticket.module]);
+  const [type, setType] = useState(EVENT_TYPES[1]);
   const [date, setDate] = useState("");
-  const [time, setTime] = useState("");
-  const [type, setType] = useState(EVENT_TYPES[0]);
-  const [responsible, setResponsible] = useState(RESPONSIBLES[0]);
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
+  const [responsible, setResponsible] = useState(ticket.owner || RESPONSIBLES[0]);
+  const [guests, setGuests] = useState("");
+  const [vehicle, setVehicle] = useState(VEHICLES[0]);
+  const [module, setModule] = useState(defaultModule);
+  const [submodule, setSubmodule] = useState(defaultSubmodule);
   const [description, setDescription] = useState("");
   const [reminder, setReminder] = useState(true);
 
   const reset = () => {
-    setTitle("");
-    setDate("");
-    setTime("");
-    setType(EVENT_TYPES[0]);
-    setResponsible(RESPONSIBLES[0]);
-    setDescription("");
-    setReminder(true);
+    setType(EVENT_TYPES[1]); setDate(""); setStartTime(""); setEndTime("");
+    setResponsible(ticket.owner || RESPONSIBLES[0]); setGuests(""); setVehicle(VEHICLES[0]);
+    setModule(defaultModule); setSubmodule(defaultSubmodule); setDescription(""); setReminder(true);
   };
-
   const submit = () => {
-    if (!title.trim() || !date || !time || !type || !responsible) {
-      toast.error("Preencha os campos obrigatórios.");
-      return;
+    if (!date || !startTime || !endTime || !responsible || !module || !submodule) {
+      toast.error("Preencha os campos obrigatórios."); return;
     }
+    if (endTime <= startTime) { toast.error("O horário final deve ser posterior ao inicial."); return; }
     ticketsStore.scheduleEvent(ticket.id, {
-      title: title.trim(),
-      date,
-      time,
-      type,
-      responsible,
-      description: description.trim() || undefined,
-      reminder,
+      type, date, startTime, endTime, responsible,
+      guests: guests.trim() || undefined,
+      vehicle: type === "Visita" && vehicle !== VEHICLES[0] ? vehicle : undefined,
+      module, submodule, description: description.trim() || undefined, reminder,
     });
-    toast.success("Evento agendado", {
-      description: `${title.trim()} · ${date} ${time}`,
-    });
-    reset();
-    onOpenChange(false);
+    toast.success("Evento agendado", { description: `${date} · ${startTime} às ${endTime}` });
+    reset(); onOpenChange(false);
   };
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        onPointerDownOutside={preventOutsideClose}
-        onInteractOutside={preventOutsideClose}
-        onEscapeKeyDown={preventOutsideClose}
-        className="flex max-h-[90vh] w-[calc(100vw-1rem)] max-w-none flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-background p-0 sm:w-[calc(100vw-2rem)] md:w-[600px] [&>button]:hidden"
-      >
-        <DialogTitle className="sr-only">Agendar evento {ticket.protocol}</DialogTitle>
-
-        <DetailModalHeader
-          icon={CalendarClock}
-          title="Agendar evento"
-          protocol={ticket.protocol}
-          onClose={() => onOpenChange(false)}
-          meta={
-            <span className="inline-flex items-center gap-1">
-              <span className="font-semibold text-primary">{ticket.clientCode}</span>
-              <span aria-hidden className="text-border">·</span>
-              <span className="truncate text-foreground">{ticket.clientName}</span>
-            </span>
-          }
-        />
-
-        <div className="flex-1 overflow-y-auto space-y-4 px-5 py-4 md:px-6">
-          <div>
-            <Label className="mb-1.5 block text-[12.5px] font-medium">
-              Título do evento <span className="text-destructive">*</span>
-            </Label>
-            <Input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Ex.: Reunião de alinhamento fiscal"
-              maxLength={120}
-            />
-          </div>
-
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div>
-              <Label className="mb-1.5 block text-[12.5px] font-medium">
-                Data <span className="text-destructive">*</span>
-              </Label>
-              <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-            </div>
-            <div>
-              <Label className="mb-1.5 block text-[12.5px] font-medium">
-                Horário <span className="text-destructive">*</span>
-              </Label>
-              <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div>
-              <Label className="mb-1.5 block text-[12.5px] font-medium">
-                Tipo do evento <span className="text-destructive">*</span>
-              </Label>
-              <select
-                value={type}
-                onChange={(e) => setType(e.target.value)}
-                className="h-9 w-full cursor-pointer rounded-md border border-input bg-background px-3 text-[13px] outline-none focus:ring-2 focus:ring-ring"
-              >
-                {EVENT_TYPES.map((t) => (
-                  <option key={t} value={t}>{t}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <Label className="mb-1.5 block text-[12.5px] font-medium">
-                Responsável <span className="text-destructive">*</span>
-              </Label>
-              <select
-                value={responsible}
-                onChange={(e) => setResponsible(e.target.value)}
-                className="h-9 w-full cursor-pointer rounded-md border border-input bg-background px-3 text-[13px] outline-none focus:ring-2 focus:ring-ring"
-              >
-                {RESPONSIBLES.map((r) => (
-                  <option key={r} value={r}>{r}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <Label className="mb-1.5 block text-[12.5px] font-medium">
-              Descrição / observação
-            </Label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={3}
-              maxLength={500}
-              placeholder="Detalhes complementares do evento..."
-              className="min-h-[90px] w-full resize-none rounded-md border border-input bg-background p-3 text-[13px] outline-none focus:ring-2 focus:ring-ring"
-            />
-          </div>
-
-          <label className="flex cursor-pointer items-start gap-2.5 rounded-lg border border-border bg-card px-3 py-2.5">
-            <Checkbox
-              checked={reminder}
-              onCheckedChange={(v) => setReminder(v === true)}
-              className="mt-0.5 cursor-pointer"
-            />
-            <span className="text-[12.5px] text-foreground">
-              Gerar lembrete próximo ao horário do evento
-            </span>
-          </label>
+  return <Dialog open={open} onOpenChange={onOpenChange}>
+    <DialogContent onPointerDownOutside={preventOutsideClose} onInteractOutside={preventOutsideClose} onEscapeKeyDown={preventOutsideClose} className="flex max-h-[90vh] w-[calc(100vw-1rem)] max-w-none flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-background p-0 sm:w-[calc(100vw-2rem)] md:w-[720px] [&>button]:hidden">
+      <DialogTitle className="sr-only">Agendar evento {ticket.protocol}</DialogTitle>
+      <DetailModalHeader icon={CalendarClock} title="Agendar evento" protocol={ticket.protocol} onClose={() => onOpenChange(false)} meta={<span className="inline-flex items-center gap-1"><span className="text-primary">{ticket.clientCode}</span><span className="text-border">·</span><span>{ticket.clientName}</span></span>} />
+      <div className="flex-1 space-y-4 overflow-y-auto px-5 py-4 md:px-6">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="Tipo do evento" required><select value={type} onChange={(e) => setType(e.target.value)} className={selectClass}>{EVENT_TYPES.map((item) => <option key={item}>{item}</option>)}</select></Field>
+          <Field label="Responsável" required><select value={responsible} onChange={(e) => setResponsible(e.target.value)} className={selectClass}>{RESPONSIBLES.map((item) => <option key={item}>{item}</option>)}</select></Field>
         </div>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <Field label="Data" required><Input type="date" value={date} onChange={(e) => setDate(e.target.value)} /></Field>
+          <Field label="Início" required><div className="relative"><Clock3 className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"/><Input className="pl-8" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} /></div></Field>
+          <Field label="Término" required><Input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} /></Field>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="Módulo" required><Input value={module} onChange={(e) => setModule(e.target.value)} /></Field>
+          <Field label="Submódulo" required><Input value={submodule} onChange={(e) => setSubmodule(e.target.value)} /></Field>
+        </div>
+        <div className={type === "Visita" ? "grid gap-3 sm:grid-cols-2" : "grid gap-3"}>
+          <Field label="Convidados"><div className="relative"><Users className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"/><Input className="pl-8" value={guests} onChange={(e) => setGuests(e.target.value)} placeholder="Nomes ou e-mails, separados por vírgula" /></div></Field>
+          {type === "Visita" && <Field label="Veículo"><div className="relative"><Car className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"/><select value={vehicle} onChange={(e) => setVehicle(e.target.value)} className={`${selectClass} pl-8`}>{VEHICLES.map((item) => <option key={item}>{item}</option>)}</select></div></Field>}
+        </div>
+        <Field label="Observações"><textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} maxLength={700} placeholder="Objetivo, orientações e informações para o atendimento..." className="min-h-[88px] w-full resize-none rounded-md border border-input bg-background p-3 text-[13px] outline-none focus:ring-2 focus:ring-ring" /></Field>
+        <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-border bg-card px-3 py-2.5"><Checkbox checked={reminder} onCheckedChange={(value) => setReminder(value === true)} className="cursor-pointer"/><span className="text-[12.5px]">Gerar lembrete para o responsável</span></label>
+      </div>
+      <DialogFooter className="shrink-0 gap-2 border-t border-border bg-card px-5 py-3 sm:gap-2"><Button variant="outline" onClick={() => onOpenChange(false)} className="cursor-pointer">Cancelar</Button><Button onClick={submit} className="cursor-pointer"><CalendarClock className="mr-1.5 h-4 w-4"/>Agendar evento</Button></DialogFooter>
+    </DialogContent>
+  </Dialog>;
+}
 
-        <DialogFooter className="shrink-0 gap-2 border-t border-border bg-card px-5 py-3 sm:gap-2">
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            className="cursor-pointer rounded-lg"
-          >
-            Cancelar
-          </Button>
-          <Button onClick={submit} className="cursor-pointer rounded-lg">
-            <CalendarClock className="mr-1.5 h-4 w-4" />
-            Agendar evento
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
+function Field({ label, required, children }: { label: string; required?: boolean; children: ReactNode }) {
+  return <div><Label className="mb-1.5 block text-[12.5px] font-medium">{label}{required && <span className="text-destructive"> *</span>}</Label>{children}</div>;
 }
