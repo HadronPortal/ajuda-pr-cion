@@ -16,7 +16,7 @@ import {
   TerminalsTab,
   CompaniesTab,
   Summary,
-} from "./clientes";
+} from "./clientes.index";
 
 const tabs = ["cliente", "hadron", "usuarios", "terminais", "empresas"] as const;
 type TabValue = (typeof tabs)[number];
