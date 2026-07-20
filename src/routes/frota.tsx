@@ -190,38 +190,58 @@ function TodayView({ query }: { query: string }) {
 // -----------------------------------------------------------------------------
 function VehiclesView({ query }: { query: string }) {
   const vehicles = useVehicles();
+  const [selected, setSelected] = useState<Vehicle | null>(null);
   const rows = vehicles.filter((v) =>
     `${v.model} ${v.plate} ${v.category}`.toLowerCase().includes(query.toLowerCase()),
   );
 
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {rows.map((v) => (
-        <Card key={v.id} className="overflow-hidden p-0">
-          <div className="flex h-32 items-center justify-center bg-white">
-            <img src={v.imageUrl} alt={v.model} className="h-full w-full object-contain p-2" />
-          </div>
-          <div className="space-y-2 p-3">
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0">
-                <p className="truncate text-[13.5px] font-medium">{v.model}</p>
-                <p className="mt-0.5 font-mono text-[11.5px] text-primary">{v.plate}</p>
+    <>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {rows.map((v) => (
+          <Card
+            key={v.id}
+            role="button"
+            tabIndex={0}
+            onClick={() => setSelected(v)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                setSelected(v);
+              }
+            }}
+            className="cursor-pointer overflow-hidden p-0 transition hover:border-primary/40 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <div className="flex h-32 items-center justify-center bg-white">
+              <img src={v.imageUrl} alt={v.model} className="h-full w-full object-contain p-2" />
+            </div>
+            <div className="space-y-2 p-3">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="truncate text-[13.5px] font-medium">{v.model}</p>
+                  <p className="mt-0.5 font-mono text-[11.5px] text-primary">{v.plate}</p>
+                </div>
+                <VehicleBadge status={v.status} />
               </div>
-              <VehicleBadge status={v.status} />
+              <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[11.5px] text-muted-foreground">
+                <span>Categoria: <span className="text-foreground">{v.category}</span></span>
+                <span>Cor: <span className="text-foreground">{v.color}</span></span>
+                <span>Ano: <span className="text-foreground">{v.yearModel}</span></span>
+                <span>KM: <span className="text-foreground">{v.currentMileage.toLocaleString("pt-BR")}</span></span>
+                <span className="col-span-2">
+                  Revisão: <span className="text-foreground">{v.nextRevisionDate}</span>
+                </span>
+              </div>
             </div>
-            <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[11.5px] text-muted-foreground">
-              <span>Categoria: <span className="text-foreground">{v.category}</span></span>
-              <span>Cor: <span className="text-foreground">{v.color}</span></span>
-              <span>Ano: <span className="text-foreground">{v.yearModel}</span></span>
-              <span>KM: <span className="text-foreground">{v.currentMileage.toLocaleString("pt-BR")}</span></span>
-              <span className="col-span-2">
-                Revisão: <span className="text-foreground">{v.nextRevisionDate}</span>
-              </span>
-            </div>
-          </div>
-        </Card>
-      ))}
-    </div>
+          </Card>
+        ))}
+      </div>
+      <VehicleHistoryModal
+        vehicle={selected}
+        open={selected !== null}
+        onOpenChange={(o) => !o && setSelected(null)}
+      />
+    </>
   );
 }
 
