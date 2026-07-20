@@ -404,12 +404,14 @@ function CalendarPage() {
         open={createOpen}
         onOpenChange={setCreateOpen}
         initialDate={selectedDate}
+        existingEvents={events}
         onCreate={(event) => {
           setEvents((current) => [...current, { ...event, id: Date.now() }]);
           setSelectedDate(event.date);
           toast.success("Evento adicionado ao calendário");
         }}
       />
+
 
       <FiltersPanel
         open={filtersOpen}
