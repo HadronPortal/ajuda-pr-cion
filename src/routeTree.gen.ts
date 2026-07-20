@@ -9,60 +9,25 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as AnalyticsRouteImport } from './routes/analytics'
-import { Route as AtualizacoesRouteImport } from './routes/atualizacoes'
-import { Route as BaseDeConhecimentoRouteImport } from './routes/base-de-conhecimento'
-import { Route as CalendarioRouteImport } from './routes/calendario'
-import { Route as ChamadosRouteImport } from './routes/chamados'
-import { Route as KanbanRouteImport } from './routes/kanban'
-import { Route as KanbanDashboardRouteImport } from './routes/kanban-dashboard'
-import { Route as MinhaContaRouteImport } from './routes/minha-conta'
 import { Route as VersoesRouteImport } from './routes/versoes'
-import { Route as BaseDeConhecimentoIndexRouteImport } from './routes/base-de-conhecimento.index'
-import { Route as BaseDeConhecimentoSlugRouteImport } from './routes/base-de-conhecimento.$slug'
-import { Route as ChamadosNovoRouteImport } from './routes/chamados.novo'
+import { Route as MinhaContaRouteImport } from './routes/minha-conta'
+import { Route as KanbanDashboardRouteImport } from './routes/kanban-dashboard'
+import { Route as KanbanRouteImport } from './routes/kanban'
+import { Route as ChamadosRouteImport } from './routes/chamados'
+import { Route as CalendarioRouteImport } from './routes/calendario'
+import { Route as BaseDeConhecimentoRouteImport } from './routes/base-de-conhecimento'
+import { Route as AtualizacoesRouteImport } from './routes/atualizacoes'
+import { Route as AnalyticsRouteImport } from './routes/analytics'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as ClientesIndexRouteImport } from './routes/clientes.index'
+import { Route as BaseDeConhecimentoIndexRouteImport } from './routes/base-de-conhecimento.index'
 import { Route as ClientesClienteIdRouteImport } from './routes/clientes.$clienteId'
+import { Route as ChamadosNovoRouteImport } from './routes/chamados.novo'
+import { Route as BaseDeConhecimentoSlugRouteImport } from './routes/base-de-conhecimento.$slug'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AnalyticsRoute = AnalyticsRouteImport.update({
-  id: '/analytics',
-  path: '/analytics',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AtualizacoesRoute = AtualizacoesRouteImport.update({
-  id: '/atualizacoes',
-  path: '/atualizacoes',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BaseDeConhecimentoRoute = BaseDeConhecimentoRouteImport.update({
-  id: '/base-de-conhecimento',
-  path: '/base-de-conhecimento',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CalendarioRoute = CalendarioRouteImport.update({
-  id: '/calendario',
-  path: '/calendario',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ChamadosRoute = ChamadosRouteImport.update({
-  id: '/chamados',
-  path: '/chamados',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const KanbanRoute = KanbanRouteImport.update({
-  id: '/kanban',
-  path: '/kanban',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const KanbanDashboardRoute = KanbanDashboardRouteImport.update({
-  id: '/kanban-dashboard',
-  path: '/kanban-dashboard',
+const VersoesRoute = VersoesRouteImport.update({
+  id: '/versoes',
+  path: '/versoes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MinhaContaRoute = MinhaContaRouteImport.update({
@@ -70,9 +35,49 @@ const MinhaContaRoute = MinhaContaRouteImport.update({
   path: '/minha-conta',
   getParentRoute: () => rootRouteImport,
 } as any)
-const VersoesRoute = VersoesRouteImport.update({
-  id: '/versoes',
-  path: '/versoes',
+const KanbanDashboardRoute = KanbanDashboardRouteImport.update({
+  id: '/kanban-dashboard',
+  path: '/kanban-dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KanbanRoute = KanbanRouteImport.update({
+  id: '/kanban',
+  path: '/kanban',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChamadosRoute = ChamadosRouteImport.update({
+  id: '/chamados',
+  path: '/chamados',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CalendarioRoute = CalendarioRouteImport.update({
+  id: '/calendario',
+  path: '/calendario',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BaseDeConhecimentoRoute = BaseDeConhecimentoRouteImport.update({
+  id: '/base-de-conhecimento',
+  path: '/base-de-conhecimento',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AtualizacoesRoute = AtualizacoesRouteImport.update({
+  id: '/atualizacoes',
+  path: '/atualizacoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AnalyticsRoute = AnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClientesIndexRoute = ClientesIndexRouteImport.update({
+  id: '/clientes/',
+  path: '/clientes/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BaseDeConhecimentoIndexRoute = BaseDeConhecimentoIndexRouteImport.update({
@@ -80,25 +85,20 @@ const BaseDeConhecimentoIndexRoute = BaseDeConhecimentoIndexRouteImport.update({
   path: '/',
   getParentRoute: () => BaseDeConhecimentoRoute,
 } as any)
-const BaseDeConhecimentoSlugRoute = BaseDeConhecimentoSlugRouteImport.update({
-  id: '/$slug',
-  path: '/$slug',
-  getParentRoute: () => BaseDeConhecimentoRoute,
+const ClientesClienteIdRoute = ClientesClienteIdRouteImport.update({
+  id: '/clientes/$clienteId',
+  path: '/clientes/$clienteId',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ChamadosNovoRoute = ChamadosNovoRouteImport.update({
   id: '/novo',
   path: '/novo',
   getParentRoute: () => ChamadosRoute,
 } as any)
-const ClientesIndexRoute = ClientesIndexRouteImport.update({
-  id: '/clientes/',
-  path: '/clientes/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ClientesClienteIdRoute = ClientesClienteIdRouteImport.update({
-  id: '/clientes/$clienteId',
-  path: '/clientes/$clienteId',
-  getParentRoute: () => rootRouteImport,
+const BaseDeConhecimentoSlugRoute = BaseDeConhecimentoSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => BaseDeConhecimentoRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -222,60 +222,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/analytics': {
-      id: '/analytics'
-      path: '/analytics'
-      fullPath: '/analytics'
-      preLoaderRoute: typeof AnalyticsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/atualizacoes': {
-      id: '/atualizacoes'
-      path: '/atualizacoes'
-      fullPath: '/atualizacoes'
-      preLoaderRoute: typeof AtualizacoesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/base-de-conhecimento': {
-      id: '/base-de-conhecimento'
-      path: '/base-de-conhecimento'
-      fullPath: '/base-de-conhecimento'
-      preLoaderRoute: typeof BaseDeConhecimentoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/calendario': {
-      id: '/calendario'
-      path: '/calendario'
-      fullPath: '/calendario'
-      preLoaderRoute: typeof CalendarioRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/chamados': {
-      id: '/chamados'
-      path: '/chamados'
-      fullPath: '/chamados'
-      preLoaderRoute: typeof ChamadosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/kanban': {
-      id: '/kanban'
-      path: '/kanban'
-      fullPath: '/kanban'
-      preLoaderRoute: typeof KanbanRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/kanban-dashboard': {
-      id: '/kanban-dashboard'
-      path: '/kanban-dashboard'
-      fullPath: '/kanban-dashboard'
-      preLoaderRoute: typeof KanbanDashboardRouteImport
+    '/versoes': {
+      id: '/versoes'
+      path: '/versoes'
+      fullPath: '/versoes'
+      preLoaderRoute: typeof VersoesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/minha-conta': {
@@ -285,11 +236,67 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MinhaContaRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/versoes': {
-      id: '/versoes'
-      path: '/versoes'
-      fullPath: '/versoes'
-      preLoaderRoute: typeof VersoesRouteImport
+    '/kanban-dashboard': {
+      id: '/kanban-dashboard'
+      path: '/kanban-dashboard'
+      fullPath: '/kanban-dashboard'
+      preLoaderRoute: typeof KanbanDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/kanban': {
+      id: '/kanban'
+      path: '/kanban'
+      fullPath: '/kanban'
+      preLoaderRoute: typeof KanbanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/chamados': {
+      id: '/chamados'
+      path: '/chamados'
+      fullPath: '/chamados'
+      preLoaderRoute: typeof ChamadosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/calendario': {
+      id: '/calendario'
+      path: '/calendario'
+      fullPath: '/calendario'
+      preLoaderRoute: typeof CalendarioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/base-de-conhecimento': {
+      id: '/base-de-conhecimento'
+      path: '/base-de-conhecimento'
+      fullPath: '/base-de-conhecimento'
+      preLoaderRoute: typeof BaseDeConhecimentoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/atualizacoes': {
+      id: '/atualizacoes'
+      path: '/atualizacoes'
+      fullPath: '/atualizacoes'
+      preLoaderRoute: typeof AtualizacoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/analytics': {
+      id: '/analytics'
+      path: '/analytics'
+      fullPath: '/analytics'
+      preLoaderRoute: typeof AnalyticsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/clientes/': {
+      id: '/clientes/'
+      path: '/clientes'
+      fullPath: '/clientes/'
+      preLoaderRoute: typeof ClientesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/base-de-conhecimento/': {
@@ -299,12 +306,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BaseDeConhecimentoIndexRouteImport
       parentRoute: typeof BaseDeConhecimentoRoute
     }
-    '/base-de-conhecimento/$slug': {
-      id: '/base-de-conhecimento/$slug'
-      path: '/$slug'
-      fullPath: '/base-de-conhecimento/$slug'
-      preLoaderRoute: typeof BaseDeConhecimentoSlugRouteImport
-      parentRoute: typeof BaseDeConhecimentoRoute
+    '/clientes/$clienteId': {
+      id: '/clientes/$clienteId'
+      path: '/clientes/$clienteId'
+      fullPath: '/clientes/$clienteId'
+      preLoaderRoute: typeof ClientesClienteIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/chamados/novo': {
       id: '/chamados/novo'
@@ -313,19 +320,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChamadosNovoRouteImport
       parentRoute: typeof ChamadosRoute
     }
-    '/clientes/': {
-      id: '/clientes/'
-      path: '/clientes'
-      fullPath: '/clientes/'
-      preLoaderRoute: typeof ClientesIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/clientes/$clienteId': {
-      id: '/clientes/$clienteId'
-      path: '/clientes/$clienteId'
-      fullPath: '/clientes/$clienteId'
-      preLoaderRoute: typeof ClientesClienteIdRouteImport
-      parentRoute: typeof rootRouteImport
+    '/base-de-conhecimento/$slug': {
+      id: '/base-de-conhecimento/$slug'
+      path: '/$slug'
+      fullPath: '/base-de-conhecimento/$slug'
+      preLoaderRoute: typeof BaseDeConhecimentoSlugRouteImport
+      parentRoute: typeof BaseDeConhecimentoRoute
     }
   }
 }
