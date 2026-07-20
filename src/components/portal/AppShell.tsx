@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { AppSidebar, MobileBottomNav } from "./AppSidebar";
 import { AppHeader } from "./AppHeader";
 import { Breadcrumbs, type Crumb } from "./Breadcrumbs";
+import { FleetActionModals } from "@/components/fleet/FleetActionModals";
 import { useSidebarCollapsed } from "@/lib/sidebar-store";
 import { cn } from "@/lib/utils";
 
@@ -17,6 +18,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </main>
       </div>
       <MobileBottomNav />
+      <FleetActionModals />
     </div>
   );
 }

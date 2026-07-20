@@ -1,6 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { ProcionLogo } from "./ProcionLogo";
-import { CalendarDays, ChevronLeft, ChevronRight, MessageSquare } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, MessageSquare, Truck } from "lucide-react";
 import type { ComponentType } from "react";
 import dashboardIconUrl from "@/assets/menu-dashboard-solid.png";
 import ticketsIconUrl from "@/assets/menu-tickets-solid.png";
@@ -59,6 +59,7 @@ const nav: NavItem[] = [
   { to: "/kanban", label: "Kanban", icon: KanbanIcon },
   { to: "/analytics", label: "Analytics", icon: AnalyticsIcon },
   { to: "/clientes", label: "Clientes", icon: CustomersIcon },
+  { to: "/frota", label: "Frota", icon: Truck },
 ];
 
 function isActivePath(pathname: string, item: NavItem) {
