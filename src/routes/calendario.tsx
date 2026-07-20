@@ -7,6 +7,8 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
+  Clock,
+  Droplet,
   Filter,
   Fuel,
   Gauge,
@@ -14,13 +16,21 @@ import {
   Link2,
   Lock,
   MapPin,
+  Palette,
   Plus,
   SlidersHorizontal,
   Sparkles,
+  Tag,
+  User,
   UserRound,
   UsersRound,
+  Wrench,
   X,
 } from "lucide-react";
+import corollaImg from "@/assets/vehicles/corolla.jpg";
+import trackerImg from "@/assets/vehicles/tracker.jpg";
+import onixImg from "@/assets/vehicles/onix.jpg";
+import stradaImg from "@/assets/vehicles/strada.jpg";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
