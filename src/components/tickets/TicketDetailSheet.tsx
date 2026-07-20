@@ -1357,19 +1357,24 @@ function TicketPastAttendancesSidePanel({
             onClick={onSeeAll}
             className="inline-flex cursor-pointer items-center gap-0.5 text-[11px] font-medium text-primary hover:underline"
           >
-            Ver todos
+            Ver todos ({items.length})
             <ChevronRight className="h-3 w-3" />
           </button>
         )}
       </div>
 
-      <div className="flex-1 min-h-0 overflow-y-auto bg-muted/20 px-3 py-3">
+      <div
+        className={cn(
+          "flex-1 min-h-0 bg-muted/20 px-3 py-3",
+          items.length > 5 ? "overflow-y-auto" : "overflow-hidden",
+        )}
+      >
         {items.length === 0 ? (
           <p className="py-8 text-center text-[12px] text-muted-foreground">
             Sem atendimentos anteriores.
           </p>
         ) : (
-          <TicketHistoryList items={items.slice(0, 4)} onSelect={onSelect} timeline />
+          <TicketHistoryList items={items.slice(0, 5)} onSelect={onSelect} timeline />
         )}
       </div>
     </aside>
