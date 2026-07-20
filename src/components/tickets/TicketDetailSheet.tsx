@@ -83,6 +83,7 @@ import { TicketTimelineList } from "./TicketTimelineList";
 import { TicketFloatingChat } from "./TicketFloatingChat";
 import { ScheduleEventModal } from "./ScheduleEventModal";
 import { ForwardSpecialistModal } from "./ForwardSpecialistModal";
+import { TransferTicketModal } from "./TransferTicketModal";
 import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import { ModuleKnowledgeLink } from "@/lib/module-link";
 import { kbArticlesFull } from "@/lib/kb-data";
