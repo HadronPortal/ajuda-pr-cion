@@ -30,6 +30,26 @@ export type UsageStatus =
   | "devolvido"
   | "cancelado";
 
+export type ReservationStatus =
+  | "pre_agendado"
+  | "convertida_em_uso"
+  | "cancelada";
+
+export type VehicleReservation = {
+  id: string;
+  eventId?: string | number;
+  ticketId?: string;
+  vehicleId: string;
+  operatorId: string;
+  customerId?: string;
+  destination?: string;
+  startAt: string;
+  endAt: string;
+  status: ReservationStatus;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type VehicleUsage = {
   id: string;
   vehicleId?: string;
