@@ -342,9 +342,14 @@ function ChamadosRouteShell() {
 }
 
 function TicketsPage() {
-
+  const search = Route.useSearch();
   const supportTickets = useTickets();
-  const [filters, setFilters] = useState<Filters>(() => todayFilters());
+  const [filters, setFilters] = useState<Filters>(() => {
+    const base = search.today ? todayFilters() : { ...initialFilters };
+    if (search.status) base.status = search.status;
+    return base;
+  });
+
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
