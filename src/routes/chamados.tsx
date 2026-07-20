@@ -345,7 +345,7 @@ function TicketsPage() {
   const search = Route.useSearch();
   const supportTickets = useTickets();
   const [filters, setFilters] = useState<Filters>(() => {
-    const base = search.today ? todayFilters() : { ...initialFilters };
+    const base = todayFilters();
     if (search.status) base.status = search.status;
     return base;
   });
