@@ -85,6 +85,14 @@ import { ptBR } from "date-fns/locale";
 import { TicketDetailSheet } from "@/components/tickets/TicketDetailSheet";
 import { TicketHistoryModal } from "@/components/tickets/TicketHistoryModal";
 
+import { z } from "zod";
+import { fallback, zodValidator } from "@tanstack/zod-adapter";
+
+const chamadosSearchSchema = z.object({
+  status: fallback(z.string().optional(), undefined),
+  today: fallback(z.coerce.number().optional(), undefined),
+});
+
 export const Route = createFileRoute("/chamados")({
   head: () => ({
     meta: [
@@ -96,8 +104,10 @@ export const Route = createFileRoute("/chamados")({
       },
     ],
   }),
+  validateSearch: zodValidator(chamadosSearchSchema),
   component: ChamadosRouteShell,
 });
+
 
 // Soft/translucent status badges. Green reserved for Finalizado only.
 const statusTone: Record<TicketStatus, string> = {
