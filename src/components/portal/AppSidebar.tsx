@@ -6,7 +6,7 @@ import dashboardIconUrl from "@/assets/menu-dashboard-solid.png";
 import ticketsIconUrl from "@/assets/menu-tickets-solid.png";
 import baseIconUrl from "@/assets/menu-base-solid.png";
 import updatesIconUrl from "@/assets/menu-updates-solid.png";
-import versionsIconUrl from "@/assets/menu-versions-solid.png";
+
 import kanbanIconUrl from "@/assets/menu-kanban-solid.png";
 import analyticsIconUrl from "@/assets/menu-analytics-solid.png";
 import customersIconUrl from "@/assets/menu-customers-solid.png";
@@ -44,7 +44,7 @@ const DashboardIcon = createMaskedMenuIcon(dashboardIconUrl);
 const TicketsIcon = createMaskedMenuIcon(ticketsIconUrl);
 const BaseIcon = createMaskedMenuIcon(baseIconUrl);
 const UpdatesIcon = createMaskedMenuIcon(updatesIconUrl);
-const VersionsIcon = createMaskedMenuIcon(versionsIconUrl);
+
 const KanbanIcon = createMaskedMenuIcon(kanbanIconUrl);
 const AnalyticsIcon = createMaskedMenuIcon(analyticsIconUrl);
 const CustomersIcon = createMaskedMenuIcon(customersIconUrl);
