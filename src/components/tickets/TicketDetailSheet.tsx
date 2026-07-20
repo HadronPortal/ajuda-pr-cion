@@ -83,6 +83,7 @@ import { TicketTimelineList } from "./TicketTimelineList";
 import { TicketFloatingChat } from "./TicketFloatingChat";
 import { ScheduleEventModal } from "./ScheduleEventModal";
 import { ForwardSpecialistModal } from "./ForwardSpecialistModal";
+import { TransferTicketModal } from "./TransferTicketModal";
 import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import { ModuleKnowledgeLink } from "@/lib/module-link";
 import { kbArticlesFull } from "@/lib/kb-data";
@@ -266,6 +267,7 @@ export function TicketDetailSheet({
   const [closeOpen, setCloseOpen] = useState(false);
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [forwardOpen, setForwardOpen] = useState(false);
+  const [transferOpen, setTransferOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
   const [timelineOpen, setTimelineOpen] = useState(false);
@@ -284,10 +286,6 @@ export function TicketDetailSheet({
 
   const isMine = ticket.owner === currentUser.operator || ticket.lockedBy === currentUser.operator;
 
-  const handleAssume = () => {
-    ticketsStore.assumeTicket(ticket.id);
-    toast.success("Chamado assumido");
-  };
   const handleAttend = () => {
     ticketsStore.attendTicket(ticket.id);
     toast.success("Atendimento iniciado");
@@ -422,7 +420,7 @@ export function TicketDetailSheet({
                     active={activeAction === "assumir"}
                     onClick={() => {
                       setActiveAction("assumir");
-                      handleAssume();
+                      setTransferOpen(true);
                     }}
                   />
                   <SideItem
@@ -483,7 +481,7 @@ export function TicketDetailSheet({
                   label="Finalizar"
                   onClick={() => setCloseOpen(true)}
                 />
-                <MobileAction icon={TicketAssumeIcon} label="Transferir" onClick={handleAssume} />
+                <MobileAction icon={TicketAssumeIcon} label="Transferir" onClick={() => setTransferOpen(true)} />
                 <MobileAction
                   icon={TicketScheduleIcon}
                   label="Agendar"
@@ -749,6 +747,8 @@ export function TicketDetailSheet({
       <ScheduleEventModal open={scheduleOpen} onOpenChange={setScheduleOpen} ticket={ticket} />
 
       <ForwardSpecialistModal open={forwardOpen} onOpenChange={setForwardOpen} ticket={ticket} />
+
+      <TransferTicketModal open={transferOpen} onOpenChange={setTransferOpen} ticket={ticket} />
     </>
   );
 }

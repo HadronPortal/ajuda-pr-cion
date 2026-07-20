@@ -412,6 +412,46 @@ export const ticketsStore = {
     emit();
   },
 
+  transferTicket(
+    id: string,
+    input: {
+      toOperator: string;
+      type: "Transferir" | "Encaminhar" | "Devolver para fila";
+      message: string;
+      priority: SupportTicket["priority"];
+      permission: string;
+      hadronOption: string;
+      relatedArticles: string[];
+      relatedForms: string[];
+    },
+  ) {
+    const from = operator();
+    const nextStatus: TicketStatus =
+      input.type === "Devolver para fila" ? "Em Aberto" : "Em andamento";
+    const nextOwner = input.type === "Devolver para fila" ? "Sem responsável" : input.toOperator;
+    updateTicket(id, {
+      owner: nextOwner,
+      status: nextStatus,
+      priority: input.priority,
+      lockedBy: undefined,
+    });
+    pushEvent(id, {
+      kind: "forwarded",
+      when: nowIso(),
+      actor: from,
+      actorType: "suporte",
+      description:
+        `${input.type} — de ${from} para ${nextOwner}. ` +
+        `Prioridade: ${input.priority}. Permissão: ${input.permission}.` +
+        (input.hadronOption ? ` Opção Hádron: ${input.hadronOption}.` : "") +
+        (input.relatedArticles.length ? ` Artigos: ${input.relatedArticles.join(", ")}.` : "") +
+        (input.relatedForms.length ? ` Opções/Formulários: ${input.relatedForms.join(", ")}.` : "") +
+        ` Mensagem: ${input.message}`,
+    });
+    emit();
+  },
+
+
   addNote(id: string, note: string) {
     this.addInternalNote(id, note);
   },
