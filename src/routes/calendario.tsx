@@ -1,12 +1,16 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, type ReactNode } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
+  Building2,
   CalendarDays,
   Car,
+  Check,
   ChevronLeft,
   ChevronRight,
   Filter,
   Laptop,
+  Link2,
+  Lock,
   MapPin,
   Plus,
   SlidersHorizontal,
@@ -16,6 +20,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { AppShell, PageHeader } from "@/components/portal/AppShell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,10 +28,16 @@ import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogFooter, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import { cn } from "@/lib/utils";
+
+const preventOutsideClose = (event: Event) => event.preventDefault();
+
 
 export const Route = createFileRoute("/calendario")({
   head: () => ({ meta: [{ title: "Calendário - Portal Prócion" }] }),
