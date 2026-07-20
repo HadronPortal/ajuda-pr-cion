@@ -118,6 +118,9 @@ type Props = {
   className?: string;
   title?: string;
   stopPropagation?: boolean;
+  /** Quando presente, adiciona contexto para "Voltar ao chamado" na Base. */
+  returnToTicketId?: string;
+  onBeforeNavigate?: () => void;
 };
 
 /**
@@ -131,6 +134,8 @@ export function ModuleKnowledgeLink({
   className,
   title,
   stopPropagation = true,
+  returnToTicketId,
+  onBeforeNavigate,
 }: Props) {
   const slug = resolveModuleSlug(module);
   const label: ReactNode = children ?? module;
@@ -139,8 +144,15 @@ export function ModuleKnowledgeLink({
     return <span className={className}>{label}</span>;
   }
 
+  const search: Record<string, string> = { modulo: slug };
+  if (returnToTicketId) {
+    search.from = "chamado";
+    search.ticketId = returnToTicketId;
+  }
+
   const handleClick = (e: MouseEvent<HTMLAnchorElement>) => {
     if (stopPropagation) e.stopPropagation();
+    onBeforeNavigate?.();
   };
   const handleKeyDown = (e: KeyboardEvent<HTMLAnchorElement>) => {
     if (stopPropagation) e.stopPropagation();
@@ -153,7 +165,7 @@ export function ModuleKnowledgeLink({
   return (
     <Link
       to="/base-de-conhecimento"
-      search={{ modulo: slug }}
+      search={search}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       title={title ?? "Ver artigos deste módulo"}
