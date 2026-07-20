@@ -1400,6 +1400,26 @@ function VehicleDatum({
   );
 }
 
+function VehicleSpec({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: typeof Car;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="flex items-start gap-2.5 px-3 py-2">
+      <Icon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+      <div className="min-w-0 flex-1">
+        <p className="text-[10.5px] uppercase tracking-wider text-muted-foreground">{label}</p>
+        <p className="text-[12px] leading-snug text-foreground">{value}</p>
+      </div>
+    </div>
+  );
+}
+
 function SelectNative({
   value,
   onChange,
