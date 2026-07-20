@@ -7,30 +7,19 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
-  Clock,
-  Droplet,
   Filter,
-  Fuel,
-  Gauge,
+  KeyRound,
   Laptop,
   Link2,
   Lock,
   MapPin,
-  Palette,
   Plus,
   SlidersHorizontal,
-  Sparkles,
-  Tag,
-  User,
+  Undo2,
   UserRound,
   UsersRound,
-  Wrench,
   X,
 } from "lucide-react";
-import corollaImg from "@/assets/vehicles/corolla.jpg";
-import trackerImg from "@/assets/vehicles/tracker.jpg";
-import onixImg from "@/assets/vehicles/onix.jpg";
-import stradaImg from "@/assets/vehicles/strada.jpg";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -43,22 +32,27 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import { cn } from "@/lib/utils";
-import { useFleetUsage, registerReturn, type FleetUsage } from "@/lib/fleet-store";
+import {
+  useUsages,
+  createUsageForAppointment,
+  getUsageByAppointment,
+} from "@/lib/fleet-store";
+import { fleetActions } from "@/lib/fleet-action-store";
 
 const preventOutsideClose = (event: Event) => event.preventDefault();
-
 
 export const Route = createFileRoute("/calendario")({
   head: () => ({ meta: [{ title: "Calendário - Portal Prócion" }] }),
   component: CalendarPage,
 });
 
-type EventType = "Visita" | "Reunião remota" | "Reunião PRC" | "Pessoal";
+type EventType = "Visita presencial" | "Reunião remota" | "Reunião na Prócion" | "Pessoal";
 type EventStatus = "Agendado" | "Concluído" | "Cancelado";
 type CalendarEvent = {
   id: number;
@@ -73,7 +67,7 @@ type CalendarEvent = {
   status?: EventStatus;
   description?: string;
   guests?: string[];
-  vehicle?: string;
+  needsDisplacement?: boolean;
   address?: string;
   responsible?: string;
   meetingLink?: string;
@@ -82,24 +76,23 @@ type CalendarEvent = {
   isPrivate?: boolean;
 };
 
-
 const initialEvents: CalendarEvent[] = [
-  { id: 1, date: "2026-07-02", time: "08:00", end: "09:30", type: "Visita", origin: "Comercial", operator: "PRCGIN", title: "Visita técnica", client: "ICF · INCOFAP" },
+  { id: 1, date: "2026-07-02", time: "08:00", end: "09:30", type: "Visita presencial", origin: "Comercial", operator: "PRCGIN", title: "Visita técnica", client: "ICF · INCOFAP", needsDisplacement: true, address: "Av. Central, 720, Campinas/SP" },
   { id: 2, date: "2026-07-03", time: "09:00", end: "10:00", type: "Reunião remota", origin: "Suporte", operator: "PRCROG", title: "Acompanhamento", client: "CPB · CAMPO BELO ALIMENTOS" },
-  { id: 3, date: "2026-07-06", time: "08:30", end: "11:00", type: "Visita", origin: "Comercial", operator: "PRCJAC", title: "Implantação", client: "EIN · EUROIND" },
-  { id: 4, date: "2026-07-08", time: "13:30", end: "15:00", type: "Visita", origin: "Suporte", operator: "PRCREN", title: "Treinamento", client: "FRU · FRUTAVO" },
+  { id: 3, date: "2026-07-06", time: "08:30", end: "11:00", type: "Visita presencial", origin: "Comercial", operator: "PRCJAC", title: "Implantação", client: "EIN · EUROIND", needsDisplacement: true, address: "Av. Industrial, 1500, Sorocaba/SP" },
+  { id: 4, date: "2026-07-08", time: "13:30", end: "15:00", type: "Visita presencial", origin: "Suporte", operator: "PRCREN", title: "Treinamento", client: "FRU · FRUTAVO", needsDisplacement: false },
   { id: 5, date: "2026-07-10", time: "14:00", end: "15:00", type: "Reunião remota", origin: "Suporte", operator: "PRCROG", title: "Revisão de processo", client: "AVC · CENTER GLASS" },
-  { id: 6, date: "2026-07-13", time: "08:30", end: "10:30", type: "Visita", origin: "Comercial", operator: "PRCJAC", title: "Visita comercial", client: "USB · US BRASIL" },
-  { id: 7, date: "2026-07-14", time: "14:00", end: "15:00", type: "Reunião PRC", origin: "Administração", operator: "PRCROG", title: "Reunião da equipe" },
+  { id: 6, date: "2026-07-13", time: "08:30", end: "10:30", type: "Visita presencial", origin: "Comercial", operator: "PRCJAC", title: "Visita comercial", client: "USB · US BRASIL", needsDisplacement: true, address: "Av. Paulista, 1000, São Paulo/SP" },
+  { id: 7, date: "2026-07-14", time: "14:00", end: "15:00", type: "Reunião na Prócion", origin: "Administração", operator: "PRCROG", title: "Reunião da equipe" },
   { id: 8, date: "2026-07-15", time: "14:00", end: "15:00", type: "Pessoal", origin: "Administração", operator: "PRCREN", title: "Médico" },
-  { id: 9, date: "2026-07-17", time: "08:30", end: "10:00", type: "Visita", origin: "Suporte", operator: "PRCGIN", title: "Validação final", client: "ICF · INCOFAP" },
+  { id: 9, date: "2026-07-17", time: "08:30", end: "10:00", type: "Visita presencial", origin: "Suporte", operator: "PRCGIN", title: "Validação final", client: "ICF · INCOFAP", needsDisplacement: true, address: "Av. Central, 720, Campinas/SP" },
   { id: 10, date: "2026-07-17", time: "14:00", end: "15:00", type: "Reunião remota", origin: "Suporte", operator: "PRCSUZ", title: "Retorno de chamado", client: "MIT · MINERAÇÃO ITAPORANGA" },
-  { id: 11, date: "2026-07-21", time: "14:00", end: "16:00", type: "Visita", origin: "Comercial", operator: "PRCJAC", title: "Apresentação", client: "NUT · NUTRIVET BRASIL" },
-  { id: 12, date: "2026-07-24", time: "14:00", end: "15:00", type: "Reunião PRC", origin: "Administração", operator: "PRCGGC", title: "Planejamento mensal" },
+  { id: 11, date: "2026-07-21", time: "14:00", end: "16:00", type: "Visita presencial", origin: "Comercial", operator: "PRCJAC", title: "Apresentação", client: "NUT · NUTRIVET BRASIL", needsDisplacement: true, address: "Rod. Anhanguera, km 90, Jundiaí/SP" },
+  { id: 12, date: "2026-07-24", time: "14:00", end: "15:00", type: "Reunião na Prócion", origin: "Administração", operator: "PRCGGC", title: "Planejamento mensal" },
 ];
 
 const operators = ["Todos", "PRCGGC", "PRCGIN", "PRCJAC", "PRCREN", "PRCROG", "PRCSUZ"];
-const typeOptions = ["Todos", "Visita", "Reunião remota", "Reunião PRC", "Pessoal"] as const;
+const typeOptions = ["Todos", "Visita presencial", "Reunião remota", "Reunião na Prócion", "Pessoal"] as const;
 const originOptions = ["Todas", "Administração", "Suporte", "Comercial"] as const;
 const statusOptions = ["Todos", "Agendado", "Concluído", "Cancelado"] as const;
 
@@ -125,13 +118,23 @@ const emptyFilters: Filters = {
   dateEnd: undefined,
 };
 
-const typeStyles: Record<EventType, { dot: string; soft: string; text: string; icon: typeof Car }> =
-  {
-    Visita: { dot: "bg-emerald-500", soft: "bg-emerald-500/10", text: "text-emerald-700 dark:text-emerald-300", icon: Car },
-    "Reunião remota": { dot: "bg-sky-500", soft: "bg-sky-500/10", text: "text-sky-700 dark:text-sky-300", icon: Laptop },
-    "Reunião PRC": { dot: "bg-violet-500", soft: "bg-violet-500/10", text: "text-violet-700 dark:text-violet-300", icon: UsersRound },
-    Pessoal: { dot: "bg-amber-500", soft: "bg-amber-500/12", text: "text-amber-700 dark:text-amber-300", icon: UserRound },
-  };
+const typeStyles: Record<EventType, { dot: string; soft: string; text: string; icon: typeof Car }> = {
+  "Visita presencial": { dot: "bg-emerald-500", soft: "bg-emerald-500/10", text: "text-emerald-700 dark:text-emerald-300", icon: Car },
+  "Reunião remota": { dot: "bg-sky-500", soft: "bg-sky-500/10", text: "text-sky-700 dark:text-sky-300", icon: Laptop },
+  "Reunião na Prócion": { dot: "bg-violet-500", soft: "bg-violet-500/10", text: "text-violet-700 dark:text-violet-300", icon: UsersRound },
+  Pessoal: { dot: "bg-amber-500", soft: "bg-amber-500/12", text: "text-amber-700 dark:text-amber-300", icon: UserRound },
+};
+
+const TYPE_ICON: Record<EventType, typeof Car> = {
+  "Visita presencial": Car,
+  "Reunião remota": Laptop,
+  "Reunião na Prócion": UsersRound,
+  Pessoal: CalendarDays,
+};
+
+const PRC_OPERATORS = ["PRCGGC", "PRCGIN", "PRCJAC", "PRCREN", "PRCROG", "PRCSUZ", "PRCMAR", "PRCLCZ", "PRCPED"];
+const PLATFORM_OPTIONS = ["Google Meet", "Microsoft Teams", "Zoom", "AnyDesk"];
+const ROOM_OPTIONS = ["Sala Diretoria", "Sala Reuniões 1", "Sala Reuniões 2", "Auditório"];
 
 function dateKey(year: number, month: number, day: number) {
   const value = new Date(year, month, day);
@@ -374,7 +377,7 @@ function CalendarPage() {
       <Sheet open={agendaOpen} onOpenChange={setAgendaOpen}>
         <SheetContent
           side="right"
-          className="flex w-[90vw] flex-col gap-0 p-0 sm:max-w-[380px]"
+          className="flex w-[90vw] flex-col gap-0 p-0 sm:max-w-[420px]"
         >
           <SheetHeader className="border-b border-border px-5 py-4">
             <SheetTitle className="text-base font-medium">
@@ -404,7 +407,7 @@ function CalendarPage() {
             <section>
               <p className="mb-3 text-xs uppercase text-muted-foreground">Resumo do mês</p>
               <div className="grid grid-cols-2 gap-3">
-                <Metric value={filtered.filter((e) => e.type === "Visita").length} label="Visitas" color="text-emerald-500" />
+                <Metric value={filtered.filter((e) => e.type === "Visita presencial").length} label="Visitas" color="text-emerald-500" />
                 <Metric value={filtered.filter((e) => e.type.includes("Reunião")).length} label="Reuniões" color="text-sky-500" />
                 <Metric value={new Set(filtered.map((e) => e.operator)).size} label="Operadores" color="text-violet-500" />
                 <Metric value={filtered.filter((e) => e.type === "Pessoal").length} label="Pessoais" color="text-amber-500" />
@@ -426,7 +429,6 @@ function CalendarPage() {
         }}
       />
 
-
       <FiltersPanel
         open={filtersOpen}
         onOpenChange={setFiltersOpen}
@@ -438,7 +440,6 @@ function CalendarPage() {
         }}
         onClear={() => setDraft(emptyFilters)}
       />
-
     </AppShell>
   );
 }
@@ -469,54 +470,18 @@ function FiltersPanel({
         </SheetHeader>
         <div className="flex-1 overflow-y-auto px-6 py-5">
           <div className="space-y-5">
-            <FieldText
-              label="Pesquisa geral"
-              value={draft.query}
-              onChange={(v) => update("query", v)}
-              placeholder="Cliente, compromisso, local ou operador"
-            />
-
+            <FieldText label="Pesquisa geral" value={draft.query} onChange={(v) => update("query", v)} placeholder="Cliente, compromisso, local ou operador" />
             <div className="grid grid-cols-2 gap-3">
-              <FieldSelect
-                label="Tipo"
-                value={draft.type}
-                onChange={(v) => update("type", v)}
-                options={typeOptions.map((o) => ({ value: o, label: o }))}
-              />
-              <FieldSelect
-                label="Origem"
-                value={draft.origin}
-                onChange={(v) => update("origin", v)}
-                options={originOptions.map((o) => ({ value: o, label: o }))}
-              />
+              <FieldSelect label="Tipo" value={draft.type} onChange={(v) => update("type", v)} options={typeOptions.map((o) => ({ value: o, label: o }))} />
+              <FieldSelect label="Origem" value={draft.origin} onChange={(v) => update("origin", v)} options={originOptions.map((o) => ({ value: o, label: o }))} />
             </div>
-
             <div className="grid grid-cols-2 gap-3">
-              <FieldSelect
-                label="Operador"
-                value={draft.operator}
-                onChange={(v) => update("operator", v)}
-                options={operators.map((o) => ({ value: o, label: o }))}
-              />
-              <FieldSelect
-                label="Status"
-                value={draft.status}
-                onChange={(v) => update("status", v)}
-                options={statusOptions.map((o) => ({ value: o, label: o }))}
-              />
+              <FieldSelect label="Operador" value={draft.operator} onChange={(v) => update("operator", v)} options={operators.map((o) => ({ value: o, label: o }))} />
+              <FieldSelect label="Status" value={draft.status} onChange={(v) => update("status", v)} options={statusOptions.map((o) => ({ value: o, label: o }))} />
             </div>
-
-            <FieldText
-              label="Cliente"
-              value={draft.client}
-              onChange={(v) => update("client", v)}
-              placeholder="Sigla ou razão social"
-            />
-
+            <FieldText label="Cliente" value={draft.client} onChange={(v) => update("client", v)} placeholder="Sigla ou razão social" />
             <div className="space-y-2">
-              <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                Período
-              </p>
+              <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Período</p>
               <div className="grid grid-cols-2 gap-3">
                 <DateField label="Data inicial" value={draft.dateStart} onChange={(d) => update("dateStart", d)} />
                 <DateField label="Data final" value={draft.dateEnd} onChange={(d) => update("dateEnd", d)} />
@@ -525,20 +490,11 @@ function FiltersPanel({
           </div>
         </div>
         <div className="flex items-center justify-between gap-3 border-t border-border bg-background px-6 py-4">
-          <Button
-            type="button"
-            variant="ghost"
-            className="h-10 cursor-pointer rounded-lg text-sm"
-            onClick={onClear}
-          >
+          <Button type="button" variant="ghost" className="h-10 cursor-pointer rounded-lg text-sm" onClick={onClear}>
             <SlidersHorizontal className="mr-1.5 h-4 w-4" />
             Limpar filtros
           </Button>
-          <Button
-            type="button"
-            onClick={onApply}
-            className="h-10 cursor-pointer rounded-lg bg-blue-600 px-5 text-sm font-medium text-white hover:bg-blue-700"
-          >
+          <Button type="button" onClick={onApply} className="h-10 cursor-pointer rounded-lg bg-blue-600 px-5 text-sm font-medium text-white hover:bg-blue-700">
             Aplicar filtros
           </Button>
         </div>
@@ -547,22 +503,10 @@ function FiltersPanel({
   );
 }
 
-function FieldText({
-  label,
-  value,
-  onChange,
-  placeholder,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  placeholder?: string;
-}) {
+function FieldText({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string }) {
   return (
     <div className="space-y-2">
-      <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-        {label}
-      </p>
+      <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
       <input
         type="text"
         value={value}
@@ -574,52 +518,28 @@ function FieldText({
   );
 }
 
-function FieldSelect({
-  label,
-  value,
-  onChange,
-  options,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  options: { value: string; label: string }[];
-}) {
+function FieldSelect({ label, value, onChange, options }: { label: string; value: string; onChange: (v: string) => void; options: { value: string; label: string }[] }) {
   return (
     <div className="space-y-2">
-      <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-        {label}
-      </p>
+      <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className="h-10 w-full cursor-pointer rounded-lg border border-border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
       >
         {options.map((opt) => (
-          <option key={opt.value} value={opt.value}>
-            {opt.label}
-          </option>
+          <option key={opt.value} value={opt.value}>{opt.label}</option>
         ))}
       </select>
     </div>
   );
 }
 
-function DateField({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value?: Date;
-  onChange: (d?: Date) => void;
-}) {
+function DateField({ label, value, onChange }: { label: string; value?: Date; onChange: (d?: Date) => void }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="space-y-2">
-      <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-        {label}
-      </p>
+      <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <button
@@ -654,10 +574,9 @@ function CalendarEventPill({ event }: { event: CalendarEvent }) {
   const Icon = style.icon;
   const operator = event.operator?.trim() ? event.operator : "SEM OPERADOR";
   const label = event.client || event.title;
-  const fullText = `${event.time}  ${operator} - ${label}`;
   return (
     <span
-      title={`${event.type} · ${fullText}`}
+      title={`${event.type} · ${event.time} ${operator} - ${label}`}
       className={cn(
         "flex items-center gap-2 overflow-hidden rounded px-2 py-1 text-[10px] text-white",
         style.dot,
@@ -673,10 +592,30 @@ function CalendarEventPill({ event }: { event: CalendarEvent }) {
   );
 }
 
-
 function AgendaItem({ event }: { event: CalendarEvent }) {
   const style = typeStyles[event.type];
   const Icon = style.icon;
+  // Reactively read usage tied to this appointment
+  const usages = useUsages();
+  const usage = usages.find((u) => u.appointmentId === event.id && u.status !== "cancelado");
+
+  const needsFleet = event.type === "Visita presencial" && event.needsDisplacement === true;
+
+  const openPickup = () => {
+    const target =
+      usage ?? createUsageForAppointment({
+        appointmentId: event.id,
+        operatorId: event.operator,
+        client: event.client,
+        destination: event.address ? `${event.client ?? ""} — ${event.address}`.trim().replace(/^—\s+/, "") : (event.client ?? event.title),
+        expectedReturnAt: `${event.date}T${event.end}:00`,
+      });
+    fleetActions.openPickup(target.id);
+  };
+  const openReturn = () => {
+    if (usage) fleetActions.openReturn(usage.id);
+  };
+
   return (
     <div className="rounded-md border border-border p-3 transition-colors hover:border-primary/25">
       <div className="flex items-start gap-3">
@@ -688,13 +627,30 @@ function AgendaItem({ event }: { event: CalendarEvent }) {
             <p className="truncate text-sm font-medium">{event.title}</p>
             <span className="text-xs text-muted-foreground">{event.time}</span>
           </div>
-          {event.client && (
-            <p className="mt-0.5 truncate text-xs text-muted-foreground">{event.client}</p>
-          )}
+          {event.client && <p className="mt-0.5 truncate text-xs text-muted-foreground">{event.client}</p>}
           <div className="mt-2 flex items-center gap-3 text-[11px] text-muted-foreground">
             <span>{event.operator}</span>
             <span>{event.type}</span>
           </div>
+          {needsFleet && (
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              {(!usage || usage.status === "aguardando_retirada") && (
+                <Button size="sm" className="h-8 cursor-pointer bg-blue-600 text-white hover:bg-blue-700" onClick={openPickup}>
+                  <KeyRound className="mr-1.5 h-3.5 w-3.5" />
+                  Retirar veículo
+                </Button>
+              )}
+              {usage?.status === "em_deslocamento" && (
+                <Button size="sm" variant="outline" className="h-8 cursor-pointer" onClick={openReturn}>
+                  <Undo2 className="mr-1.5 h-3.5 w-3.5" />
+                  Devolver veículo
+                </Button>
+              )}
+              {usage?.status === "devolvido" && (
+                <span className="text-[11.5px] text-emerald-600 dark:text-emerald-400">Veículo devolvido</span>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -710,39 +666,9 @@ function Metric({ value, label, color }: { value: number; label: string; color: 
   );
 }
 
-const PRC_OPERATORS = ["PRCGGC", "PRCGIN", "PRCJAC", "PRCREN", "PRCROG", "PRCSUZ", "PRCMAR", "PRCLCZ", "PRCPED"];
-type FleetVehicle = {
-  id: string;
-  model: string;
-  plate: string;
-  category: string;
-  color: string;
-  year: string;
-  mileage: string;
-  fuel: string;
-  status: "Disponível" | "Em uso" | "Manutenção";
-  image: string;
-  nextRevision: string;
-  lastExit?: { datetime: string; operator: string };
-  lastReturn?: { datetime: string; operator: string };
-};
-
-const FLEET_VEHICLES: FleetVehicle[] = [
-  { id: "corolla", model: "Toyota Corolla", plate: "ABC-1234", category: "Sedan", color: "Branco", year: "2022 / 2023", mileage: "45.678 km", fuel: "1/2", status: "Disponível", image: corollaImg, nextRevision: "10/09/2026 ou 50.000 km", lastReturn: { datetime: "18/07/2026 17:40", operator: "Maria Silva" } },
-  { id: "tracker", model: "Chevrolet Tracker", plate: "PRC-2026", category: "SUV", color: "Prata", year: "2023 / 2024", mileage: "31.420 km", fuel: "3/4", status: "Disponível", image: trackerImg, nextRevision: "22/11/2026 ou 40.000 km", lastReturn: { datetime: "19/07/2026 12:15", operator: "Renan Costa" } },
-  { id: "onix", model: "Chevrolet Onix", plate: "HAD-1908", category: "Hatch", color: "Cinza", year: "2021 / 2022", mileage: "62.150 km", fuel: "1/4", status: "Em uso", image: onixImg, nextRevision: "05/08/2026 ou 65.000 km", lastExit: { datetime: "20/07/2026 08:00", operator: "João Silva" } },
-  { id: "strada", model: "Fiat Strada", plate: "WEB-4580", category: "Utilitário", color: "Branco", year: "2022 / 2022", mileage: "54.802 km", fuel: "Cheio", status: "Manutenção", image: stradaImg, nextRevision: "Em oficina", lastReturn: { datetime: "15/07/2026 16:00", operator: "Pedro Lima" } },
-];
-const PLATFORM_OPTIONS = ["Google Meet", "Microsoft Teams", "Zoom", "AnyDesk"];
-const ROOM_OPTIONS = ["Sala Diretoria", "Sala Reuniões 1", "Sala Reuniões 2", "Auditório"];
-
-const TYPE_ICON: Record<EventType, typeof Car> = {
-  Visita: Car,
-  "Reunião remota": Laptop,
-  "Reunião PRC": UsersRound,
-  Pessoal: CalendarDays,
-};
-
+// ---------------------------------------------------------------------------
+// Create event dialog
+// ---------------------------------------------------------------------------
 function CreateEventDialog({
   open,
   onOpenChange,
@@ -756,7 +682,7 @@ function CreateEventDialog({
   existingEvents: CalendarEvent[];
   onCreate: (event: Omit<CalendarEvent, "id">) => void;
 }) {
-  const [type, setType] = useState<EventType>("Visita");
+  const [type, setType] = useState<EventType>("Visita presencial");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [guests, setGuests] = useState<string[]>([]);
@@ -767,8 +693,7 @@ function CreateEventDialog({
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("10:00");
   const [client, setClient] = useState("");
-  const [vehicle, setVehicle] = useState("");
-  const [vehicleOpen, setVehicleOpen] = useState(false);
+  const [needsDisplacement, setNeedsDisplacement] = useState(false);
   const [address, setAddress] = useState("");
   const [responsible, setResponsible] = useState(PRC_OPERATORS[0]);
   const [meetingLink, setMeetingLink] = useState("");
@@ -781,10 +706,10 @@ function CreateEventDialog({
   }, [open, initialDate]);
 
   const reset = () => {
-    setType("Visita"); setTitle(""); setDescription("");
+    setType("Visita presencial"); setTitle(""); setDescription("");
     setGuests([]); setGuestInput("");
     setStartTime("09:00"); setEndTime("10:00");
-    setClient(""); setVehicle(""); setAddress("");
+    setClient(""); setNeedsDisplacement(false); setAddress("");
     setResponsible(PRC_OPERATORS[0]);
     setMeetingLink(""); setPlatform(PLATFORM_OPTIONS[0]);
     setRoom(ROOM_OPTIONS[0]); setIsPrivate(false);
@@ -800,14 +725,10 @@ function CreateEventDialog({
     guestInput.split(",").forEach(addGuestValue);
     setGuestInput("");
   };
-  const removeGuest = (value: string) =>
-    setGuests((prev) => prev.filter((g) => g !== value));
+  const removeGuest = (value: string) => setGuests((prev) => prev.filter((g) => g !== value));
 
   const dayEvents = useMemo(
-    () =>
-      existingEvents
-        .filter((event) => event.date === date)
-        .sort((a, b) => a.time.localeCompare(b.time)),
+    () => existingEvents.filter((event) => event.date === date).sort((a, b) => a.time.localeCompare(b.time)),
     [existingEvents, date],
   );
 
@@ -824,25 +745,25 @@ function CreateEventDialog({
       origin: type === "Pessoal" ? "Administração" : "Suporte",
       operator: responsible,
       title: title.trim(),
-      client: type === "Visita" ? (client.trim() || undefined) : undefined,
+      client: type === "Visita presencial" ? (client.trim() || undefined) : undefined,
       description: description.trim() || undefined,
       guests: guests.length ? guests : undefined,
-      vehicle: type === "Visita" ? vehicle : undefined,
-      address: type === "Visita" ? (address.trim() || undefined) : undefined,
+      needsDisplacement: type === "Visita presencial" ? needsDisplacement : undefined,
+      address: type === "Visita presencial" ? (address.trim() || undefined) : undefined,
       responsible,
       meetingLink: type === "Reunião remota" ? (meetingLink.trim() || undefined) : undefined,
       platform: type === "Reunião remota" ? platform : undefined,
-      room: type === "Reunião PRC" ? room : undefined,
+      room: type === "Reunião na Prócion" ? room : undefined,
       isPrivate: type === "Pessoal" ? isPrivate : undefined,
     });
     reset();
     onOpenChange(false);
   };
 
-  const typeOptions: { value: EventType; icon: typeof Car }[] = [
-    { value: "Visita", icon: Car },
+  const typeCards: { value: EventType; icon: typeof Car }[] = [
+    { value: "Visita presencial", icon: Car },
     { value: "Reunião remota", icon: Laptop },
-    { value: "Reunião PRC", icon: Building2 },
+    { value: "Reunião na Prócion", icon: Building2 },
     { value: "Pessoal", icon: CalendarDays },
   ];
 
@@ -856,32 +777,15 @@ function CreateEventDialog({
         className="flex w-[calc(100vw-2rem)] max-w-[880px] flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-card p-0 shadow-[0_30px_80px_rgba(0,0,0,0.35)] [&>button]:hidden"
       >
         <DialogTitle className="sr-only">Novo agendamento</DialogTitle>
-        <DetailModalHeader
-          icon={CalendarDays}
-          title="Novo agendamento"
-          protocol={dateLabel}
-          onClose={() => onOpenChange(false)}
-        />
+        <DetailModalHeader icon={CalendarDays} title="Novo agendamento" protocol={dateLabel} onClose={() => onOpenChange(false)} />
 
         <div className="flex-1 min-h-0 space-y-4 overflow-y-auto bg-card px-5 py-4 md:px-6">
           <NewField label="Título" required>
-            <Input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Informe o título do agendamento"
-              maxLength={140}
-            />
+            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Informe o título do agendamento" maxLength={140} />
           </NewField>
 
           <NewField label="Descrição">
-            <Textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={3}
-              maxLength={700}
-              placeholder="Descreva o objetivo ou as informações do agendamento"
-              className="min-h-[80px] resize-none"
-            />
+            <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} maxLength={700} placeholder="Descreva o objetivo ou as informações do agendamento" className="min-h-[80px] resize-none" />
           </NewField>
 
           <NewField label="Convidados">
@@ -889,17 +793,9 @@ function CreateEventDialog({
               {guests.length > 0 && (
                 <div className="mb-2 flex flex-wrap gap-1.5">
                   {guests.map((g) => (
-                    <span
-                      key={g}
-                      className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[12px] text-primary"
-                    >
+                    <span key={g} className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[12px] text-primary">
                       {g}
-                      <button
-                        type="button"
-                        onClick={() => removeGuest(g)}
-                        aria-label={`Remover ${g}`}
-                        className="grid h-4 w-4 cursor-pointer place-items-center rounded-full hover:bg-primary/20"
-                      >
+                      <button type="button" onClick={() => removeGuest(g)} aria-label={`Remover ${g}`} className="grid h-4 w-4 cursor-pointer place-items-center rounded-full hover:bg-primary/20">
                         <X className="h-3 w-3" />
                       </button>
                     </span>
@@ -911,10 +807,7 @@ function CreateEventDialog({
                   value={guestInput}
                   onChange={(e) => setGuestInput(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === ",") {
-                      e.preventDefault();
-                      commitGuestInput();
-                    }
+                    if (e.key === "Enter" || e.key === ",") { e.preventDefault(); commitGuestInput(); }
                   }}
                   onBlur={commitGuestInput}
                   placeholder="Pesquise ou digite siglas separadas por vírgula"
@@ -922,10 +815,7 @@ function CreateEventDialog({
                 />
                 <Popover open={guestOpen} onOpenChange={setGuestOpen}>
                   <PopoverTrigger asChild>
-                    <button
-                      type="button"
-                      className="cursor-pointer rounded-md border border-input bg-background px-2 py-1 text-[12px] text-muted-foreground hover:text-foreground"
-                    >
+                    <button type="button" className="cursor-pointer rounded-md border border-input bg-background px-2 py-1 text-[12px] text-muted-foreground hover:text-foreground">
                       Selecionar operadores
                     </button>
                   </PopoverTrigger>
@@ -935,13 +825,7 @@ function CreateEventDialog({
                         const active = guests.includes(op);
                         return (
                           <li key={op}>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                active ? removeGuest(op) : addGuestValue(op)
-                              }
-                              className="flex w-full cursor-pointer items-center justify-between rounded-md px-2 py-1.5 text-left text-[13px] hover:bg-accent"
-                            >
+                            <button type="button" onClick={() => active ? removeGuest(op) : addGuestValue(op)} className="flex w-full cursor-pointer items-center justify-between rounded-md px-2 py-1.5 text-left text-[13px] hover:bg-accent">
                               <span>{op}</span>
                               {active && <Check className="h-4 w-4 text-primary" />}
                             </button>
@@ -959,10 +843,7 @@ function CreateEventDialog({
             <NewField label="Data" required>
               <Popover open={dateOpen} onOpenChange={setDateOpen}>
                 <PopoverTrigger asChild>
-                  <button
-                    type="button"
-                    className="inline-flex h-9 w-full cursor-pointer items-center gap-2 rounded-md border border-input bg-background px-3 text-[13px] outline-none focus:ring-2 focus:ring-ring"
-                  >
+                  <button type="button" className="inline-flex h-9 w-full cursor-pointer items-center gap-2 rounded-md border border-input bg-background px-3 text-[13px] outline-none focus:ring-2 focus:ring-ring">
                     <CalendarDays className="h-4 w-4 opacity-70" />
                     <span>{date ? format(new Date(`${date}T12:00:00`), "dd/MM/yyyy") : "dd/mm/aaaa"}</span>
                   </button>
@@ -972,11 +853,7 @@ function CreateEventDialog({
                     mode="single"
                     selected={date ? new Date(`${date}T12:00:00`) : undefined}
                     onSelect={(d) => {
-                      if (d) {
-                        setDate(
-                          `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`,
-                        );
-                      }
+                      if (d) setDate(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`);
                       setDateOpen(false);
                     }}
                     initialFocus
@@ -995,7 +872,7 @@ function CreateEventDialog({
 
           <NewField label="Tipo de agendamento" required>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-              {typeOptions.map((opt) => {
+              {typeCards.map((opt) => {
                 const Icon = opt.icon;
                 const active = type === opt.value;
                 return (
@@ -1018,25 +895,13 @@ function CreateEventDialog({
             </div>
           </NewField>
 
-          {type === "Visita" && (
+          {type === "Visita presencial" && (
             <div className="grid gap-3 sm:grid-cols-2">
               <NewField label="Cliente">
                 <Input value={client} onChange={(e) => setClient(e.target.value)} placeholder="Sigla ou razão social" />
               </NewField>
-              <NewField label="Veículo">
-                <button
-                  type="button"
-                  onClick={() => setVehicleOpen(true)}
-                  className="flex h-9 w-full cursor-pointer items-center justify-between rounded-md border border-input bg-background px-3 text-left text-[13px] transition hover:border-primary/40 hover:bg-accent"
-                >
-                  <span className="flex min-w-0 items-center gap-2">
-                    <Car className="h-4 w-4 shrink-0 text-primary" />
-                    <span className={cn("truncate", !vehicle && "text-muted-foreground")}>
-                      {vehicle || "Selecionar veículo"}
-                    </span>
-                  </span>
-                  <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-                </button>
+              <NewField label="Responsável">
+                <SelectNative value={responsible} onChange={setResponsible} options={PRC_OPERATORS} />
               </NewField>
               <NewField label="Endereço" className="sm:col-span-2">
                 <div className="relative">
@@ -1044,9 +909,15 @@ function CreateEventDialog({
                   <Input className="pl-8" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Rua, número, cidade" />
                 </div>
               </NewField>
-              <NewField label="Responsável" className="sm:col-span-2">
-                <SelectNative value={responsible} onChange={setResponsible} options={PRC_OPERATORS} />
-              </NewField>
+              <div className="sm:col-span-2 flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/25 px-3 py-2.5">
+                <div className="min-w-0">
+                  <p className="text-[13px] font-medium">Deslocamento necessário</p>
+                  <p className="mt-0.5 text-[12px] text-muted-foreground">
+                    Ative para reservar um veículo da frota. A retirada é feita na Frota ou na Agenda do dia.
+                  </p>
+                </div>
+                <Switch checked={needsDisplacement} onCheckedChange={setNeedsDisplacement} className="cursor-pointer" />
+              </div>
             </div>
           )}
 
@@ -1067,7 +938,7 @@ function CreateEventDialog({
             </div>
           )}
 
-          {type === "Reunião PRC" && (
+          {type === "Reunião na Prócion" && (
             <div className="grid gap-3 sm:grid-cols-2">
               <NewField label="Sala">
                 <SelectNative value={room} onChange={setRoom} options={ROOM_OPTIONS} />
@@ -1085,11 +956,7 @@ function CreateEventDialog({
               </NewField>
               <div className="flex items-end">
                 <label className="flex cursor-pointer items-center gap-2 text-[13px] text-foreground">
-                  <Checkbox
-                    checked={isPrivate}
-                    onCheckedChange={(v) => setIsPrivate(v === true)}
-                    className="h-4 w-4 cursor-pointer"
-                  />
+                  <Checkbox checked={isPrivate} onCheckedChange={(v) => setIsPrivate(v === true)} className="h-4 w-4 cursor-pointer" />
                   <Lock className="h-3.5 w-3.5 text-muted-foreground" />
                   Evento privado
                 </label>
@@ -1099,15 +966,11 @@ function CreateEventDialog({
 
           <section className="rounded-lg border border-border bg-background/40">
             <div className="flex items-center justify-between border-b border-border px-3 py-2">
-              <p className="text-[12px] font-medium uppercase tracking-wider text-muted-foreground">
-                Agendamentos do dia
-              </p>
+              <p className="text-[12px] font-medium uppercase tracking-wider text-muted-foreground">Agendamentos do dia</p>
               <Badge variant="secondary" className="text-[11px]">{dayEvents.length}</Badge>
             </div>
             {dayEvents.length === 0 ? (
-              <p className="px-3 py-4 text-center text-[12.5px] text-muted-foreground">
-                Nenhum agendamento para esta data
-              </p>
+              <p className="px-3 py-4 text-center text-[12.5px] text-muted-foreground">Nenhum agendamento para esta data</p>
             ) : (
               <div className="max-h-48 overflow-y-auto">
                 <table className="w-full text-left text-[12px]">
@@ -1117,8 +980,7 @@ function CreateEventDialog({
                       <th className="px-2 py-1.5 font-medium">Tipo</th>
                       <th className="px-2 py-1.5 font-medium">Título</th>
                       <th className="px-2 py-1.5 font-medium">Operador</th>
-                      <th className="px-2 py-1.5 font-medium">Convidados</th>
-                      <th className="px-3 py-1.5 font-medium">Veículo/Local</th>
+                      <th className="px-3 py-1.5 font-medium">Local</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1126,9 +988,7 @@ function CreateEventDialog({
                       const Icon = TYPE_ICON[ev.type];
                       return (
                         <tr key={ev.id} className="border-t border-border/50">
-                          <td className="px-3 py-1.5 tabular-nums text-foreground">
-                            {ev.time}–{ev.end}
-                          </td>
+                          <td className="px-3 py-1.5 tabular-nums text-foreground">{ev.time}–{ev.end}</td>
                           <td className="px-2 py-1.5">
                             <span className="inline-flex items-center gap-1 text-muted-foreground">
                               <Icon className="h-3.5 w-3.5" />
@@ -1137,12 +997,7 @@ function CreateEventDialog({
                           </td>
                           <td className="px-2 py-1.5 text-foreground">{ev.title}</td>
                           <td className="px-2 py-1.5 text-muted-foreground">{ev.operator || "—"}</td>
-                          <td className="px-2 py-1.5 text-muted-foreground">
-                            {ev.guests?.join(", ") || "—"}
-                          </td>
-                          <td className="px-3 py-1.5 text-muted-foreground">
-                            {ev.vehicle || ev.room || ev.address || ev.client || "—"}
-                          </td>
+                          <td className="px-3 py-1.5 text-muted-foreground">{ev.address || ev.room || ev.client || "—"}</td>
                         </tr>
                       );
                     })}
@@ -1154,431 +1009,30 @@ function CreateEventDialog({
         </div>
 
         <DialogFooter className="flex shrink-0 items-center justify-end gap-2 border-t border-border bg-card px-5 py-3 md:px-6">
-          <Button variant="outline" onClick={() => onOpenChange(false)} className="cursor-pointer">
-            Cancelar
-          </Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)} className="cursor-pointer">Cancelar</Button>
           <Button onClick={submit} className="cursor-pointer bg-blue-600 text-white hover:bg-blue-700">
             <CalendarDays className="mr-1.5 h-4 w-4" />
             Adicionar evento
           </Button>
         </DialogFooter>
-        <VehiclePickerDialog
-          open={vehicleOpen}
-          onOpenChange={setVehicleOpen}
-          selected={vehicle}
-          onSelect={setVehicle}
-        />
       </DialogContent>
     </Dialog>
   );
 }
 
-function VehiclePickerDialog({
-  open,
-  onOpenChange,
-  selected,
-  onSelect,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  selected: string;
-  onSelect: (vehicle: string) => void;
-}) {
-  const usageRecords = useFleetUsage();
-  const selectedIndex = Math.max(
-    0,
-    FLEET_VEHICLES.findIndex((item) => `${item.model} · ${item.plate}` === selected),
-  );
-  const [index, setIndex] = useState(selectedIndex);
-  const [returning, setReturning] = useState(false);
-  const [returnMileage, setReturnMileage] = useState("");
-  const [returnFuel, setReturnFuel] = useState("1/2");
-  const [returnNotes, setReturnNotes] = useState("");
-
-  useEffect(() => {
-    if (open) {
-      setIndex(selectedIndex);
-      setReturning(false);
-      setReturnMileage("");
-      setReturnFuel("1/2");
-      setReturnNotes("");
-    }
-  }, [open, selectedIndex]);
-
-  const vehicle = FLEET_VEHICLES[index];
-  const activeUsage = usageRecords.find(
-    (r) => r.vehicleId === vehicle.id && (r.status === "em_uso" || r.status === "reservado"),
-  );
-
-  const effectiveStatus: "Disponível" | "Em uso" | "Reservado" | "Manutenção" =
-    vehicle.status === "Manutenção"
-      ? "Manutenção"
-      : activeUsage?.status === "em_uso"
-        ? "Em uso"
-        : activeUsage?.status === "reservado"
-          ? "Reservado"
-          : "Disponível";
-
-  const previous = () =>
-    setIndex((current) => (current - 1 + FLEET_VEHICLES.length) % FLEET_VEHICLES.length);
-  const next = () => setIndex((current) => (current + 1) % FLEET_VEHICLES.length);
-
-  const confirmSelection = () => {
-    if (effectiveStatus !== "Disponível") {
-      toast.error(`O veículo ${vehicle.model} não está disponível.`);
-      return;
-    }
-    onSelect(`${vehicle.model} · ${vehicle.plate}`);
-    onOpenChange(false);
-    toast.success("Veículo selecionado para a visita.");
-  };
-
-  const submitReturn = () => {
-    if (!activeUsage) return;
-    const km = Number(returnMileage);
-    if (!km || Number.isNaN(km)) {
-      toast.error("Informe a quilometragem final.");
-      return;
-    }
-    if (activeUsage.departureMileage && km < activeUsage.departureMileage) {
-      toast.error("A KM final não pode ser menor que a KM de saída.");
-      return;
-    }
-    registerReturn(activeUsage.id, {
-      returnMileage: km,
-      fuelAtReturn: returnFuel,
-      notes: returnNotes.trim() || undefined,
-    });
-    toast.success("Devolução registrada com sucesso.");
-    setReturning(false);
-    setReturnMileage("");
-    setReturnNotes("");
-  };
-
-  const formatDT = (iso?: string) =>
-    iso ? format(new Date(iso), "dd/MM/yyyy HH:mm", { locale: ptBR }) : "—";
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        onPointerDownOutside={preventOutsideClose}
-        onInteractOutside={preventOutsideClose}
-        onEscapeKeyDown={preventOutsideClose}
-        className="flex w-[calc(100vw-2rem)] max-w-[920px] max-h-[calc(100vh-32px)] flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-card p-0 shadow-[0_30px_80px_rgba(0,0,0,0.35)] [&>button]:hidden"
-      >
-        <DialogTitle className="sr-only">Selecionar veículo</DialogTitle>
-        <div className="shrink-0">
-          <DetailModalHeader
-            icon={Car}
-            title="Selecionar veículo"
-            protocol={`${index + 1} de ${FLEET_VEHICLES.length} veículos da frota`}
-            onClose={() => onOpenChange(false)}
-          />
-        </div>
-
-        <div className="min-h-0 flex-1 overflow-y-auto">
-          <div className="grid gap-4 bg-card p-4 md:grid-cols-[260px_1fr] md:p-5">
-            <section className="relative flex flex-col overflow-hidden rounded-xl border border-border bg-card">
-              <div className="relative flex h-32 items-center justify-center overflow-hidden bg-white">
-                <img
-                  src={vehicle.image}
-                  alt={vehicle.model}
-                  loading="lazy"
-                  className="h-full w-full object-contain p-2"
-                />
-              </div>
-
-              <div className="px-3 pt-2.5 pb-1.5 text-center">
-                <p className="text-[13.5px] font-medium text-foreground">{vehicle.model}</p>
-                <p className="mt-0.5 font-mono text-[12px] tracking-wider text-primary">{vehicle.plate}</p>
-              </div>
-
-              <div className="flex items-center justify-center gap-1.5 pb-2">
-                {FLEET_VEHICLES.map((item, itemIndex) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => setIndex(itemIndex)}
-                    aria-label={`Ver ${item.model}`}
-                    className={cn(
-                      "h-1.5 cursor-pointer rounded-full transition-all",
-                      itemIndex === index
-                        ? "w-5 bg-primary"
-                        : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/60",
-                    )}
-                  />
-                ))}
-              </div>
-
-              <div className="divide-y divide-border border-t border-border">
-                <VehicleSpec icon={Tag} label="Categoria" value={vehicle.category} />
-                <VehicleSpec icon={Palette} label="Cor" value={vehicle.color} />
-                <VehicleSpec icon={CalendarDays} label="Ano / Modelo" value={vehicle.year} />
-                <VehicleSpec icon={Gauge} label="Quilometragem atual" value={vehicle.mileage} />
-                <VehicleSpec icon={Wrench} label="Próxima revisão" value={vehicle.nextRevision} />
-              </div>
-
-              <div className="border-t border-border bg-muted/30 px-3 py-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10.5px] uppercase tracking-wider text-muted-foreground">Status</span>
-                  <span className="flex items-center gap-1.5 text-[11.5px] font-medium text-foreground">
-                    <span
-                      className={cn(
-                        "h-2 w-2 rounded-full",
-                        effectiveStatus === "Disponível"
-                          ? "bg-emerald-500"
-                          : effectiveStatus === "Em uso"
-                            ? "bg-amber-500"
-                            : effectiveStatus === "Reservado"
-                              ? "bg-sky-500"
-                              : "bg-rose-500",
-                      )}
-                    />
-                    {effectiveStatus}
-                  </span>
-                </div>
-              </div>
-            </section>
-
-            <section className="flex min-w-0 flex-col gap-3">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Veículo</p>
-                  <h3 className="mt-0.5 truncate text-[15px] font-medium">{vehicle.model} · <span className="font-mono text-primary">{vehicle.plate}</span></h3>
-                </div>
-                <Badge
-                  className={cn(
-                    "border px-2 py-0.5 text-[11px] font-normal",
-                    effectiveStatus === "Disponível"
-                      ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-600 dark:text-emerald-300"
-                      : effectiveStatus === "Em uso"
-                        ? "border-amber-500/25 bg-amber-500/10 text-amber-600 dark:text-amber-300"
-                        : effectiveStatus === "Reservado"
-                          ? "border-sky-500/25 bg-sky-500/10 text-sky-600 dark:text-sky-300"
-                          : "border-rose-500/25 bg-rose-500/10 text-rose-600 dark:text-rose-300",
-                  )}
-                >
-                  {effectiveStatus}
-                </Badge>
-              </div>
-
-              <div className="rounded-lg border border-border bg-muted/10 p-3">
-                <div className="flex items-center justify-between text-[11px]">
-                  <span className="flex items-center gap-1.5 text-muted-foreground">
-                    <Fuel className="h-3.5 w-3.5" /> Combustível estimado
-                  </span>
-                  <span className="font-medium text-foreground">{vehicle.fuel}</span>
-                </div>
-                <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-muted">
-                  <div
-                    className="h-full rounded-full bg-primary transition-all"
-                    style={{
-                      width:
-                        vehicle.fuel === "Cheio" ? "100%"
-                        : vehicle.fuel === "3/4" ? "75%"
-                        : vehicle.fuel === "1/2" ? "50%"
-                        : "25%",
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* Dados da utilização */}
-              <div className="rounded-lg border border-border bg-background p-3">
-                <p className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                  Dados da utilização
-                </p>
-                {activeUsage ? (
-                  <div className="grid grid-cols-2 gap-x-3 gap-y-2 text-[12px]">
-                    <UsageField label="Data / hora da saída" value={formatDT(activeUsage.departureAt)} />
-                    <UsageField label="KM de saída" value={activeUsage.departureMileage ? `${activeUsage.departureMileage.toLocaleString("pt-BR")} km` : "—"} />
-                    <UsageField label="Operador" value={activeUsage.operatorId} />
-                    <UsageField label="Destino / cliente" value={activeUsage.destination} />
-                    <UsageField label="Agendamento" value={activeUsage.appointmentId ?? "—"} />
-                    <UsageField label="Previsão de devolução" value={formatDT(activeUsage.expectedReturnAt)} />
-                    <UsageField
-                      label="Status"
-                      value={activeUsage.status === "em_uso" ? "Em uso" : "Reservado"}
-                      className="col-span-2"
-                    />
-                  </div>
-                ) : (
-                  <p className="text-[12px] text-muted-foreground">
-                    Este veículo não possui uma utilização em andamento.
-                  </p>
-                )}
-              </div>
-
-              {/* Dados da devolução */}
-              <div className="rounded-lg border border-border bg-background p-3">
-                <p className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                  Dados da devolução
-                </p>
-                {returning && activeUsage ? (
-                  <div className="grid grid-cols-2 gap-2.5 text-[12px]">
-                    <div className="col-span-1">
-                      <Label className="mb-1 block text-[11px]">KM final *</Label>
-                      <Input
-                        inputMode="numeric"
-                        value={returnMileage}
-                        onChange={(e) => setReturnMileage(e.target.value.replace(/\D/g, ""))}
-                        placeholder={activeUsage.departureMileage?.toString() ?? "0"}
-                        className="h-8 text-[12.5px]"
-                      />
-                    </div>
-                    <div className="col-span-1">
-                      <Label className="mb-1 block text-[11px]">Combustível restante *</Label>
-                      <SelectNative value={returnFuel} onChange={setReturnFuel} options={["Cheio", "3/4", "1/2", "1/4", "Reserva"]} />
-                    </div>
-                    <div className="col-span-2">
-                      <Label className="mb-1 block text-[11px]">
-                        KM percorridos: <span className="text-foreground">
-                          {returnMileage && activeUsage.departureMileage
-                            ? `${Math.max(0, Number(returnMileage) - activeUsage.departureMileage).toLocaleString("pt-BR")} km`
-                            : "—"}
-                        </span>
-                      </Label>
-                    </div>
-                    <div className="col-span-2">
-                      <Label className="mb-1 block text-[11px]">Observações</Label>
-                      <Textarea
-                        value={returnNotes}
-                        onChange={(e) => setReturnNotes(e.target.value)}
-                        rows={2}
-                        className="text-[12.5px]"
-                        placeholder="Observações da devolução"
-                      />
-                    </div>
-                    <div className="col-span-2 flex justify-end gap-2 pt-1">
-                      <Button size="sm" variant="outline" className="cursor-pointer" onClick={() => setReturning(false)}>
-                        Cancelar
-                      </Button>
-                      <Button size="sm" className="cursor-pointer bg-blue-600 text-white hover:bg-blue-700" onClick={submitReturn}>
-                        Confirmar devolução
-                      </Button>
-                    </div>
-                  </div>
-                ) : activeUsage?.returnedAt ? (
-                  <div className="grid grid-cols-2 gap-x-3 gap-y-2 text-[12px]">
-                    <UsageField label="Data / hora" value={formatDT(activeUsage.returnedAt)} />
-                    <UsageField label="KM final" value={activeUsage.returnMileage ? `${activeUsage.returnMileage.toLocaleString("pt-BR")} km` : "—"} />
-                    <UsageField label="KM percorridos" value={activeUsage.distanceTraveled ? `${activeUsage.distanceTraveled.toLocaleString("pt-BR")} km` : "—"} />
-                    <UsageField label="Combustível restante" value={activeUsage.fuelAtReturn ?? "—"} />
-                    {activeUsage.notes && <UsageField label="Observações" value={activeUsage.notes} className="col-span-2" />}
-                  </div>
-                ) : (
-                  <p className="text-[12px] text-muted-foreground">
-                    {activeUsage?.status === "em_uso"
-                      ? "Nenhuma devolução registrada. Clique em “Registrar devolução” para finalizar."
-                      : "Sem devolução em andamento."}
-                  </p>
-                )}
-              </div>
-            </section>
-          </div>
-        </div>
-
-        <div className="flex shrink-0 items-center justify-between gap-2 border-t border-border bg-card px-4 py-2.5 md:px-5">
-          <div className="flex gap-1.5">
-            <Button type="button" variant="outline" size="icon" onClick={previous} className="cursor-pointer" aria-label="Veículo anterior">
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button type="button" variant="outline" size="icon" onClick={next} className="cursor-pointer" aria-label="Próximo veículo">
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-          {effectiveStatus === "Disponível" ? (
-            <Button type="button" onClick={confirmSelection} className="cursor-pointer bg-blue-600 text-white hover:bg-blue-700">
-              <Check className="mr-1.5 h-4 w-4" />
-              Selecionar veículo
-            </Button>
-          ) : effectiveStatus === "Em uso" ? (
-            <Button
-              type="button"
-              onClick={() => setReturning(true)}
-              disabled={returning}
-              className="cursor-pointer bg-blue-600 text-white hover:bg-blue-700"
-            >
-              <Check className="mr-1.5 h-4 w-4" />
-              Registrar devolução
-            </Button>
-          ) : effectiveStatus === "Reservado" ? (
-            <Button type="button" disabled className="cursor-not-allowed">
-              Reservado neste período
-            </Button>
-          ) : (
-            <Button type="button" disabled className="cursor-not-allowed">
-              Em manutenção
-            </Button>
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function UsageField({ label, value, className }: { label: string; value: string; className?: string }) {
-  return (
-    <div className={cn("min-w-0", className)}>
-      <p className="text-[10.5px] uppercase tracking-wider text-muted-foreground">{label}</p>
-      <p className="truncate text-[12.5px] text-foreground">{value}</p>
-    </div>
-  );
-}
-
-function VehicleSpec({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: typeof Car;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="flex items-start gap-2.5 px-3 py-2">
-      <Icon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-      <div className="min-w-0 flex-1">
-        <p className="text-[10.5px] uppercase tracking-wider text-muted-foreground">{label}</p>
-        <p className="text-[12px] leading-snug text-foreground">{value}</p>
-      </div>
-    </div>
-  );
-}
-
-function SelectNative({
-  value,
-  onChange,
-  options,
-}: {
-  value: string;
-  onChange: (value: string) => void;
-  options: string[];
-}) {
+function SelectNative({ value, onChange, options }: { value: string; onChange: (value: string) => void; options: string[] }) {
   return (
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
       className="h-9 w-full cursor-pointer rounded-md border border-input bg-background px-3 text-[13px] outline-none focus:ring-2 focus:ring-ring"
     >
-      {options.map((option) => (
-        <option key={option}>{option}</option>
-      ))}
+      {options.map((option) => <option key={option}>{option}</option>)}
     </select>
   );
 }
 
-function NewField({
-  label,
-  required,
-  children,
-  className,
-}: {
-  label: string;
-  required?: boolean;
-  children: ReactNode;
-  className?: string;
-}) {
+function NewField({ label, required, children, className }: { label: string; required?: boolean; children: ReactNode; className?: string }) {
   return (
     <div className={className}>
       <Label className="mb-1.5 block text-[12.5px] font-medium">
@@ -1590,3 +1044,5 @@ function NewField({
   );
 }
 
+// Reference unused-but-desired symbol for future integration
+void getUsageByAppointment;
