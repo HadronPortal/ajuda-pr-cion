@@ -1183,25 +1183,48 @@ function VehiclePickerDialog({
   selected: string;
   onSelect: (vehicle: string) => void;
 }) {
+  const usageRecords = useFleetUsage();
   const selectedIndex = Math.max(
     0,
     FLEET_VEHICLES.findIndex((item) => `${item.model} · ${item.plate}` === selected),
   );
   const [index, setIndex] = useState(selectedIndex);
+  const [returning, setReturning] = useState(false);
+  const [returnMileage, setReturnMileage] = useState("");
+  const [returnFuel, setReturnFuel] = useState("1/2");
+  const [returnNotes, setReturnNotes] = useState("");
 
   useEffect(() => {
-    if (open) setIndex(selectedIndex);
+    if (open) {
+      setIndex(selectedIndex);
+      setReturning(false);
+      setReturnMileage("");
+      setReturnFuel("1/2");
+      setReturnNotes("");
+    }
   }, [open, selectedIndex]);
 
   const vehicle = FLEET_VEHICLES[index];
+  const activeUsage = usageRecords.find(
+    (r) => r.vehicleId === vehicle.id && (r.status === "em_uso" || r.status === "reservado"),
+  );
+
+  const effectiveStatus: "Disponível" | "Em uso" | "Reservado" | "Manutenção" =
+    vehicle.status === "Manutenção"
+      ? "Manutenção"
+      : activeUsage?.status === "em_uso"
+        ? "Em uso"
+        : activeUsage?.status === "reservado"
+          ? "Reservado"
+          : "Disponível";
+
   const previous = () =>
     setIndex((current) => (current - 1 + FLEET_VEHICLES.length) % FLEET_VEHICLES.length);
   const next = () => setIndex((current) => (current + 1) % FLEET_VEHICLES.length);
-  const available = vehicle.status === "Disponível";
 
-  const confirm = () => {
-    if (!available) {
-      toast.error(`O veículo ${vehicle.model} está ${vehicle.status.toLowerCase()}.`);
+  const confirmSelection = () => {
+    if (effectiveStatus !== "Disponível") {
+      toast.error(`O veículo ${vehicle.model} não está disponível.`);
       return;
     }
     onSelect(`${vehicle.model} · ${vehicle.plate}`);
@@ -1209,193 +1232,295 @@ function VehiclePickerDialog({
     toast.success("Veículo selecionado para a visita.");
   };
 
+  const submitReturn = () => {
+    if (!activeUsage) return;
+    const km = Number(returnMileage);
+    if (!km || Number.isNaN(km)) {
+      toast.error("Informe a quilometragem final.");
+      return;
+    }
+    if (activeUsage.departureMileage && km < activeUsage.departureMileage) {
+      toast.error("A KM final não pode ser menor que a KM de saída.");
+      return;
+    }
+    registerReturn(activeUsage.id, {
+      returnMileage: km,
+      fuelAtReturn: returnFuel,
+      notes: returnNotes.trim() || undefined,
+    });
+    toast.success("Devolução registrada com sucesso.");
+    setReturning(false);
+    setReturnMileage("");
+    setReturnNotes("");
+  };
+
+  const formatDT = (iso?: string) =>
+    iso ? format(new Date(iso), "dd/MM/yyyy HH:mm", { locale: ptBR }) : "—";
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         onPointerDownOutside={preventOutsideClose}
         onInteractOutside={preventOutsideClose}
         onEscapeKeyDown={preventOutsideClose}
-        className="w-[calc(100vw-2rem)] max-w-[760px] gap-0 overflow-hidden rounded-2xl border border-border bg-card p-0 shadow-[0_30px_80px_rgba(0,0,0,0.35)] [&>button]:hidden"
+        className="flex w-[calc(100vw-2rem)] max-w-[920px] max-h-[calc(100vh-32px)] flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-card p-0 shadow-[0_30px_80px_rgba(0,0,0,0.35)] [&>button]:hidden"
       >
         <DialogTitle className="sr-only">Selecionar veículo</DialogTitle>
-        <DetailModalHeader
-          icon={Car}
-          title="Selecionar veículo"
-          protocol={`${index + 1} de ${FLEET_VEHICLES.length} veículos da frota`}
-          onClose={() => onOpenChange(false)}
-        />
+        <div className="shrink-0">
+          <DetailModalHeader
+            icon={Car}
+            title="Selecionar veículo"
+            protocol={`${index + 1} de ${FLEET_VEHICLES.length} veículos da frota`}
+            onClose={() => onOpenChange(false)}
+          />
+        </div>
 
-        <div className="grid gap-5 bg-card p-5 md:grid-cols-[280px_1fr] md:p-6">
-          <section className="relative flex flex-col overflow-hidden rounded-xl border border-border bg-card">
-            <div className="relative flex h-36 items-center justify-center overflow-hidden bg-white">
-              <img
-                src={vehicle.image}
-                alt={vehicle.model}
-                loading="lazy"
-                className="h-full w-full object-contain p-2"
-              />
-            </div>
-
-            <div className="px-4 pt-3 pb-2 text-center">
-              <p className="text-[13.5px] font-medium text-foreground">{vehicle.model}</p>
-              <p className="mt-0.5 font-mono text-[12px] tracking-wider text-primary">{vehicle.plate}</p>
-            </div>
-
-            <div className="flex items-center justify-center gap-1.5 pb-3">
-              {FLEET_VEHICLES.map((item, itemIndex) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => setIndex(itemIndex)}
-                  aria-label={`Ver ${item.model}`}
-                  className={cn(
-                    "h-1.5 cursor-pointer rounded-full transition-all",
-                    itemIndex === index
-                      ? "w-5 bg-primary"
-                      : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/60",
-                  )}
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <div className="grid gap-4 bg-card p-4 md:grid-cols-[260px_1fr] md:p-5">
+            <section className="relative flex flex-col overflow-hidden rounded-xl border border-border bg-card">
+              <div className="relative flex h-32 items-center justify-center overflow-hidden bg-white">
+                <img
+                  src={vehicle.image}
+                  alt={vehicle.model}
+                  loading="lazy"
+                  className="h-full w-full object-contain p-2"
                 />
-              ))}
-            </div>
+              </div>
 
-            <div className="divide-y divide-border border-t border-border">
-              <VehicleSpec icon={Tag} label="Categoria" value={vehicle.category} />
-              <VehicleSpec icon={Palette} label="Cor" value={vehicle.color} />
-              <VehicleSpec icon={CalendarDays} label="Ano / Modelo" value={vehicle.year} />
-              <VehicleSpec icon={Gauge} label="Quilometragem atual" value={vehicle.mileage} />
-              <VehicleSpec icon={Wrench} label="Próxima revisão" value={vehicle.nextRevision} />
-            </div>
+              <div className="px-3 pt-2.5 pb-1.5 text-center">
+                <p className="text-[13.5px] font-medium text-foreground">{vehicle.model}</p>
+                <p className="mt-0.5 font-mono text-[12px] tracking-wider text-primary">{vehicle.plate}</p>
+              </div>
 
-            <div className="border-t border-border bg-muted/30 px-3 py-2.5">
-              <div className="flex items-center justify-between">
-                <span className="text-[10.5px] uppercase tracking-wider text-muted-foreground">Status</span>
-                <span className="flex items-center gap-1.5 text-[11.5px] font-medium text-foreground">
-                  <span
+              <div className="flex items-center justify-center gap-1.5 pb-2">
+                {FLEET_VEHICLES.map((item, itemIndex) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setIndex(itemIndex)}
+                    aria-label={`Ver ${item.model}`}
                     className={cn(
-                      "h-2 w-2 rounded-full",
-                      available
-                        ? "bg-emerald-500"
-                        : vehicle.status === "Em uso"
-                          ? "bg-amber-500"
-                          : "bg-rose-500",
+                      "h-1.5 cursor-pointer rounded-full transition-all",
+                      itemIndex === index
+                        ? "w-5 bg-primary"
+                        : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/60",
                     )}
                   />
-                  {vehicle.status}
-                </span>
+                ))}
               </div>
-              {vehicle.status === "Em uso" && vehicle.lastExit && (
-                <div className="mt-2 space-y-0.5 border-t border-border/60 pt-2 text-[11px]">
-                  <div className="flex items-center justify-between text-muted-foreground">
-                    <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> Saída</span>
-                    <span className="text-foreground">{vehicle.lastExit.datetime}</span>
-                  </div>
-                  <div className="flex items-center gap-1 text-muted-foreground">
-                    <User className="h-3 w-3" /> por {vehicle.lastExit.operator}
-                  </div>
-                </div>
-              )}
-              {vehicle.status !== "Em uso" && vehicle.lastReturn && (
-                <div className="mt-2 space-y-0.5 border-t border-border/60 pt-2 text-[11px]">
-                  <div className="flex items-center justify-between text-muted-foreground">
-                    <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> Último retorno</span>
-                    <span className="text-foreground">{vehicle.lastReturn.datetime}</span>
-                  </div>
-                  <div className="flex items-center gap-1 text-muted-foreground">
-                    <User className="h-3 w-3" /> por {vehicle.lastReturn.operator}
-                  </div>
-                </div>
-              )}
-            </div>
-          </section>
 
-          <section className="flex min-w-0 flex-col">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-xs uppercase tracking-wider text-muted-foreground">Dados do veículo</p>
-                <h3 className="mt-1 text-lg font-medium">{vehicle.model}</h3>
+              <div className="divide-y divide-border border-t border-border">
+                <VehicleSpec icon={Tag} label="Categoria" value={vehicle.category} />
+                <VehicleSpec icon={Palette} label="Cor" value={vehicle.color} />
+                <VehicleSpec icon={CalendarDays} label="Ano / Modelo" value={vehicle.year} />
+                <VehicleSpec icon={Gauge} label="Quilometragem atual" value={vehicle.mileage} />
+                <VehicleSpec icon={Wrench} label="Próxima revisão" value={vehicle.nextRevision} />
               </div>
-              <Badge
-                className={cn(
-                  "border px-2.5 py-1 font-normal",
-                  available
-                    ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-600 dark:text-emerald-300"
-                    : vehicle.status === "Em uso"
-                      ? "border-amber-500/25 bg-amber-500/10 text-amber-600 dark:text-amber-300"
-                      : "border-rose-500/25 bg-rose-500/10 text-rose-600 dark:text-rose-300",
+
+              <div className="border-t border-border bg-muted/30 px-3 py-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10.5px] uppercase tracking-wider text-muted-foreground">Status</span>
+                  <span className="flex items-center gap-1.5 text-[11.5px] font-medium text-foreground">
+                    <span
+                      className={cn(
+                        "h-2 w-2 rounded-full",
+                        effectiveStatus === "Disponível"
+                          ? "bg-emerald-500"
+                          : effectiveStatus === "Em uso"
+                            ? "bg-amber-500"
+                            : effectiveStatus === "Reservado"
+                              ? "bg-sky-500"
+                              : "bg-rose-500",
+                      )}
+                    />
+                    {effectiveStatus}
+                  </span>
+                </div>
+              </div>
+            </section>
+
+            <section className="flex min-w-0 flex-col gap-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-[11px] uppercase tracking-wider text-muted-foreground">Veículo</p>
+                  <h3 className="mt-0.5 truncate text-[15px] font-medium">{vehicle.model} · <span className="font-mono text-primary">{vehicle.plate}</span></h3>
+                </div>
+                <Badge
+                  className={cn(
+                    "border px-2 py-0.5 text-[11px] font-normal",
+                    effectiveStatus === "Disponível"
+                      ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-600 dark:text-emerald-300"
+                      : effectiveStatus === "Em uso"
+                        ? "border-amber-500/25 bg-amber-500/10 text-amber-600 dark:text-amber-300"
+                        : effectiveStatus === "Reservado"
+                          ? "border-sky-500/25 bg-sky-500/10 text-sky-600 dark:text-sky-300"
+                          : "border-rose-500/25 bg-rose-500/10 text-rose-600 dark:text-rose-300",
+                  )}
+                >
+                  {effectiveStatus}
+                </Badge>
+              </div>
+
+              <div className="rounded-lg border border-border bg-muted/10 p-3">
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="flex items-center gap-1.5 text-muted-foreground">
+                    <Fuel className="h-3.5 w-3.5" /> Combustível estimado
+                  </span>
+                  <span className="font-medium text-foreground">{vehicle.fuel}</span>
+                </div>
+                <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-muted">
+                  <div
+                    className="h-full rounded-full bg-primary transition-all"
+                    style={{
+                      width:
+                        vehicle.fuel === "Cheio" ? "100%"
+                        : vehicle.fuel === "3/4" ? "75%"
+                        : vehicle.fuel === "1/2" ? "50%"
+                        : "25%",
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Dados da utilização */}
+              <div className="rounded-lg border border-border bg-background p-3">
+                <p className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                  Dados da utilização
+                </p>
+                {activeUsage ? (
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-2 text-[12px]">
+                    <UsageField label="Data / hora da saída" value={formatDT(activeUsage.departureAt)} />
+                    <UsageField label="KM de saída" value={activeUsage.departureMileage ? `${activeUsage.departureMileage.toLocaleString("pt-BR")} km` : "—"} />
+                    <UsageField label="Operador" value={activeUsage.operatorId} />
+                    <UsageField label="Destino / cliente" value={activeUsage.destination} />
+                    <UsageField label="Agendamento" value={activeUsage.appointmentId ?? "—"} />
+                    <UsageField label="Previsão de devolução" value={formatDT(activeUsage.expectedReturnAt)} />
+                    <UsageField
+                      label="Status"
+                      value={activeUsage.status === "em_uso" ? "Em uso" : "Reservado"}
+                      className="col-span-2"
+                    />
+                  </div>
+                ) : (
+                  <p className="text-[12px] text-muted-foreground">
+                    Este veículo não possui uma utilização em andamento.
+                  </p>
                 )}
-              >
-                {vehicle.status}
-              </Badge>
-            </div>
-
-            <div className="mt-5 grid grid-cols-2 gap-3">
-              <VehicleDatum icon={Car} label="Categoria" value={vehicle.category} />
-              <VehicleDatum icon={Sparkles} label="Cor" value={vehicle.color} />
-              <VehicleDatum icon={CalendarDays} label="Ano / modelo" value={vehicle.year} />
-              <VehicleDatum icon={Gauge} label="Quilometragem" value={vehicle.mileage} />
-            </div>
-
-            <div className="mt-4 rounded-lg border border-border bg-muted/20 p-3">
-              <div className="flex items-center justify-between text-xs">
-                <span className="flex items-center gap-2 text-muted-foreground">
-                  <Fuel className="h-4 w-4" /> Combustível estimado
-                </span>
-                <span className="font-medium text-foreground">{vehicle.fuel}</span>
               </div>
-              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
-                <div
-                  className="h-full rounded-full bg-primary transition-all duration-300"
-                  style={{
-                    width:
-                      vehicle.fuel === "Cheio"
-                        ? "100%"
-                        : vehicle.fuel === "3/4"
-                          ? "75%"
-                          : vehicle.fuel === "1/2"
-                            ? "50%"
-                            : "25%",
-                  }}
-                />
-              </div>
-            </div>
 
-            <div className="mt-auto flex items-center justify-between gap-3 pt-5">
-              <div className="flex gap-2">
-                <Button type="button" variant="outline" size="icon" onClick={previous} className="cursor-pointer" aria-label="Veículo anterior">
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <Button type="button" variant="outline" size="icon" onClick={next} className="cursor-pointer" aria-label="Próximo veículo">
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
+              {/* Dados da devolução */}
+              <div className="rounded-lg border border-border bg-background p-3">
+                <p className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                  Dados da devolução
+                </p>
+                {returning && activeUsage ? (
+                  <div className="grid grid-cols-2 gap-2.5 text-[12px]">
+                    <div className="col-span-1">
+                      <Label className="mb-1 block text-[11px]">KM final *</Label>
+                      <Input
+                        inputMode="numeric"
+                        value={returnMileage}
+                        onChange={(e) => setReturnMileage(e.target.value.replace(/\D/g, ""))}
+                        placeholder={activeUsage.departureMileage?.toString() ?? "0"}
+                        className="h-8 text-[12.5px]"
+                      />
+                    </div>
+                    <div className="col-span-1">
+                      <Label className="mb-1 block text-[11px]">Combustível restante *</Label>
+                      <SelectNative value={returnFuel} onChange={setReturnFuel} options={["Cheio", "3/4", "1/2", "1/4", "Reserva"]} />
+                    </div>
+                    <div className="col-span-2">
+                      <Label className="mb-1 block text-[11px]">
+                        KM percorridos: <span className="text-foreground">
+                          {returnMileage && activeUsage.departureMileage
+                            ? `${Math.max(0, Number(returnMileage) - activeUsage.departureMileage).toLocaleString("pt-BR")} km`
+                            : "—"}
+                        </span>
+                      </Label>
+                    </div>
+                    <div className="col-span-2">
+                      <Label className="mb-1 block text-[11px]">Observações</Label>
+                      <Textarea
+                        value={returnNotes}
+                        onChange={(e) => setReturnNotes(e.target.value)}
+                        rows={2}
+                        className="text-[12.5px]"
+                        placeholder="Observações da devolução"
+                      />
+                    </div>
+                    <div className="col-span-2 flex justify-end gap-2 pt-1">
+                      <Button size="sm" variant="outline" className="cursor-pointer" onClick={() => setReturning(false)}>
+                        Cancelar
+                      </Button>
+                      <Button size="sm" className="cursor-pointer bg-blue-600 text-white hover:bg-blue-700" onClick={submitReturn}>
+                        Confirmar devolução
+                      </Button>
+                    </div>
+                  </div>
+                ) : activeUsage?.returnedAt ? (
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-2 text-[12px]">
+                    <UsageField label="Data / hora" value={formatDT(activeUsage.returnedAt)} />
+                    <UsageField label="KM final" value={activeUsage.returnMileage ? `${activeUsage.returnMileage.toLocaleString("pt-BR")} km` : "—"} />
+                    <UsageField label="KM percorridos" value={activeUsage.distanceTraveled ? `${activeUsage.distanceTraveled.toLocaleString("pt-BR")} km` : "—"} />
+                    <UsageField label="Combustível restante" value={activeUsage.fuelAtReturn ?? "—"} />
+                    {activeUsage.notes && <UsageField label="Observações" value={activeUsage.notes} className="col-span-2" />}
+                  </div>
+                ) : (
+                  <p className="text-[12px] text-muted-foreground">
+                    {activeUsage?.status === "em_uso"
+                      ? "Nenhuma devolução registrada. Clique em “Registrar devolução” para finalizar."
+                      : "Sem devolução em andamento."}
+                  </p>
+                )}
               </div>
-              <Button type="button" onClick={confirm} disabled={!available} className="cursor-pointer bg-blue-600 text-white hover:bg-blue-700">
-                <Check className="mr-1.5 h-4 w-4" />
-                Selecionar veículo
-              </Button>
-            </div>
-          </section>
+            </section>
+          </div>
+        </div>
+
+        <div className="flex shrink-0 items-center justify-between gap-2 border-t border-border bg-card px-4 py-2.5 md:px-5">
+          <div className="flex gap-1.5">
+            <Button type="button" variant="outline" size="icon" onClick={previous} className="cursor-pointer" aria-label="Veículo anterior">
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button type="button" variant="outline" size="icon" onClick={next} className="cursor-pointer" aria-label="Próximo veículo">
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+          {effectiveStatus === "Disponível" ? (
+            <Button type="button" onClick={confirmSelection} className="cursor-pointer bg-blue-600 text-white hover:bg-blue-700">
+              <Check className="mr-1.5 h-4 w-4" />
+              Selecionar veículo
+            </Button>
+          ) : effectiveStatus === "Em uso" ? (
+            <Button
+              type="button"
+              onClick={() => setReturning(true)}
+              disabled={returning}
+              className="cursor-pointer bg-blue-600 text-white hover:bg-blue-700"
+            >
+              <Check className="mr-1.5 h-4 w-4" />
+              Registrar devolução
+            </Button>
+          ) : effectiveStatus === "Reservado" ? (
+            <Button type="button" disabled className="cursor-not-allowed">
+              Reservado neste período
+            </Button>
+          ) : (
+            <Button type="button" disabled className="cursor-not-allowed">
+              Em manutenção
+            </Button>
+          )}
         </div>
       </DialogContent>
     </Dialog>
   );
 }
 
-function VehicleDatum({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: typeof Car;
-  label: string;
-  value: string;
-}) {
+function UsageField({ label, value, className }: { label: string; value: string; className?: string }) {
   return (
-    <div className="rounded-lg border border-border bg-background p-3">
-      <div className="flex items-center gap-2 text-[11px] uppercase tracking-wide text-muted-foreground">
-        <Icon className="h-3.5 w-3.5 text-primary" />
-        {label}
-      </div>
-      <p className="mt-1.5 truncate text-[13px] text-foreground">{value}</p>
+    <div className={cn("min-w-0", className)}>
+      <p className="text-[10.5px] uppercase tracking-wider text-muted-foreground">{label}</p>
+      <p className="truncate text-[12.5px] text-foreground">{value}</p>
     </div>
   );
 }
