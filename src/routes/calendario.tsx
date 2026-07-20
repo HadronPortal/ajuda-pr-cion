@@ -1226,19 +1226,22 @@ function VehiclePickerDialog({
         />
 
         <div className="grid gap-5 bg-card p-5 md:grid-cols-[280px_1fr] md:p-6">
-          <section className="relative overflow-hidden rounded-xl border border-border bg-muted/20 p-5">
-            <div className="absolute inset-x-0 top-0 h-1 bg-primary" />
-            <div className="relative flex h-40 items-center justify-center rounded-lg bg-gradient-to-b from-background to-muted/50">
-              <Car className="h-28 w-28 text-primary drop-shadow-sm" strokeWidth={1.25} />
-              <span className="absolute bottom-3 rounded-full border border-border bg-background/90 px-3 py-1 text-[11px] text-muted-foreground shadow-sm">
-                {vehicle.color} · {vehicle.category}
-              </span>
+          <section className="relative flex flex-col overflow-hidden rounded-xl border border-border bg-card">
+            <div className="relative flex h-36 items-center justify-center overflow-hidden bg-white">
+              <img
+                src={vehicle.image}
+                alt={vehicle.model}
+                loading="lazy"
+                className="h-full w-full object-contain p-2"
+              />
             </div>
-            <div className="mt-4 text-center">
-              <p className="text-base font-medium text-foreground">{vehicle.model}</p>
-              <p className="mt-0.5 text-sm font-medium tracking-wide text-primary">{vehicle.plate}</p>
+
+            <div className="px-4 pt-3 pb-2 text-center">
+              <p className="text-[13.5px] font-medium text-foreground">{vehicle.model}</p>
+              <p className="mt-0.5 font-mono text-[12px] tracking-wider text-primary">{vehicle.plate}</p>
             </div>
-            <div className="mt-4 flex items-center justify-center gap-2">
+
+            <div className="flex items-center justify-center gap-1.5 pb-3">
               {FLEET_VEHICLES.map((item, itemIndex) => (
                 <button
                   key={item.id}
@@ -1246,13 +1249,62 @@ function VehiclePickerDialog({
                   onClick={() => setIndex(itemIndex)}
                   aria-label={`Ver ${item.model}`}
                   className={cn(
-                    "h-2 cursor-pointer rounded-full transition-all",
+                    "h-1.5 cursor-pointer rounded-full transition-all",
                     itemIndex === index
-                      ? "w-7 bg-primary"
-                      : "w-2 bg-muted-foreground/30 hover:bg-muted-foreground/60",
+                      ? "w-5 bg-primary"
+                      : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/60",
                   )}
                 />
               ))}
+            </div>
+
+            <div className="divide-y divide-border border-t border-border">
+              <VehicleSpec icon={Tag} label="Categoria" value={vehicle.category} />
+              <VehicleSpec icon={Palette} label="Cor" value={vehicle.color} />
+              <VehicleSpec icon={CalendarDays} label="Ano / Modelo" value={vehicle.year} />
+              <VehicleSpec icon={Gauge} label="Quilometragem atual" value={vehicle.mileage} />
+              <VehicleSpec icon={Wrench} label="Próxima revisão" value={vehicle.nextRevision} />
+            </div>
+
+            <div className="border-t border-border bg-muted/30 px-3 py-2.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[10.5px] uppercase tracking-wider text-muted-foreground">Status</span>
+                <span className="flex items-center gap-1.5 text-[11.5px] font-medium text-foreground">
+                  <span
+                    className={cn(
+                      "h-2 w-2 rounded-full",
+                      available
+                        ? "bg-emerald-500"
+                        : vehicle.status === "Em uso"
+                          ? "bg-amber-500"
+                          : "bg-rose-500",
+                    )}
+                  />
+                  {vehicle.status}
+                </span>
+              </div>
+              {vehicle.status === "Em uso" && vehicle.lastExit && (
+                <div className="mt-2 space-y-0.5 border-t border-border/60 pt-2 text-[11px]">
+                  <div className="flex items-center justify-between text-muted-foreground">
+                    <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> Saída</span>
+                    <span className="text-foreground">{vehicle.lastExit.datetime}</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-muted-foreground">
+                    <User className="h-3 w-3" /> por {vehicle.lastExit.operator}
+                  </div>
+                </div>
+              )}
+              {vehicle.status !== "Em uso" && vehicle.lastReturn && (
+                <div className="mt-2 space-y-0.5 border-t border-border/60 pt-2 text-[11px]">
+                  <div className="flex items-center justify-between text-muted-foreground">
+                    <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> Último retorno</span>
+                    <span className="text-foreground">{vehicle.lastReturn.datetime}</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-muted-foreground">
+                    <User className="h-3 w-3" /> por {vehicle.lastReturn.operator}
+                  </div>
+                </div>
+              )}
             </div>
           </section>
 
