@@ -8,12 +8,15 @@ import {
   ChevronLeft,
   ChevronRight,
   Filter,
+  Fuel,
+  Gauge,
   Laptop,
   Link2,
   Lock,
   MapPin,
   Plus,
   SlidersHorizontal,
+  Sparkles,
   UserRound,
   UsersRound,
   X,
@@ -697,7 +700,24 @@ function Metric({ value, label, color }: { value: number; label: string; color: 
 }
 
 const PRC_OPERATORS = ["PRCGGC", "PRCGIN", "PRCJAC", "PRCREN", "PRCROG", "PRCSUZ", "PRCMAR", "PRCLCZ", "PRCPED"];
-const VEHICLE_OPTIONS = ["Veículo 01", "Veículo 02", "Veículo 03", "Próprio"];
+type FleetVehicle = {
+  id: string;
+  model: string;
+  plate: string;
+  category: string;
+  color: string;
+  year: string;
+  mileage: string;
+  fuel: string;
+  status: "Disponível" | "Em uso" | "Manutenção";
+};
+
+const FLEET_VEHICLES: FleetVehicle[] = [
+  { id: "corolla", model: "Toyota Corolla", plate: "ABC-1234", category: "Sedan", color: "Branco", year: "2022 / 2023", mileage: "45.678 km", fuel: "1/2", status: "Disponível" },
+  { id: "tracker", model: "Chevrolet Tracker", plate: "PRC-2026", category: "SUV", color: "Prata", year: "2023 / 2024", mileage: "31.420 km", fuel: "3/4", status: "Disponível" },
+  { id: "onix", model: "Chevrolet Onix", plate: "HAD-1908", category: "Hatch", color: "Cinza", year: "2021 / 2022", mileage: "62.150 km", fuel: "1/4", status: "Em uso" },
+  { id: "strada", model: "Fiat Strada", plate: "WEB-4580", category: "Utilitário", color: "Branco", year: "2022 / 2022", mileage: "54.802 km", fuel: "Cheio", status: "Manutenção" },
+];
 const PLATFORM_OPTIONS = ["Google Meet", "Microsoft Teams", "Zoom", "AnyDesk"];
 const ROOM_OPTIONS = ["Sala Diretoria", "Sala Reuniões 1", "Sala Reuniões 2", "Auditório"];
 
@@ -732,7 +752,8 @@ function CreateEventDialog({
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("10:00");
   const [client, setClient] = useState("");
-  const [vehicle, setVehicle] = useState(VEHICLE_OPTIONS[0]);
+  const [vehicle, setVehicle] = useState("");
+  const [vehicleOpen, setVehicleOpen] = useState(false);
   const [address, setAddress] = useState("");
   const [responsible, setResponsible] = useState(PRC_OPERATORS[0]);
   const [meetingLink, setMeetingLink] = useState("");
@@ -748,7 +769,7 @@ function CreateEventDialog({
     setType("Visita"); setTitle(""); setDescription("");
     setGuests([]); setGuestInput("");
     setStartTime("09:00"); setEndTime("10:00");
-    setClient(""); setVehicle(VEHICLE_OPTIONS[0]); setAddress("");
+    setClient(""); setVehicle(""); setAddress("");
     setResponsible(PRC_OPERATORS[0]);
     setMeetingLink(""); setPlatform(PLATFORM_OPTIONS[0]);
     setRoom(ROOM_OPTIONS[0]); setIsPrivate(false);
@@ -988,7 +1009,19 @@ function CreateEventDialog({
                 <Input value={client} onChange={(e) => setClient(e.target.value)} placeholder="Sigla ou razão social" />
               </NewField>
               <NewField label="Veículo">
-                <SelectNative value={vehicle} onChange={setVehicle} options={VEHICLE_OPTIONS} />
+                <button
+                  type="button"
+                  onClick={() => setVehicleOpen(true)}
+                  className="flex h-9 w-full cursor-pointer items-center justify-between rounded-md border border-input bg-background px-3 text-left text-[13px] transition hover:border-primary/40 hover:bg-accent"
+                >
+                  <span className="flex min-w-0 items-center gap-2">
+                    <Car className="h-4 w-4 shrink-0 text-primary" />
+                    <span className={cn("truncate", !vehicle && "text-muted-foreground")}>
+                      {vehicle || "Selecionar veículo"}
+                    </span>
+                  </span>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+                </button>
               </NewField>
               <NewField label="Endereço" className="sm:col-span-2">
                 <div className="relative">
@@ -1114,8 +1147,190 @@ function CreateEventDialog({
             Adicionar evento
           </Button>
         </DialogFooter>
+        <VehiclePickerDialog
+          open={vehicleOpen}
+          onOpenChange={setVehicleOpen}
+          selected={vehicle}
+          onSelect={setVehicle}
+        />
       </DialogContent>
     </Dialog>
+  );
+}
+
+function VehiclePickerDialog({
+  open,
+  onOpenChange,
+  selected,
+  onSelect,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  selected: string;
+  onSelect: (vehicle: string) => void;
+}) {
+  const selectedIndex = Math.max(
+    0,
+    FLEET_VEHICLES.findIndex((item) => `${item.model} · ${item.plate}` === selected),
+  );
+  const [index, setIndex] = useState(selectedIndex);
+
+  useEffect(() => {
+    if (open) setIndex(selectedIndex);
+  }, [open, selectedIndex]);
+
+  const vehicle = FLEET_VEHICLES[index];
+  const previous = () =>
+    setIndex((current) => (current - 1 + FLEET_VEHICLES.length) % FLEET_VEHICLES.length);
+  const next = () => setIndex((current) => (current + 1) % FLEET_VEHICLES.length);
+  const available = vehicle.status === "Disponível";
+
+  const confirm = () => {
+    if (!available) {
+      toast.error(`O veículo ${vehicle.model} está ${vehicle.status.toLowerCase()}.`);
+      return;
+    }
+    onSelect(`${vehicle.model} · ${vehicle.plate}`);
+    onOpenChange(false);
+    toast.success("Veículo selecionado para a visita.");
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+        onPointerDownOutside={preventOutsideClose}
+        onInteractOutside={preventOutsideClose}
+        onEscapeKeyDown={preventOutsideClose}
+        className="w-[calc(100vw-2rem)] max-w-[760px] gap-0 overflow-hidden rounded-2xl border border-border bg-card p-0 shadow-[0_30px_80px_rgba(0,0,0,0.35)] [&>button]:hidden"
+      >
+        <DialogTitle className="sr-only">Selecionar veículo</DialogTitle>
+        <DetailModalHeader
+          icon={Car}
+          title="Selecionar veículo"
+          protocol={`${index + 1} de ${FLEET_VEHICLES.length} veículos da frota`}
+          onClose={() => onOpenChange(false)}
+        />
+
+        <div className="grid gap-5 bg-card p-5 md:grid-cols-[280px_1fr] md:p-6">
+          <section className="relative overflow-hidden rounded-xl border border-border bg-muted/20 p-5">
+            <div className="absolute inset-x-0 top-0 h-1 bg-primary" />
+            <div className="relative flex h-40 items-center justify-center rounded-lg bg-gradient-to-b from-background to-muted/50">
+              <Car className="h-28 w-28 text-primary drop-shadow-sm" strokeWidth={1.25} />
+              <span className="absolute bottom-3 rounded-full border border-border bg-background/90 px-3 py-1 text-[11px] text-muted-foreground shadow-sm">
+                {vehicle.color} · {vehicle.category}
+              </span>
+            </div>
+            <div className="mt-4 text-center">
+              <p className="text-base font-medium text-foreground">{vehicle.model}</p>
+              <p className="mt-0.5 text-sm font-medium tracking-wide text-primary">{vehicle.plate}</p>
+            </div>
+            <div className="mt-4 flex items-center justify-center gap-2">
+              {FLEET_VEHICLES.map((item, itemIndex) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setIndex(itemIndex)}
+                  aria-label={`Ver ${item.model}`}
+                  className={cn(
+                    "h-2 cursor-pointer rounded-full transition-all",
+                    itemIndex === index
+                      ? "w-7 bg-primary"
+                      : "w-2 bg-muted-foreground/30 hover:bg-muted-foreground/60",
+                  )}
+                />
+              ))}
+            </div>
+          </section>
+
+          <section className="flex min-w-0 flex-col">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-xs uppercase tracking-wider text-muted-foreground">Dados do veículo</p>
+                <h3 className="mt-1 text-lg font-medium">{vehicle.model}</h3>
+              </div>
+              <Badge
+                className={cn(
+                  "border px-2.5 py-1 font-normal",
+                  available
+                    ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-600 dark:text-emerald-300"
+                    : vehicle.status === "Em uso"
+                      ? "border-amber-500/25 bg-amber-500/10 text-amber-600 dark:text-amber-300"
+                      : "border-rose-500/25 bg-rose-500/10 text-rose-600 dark:text-rose-300",
+                )}
+              >
+                {vehicle.status}
+              </Badge>
+            </div>
+
+            <div className="mt-5 grid grid-cols-2 gap-3">
+              <VehicleDatum icon={Car} label="Categoria" value={vehicle.category} />
+              <VehicleDatum icon={Sparkles} label="Cor" value={vehicle.color} />
+              <VehicleDatum icon={CalendarDays} label="Ano / modelo" value={vehicle.year} />
+              <VehicleDatum icon={Gauge} label="Quilometragem" value={vehicle.mileage} />
+            </div>
+
+            <div className="mt-4 rounded-lg border border-border bg-muted/20 p-3">
+              <div className="flex items-center justify-between text-xs">
+                <span className="flex items-center gap-2 text-muted-foreground">
+                  <Fuel className="h-4 w-4" /> Combustível estimado
+                </span>
+                <span className="font-medium text-foreground">{vehicle.fuel}</span>
+              </div>
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full rounded-full bg-primary transition-all duration-300"
+                  style={{
+                    width:
+                      vehicle.fuel === "Cheio"
+                        ? "100%"
+                        : vehicle.fuel === "3/4"
+                          ? "75%"
+                          : vehicle.fuel === "1/2"
+                            ? "50%"
+                            : "25%",
+                  }}
+                />
+              </div>
+            </div>
+
+            <div className="mt-auto flex items-center justify-between gap-3 pt-5">
+              <div className="flex gap-2">
+                <Button type="button" variant="outline" size="icon" onClick={previous} className="cursor-pointer" aria-label="Veículo anterior">
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button type="button" variant="outline" size="icon" onClick={next} className="cursor-pointer" aria-label="Próximo veículo">
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+              <Button type="button" onClick={confirm} disabled={!available} className="cursor-pointer bg-blue-600 text-white hover:bg-blue-700">
+                <Check className="mr-1.5 h-4 w-4" />
+                Selecionar veículo
+              </Button>
+            </div>
+          </section>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function VehicleDatum({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: typeof Car;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-lg border border-border bg-background p-3">
+      <div className="flex items-center gap-2 text-[11px] uppercase tracking-wide text-muted-foreground">
+        <Icon className="h-3.5 w-3.5 text-primary" />
+        {label}
+      </div>
+      <p className="mt-1.5 truncate text-[13px] text-foreground">{value}</p>
+    </div>
   );
 }
 
