@@ -58,7 +58,6 @@ const nav: NavItem[] = [
   { to: "/frota", label: "Frota", icon: FleetIcon },
   { to: "/base-de-conhecimento", label: "Base", icon: BaseIcon },
   { to: "/atualizacoes", label: "Atualizações", icon: UpdatesIcon },
-  { to: "/versoes", label: "Versões", icon: VersionsIcon },
   { to: "/kanban", label: "Kanban", icon: KanbanIcon },
   { to: "/analytics", label: "Analytics", icon: AnalyticsIcon },
   { to: "/clientes", label: "Clientes", icon: CustomersIcon },
