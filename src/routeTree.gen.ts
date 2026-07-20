@@ -13,6 +13,7 @@ import { Route as VersoesRouteImport } from './routes/versoes'
 import { Route as MinhaContaRouteImport } from './routes/minha-conta'
 import { Route as KanbanDashboardRouteImport } from './routes/kanban-dashboard'
 import { Route as KanbanRouteImport } from './routes/kanban'
+import { Route as FrotaRouteImport } from './routes/frota'
 import { Route as ChamadosRouteImport } from './routes/chamados'
 import { Route as CalendarioRouteImport } from './routes/calendario'
 import { Route as BaseDeConhecimentoRouteImport } from './routes/base-de-conhecimento'
@@ -43,6 +44,11 @@ const KanbanDashboardRoute = KanbanDashboardRouteImport.update({
 const KanbanRoute = KanbanRouteImport.update({
   id: '/kanban',
   path: '/kanban',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FrotaRoute = FrotaRouteImport.update({
+  id: '/frota',
+  path: '/frota',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ChamadosRoute = ChamadosRouteImport.update({
@@ -108,6 +114,7 @@ export interface FileRoutesByFullPath {
   '/base-de-conhecimento': typeof BaseDeConhecimentoRouteWithChildren
   '/calendario': typeof CalendarioRoute
   '/chamados': typeof ChamadosRouteWithChildren
+  '/frota': typeof FrotaRoute
   '/kanban': typeof KanbanRoute
   '/kanban-dashboard': typeof KanbanDashboardRoute
   '/minha-conta': typeof MinhaContaRoute
@@ -124,6 +131,7 @@ export interface FileRoutesByTo {
   '/atualizacoes': typeof AtualizacoesRoute
   '/calendario': typeof CalendarioRoute
   '/chamados': typeof ChamadosRouteWithChildren
+  '/frota': typeof FrotaRoute
   '/kanban': typeof KanbanRoute
   '/kanban-dashboard': typeof KanbanDashboardRoute
   '/minha-conta': typeof MinhaContaRoute
@@ -142,6 +150,7 @@ export interface FileRoutesById {
   '/base-de-conhecimento': typeof BaseDeConhecimentoRouteWithChildren
   '/calendario': typeof CalendarioRoute
   '/chamados': typeof ChamadosRouteWithChildren
+  '/frota': typeof FrotaRoute
   '/kanban': typeof KanbanRoute
   '/kanban-dashboard': typeof KanbanDashboardRoute
   '/minha-conta': typeof MinhaContaRoute
@@ -161,6 +170,7 @@ export interface FileRouteTypes {
     | '/base-de-conhecimento'
     | '/calendario'
     | '/chamados'
+    | '/frota'
     | '/kanban'
     | '/kanban-dashboard'
     | '/minha-conta'
@@ -177,6 +187,7 @@ export interface FileRouteTypes {
     | '/atualizacoes'
     | '/calendario'
     | '/chamados'
+    | '/frota'
     | '/kanban'
     | '/kanban-dashboard'
     | '/minha-conta'
@@ -194,6 +205,7 @@ export interface FileRouteTypes {
     | '/base-de-conhecimento'
     | '/calendario'
     | '/chamados'
+    | '/frota'
     | '/kanban'
     | '/kanban-dashboard'
     | '/minha-conta'
@@ -212,6 +224,7 @@ export interface RootRouteChildren {
   BaseDeConhecimentoRoute: typeof BaseDeConhecimentoRouteWithChildren
   CalendarioRoute: typeof CalendarioRoute
   ChamadosRoute: typeof ChamadosRouteWithChildren
+  FrotaRoute: typeof FrotaRoute
   KanbanRoute: typeof KanbanRoute
   KanbanDashboardRoute: typeof KanbanDashboardRoute
   MinhaContaRoute: typeof MinhaContaRoute
@@ -248,6 +261,13 @@ declare module '@tanstack/react-router' {
       path: '/kanban'
       fullPath: '/kanban'
       preLoaderRoute: typeof KanbanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/frota': {
+      id: '/frota'
+      path: '/frota'
+      fullPath: '/frota'
+      preLoaderRoute: typeof FrotaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/chamados': {
@@ -362,6 +382,7 @@ const rootRouteChildren: RootRouteChildren = {
   BaseDeConhecimentoRoute: BaseDeConhecimentoRouteWithChildren,
   CalendarioRoute: CalendarioRoute,
   ChamadosRoute: ChamadosRouteWithChildren,
+  FrotaRoute: FrotaRoute,
   KanbanRoute: KanbanRoute,
   KanbanDashboardRoute: KanbanDashboardRoute,
   MinhaContaRoute: MinhaContaRoute,
