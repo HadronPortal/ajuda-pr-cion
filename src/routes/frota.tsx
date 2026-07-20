@@ -13,9 +13,11 @@ import {
   VEHICLE_STATUS_LABEL,
   USAGE_STATUS_LABEL,
   type UsageStatus,
+  type Vehicle,
   type VehicleStatus,
 } from "@/lib/fleet-store";
 import { fleetActions } from "@/lib/fleet-action-store";
+import { VehicleHistoryModal } from "@/components/fleet/VehicleHistoryModal";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/frota")({
@@ -188,38 +190,58 @@ function TodayView({ query }: { query: string }) {
 // -----------------------------------------------------------------------------
 function VehiclesView({ query }: { query: string }) {
   const vehicles = useVehicles();
+  const [selected, setSelected] = useState<Vehicle | null>(null);
   const rows = vehicles.filter((v) =>
     `${v.model} ${v.plate} ${v.category}`.toLowerCase().includes(query.toLowerCase()),
   );
 
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {rows.map((v) => (
-        <Card key={v.id} className="overflow-hidden p-0">
-          <div className="flex h-32 items-center justify-center bg-white">
-            <img src={v.imageUrl} alt={v.model} className="h-full w-full object-contain p-2" />
-          </div>
-          <div className="space-y-2 p-3">
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0">
-                <p className="truncate text-[13.5px] font-medium">{v.model}</p>
-                <p className="mt-0.5 font-mono text-[11.5px] text-primary">{v.plate}</p>
+    <>
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {rows.map((v) => (
+          <Card
+            key={v.id}
+            role="button"
+            tabIndex={0}
+            onClick={() => setSelected(v)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                setSelected(v);
+              }
+            }}
+            className="cursor-pointer overflow-hidden p-0 transition hover:border-primary/40 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <div className="flex h-32 items-center justify-center bg-white">
+              <img src={v.imageUrl} alt={v.model} className="h-full w-full object-contain p-2" />
+            </div>
+            <div className="space-y-2 p-3">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="truncate text-[13.5px] font-medium">{v.model}</p>
+                  <p className="mt-0.5 font-mono text-[11.5px] text-primary">{v.plate}</p>
+                </div>
+                <VehicleBadge status={v.status} />
               </div>
-              <VehicleBadge status={v.status} />
+              <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[11.5px] text-muted-foreground">
+                <span>Categoria: <span className="text-foreground">{v.category}</span></span>
+                <span>Cor: <span className="text-foreground">{v.color}</span></span>
+                <span>Ano: <span className="text-foreground">{v.yearModel}</span></span>
+                <span>KM: <span className="text-foreground">{v.currentMileage.toLocaleString("pt-BR")}</span></span>
+                <span className="col-span-2">
+                  Revisão: <span className="text-foreground">{v.nextRevisionDate}</span>
+                </span>
+              </div>
             </div>
-            <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[11.5px] text-muted-foreground">
-              <span>Categoria: <span className="text-foreground">{v.category}</span></span>
-              <span>Cor: <span className="text-foreground">{v.color}</span></span>
-              <span>Ano: <span className="text-foreground">{v.yearModel}</span></span>
-              <span>KM: <span className="text-foreground">{v.currentMileage.toLocaleString("pt-BR")}</span></span>
-              <span className="col-span-2">
-                Revisão: <span className="text-foreground">{v.nextRevisionDate}</span>
-              </span>
-            </div>
-          </div>
-        </Card>
-      ))}
-    </div>
+          </Card>
+        ))}
+      </div>
+      <VehicleHistoryModal
+        vehicle={selected}
+        open={selected !== null}
+        onOpenChange={(o) => !o && setSelected(null)}
+      />
+    </>
   );
 }
 
@@ -346,16 +368,20 @@ function EmptyRow({ label }: { label: string }) {
   return <p className="px-4 py-10 text-center text-sm text-muted-foreground">{label}</p>;
 }
 
+const BADGE_BASE =
+  "inline-flex h-[26px] w-fit items-center whitespace-nowrap rounded-md border px-2.5 text-[11.5px] font-normal leading-none";
+
 function VehicleBadge({ status }: { status: VehicleStatus }) {
   return (
     <Badge
       className={cn(
-        "border px-2 py-0.5 text-[11px] font-normal",
-        status === "disponivel"
-          ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-600 dark:text-emerald-300"
-          : status === "em_uso"
-            ? "border-amber-500/25 bg-amber-500/10 text-amber-600 dark:text-amber-300"
-            : "border-rose-500/25 bg-rose-500/10 text-rose-600 dark:text-rose-300",
+        BADGE_BASE,
+        status === "disponivel" &&
+          "border-emerald-500/25 bg-emerald-500/10 text-emerald-600 dark:text-emerald-300",
+        status === "em_uso" &&
+          "border-amber-500/25 bg-amber-500/10 text-amber-600 dark:text-amber-300",
+        status === "manutencao" &&
+          "border-rose-500/25 bg-rose-500/10 text-rose-600 dark:text-rose-300",
       )}
     >
       {VEHICLE_STATUS_LABEL[status]}
@@ -367,14 +393,15 @@ function UsageBadge({ status }: { status: UsageStatus }) {
   return (
     <Badge
       className={cn(
-        "border px-2 py-0.5 text-[11px] font-normal",
-        status === "em_deslocamento"
-          ? "border-amber-500/25 bg-amber-500/10 text-amber-600 dark:text-amber-300"
-          : status === "aguardando_retirada"
-            ? "border-sky-500/25 bg-sky-500/10 text-sky-600 dark:text-sky-300"
-            : status === "devolvido"
-              ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-600 dark:text-emerald-300"
-              : "border-rose-500/25 bg-rose-500/10 text-rose-600 dark:text-rose-300",
+        BADGE_BASE,
+        status === "em_deslocamento" &&
+          "border-amber-500/25 bg-amber-500/10 text-amber-600 dark:text-amber-300",
+        status === "aguardando_retirada" &&
+          "border-sky-500/25 bg-sky-500/10 text-sky-600 dark:text-sky-300",
+        status === "devolvido" &&
+          "border-emerald-500/25 bg-emerald-500/10 text-emerald-600 dark:text-emerald-300",
+        status === "cancelado" &&
+          "border-slate-400/30 bg-slate-400/10 text-slate-600 dark:text-slate-300",
       )}
     >
       {USAGE_STATUS_LABEL[status]}
