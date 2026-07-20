@@ -7,6 +7,8 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
+  Clock,
+  Droplet,
   Filter,
   Fuel,
   Gauge,
@@ -14,13 +16,21 @@ import {
   Link2,
   Lock,
   MapPin,
+  Palette,
   Plus,
   SlidersHorizontal,
   Sparkles,
+  Tag,
+  User,
   UserRound,
   UsersRound,
+  Wrench,
   X,
 } from "lucide-react";
+import corollaImg from "@/assets/vehicles/corolla.jpg";
+import trackerImg from "@/assets/vehicles/tracker.jpg";
+import onixImg from "@/assets/vehicles/onix.jpg";
+import stradaImg from "@/assets/vehicles/strada.jpg";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -710,13 +720,17 @@ type FleetVehicle = {
   mileage: string;
   fuel: string;
   status: "Disponível" | "Em uso" | "Manutenção";
+  image: string;
+  nextRevision: string;
+  lastExit?: { datetime: string; operator: string };
+  lastReturn?: { datetime: string; operator: string };
 };
 
 const FLEET_VEHICLES: FleetVehicle[] = [
-  { id: "corolla", model: "Toyota Corolla", plate: "ABC-1234", category: "Sedan", color: "Branco", year: "2022 / 2023", mileage: "45.678 km", fuel: "1/2", status: "Disponível" },
-  { id: "tracker", model: "Chevrolet Tracker", plate: "PRC-2026", category: "SUV", color: "Prata", year: "2023 / 2024", mileage: "31.420 km", fuel: "3/4", status: "Disponível" },
-  { id: "onix", model: "Chevrolet Onix", plate: "HAD-1908", category: "Hatch", color: "Cinza", year: "2021 / 2022", mileage: "62.150 km", fuel: "1/4", status: "Em uso" },
-  { id: "strada", model: "Fiat Strada", plate: "WEB-4580", category: "Utilitário", color: "Branco", year: "2022 / 2022", mileage: "54.802 km", fuel: "Cheio", status: "Manutenção" },
+  { id: "corolla", model: "Toyota Corolla", plate: "ABC-1234", category: "Sedan", color: "Branco", year: "2022 / 2023", mileage: "45.678 km", fuel: "1/2", status: "Disponível", image: corollaImg, nextRevision: "10/09/2026 ou 50.000 km", lastReturn: { datetime: "18/07/2026 17:40", operator: "Maria Silva" } },
+  { id: "tracker", model: "Chevrolet Tracker", plate: "PRC-2026", category: "SUV", color: "Prata", year: "2023 / 2024", mileage: "31.420 km", fuel: "3/4", status: "Disponível", image: trackerImg, nextRevision: "22/11/2026 ou 40.000 km", lastReturn: { datetime: "19/07/2026 12:15", operator: "Renan Costa" } },
+  { id: "onix", model: "Chevrolet Onix", plate: "HAD-1908", category: "Hatch", color: "Cinza", year: "2021 / 2022", mileage: "62.150 km", fuel: "1/4", status: "Em uso", image: onixImg, nextRevision: "05/08/2026 ou 65.000 km", lastExit: { datetime: "20/07/2026 08:00", operator: "João Silva" } },
+  { id: "strada", model: "Fiat Strada", plate: "WEB-4580", category: "Utilitário", color: "Branco", year: "2022 / 2022", mileage: "54.802 km", fuel: "Cheio", status: "Manutenção", image: stradaImg, nextRevision: "Em oficina", lastReturn: { datetime: "15/07/2026 16:00", operator: "Pedro Lima" } },
 ];
 const PLATFORM_OPTIONS = ["Google Meet", "Microsoft Teams", "Zoom", "AnyDesk"];
 const ROOM_OPTIONS = ["Sala Diretoria", "Sala Reuniões 1", "Sala Reuniões 2", "Auditório"];
@@ -1212,19 +1226,22 @@ function VehiclePickerDialog({
         />
 
         <div className="grid gap-5 bg-card p-5 md:grid-cols-[280px_1fr] md:p-6">
-          <section className="relative overflow-hidden rounded-xl border border-border bg-muted/20 p-5">
-            <div className="absolute inset-x-0 top-0 h-1 bg-primary" />
-            <div className="relative flex h-40 items-center justify-center rounded-lg bg-gradient-to-b from-background to-muted/50">
-              <Car className="h-28 w-28 text-primary drop-shadow-sm" strokeWidth={1.25} />
-              <span className="absolute bottom-3 rounded-full border border-border bg-background/90 px-3 py-1 text-[11px] text-muted-foreground shadow-sm">
-                {vehicle.color} · {vehicle.category}
-              </span>
+          <section className="relative flex flex-col overflow-hidden rounded-xl border border-border bg-card">
+            <div className="relative flex h-36 items-center justify-center overflow-hidden bg-white">
+              <img
+                src={vehicle.image}
+                alt={vehicle.model}
+                loading="lazy"
+                className="h-full w-full object-contain p-2"
+              />
             </div>
-            <div className="mt-4 text-center">
-              <p className="text-base font-medium text-foreground">{vehicle.model}</p>
-              <p className="mt-0.5 text-sm font-medium tracking-wide text-primary">{vehicle.plate}</p>
+
+            <div className="px-4 pt-3 pb-2 text-center">
+              <p className="text-[13.5px] font-medium text-foreground">{vehicle.model}</p>
+              <p className="mt-0.5 font-mono text-[12px] tracking-wider text-primary">{vehicle.plate}</p>
             </div>
-            <div className="mt-4 flex items-center justify-center gap-2">
+
+            <div className="flex items-center justify-center gap-1.5 pb-3">
               {FLEET_VEHICLES.map((item, itemIndex) => (
                 <button
                   key={item.id}
@@ -1232,13 +1249,62 @@ function VehiclePickerDialog({
                   onClick={() => setIndex(itemIndex)}
                   aria-label={`Ver ${item.model}`}
                   className={cn(
-                    "h-2 cursor-pointer rounded-full transition-all",
+                    "h-1.5 cursor-pointer rounded-full transition-all",
                     itemIndex === index
-                      ? "w-7 bg-primary"
-                      : "w-2 bg-muted-foreground/30 hover:bg-muted-foreground/60",
+                      ? "w-5 bg-primary"
+                      : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/60",
                   )}
                 />
               ))}
+            </div>
+
+            <div className="divide-y divide-border border-t border-border">
+              <VehicleSpec icon={Tag} label="Categoria" value={vehicle.category} />
+              <VehicleSpec icon={Palette} label="Cor" value={vehicle.color} />
+              <VehicleSpec icon={CalendarDays} label="Ano / Modelo" value={vehicle.year} />
+              <VehicleSpec icon={Gauge} label="Quilometragem atual" value={vehicle.mileage} />
+              <VehicleSpec icon={Wrench} label="Próxima revisão" value={vehicle.nextRevision} />
+            </div>
+
+            <div className="border-t border-border bg-muted/30 px-3 py-2.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[10.5px] uppercase tracking-wider text-muted-foreground">Status</span>
+                <span className="flex items-center gap-1.5 text-[11.5px] font-medium text-foreground">
+                  <span
+                    className={cn(
+                      "h-2 w-2 rounded-full",
+                      available
+                        ? "bg-emerald-500"
+                        : vehicle.status === "Em uso"
+                          ? "bg-amber-500"
+                          : "bg-rose-500",
+                    )}
+                  />
+                  {vehicle.status}
+                </span>
+              </div>
+              {vehicle.status === "Em uso" && vehicle.lastExit && (
+                <div className="mt-2 space-y-0.5 border-t border-border/60 pt-2 text-[11px]">
+                  <div className="flex items-center justify-between text-muted-foreground">
+                    <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> Saída</span>
+                    <span className="text-foreground">{vehicle.lastExit.datetime}</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-muted-foreground">
+                    <User className="h-3 w-3" /> por {vehicle.lastExit.operator}
+                  </div>
+                </div>
+              )}
+              {vehicle.status !== "Em uso" && vehicle.lastReturn && (
+                <div className="mt-2 space-y-0.5 border-t border-border/60 pt-2 text-[11px]">
+                  <div className="flex items-center justify-between text-muted-foreground">
+                    <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> Último retorno</span>
+                    <span className="text-foreground">{vehicle.lastReturn.datetime}</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-muted-foreground">
+                    <User className="h-3 w-3" /> por {vehicle.lastReturn.operator}
+                  </div>
+                </div>
+              )}
             </div>
           </section>
 
@@ -1330,6 +1396,26 @@ function VehicleDatum({
         {label}
       </div>
       <p className="mt-1.5 truncate text-[13px] text-foreground">{value}</p>
+    </div>
+  );
+}
+
+function VehicleSpec({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: typeof Car;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="flex items-start gap-2.5 px-3 py-2">
+      <Icon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+      <div className="min-w-0 flex-1">
+        <p className="text-[10.5px] uppercase tracking-wider text-muted-foreground">{label}</p>
+        <p className="text-[12px] leading-snug text-foreground">{value}</p>
+      </div>
     </div>
   );
 }
