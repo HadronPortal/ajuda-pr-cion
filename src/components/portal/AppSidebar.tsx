@@ -1,6 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { ProcionLogo } from "./ProcionLogo";
-import { CalendarDays, ChevronLeft, ChevronRight, MessageSquare, Truck } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, MessageSquare } from "lucide-react";
 import type { ComponentType } from "react";
 import dashboardIconUrl from "@/assets/menu-dashboard-solid.png";
 import ticketsIconUrl from "@/assets/menu-tickets-solid.png";
@@ -11,6 +11,7 @@ import kanbanIconUrl from "@/assets/menu-kanban-solid.png";
 import analyticsIconUrl from "@/assets/menu-analytics-solid.png";
 import customersIconUrl from "@/assets/menu-customers-solid.png";
 import calendarIconUrl from "@/assets/ticket-schedule-solid.png";
+import fleetIconUrl from "@/assets/menu-fleet-solid.png";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { sidebarStore, useSidebarCollapsed } from "@/lib/sidebar-store";
@@ -48,18 +49,19 @@ const KanbanIcon = createMaskedMenuIcon(kanbanIconUrl);
 const AnalyticsIcon = createMaskedMenuIcon(analyticsIconUrl);
 const CustomersIcon = createMaskedMenuIcon(customersIconUrl);
 const CalendarIcon = createMaskedMenuIcon(calendarIconUrl);
+const FleetIcon = createMaskedMenuIcon(fleetIconUrl);
 
 const nav: NavItem[] = [
   { to: "/", label: "Dashboard", icon: DashboardIcon, exact: true },
   { to: "/chamados", label: "Chamados", icon: TicketsIcon },
   { to: "/calendario", label: "Calendário", icon: CalendarIcon },
+  { to: "/frota", label: "Frota", icon: FleetIcon },
   { to: "/base-de-conhecimento", label: "Base", icon: BaseIcon },
   { to: "/atualizacoes", label: "Atualizações", icon: UpdatesIcon },
   { to: "/versoes", label: "Versões", icon: VersionsIcon },
   { to: "/kanban", label: "Kanban", icon: KanbanIcon },
   { to: "/analytics", label: "Analytics", icon: AnalyticsIcon },
   { to: "/clientes", label: "Clientes", icon: CustomersIcon },
-  { to: "/frota", label: "Frota", icon: Truck },
 ];
 
 function isActivePath(pathname: string, item: NavItem) {
