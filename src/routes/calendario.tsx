@@ -48,6 +48,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import { cn } from "@/lib/utils";
+import { useFleetUsage, registerReturn, type FleetUsage } from "@/lib/fleet-store";
 
 const preventOutsideClose = (event: Event) => event.preventDefault();
 
