@@ -720,13 +720,17 @@ type FleetVehicle = {
   mileage: string;
   fuel: string;
   status: "Disponível" | "Em uso" | "Manutenção";
+  image: string;
+  nextRevision: string;
+  lastExit?: { datetime: string; operator: string };
+  lastReturn?: { datetime: string; operator: string };
 };
 
 const FLEET_VEHICLES: FleetVehicle[] = [
-  { id: "corolla", model: "Toyota Corolla", plate: "ABC-1234", category: "Sedan", color: "Branco", year: "2022 / 2023", mileage: "45.678 km", fuel: "1/2", status: "Disponível" },
-  { id: "tracker", model: "Chevrolet Tracker", plate: "PRC-2026", category: "SUV", color: "Prata", year: "2023 / 2024", mileage: "31.420 km", fuel: "3/4", status: "Disponível" },
-  { id: "onix", model: "Chevrolet Onix", plate: "HAD-1908", category: "Hatch", color: "Cinza", year: "2021 / 2022", mileage: "62.150 km", fuel: "1/4", status: "Em uso" },
-  { id: "strada", model: "Fiat Strada", plate: "WEB-4580", category: "Utilitário", color: "Branco", year: "2022 / 2022", mileage: "54.802 km", fuel: "Cheio", status: "Manutenção" },
+  { id: "corolla", model: "Toyota Corolla", plate: "ABC-1234", category: "Sedan", color: "Branco", year: "2022 / 2023", mileage: "45.678 km", fuel: "1/2", status: "Disponível", image: corollaImg, nextRevision: "10/09/2026 ou 50.000 km", lastReturn: { datetime: "18/07/2026 17:40", operator: "Maria Silva" } },
+  { id: "tracker", model: "Chevrolet Tracker", plate: "PRC-2026", category: "SUV", color: "Prata", year: "2023 / 2024", mileage: "31.420 km", fuel: "3/4", status: "Disponível", image: trackerImg, nextRevision: "22/11/2026 ou 40.000 km", lastReturn: { datetime: "19/07/2026 12:15", operator: "Renan Costa" } },
+  { id: "onix", model: "Chevrolet Onix", plate: "HAD-1908", category: "Hatch", color: "Cinza", year: "2021 / 2022", mileage: "62.150 km", fuel: "1/4", status: "Em uso", image: onixImg, nextRevision: "05/08/2026 ou 65.000 km", lastExit: { datetime: "20/07/2026 08:00", operator: "João Silva" } },
+  { id: "strada", model: "Fiat Strada", plate: "WEB-4580", category: "Utilitário", color: "Branco", year: "2022 / 2022", mileage: "54.802 km", fuel: "Cheio", status: "Manutenção", image: stradaImg, nextRevision: "Em oficina", lastReturn: { datetime: "15/07/2026 16:00", operator: "Pedro Lima" } },
 ];
 const PLATFORM_OPTIONS = ["Google Meet", "Microsoft Teams", "Zoom", "AnyDesk"];
 const ROOM_OPTIONS = ["Sala Diretoria", "Sala Reuniões 1", "Sala Reuniões 2", "Auditório"];
