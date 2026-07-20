@@ -13,6 +13,7 @@ import { Route as VersoesRouteImport } from './routes/versoes'
 import { Route as MinhaContaRouteImport } from './routes/minha-conta'
 import { Route as KanbanDashboardRouteImport } from './routes/kanban-dashboard'
 import { Route as KanbanRouteImport } from './routes/kanban'
+import { Route as IniciarHadronRouteImport } from './routes/iniciar-hadron'
 import { Route as FrotaRouteImport } from './routes/frota'
 import { Route as ChamadosRouteImport } from './routes/chamados'
 import { Route as CalendarioRouteImport } from './routes/calendario'
@@ -44,6 +45,11 @@ const KanbanDashboardRoute = KanbanDashboardRouteImport.update({
 const KanbanRoute = KanbanRouteImport.update({
   id: '/kanban',
   path: '/kanban',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IniciarHadronRoute = IniciarHadronRouteImport.update({
+  id: '/iniciar-hadron',
+  path: '/iniciar-hadron',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FrotaRoute = FrotaRouteImport.update({
@@ -115,6 +121,7 @@ export interface FileRoutesByFullPath {
   '/calendario': typeof CalendarioRoute
   '/chamados': typeof ChamadosRouteWithChildren
   '/frota': typeof FrotaRoute
+  '/iniciar-hadron': typeof IniciarHadronRoute
   '/kanban': typeof KanbanRoute
   '/kanban-dashboard': typeof KanbanDashboardRoute
   '/minha-conta': typeof MinhaContaRoute
@@ -132,6 +139,7 @@ export interface FileRoutesByTo {
   '/calendario': typeof CalendarioRoute
   '/chamados': typeof ChamadosRouteWithChildren
   '/frota': typeof FrotaRoute
+  '/iniciar-hadron': typeof IniciarHadronRoute
   '/kanban': typeof KanbanRoute
   '/kanban-dashboard': typeof KanbanDashboardRoute
   '/minha-conta': typeof MinhaContaRoute
@@ -151,6 +159,7 @@ export interface FileRoutesById {
   '/calendario': typeof CalendarioRoute
   '/chamados': typeof ChamadosRouteWithChildren
   '/frota': typeof FrotaRoute
+  '/iniciar-hadron': typeof IniciarHadronRoute
   '/kanban': typeof KanbanRoute
   '/kanban-dashboard': typeof KanbanDashboardRoute
   '/minha-conta': typeof MinhaContaRoute
@@ -171,6 +180,7 @@ export interface FileRouteTypes {
     | '/calendario'
     | '/chamados'
     | '/frota'
+    | '/iniciar-hadron'
     | '/kanban'
     | '/kanban-dashboard'
     | '/minha-conta'
@@ -188,6 +198,7 @@ export interface FileRouteTypes {
     | '/calendario'
     | '/chamados'
     | '/frota'
+    | '/iniciar-hadron'
     | '/kanban'
     | '/kanban-dashboard'
     | '/minha-conta'
@@ -206,6 +217,7 @@ export interface FileRouteTypes {
     | '/calendario'
     | '/chamados'
     | '/frota'
+    | '/iniciar-hadron'
     | '/kanban'
     | '/kanban-dashboard'
     | '/minha-conta'
@@ -225,6 +237,7 @@ export interface RootRouteChildren {
   CalendarioRoute: typeof CalendarioRoute
   ChamadosRoute: typeof ChamadosRouteWithChildren
   FrotaRoute: typeof FrotaRoute
+  IniciarHadronRoute: typeof IniciarHadronRoute
   KanbanRoute: typeof KanbanRoute
   KanbanDashboardRoute: typeof KanbanDashboardRoute
   MinhaContaRoute: typeof MinhaContaRoute
@@ -261,6 +274,13 @@ declare module '@tanstack/react-router' {
       path: '/kanban'
       fullPath: '/kanban'
       preLoaderRoute: typeof KanbanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/iniciar-hadron': {
+      id: '/iniciar-hadron'
+      path: '/iniciar-hadron'
+      fullPath: '/iniciar-hadron'
+      preLoaderRoute: typeof IniciarHadronRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/frota': {
@@ -383,6 +403,7 @@ const rootRouteChildren: RootRouteChildren = {
   CalendarioRoute: CalendarioRoute,
   ChamadosRoute: ChamadosRouteWithChildren,
   FrotaRoute: FrotaRoute,
+  IniciarHadronRoute: IniciarHadronRoute,
   KanbanRoute: KanbanRoute,
   KanbanDashboardRoute: KanbanDashboardRoute,
   MinhaContaRoute: MinhaContaRoute,
@@ -393,3 +414,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
