@@ -30,6 +30,26 @@ export type UsageStatus =
   | "devolvido"
   | "cancelado";
 
+export type ReservationStatus =
+  | "pre_agendado"
+  | "convertida_em_uso"
+  | "cancelada";
+
+export type VehicleReservation = {
+  id: string;
+  eventId?: string | number;
+  ticketId?: string;
+  vehicleId: string;
+  operatorId: string;
+  customerId?: string;
+  destination?: string;
+  startAt: string;
+  endAt: string;
+  status: ReservationStatus;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type VehicleUsage = {
   id: string;
   vehicleId?: string;
@@ -188,6 +208,8 @@ let usages: VehicleUsage[] = [
   },
 ];
 
+let reservations: VehicleReservation[] = [];
+
 // -----------------------------------------------------------------------------
 // Pub-sub
 // -----------------------------------------------------------------------------
@@ -215,6 +237,79 @@ export function useVehicles() {
 export function useUsages() {
   return useSyncExternalStore(subscribe, getUsagesSnapshot, getUsagesSnapshot);
 }
+
+export function getReservationsSnapshot() {
+  return reservations;
+}
+export function useReservations() {
+  return useSyncExternalStore(subscribe, getReservationsSnapshot, getReservationsSnapshot);
+}
+
+export function getActiveReservationsByVehicle(vehicleId: string) {
+  return reservations.filter(
+    (r) => r.vehicleId === vehicleId && r.status === "pre_agendado",
+  );
+}
+
+export function hasReservationConflict(
+  vehicleId: string,
+  startAt: string,
+  endAt: string,
+  ignoreReservationId?: string,
+): VehicleReservation | undefined {
+  return reservations.find((r) => {
+    if (r.id === ignoreReservationId) return false;
+    if (r.vehicleId !== vehicleId) return false;
+    if (r.status !== "pre_agendado") return false;
+    return r.startAt < endAt && r.endAt > startAt;
+  });
+}
+
+export function createReservation(input: {
+  vehicleId: string;
+  operatorId: string;
+  startAt: string;
+  endAt: string;
+  eventId?: string | number;
+  ticketId?: string;
+  customerId?: string;
+  destination?: string;
+}): VehicleReservation | { error: "conflict"; conflict: VehicleReservation } {
+  const conflict = hasReservationConflict(
+    input.vehicleId,
+    input.startAt,
+    input.endAt,
+  );
+  if (conflict) return { error: "conflict", conflict };
+  const now = nowISO();
+  const reservation: VehicleReservation = {
+    id: `res-${Date.now().toString(36)}-${Math.floor(Math.random() * 1000)}`,
+    vehicleId: input.vehicleId,
+    operatorId: input.operatorId,
+    startAt: input.startAt,
+    endAt: input.endAt,
+    eventId: input.eventId,
+    ticketId: input.ticketId,
+    customerId: input.customerId,
+    destination: input.destination,
+    status: "pre_agendado",
+    createdAt: now,
+    updatedAt: now,
+  };
+  reservations = [reservation, ...reservations];
+  emit();
+  return reservation;
+}
+
+export function cancelReservationByEvent(eventId: string | number) {
+  reservations = reservations.map((r) =>
+    r.eventId === eventId && r.status === "pre_agendado"
+      ? { ...r, status: "cancelada", updatedAt: nowISO() }
+      : r,
+  );
+  emit();
+}
+
 
 // -----------------------------------------------------------------------------
 // Consultas auxiliares

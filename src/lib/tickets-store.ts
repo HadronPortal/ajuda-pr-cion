@@ -380,9 +380,6 @@ export const ticketsStore = {
   forwardToSpecialist(
     id: string,
     input: {
-      specialist: string;
-      operator: string;
-      area: string;
       waitingArea: string;
       reason: string;
       permission: string;
@@ -397,7 +394,6 @@ export const ticketsStore = {
     const op = operator();
     updateTicket(id, {
       status: "Com especialista",
-      owner: input.operator,
       priority: input.priority,
       lockedBy: undefined,
     });
@@ -407,7 +403,7 @@ export const ticketsStore = {
       actor: op,
       actorType: "suporte",
       description:
-        `Enviado para ${input.specialist} (${input.operator}) — ${input.area}; ${input.waitingArea}. ` +
+        `Encaminhado para a fila de especialistas — ${input.waitingArea}. ` +
         `Tipo: ${input.type}. Módulo: ${input.module} / ${input.submodule}. Permissão: ${input.permission}. ` +
         (input.relatedArticles.length ? `Artigos: ${input.relatedArticles.join(", ")}. ` : "") +
         (input.relatedForms.length ? `Opções/Formulários: ${input.relatedForms.join(", ")}. ` : "") +

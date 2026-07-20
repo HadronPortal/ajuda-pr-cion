@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { ArrowUp, ChevronDown, Minus, Plus, UserCheck, X } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogFooter, DialogTitle } from "@/components/ui/dialog";
@@ -9,6 +9,7 @@ import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import { ticketsStore } from "@/lib/tickets-store";
 import { cn } from "@/lib/utils";
 import type { SupportTicket, TicketPriority } from "@/lib/support-tickets-data";
+import { modulesMap, moduleOptions, splitModule } from "@/lib/modules-map";
 
 const PRIORITY_OPTIONS: {
   value: TicketPriority;
@@ -79,13 +80,6 @@ function PrioritySegmented({ value, onChange }: { value: TicketPriority; onChang
   );
 }
 
-const SPECIALISTS = [
-  { operator: "PRCMAR", name: "Ana Ribeiro", area: "Fiscal / SPED" },
-  { operator: "PRCROG", name: "Bruno Martins", area: "NF-e / NFC-e" },
-  { operator: "PRCLCZ", name: "Carla Souza", area: "Financeiro" },
-  { operator: "PRCPED", name: "Diego Alves", area: "Estoque / Produção" },
-  { operator: "PRCGGC", name: "Eduarda Lima", area: "Desenvolvimento / Web" },
-];
 const TYPES = ["Não definido", "Dúvida", "Configuração", "Atualização do Hádron", "Problema Hádron", "Problema Externo", "Treinamento", "Solicitação/Sugestão", "Outros"];
 const PERMISSIONS = ["Público", "Clientes", "Empresa"];
 const AREAS = ["Ag. Comercial", "Ag. Financeiro", "Ag. Administrativo", "Ag. Desenvolvimento", "Ag. Web"];
@@ -93,35 +87,44 @@ const selectClass = "h-9 w-full cursor-pointer rounded-md border border-input bg
 const preventOutsideClose = (event: Event) => event.preventDefault();
 
 export function ForwardSpecialistModal({ open, onOpenChange, ticket }: { open: boolean; onOpenChange: (value: boolean) => void; ticket: SupportTicket }) {
-  const [specialistOperator, setSpecialistOperator] = useState("");
+  const defaults = useMemo(() => splitModule(ticket.module), [ticket.module]);
   const [permission, setPermission] = useState("Clientes");
   const [priority, setPriority] = useState<TicketPriority>(ticket.priority);
   const [type, setType] = useState(TYPES[0]);
   const [waitingArea, setWaitingArea] = useState("Ag. Desenvolvimento");
-  const [module, setModule] = useState(ticket.module.split(" - ")[0] || ticket.module);
-  const [submodule, setSubmodule] = useState(ticket.module.split(" - ").slice(1).join(" - ") || "Geral");
+  const [module, setModule] = useState(defaults.module);
+  const [submodule, setSubmodule] = useState(defaults.submodule);
   const [reason, setReason] = useState("");
   const [articleQuery, setArticleQuery] = useState("");
   const [formQuery, setFormQuery] = useState("");
   const [relatedArticles, setRelatedArticles] = useState<string[]>([]);
   const [relatedForms, setRelatedForms] = useState<string[]>([]);
 
+  const availableSubs = modulesMap[module] ?? [];
+
+  const changeModule = (value: string) => {
+    setModule(value);
+    const subs = modulesMap[value] ?? [];
+    if (!subs.includes(submodule)) {
+      setSubmodule(subs[0] ?? "");
+    }
+  };
+
   const reset = () => {
-    setSpecialistOperator(""); setPermission("Clientes"); setPriority(ticket.priority); setType(TYPES[0]);
-    setWaitingArea("Ag. Desenvolvimento"); setModule(ticket.module.split(" - ")[0] || ticket.module);
-    setSubmodule(ticket.module.split(" - ").slice(1).join(" - ") || "Geral"); setReason("");
+    setPermission("Clientes"); setPriority(ticket.priority); setType(TYPES[0]);
+    setWaitingArea("Ag. Desenvolvimento");
+    setModule(defaults.module); setSubmodule(defaults.submodule);
+    setReason("");
     setArticleQuery(""); setFormQuery(""); setRelatedArticles([]); setRelatedForms([]);
   };
   const submit = () => {
-    const specialist = SPECIALISTS.find((item) => item.operator === specialistOperator);
-    if (!specialist) { toast.error("Selecione um especialista."); return; }
+    if (!module || !submodule) { toast.error("Selecione módulo e submódulo."); return; }
     if (!reason.trim()) { toast.error("Informe a mensagem para o especialista."); return; }
     ticketsStore.forwardToSpecialist(ticket.id, {
-      specialist: specialist.name, operator: specialist.operator, area: specialist.area,
       waitingArea, reason: reason.trim(), permission, priority, type, module, submodule,
       relatedArticles, relatedForms,
     });
-    toast.success("Chamado enviado ao especialista", { description: `${specialist.operator} · ${specialist.area}` });
+    toast.success("Chamado enviado para a fila de especialistas", { description: `${waitingArea} · ${module} / ${submodule}` });
     reset(); onOpenChange(false);
   };
 
@@ -137,26 +140,32 @@ export function ForwardSpecialistModal({ open, onOpenChange, ticket }: { open: b
       <DetailModalHeader icon={UserCheck} title="Enviar a especialista" protocol={ticket.protocol} onClose={() => onOpenChange(false)} meta={<span className="inline-flex items-center gap-1"><span className="text-primary">{ticket.clientCode}</span><span className="text-border">·</span><span>{ticket.clientName}</span></span>} />
       <div className="flex-1 space-y-4 overflow-y-auto px-5 py-4 md:px-6">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <Field label="Especialista" required>
-            <select value={specialistOperator} onChange={(e) => setSpecialistOperator(e.target.value)} className={selectClass}>
-              <option value="">Selecione</option>
-              {SPECIALISTS.map((item) => <option key={item.operator} value={item.operator}>{item.operator} · {item.name}</option>)}
-            </select>
-          </Field>
           <Field label="Tipo"><select value={type} onChange={(e) => setType(e.target.value)} className={selectClass}>{TYPES.map((item) => <option key={item}>{item}</option>)}</select></Field>
+          <Field label="Área de espera"><select value={waitingArea} onChange={(e) => setWaitingArea(e.target.value)} className={selectClass}>{AREAS.map((item) => <option key={item}>{item}</option>)}</select></Field>
           <Field label="Permissão"><select value={permission} onChange={(e) => setPermission(e.target.value)} className={selectClass}>{PERMISSIONS.map((item) => <option key={item}>{item}</option>)}</select></Field>
           <Field label="Prioridade"><PrioritySegmented value={priority} onChange={setPriority} /></Field>
         </div>
-        <div className="grid gap-3 sm:grid-cols-3">
-          <Field label="Área de espera"><select value={waitingArea} onChange={(e) => setWaitingArea(e.target.value)} className={selectClass}>{AREAS.map((item) => <option key={item}>{item}</option>)}</select></Field>
-          <Field label="Módulo"><Input value={module} onChange={(e) => setModule(e.target.value)} /></Field>
-          <Field label="Submódulo"><Input value={submodule} onChange={(e) => setSubmodule(e.target.value)} /></Field>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="Módulo" required>
+            <select value={module} onChange={(e) => changeModule(e.target.value)} className={selectClass}>
+              {moduleOptions.map((item) => <option key={item} value={item}>{item}</option>)}
+            </select>
+          </Field>
+          <Field label="Submódulo" required>
+            <select value={submodule} onChange={(e) => setSubmodule(e.target.value)} className={selectClass} disabled={availableSubs.length === 0}>
+              {availableSubs.map((item) => <option key={item} value={item}>{item}</option>)}
+            </select>
+          </Field>
         </div>
         <Field label="Mensagem para o especialista" required><textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={3} maxLength={1000} placeholder="Descreva o diagnóstico, testes realizados e o que precisa ser analisado..." className="min-h-[84px] w-full resize-none rounded-md border border-input bg-background p-3 text-[13px] outline-none focus:ring-2 focus:ring-ring"/></Field>
         <div className="grid gap-4 md:grid-cols-2">
           <RelatedPicker label="Artigos relacionados" query={articleQuery} onQuery={setArticleQuery} selected={relatedArticles} onSelected={setRelatedArticles} />
           <RelatedPicker label="Opções/Formulários relacionados" query={formQuery} onQuery={setFormQuery} selected={relatedForms} onSelected={setRelatedForms} />
         </div>
+        <p className="text-[11.5px] text-muted-foreground">
+          O chamado será encaminhado para a fila de especialistas. O responsável será
+          definido posteriormente pelo backend.
+        </p>
       </div>
       <DialogFooter className="shrink-0 gap-2 border-t border-border bg-card px-5 py-3 sm:gap-2"><Button variant="outline" onClick={() => onOpenChange(false)} className="cursor-pointer">Cancelar</Button><Button onClick={submit} className="cursor-pointer"><UserCheck className="mr-1.5 h-4 w-4"/>Enviar a especialista</Button></DialogFooter>
     </DialogContent>

@@ -87,6 +87,9 @@ import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import { ModuleKnowledgeLink } from "@/lib/module-link";
 import { kbArticlesFull } from "@/lib/kb-data";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
+import { Link } from "@tanstack/react-router";
+import { clientRows } from "@/routes/clientes.index";
+import { snapshotCurrentChamadosForTicket } from "@/lib/return-to-ticket";
 
 const statusTone: Record<TicketStatus, string> = {
   Atrasado: "bg-destructive/12 text-destructive border-destructive/20",
@@ -564,9 +567,30 @@ export function TicketDetailSheet({
 
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                   <Section title="Cliente" icon={Building2} compact>
-                    <p className="text-[13.5px] font-semibold text-foreground truncate">
-                      {ticket.clientName}
-                    </p>
+                    {(() => {
+                      const clientSlug = ticket.clientCode.toLowerCase();
+                      const clientExists = clientRows.some((c) => c.id === clientSlug);
+                      const nameNode = (
+                        <p className="text-[13.5px] font-semibold text-foreground truncate">
+                          {ticket.clientName}
+                        </p>
+                      );
+                      return clientExists ? (
+                        <Link
+                          to="/clientes/$clienteId"
+                          params={{ clienteId: clientSlug }}
+                          search={{ tab: "cliente", from: "chamado", ticketId: ticket.id }}
+                          onClick={() => snapshotCurrentChamadosForTicket(ticket.id)}
+                          className="block cursor-pointer rounded-sm transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          title="Ver detalhes do cliente"
+                          aria-label={`Ver detalhes do cliente ${ticket.clientName}`}
+                        >
+                          {nameNode}
+                        </Link>
+                      ) : (
+                        nameNode
+                      );
+                    })()}
                     <p className="mt-0.5 text-[11.5px] text-muted-foreground">
                       <MapPin className="mr-1 inline h-3 w-3" />
                       {mock.city} - {mock.uf}
@@ -592,6 +616,8 @@ export function TicketDetailSheet({
                       <ModuleKnowledgeLink
                         module={ticket.module}
                         className="truncate text-[13.5px] font-semibold text-foreground"
+                        returnToTicketId={ticket.id}
+                        onBeforeNavigate={() => snapshotCurrentChamadosForTicket(ticket.id)}
                       />
                       {notes.length > 0 && (
                         <button
@@ -615,6 +641,7 @@ export function TicketDetailSheet({
                     )}
                   </Section>
                 </div>
+
 
                 {/* Datas e responsável — card próprio */}
                 <div className="mt-4 grid grid-cols-1 gap-3 rounded-2xl border border-border bg-card p-3 shadow-[0_6px_18px_rgba(25,29,51,0.04)] sm:grid-cols-3">
@@ -1039,7 +1066,6 @@ function RelatedPicker({
           />
           <Button
             type="button"
-            variant="outline"
             size="icon"
             disabled={!query.trim()}
             onClick={(event) => {
@@ -1049,7 +1075,7 @@ function RelatedPicker({
               if (!item) return;
               onAdd(item);
             }}
-            className="group h-10 w-10 shrink-0 cursor-pointer rounded-lg transition hover:bg-primary hover:text-primary-foreground focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+            className="h-10 w-10 shrink-0 cursor-pointer rounded-lg disabled:cursor-not-allowed disabled:opacity-50"
             aria-label={`Adicionar em ${label}`}
           >
             <Plus className="pointer-events-none h-4 w-4" />
@@ -1330,19 +1356,24 @@ function TicketPastAttendancesSidePanel({
             onClick={onSeeAll}
             className="inline-flex cursor-pointer items-center gap-0.5 text-[11px] font-medium text-primary hover:underline"
           >
-            Ver todos
+            Ver todos ({items.length})
             <ChevronRight className="h-3 w-3" />
           </button>
         )}
       </div>
 
-      <div className="flex-1 min-h-0 overflow-y-auto bg-muted/20 px-3 py-3">
+      <div
+        className={cn(
+          "flex-1 min-h-0 bg-muted/20 px-3 py-3",
+          items.length > 5 ? "overflow-y-auto" : "overflow-hidden",
+        )}
+      >
         {items.length === 0 ? (
           <p className="py-8 text-center text-[12px] text-muted-foreground">
             Sem atendimentos anteriores.
           </p>
         ) : (
-          <TicketHistoryList items={items.slice(0, 4)} onSelect={onSelect} timeline />
+          <TicketHistoryList items={items.slice(0, 5)} onSelect={onSelect} timeline />
         )}
       </div>
     </aside>

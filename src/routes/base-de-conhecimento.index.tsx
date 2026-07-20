@@ -11,6 +11,7 @@ import {
   Sparkles,
   RefreshCw,
   ArrowRight,
+  ArrowLeft,
   X,
   Boxes,
 } from "lucide-react";
@@ -32,7 +33,12 @@ import {
   type KbCategoryId,
 } from "@/lib/kb-data";
 
-type KbSearch = { search?: string; modulo?: string };
+type KbSearch = {
+  search?: string;
+  modulo?: string;
+  from?: string;
+  ticketId?: string;
+};
 
 export const Route = createFileRoute("/base-de-conhecimento/")({
   head: () => ({
@@ -48,9 +54,12 @@ export const Route = createFileRoute("/base-de-conhecimento/")({
   validateSearch: (raw: Record<string, unknown>): KbSearch => ({
     search: typeof raw.search === "string" ? raw.search : undefined,
     modulo: typeof raw.modulo === "string" ? raw.modulo : undefined,
+    from: typeof raw.from === "string" ? raw.from : undefined,
+    ticketId: typeof raw.ticketId === "string" ? raw.ticketId : undefined,
   }),
   component: KbIndexPage,
 });
+
 
 const categoryIcon: Record<KbCategoryId, React.ComponentType<{ className?: string }>> = {
   guia: BookOpen,
@@ -148,11 +157,27 @@ function KbIndexPage() {
 
   return (
     <AppShell>
+      {search.from === "chamado" && search.ticketId ? (
+        <div className="mb-3 flex">
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="h-8 cursor-pointer rounded-lg"
+          >
+            <Link to="/chamados" search={{ ticket: search.ticketId }}>
+              <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
+              Voltar ao chamado
+            </Link>
+          </Button>
+        </div>
+      ) : null}
       <PageHeader
         title="Base de Conhecimento"
         description="Manuais, guias, erros e correções, legislação e novidades organizados por módulo."
         breadcrumbs={[{ label: "Base de Conhecimento" }]}
       />
+
 
       <Card className="p-4 mb-6">
         <div className="relative">

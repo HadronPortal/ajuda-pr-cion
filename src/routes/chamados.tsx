@@ -1,5 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { createFileRoute, Link, Outlet, useLocation } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
+import {
+  saveChamadosSnapshot,
+  readChamadosSnapshot,
+  clearChamadosSnapshot,
+} from "@/lib/return-to-ticket";
+import { setChamadosFiltersCache } from "@/lib/return-to-ticket";
 import {
   Area,
   AreaChart,
@@ -91,7 +97,9 @@ import { fallback, zodValidator } from "@tanstack/zod-adapter";
 const chamadosSearchSchema = z.object({
   status: fallback(z.string(), "").optional(),
   today: fallback(z.coerce.number(), 0).optional(),
+  ticket: fallback(z.string(), "").optional(),
 });
+
 
 export const Route = createFileRoute("/chamados")({
   head: () => ({
@@ -345,6 +353,23 @@ function TicketsPage() {
   const search = Route.useSearch();
   const supportTickets = useTickets();
   const [filters, setFilters] = useState<Filters>(() => {
+    const snapshot = search.ticket ? readChamadosSnapshot() : null;
+    if (snapshot && snapshot.ticketId === search.ticket && snapshot.filters) {
+      try {
+        const raw = snapshot.filters as Record<string, unknown>;
+        const rehydrated: Filters = {
+          ...todayFilters(),
+          ...(raw as Partial<Filters>),
+          dateStart:
+            typeof raw.dateStart === "string" ? new Date(raw.dateStart) : undefined,
+          dateEnd:
+            typeof raw.dateEnd === "string" ? new Date(raw.dateEnd) : undefined,
+        };
+        return rehydrated;
+      } catch {
+        // fallback below
+      }
+    }
     const base = todayFilters();
     if (search.status) base.status = search.status;
     return base;
@@ -356,6 +381,22 @@ function TicketsPage() {
   const [historyTicketId, setHistoryTicketId] = useState<string | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
 
+  // Reabre o chamado a partir do parâmetro ?ticket= e limpa o parâmetro após uso.
+  const navigateHere = useNavigate({ from: Route.fullPath });
+  useEffect(() => {
+    if (!search.ticket) return;
+    const target = supportTickets.find((t) => t.id === search.ticket);
+    if (!target) return;
+    setSelectedTicketId(target.id);
+    setDetailOpen(true);
+    const snapshot = readChamadosSnapshot();
+    if (snapshot && snapshot.ticketId === search.ticket && typeof snapshot.scrollY === "number") {
+      const y = snapshot.scrollY;
+      requestAnimationFrame(() => window.scrollTo({ top: y, behavior: "auto" }));
+    }
+    clearChamadosSnapshot();
+    navigateHere({ search: { status: search.status, today: search.today }, replace: true });
+  }, [search.ticket, supportTickets, navigateHere, search.status, search.today]);
 
 
   const openTicketDetail = (ticket: SupportTicket) => {
@@ -367,6 +408,20 @@ function TicketsPage() {
     setHistoryTicketId(ticket.id);
     setHistoryOpen(true);
   };
+
+  // Mantém o cache dos filtros para que qualquer link (módulo / cliente) possa
+  // criar uma snapshot ao sair da tela, sem precisar de props extras.
+  useEffect(() => {
+    const serializable = {
+      ...filters,
+      dateStart: filters.dateStart ? filters.dateStart.toISOString() : undefined,
+      dateEnd: filters.dateEnd ? filters.dateEnd.toISOString() : undefined,
+    };
+    setChamadosFiltersCache(serializable);
+  }, [filters]);
+
+
+
 
   const filteredTickets = useMemo(() => {
     const query = filters.query.trim().toLowerCase();

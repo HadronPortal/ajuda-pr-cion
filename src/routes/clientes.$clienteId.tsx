@@ -26,7 +26,10 @@ type TabValue = (typeof tabs)[number];
 
 const searchSchema = z.object({
   tab: fallback(z.string(), "cliente").default("cliente"),
+  from: fallback(z.string(), "").optional(),
+  ticketId: fallback(z.string(), "").optional(),
 });
+
 
 export const Route = createFileRoute("/clientes/$clienteId")({
   head: ({ params }) => ({
@@ -64,10 +67,11 @@ export const Route = createFileRoute("/clientes/$clienteId")({
 
 function ClientDetailPage() {
   const { client } = Route.useLoaderData();
-  const { tab } = Route.useSearch();
+  const { tab, from, ticketId } = Route.useSearch();
   const navigate = useNavigate();
   const isAvc = client.id === "avc";
   const [historyOpen, setHistoryOpen] = useState(false);
+  const showReturnToTicket = from === "chamado" && !!ticketId;
 
 
   const currentTab: TabValue = (tabs as readonly string[]).includes(tab)
@@ -78,7 +82,7 @@ function ClientDetailPage() {
     navigate({
       to: "/clientes/$clienteId",
       params: { clienteId: client.id },
-      search: { tab: value },
+      search: { tab: value, from, ticketId },
       replace: true,
     });
   };
@@ -104,7 +108,21 @@ function ClientDetailPage() {
           </Link>
         </Button>
         <span className="text-sm text-muted-foreground">Voltar para Clientes</span>
+        {showReturnToTicket && (
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="ml-auto h-8 cursor-pointer rounded-lg"
+          >
+            <Link to="/chamados" search={{ ticket: ticketId }}>
+              <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
+              Voltar ao chamado
+            </Link>
+          </Button>
+        )}
       </div>
+
 
       <Card className="overflow-hidden border-border bg-background p-0">
         <header className="border-b border-border px-7 py-5">

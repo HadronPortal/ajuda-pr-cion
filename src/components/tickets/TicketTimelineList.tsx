@@ -115,9 +115,16 @@ export function TicketTimelineList({
   emptyLabel?: string;
 }) {
   const sorted = useMemo(() => {
-    const arr = [...events].sort(
-      (a, b) => new Date(a.when).getTime() - new Date(b.when).getTime(),
-    );
+    // Ordena por data/hora real decrescente (mais recente primeiro).
+    // Em caso de horários iguais, preserva a ordem original dos eventos
+    // usando um sort estável baseado no índice original.
+    const indexed = events.map((event, index) => ({ event, index }));
+    indexed.sort((a, b) => {
+      const diff = new Date(b.event.when).getTime() - new Date(a.event.when).getTime();
+      if (diff !== 0) return diff;
+      return a.index - b.index;
+    });
+    const arr = indexed.map((item) => item.event);
     return typeof limit === "number" ? arr.slice(0, limit) : arr;
   }, [events, limit]);
 
