@@ -46,7 +46,17 @@ type CalendarEvent = {
   title: string;
   client?: string;
   status?: EventStatus;
+  description?: string;
+  guests?: string[];
+  vehicle?: string;
+  address?: string;
+  responsible?: string;
+  meetingLink?: string;
+  platform?: string;
+  room?: string;
+  isPrivate?: boolean;
 };
+
 
 const initialEvents: CalendarEvent[] = [
   { id: 1, date: "2026-07-02", time: "08:00", end: "09:30", type: "Visita", origin: "Comercial", operator: "PRCGIN", title: "Visita técnica", client: "ICF · INCOFAP" },
