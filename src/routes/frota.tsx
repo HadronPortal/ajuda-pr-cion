@@ -13,9 +13,11 @@ import {
   VEHICLE_STATUS_LABEL,
   USAGE_STATUS_LABEL,
   type UsageStatus,
+  type Vehicle,
   type VehicleStatus,
 } from "@/lib/fleet-store";
 import { fleetActions } from "@/lib/fleet-action-store";
+import { VehicleHistoryModal } from "@/components/fleet/VehicleHistoryModal";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/frota")({
