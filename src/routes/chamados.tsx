@@ -89,8 +89,8 @@ import { z } from "zod";
 import { fallback, zodValidator } from "@tanstack/zod-adapter";
 
 const chamadosSearchSchema = z.object({
-  status: fallback(z.string().optional(), undefined),
-  today: fallback(z.coerce.number().optional(), undefined),
+  status: fallback(z.string(), "").optional(),
+  today: fallback(z.coerce.number(), 0).optional(),
 });
 
 export const Route = createFileRoute("/chamados")({
