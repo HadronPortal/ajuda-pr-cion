@@ -286,10 +286,6 @@ export function TicketDetailSheet({
 
   const isMine = ticket.owner === currentUser.operator || ticket.lockedBy === currentUser.operator;
 
-  const handleAssume = () => {
-    ticketsStore.assumeTicket(ticket.id);
-    toast.success("Chamado assumido");
-  };
   const handleAttend = () => {
     ticketsStore.attendTicket(ticket.id);
     toast.success("Atendimento iniciado");
