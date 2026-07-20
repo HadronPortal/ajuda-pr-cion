@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import {
   Bar,
   BarChart,
@@ -10,6 +11,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+
 import {
   AlertTriangle,
   CalendarClock,
@@ -44,16 +46,23 @@ const sourceLabels = {
 
 // ============= Analytics dashboard components (Chamados) =============
 
+export type IndicatorCardLink = {
+  to: string;
+  search?: Record<string, unknown>;
+};
+
 function RevenueStyleCards({
   openTickets,
   inProgressTickets,
   overdueTickets,
   finishedTickets,
+  links,
 }: {
   openTickets: number;
   inProgressTickets: number;
   overdueTickets: number;
   finishedTickets: number;
+  links?: (IndicatorCardLink | undefined)[];
 }) {
   const cards = [
     {
@@ -104,76 +113,122 @@ function RevenueStyleCards({
 
   return (
     <div className="grid grid-cols-1 gap-5 md:grid-cols-2 2xl:grid-cols-4">
-      {cards.map((card) => (
-        <Card
-          key={card.tag}
-          className="relative min-h-[152px] overflow-hidden rounded-[28px] border-0 bg-[#f6f7f9] pl-[74px] shadow-[0_14px_34px_rgba(15,23,42,0.08)] dark:bg-[#20263d]"
-        >
-          <div className={cn("absolute inset-y-0 left-0 w-[104px] overflow-hidden rounded-l-[28px] bg-gradient-to-b", card.tone)}>
-            <span
-              className={cn(
-                "absolute right-[-26px] top-1/2 h-[74px] w-[74px] -translate-y-1/2 rotate-45 shadow-[10px_10px_18px_rgba(0,0,0,0.12)]",
-                card.arrow,
-              )}
-              aria-hidden="true"
-            />
-            <span className="absolute left-3 top-1/2 z-10 -translate-y-1/2 text-[17px] font-black tracking-tight text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)]">
-              {card.tag}
-            </span>
-          </div>
-
-          <div className="relative z-10 flex h-full min-h-[152px] flex-col justify-between rounded-l-[28px] bg-[#f6f7f9] px-6 py-5 dark:bg-[#20263d]">
-            <div>
-              <p className="text-[13px] font-medium text-muted-foreground">{card.title}</p>
-              <p className="mt-2 text-[20px] font-bold leading-none tracking-tight text-foreground">
-                {card.value} chamados
-              </p>
+      {cards.map((card, idx) => {
+        const link = links?.[idx];
+        const cardEl = (
+          <Card
+            className={cn(
+              "relative flex h-full min-h-[152px] overflow-hidden rounded-[28px] border-0 bg-[#f6f7f9] pl-[74px] shadow-[0_14px_34px_rgba(15,23,42,0.08)] dark:bg-[#20263d]",
+              link &&
+                "cursor-pointer transition hover:-translate-y-0.5 hover:shadow-[0_18px_40px_rgba(15,23,42,0.12)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+            )}
+          >
+            <div className={cn("absolute inset-y-0 left-0 w-[104px] overflow-hidden rounded-l-[28px] bg-gradient-to-b", card.tone)}>
+              <span
+                className={cn(
+                  "absolute right-[-26px] top-1/2 h-[74px] w-[74px] -translate-y-1/2 rotate-45 shadow-[10px_10px_18px_rgba(0,0,0,0.12)]",
+                  card.arrow,
+                )}
+                aria-hidden="true"
+              />
+              <span className="absolute left-3 top-1/2 z-10 -translate-y-1/2 text-[17px] font-black tracking-tight text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)]">
+                {card.tag}
+              </span>
             </div>
-            <div
-              className="grid items-end gap-3"
-              style={{ gridTemplateColumns: "minmax(0, 1fr) 56px" }}
-            >
-              <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-                <span
-                  className={cn(
-                    "shrink-0 rounded-full px-2 py-1 text-[13px] font-semibold",
-                    card.positive ? "bg-emerald-100 text-emerald-600" : "bg-rose-100 text-rose-600",
-                  )}
-                >
-                  {card.change}
-                </span>
-                <span
-                  className="min-w-0 flex-1 text-[13px] leading-tight text-muted-foreground"
-                  style={{
-                    whiteSpace: "normal",
-                    overflow: "visible",
-                    textOverflow: "clip",
-                  }}
-                >
-                  {card.helper}
-                </span>
+
+            <div className="relative z-10 flex h-full w-full min-h-[152px] flex-col justify-between rounded-l-[28px] bg-[#f6f7f9] px-6 py-5 dark:bg-[#20263d]">
+              <div>
+                <p className="text-[13px] font-medium text-muted-foreground">{card.title}</p>
+                <p className="mt-2 text-[20px] font-bold leading-none tracking-tight text-foreground">
+                  {card.value} chamados
+                </p>
               </div>
               <div
-                className="ml-auto flex items-end justify-end gap-[3px] opacity-80"
-                style={{ width: 56, height: 40 }}
-                aria-hidden="true"
+                className="grid items-end gap-3"
+                style={{ gridTemplateColumns: "minmax(0, 1fr) 56px" }}
               >
-                {card.bars.map((height, index) => (
+                <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
                   <span
-                    key={index}
-                    className="w-[6px] rounded-t bg-[#cfc6f4]"
-                    style={{ height: Math.min(40, Math.round(height * 0.65)) }}
-                  />
-                ))}
+                    className={cn(
+                      "shrink-0 rounded-full px-2 py-1 text-[13px] font-semibold",
+                      card.positive ? "bg-emerald-100 text-emerald-600" : "bg-rose-100 text-rose-600",
+                    )}
+                  >
+                    {card.change}
+                  </span>
+                  <span
+                    className="min-w-0 flex-1 text-[13px] leading-tight text-muted-foreground"
+                    style={{
+                      whiteSpace: "normal",
+                      overflow: "visible",
+                      textOverflow: "clip",
+                    }}
+                  >
+                    {card.helper}
+                  </span>
+                </div>
+                <div
+                  className="ml-auto flex items-end justify-end gap-[3px] opacity-80"
+                  style={{ width: 56, height: 40 }}
+                  aria-hidden="true"
+                >
+                  {card.bars.map((height, index) => (
+                    <span
+                      key={index}
+                      className="w-[6px] rounded-t bg-[#cfc6f4]"
+                      style={{ height: Math.min(40, Math.round(height * 0.65)) }}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
+          </Card>
+        );
 
-          </div>
-        </Card>
-      ))}
+        if (link) {
+          return (
+            <Link
+              key={card.tag}
+              to={link.to}
+              search={link.search as never}
+              className="block h-full rounded-[28px] focus:outline-none"
+            >
+              {cardEl}
+            </Link>
+          );
+        }
+
+        return <div key={card.tag} className="h-full">{cardEl}</div>;
+      })}
     </div>
   );
 }
+
+export function TicketsIndicatorCards() {
+  const supportTickets = useTickets();
+  const openTickets = supportTickets.filter(
+    (t) => !["Finalizado", "Cancelado"].includes(t.status),
+  ).length;
+  const inProgressTickets = supportTickets.filter((t) => t.status === "Em andamento").length;
+  const overdueTickets = supportTickets.filter((t) => t.status === "Atrasado").length;
+  const finishedTickets = supportTickets.filter((t) => t.status === "Finalizado").length;
+
+  return (
+    <RevenueStyleCards
+      openTickets={openTickets}
+      inProgressTickets={inProgressTickets}
+      overdueTickets={overdueTickets}
+      finishedTickets={finishedTickets}
+      links={[
+        { to: "/chamados", search: { status: "Em Aberto" } },
+        { to: "/chamados", search: { status: "Em andamento" } },
+        { to: "/chamados", search: { status: "Atrasado" } },
+        { to: "/chamados", search: { status: "Finalizado", today: 1 } },
+      ]}
+    />
+  );
+}
+
 
 const agentProfiles: Record<string, { name: string; role: string; avatar: string; rating: number }> = {
   PRCSUZ: {
