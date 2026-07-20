@@ -1066,7 +1066,6 @@ function RelatedPicker({
           />
           <Button
             type="button"
-            variant="outline"
             size="icon"
             disabled={!query.trim()}
             onClick={(event) => {
@@ -1076,7 +1075,7 @@ function RelatedPicker({
               if (!item) return;
               onAdd(item);
             }}
-            className="group h-10 w-10 shrink-0 cursor-pointer rounded-lg transition hover:bg-primary hover:text-primary-foreground focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+            className="h-10 w-10 shrink-0 cursor-pointer rounded-lg disabled:cursor-not-allowed disabled:opacity-50"
             aria-label={`Adicionar em ${label}`}
           >
             <Plus className="pointer-events-none h-4 w-4" />
