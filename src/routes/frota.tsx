@@ -368,16 +368,20 @@ function EmptyRow({ label }: { label: string }) {
   return <p className="px-4 py-10 text-center text-sm text-muted-foreground">{label}</p>;
 }
 
+const BADGE_BASE =
+  "inline-flex h-[26px] w-fit items-center whitespace-nowrap rounded-md border px-2.5 text-[11.5px] font-normal leading-none";
+
 function VehicleBadge({ status }: { status: VehicleStatus }) {
   return (
     <Badge
       className={cn(
-        "border px-2 py-0.5 text-[11px] font-normal",
-        status === "disponivel"
-          ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-600 dark:text-emerald-300"
-          : status === "em_uso"
-            ? "border-amber-500/25 bg-amber-500/10 text-amber-600 dark:text-amber-300"
-            : "border-rose-500/25 bg-rose-500/10 text-rose-600 dark:text-rose-300",
+        BADGE_BASE,
+        status === "disponivel" &&
+          "border-emerald-500/25 bg-emerald-500/10 text-emerald-600 dark:text-emerald-300",
+        status === "em_uso" &&
+          "border-amber-500/25 bg-amber-500/10 text-amber-600 dark:text-amber-300",
+        status === "manutencao" &&
+          "border-rose-500/25 bg-rose-500/10 text-rose-600 dark:text-rose-300",
       )}
     >
       {VEHICLE_STATUS_LABEL[status]}
@@ -389,14 +393,15 @@ function UsageBadge({ status }: { status: UsageStatus }) {
   return (
     <Badge
       className={cn(
-        "border px-2 py-0.5 text-[11px] font-normal",
-        status === "em_deslocamento"
-          ? "border-amber-500/25 bg-amber-500/10 text-amber-600 dark:text-amber-300"
-          : status === "aguardando_retirada"
-            ? "border-sky-500/25 bg-sky-500/10 text-sky-600 dark:text-sky-300"
-            : status === "devolvido"
-              ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-600 dark:text-emerald-300"
-              : "border-rose-500/25 bg-rose-500/10 text-rose-600 dark:text-rose-300",
+        BADGE_BASE,
+        status === "em_deslocamento" &&
+          "border-amber-500/25 bg-amber-500/10 text-amber-600 dark:text-amber-300",
+        status === "aguardando_retirada" &&
+          "border-sky-500/25 bg-sky-500/10 text-sky-600 dark:text-sky-300",
+        status === "devolvido" &&
+          "border-emerald-500/25 bg-emerald-500/10 text-emerald-600 dark:text-emerald-300",
+        status === "cancelado" &&
+          "border-slate-400/30 bg-slate-400/10 text-slate-600 dark:text-slate-300",
       )}
     >
       {USAGE_STATUS_LABEL[status]}
