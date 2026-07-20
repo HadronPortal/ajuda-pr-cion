@@ -267,6 +267,7 @@ export function TicketDetailSheet({
   const [closeOpen, setCloseOpen] = useState(false);
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [forwardOpen, setForwardOpen] = useState(false);
+  const [transferOpen, setTransferOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
   const [timelineOpen, setTimelineOpen] = useState(false);
@@ -423,7 +424,7 @@ export function TicketDetailSheet({
                     active={activeAction === "assumir"}
                     onClick={() => {
                       setActiveAction("assumir");
-                      handleAssume();
+                      setTransferOpen(true);
                     }}
                   />
                   <SideItem
@@ -484,7 +485,7 @@ export function TicketDetailSheet({
                   label="Finalizar"
                   onClick={() => setCloseOpen(true)}
                 />
-                <MobileAction icon={TicketAssumeIcon} label="Transferir" onClick={handleAssume} />
+                <MobileAction icon={TicketAssumeIcon} label="Transferir" onClick={() => setTransferOpen(true)} />
                 <MobileAction
                   icon={TicketScheduleIcon}
                   label="Agendar"
@@ -750,6 +751,8 @@ export function TicketDetailSheet({
       <ScheduleEventModal open={scheduleOpen} onOpenChange={setScheduleOpen} ticket={ticket} />
 
       <ForwardSpecialistModal open={forwardOpen} onOpenChange={setForwardOpen} ticket={ticket} />
+
+      <TransferTicketModal open={transferOpen} onOpenChange={setTransferOpen} ticket={ticket} />
     </>
   );
 }
