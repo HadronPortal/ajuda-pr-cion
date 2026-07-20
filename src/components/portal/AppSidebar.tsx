@@ -58,7 +58,7 @@ const nav: NavItem[] = [
   { to: "/chamados", label: "Chamados", icon: TicketsIcon },
   { to: "/calendario", label: "Calendário", icon: CalendarIcon },
   { to: "/frota", label: "Frota", icon: FleetIcon },
-  { to: "/iniciar-hadron", label: "Iniciar Hadron", icon: HadronIcon },
+  { to: "/iniciar-hadron", label: "Hadron", icon: HadronIcon },
   { to: "/base-de-conhecimento", label: "Base", icon: BaseIcon },
   { to: "/atualizacoes", label: "Atualizações", icon: UpdatesIcon },
   { to: "/kanban", label: "Kanban", icon: KanbanIcon },
