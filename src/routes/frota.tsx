@@ -50,36 +50,41 @@ function FleetPage() {
         }
       />
 
-      <div className="mb-4 flex flex-wrap items-center gap-2 border-b border-border">
-        {TABS.map((t) => {
-          const Icon = t.icon;
-          const active = t.key === tab;
-          return (
-            <button
-              key={t.key}
-              type="button"
-              onClick={() => setTab(t.key)}
-              className={cn(
-                "flex items-center gap-2 border-b-2 px-3 py-2 text-sm transition-colors",
-                active
-                  ? "border-primary text-primary font-medium"
-                  : "border-transparent text-muted-foreground hover:text-foreground",
-              )}
-            >
-              <Icon className="h-4 w-4" />
-              {t.label}
-            </button>
-          );
-        })}
-        <div className="ml-auto w-full sm:w-64">
-          <Input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Buscar veículo, operador ou cliente..."
-            className="h-9 text-[13px]"
-          />
+      <div className="mb-4 border-b border-border">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+          <div className="-mb-px flex min-w-0 items-center gap-1 overflow-x-auto">
+            {TABS.map((t) => {
+              const Icon = t.icon;
+              const active = t.key === tab;
+              return (
+                <button
+                  key={t.key}
+                  type="button"
+                  onClick={() => setTab(t.key)}
+                  className={cn(
+                    "flex h-11 shrink-0 cursor-pointer items-center gap-2 border-b-2 px-3 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                    active
+                      ? "border-primary text-primary font-medium"
+                      : "border-transparent text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
+                  {t.label}
+                </button>
+              );
+            })}
+          </div>
+          <div className="flex h-11 w-full items-center pb-2 sm:w-64 sm:pb-2">
+            <Input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Buscar veículo, operador ou cliente..."
+              className="h-9 cursor-text text-[13px]"
+            />
+          </div>
         </div>
       </div>
+
 
       {tab === "hoje" && <TodayView query={query} />}
       {tab === "veiculos" && <VehiclesView query={query} />}
