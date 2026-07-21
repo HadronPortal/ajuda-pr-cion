@@ -643,7 +643,7 @@ export function KanbanCardDrawer({
                             <Link
                               to="/base-de-conhecimento/$slug"
                               params={{ slug: a.slug }}
-                              className="text-sm font-medium hover:underline block truncate"
+                              className="cursor-pointer text-sm font-medium hover:underline block truncate"
                             >
                               {a.title}
                             </Link>
