@@ -597,17 +597,23 @@ export function KanbanCardDrawer({
                     </p>
                   )}
                 </div>
-                <div className="flex items-center gap-2">
-                  <Input
-                    value={newAttachment}
-                    onChange={(e) => setNewAttachment(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && addAttachment()}
-                    placeholder="Nome do arquivo (ex: log-erro.txt)"
-                    className="h-9 text-sm"
+                <div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    className="hidden"
+                    onChange={(e) => addAttachmentFiles(e.target.files)}
                   />
-                  <Button size="sm" variant="secondary" onClick={addAttachment}>
-                    <Paperclip className="h-4 w-4 mr-1" /> Anexar
-                  </Button>
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-full cursor-pointer rounded-lg border-2 border-dashed border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground transition-colors hover:border-primary/50 hover:bg-muted/50 hover:text-foreground"
+                  >
+                    <Paperclip className="mx-auto mb-1.5 h-5 w-5" />
+                    <span className="block font-medium">Clique para anexar arquivos</span>
+                    <span className="block text-[11px]">Você pode selecionar um ou mais arquivos do computador</span>
+                  </button>
                 </div>
               </section>
 
