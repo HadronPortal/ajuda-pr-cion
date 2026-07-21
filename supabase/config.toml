@@ -1,0 +1,4 @@
+project_id = "vbkbbfeujqmvgmmhmeao"
+
+[functions.kanban-api]
+verify_jwt = false
