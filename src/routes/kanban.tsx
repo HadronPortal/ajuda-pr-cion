@@ -203,6 +203,8 @@ function KanbanPage() {
 
   useEffect(() => {
     let active = true;
+    setLoadingBoard(true);
+    setLoadError(false);
     loadKanbanBoard()
       .then((result) => {
         if (!active || !result.board) return;
@@ -212,15 +214,15 @@ function KanbanPage() {
         setDefaultColumnId(result.columns[0]?.id ?? "a-fazer");
         setMobileColumn(result.columns[0]?.id ?? "a-fazer");
       })
-      .catch((error) => {
-        console.error(error);
-        toast.error("Nao foi possivel carregar o quadro do Supabase");
+      .catch(() => {
+        if (!active) return;
+        setLoadError(true);
       })
       .finally(() => active && setLoadingBoard(false));
     return () => {
       active = false;
     };
-  }, []);
+  }, [reloadKey]);
 
   useEffect(() => {
     window.localStorage.setItem(
