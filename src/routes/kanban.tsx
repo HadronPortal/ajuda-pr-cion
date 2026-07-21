@@ -172,6 +172,8 @@ function KanbanPage() {
   const [columns, setColumns] = useState<KanbanColumn[]>(getInitialColumns);
   const [boardId, setBoardId] = useState<string | null>(null);
   const [loadingBoard, setLoadingBoard] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
   const [query, setQuery] = useState("");
   const [filters, setFilters] = useState<Filters>(emptyFilters);
   const [onlyMine, setOnlyMine] = useState(false);
@@ -201,6 +203,8 @@ function KanbanPage() {
 
   useEffect(() => {
     let active = true;
+    setLoadingBoard(true);
+    setLoadError(false);
     loadKanbanBoard()
       .then((result) => {
         if (!active || !result.board) return;
@@ -210,15 +214,15 @@ function KanbanPage() {
         setDefaultColumnId(result.columns[0]?.id ?? "a-fazer");
         setMobileColumn(result.columns[0]?.id ?? "a-fazer");
       })
-      .catch((error) => {
-        console.error(error);
-        toast.error("Nao foi possivel carregar o quadro do Supabase");
+      .catch(() => {
+        if (!active) return;
+        setLoadError(true);
       })
       .finally(() => active && setLoadingBoard(false));
     return () => {
       active = false;
     };
-  }, []);
+  }, [reloadKey]);
 
   useEffect(() => {
     window.localStorage.setItem(
@@ -621,6 +625,21 @@ function KanbanPage() {
         {loadingBoard ? (
           <div className="grid min-h-[420px] place-items-center text-sm text-slate-500">
             Carregando quadro do Supabase...
+          </div>
+        ) : loadError ? (
+          <div className="grid min-h-[420px] place-items-center rounded-xl border border-dashed border-slate-300 bg-white/50 p-8 text-center dark:border-white/10 dark:bg-white/[0.02]">
+            <div className="max-w-md">
+              <p className="text-sm font-bold text-slate-900 dark:text-white">
+                Não foi possível carregar o quadro. Tente novamente.
+              </p>
+              <Button
+                size="sm"
+                className="mt-4 cursor-pointer"
+                onClick={() => setReloadKey((k) => k + 1)}
+              >
+                Tentar novamente
+              </Button>
+            </div>
           </div>
         ) : viewMode !== "kanban" ? (
           <div className="grid place-items-center rounded-xl border border-dashed border-slate-300 bg-white/50 p-16 text-center dark:border-white/10 dark:bg-white/[0.02]">

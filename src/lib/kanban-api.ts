@@ -7,15 +7,33 @@ type DbClient = {
 
 let pool: DbClient | null = null;
 
+class KanbanUnavailableError extends Error {
+  constructor() {
+    super("KANBAN_UNAVAILABLE");
+    this.name = "KanbanUnavailableError";
+  }
+}
+
 async function getPool(): Promise<DbClient> {
   if (pool) return pool;
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) {
-    throw new Error("DATABASE_URL nao configurada no servidor.");
+    console.error("[kanban] DATABASE_URL is not configured on the server");
+    throw new KanbanUnavailableError();
   }
   const { Pool } = await import("pg");
-  pool = new Pool({ connectionString, ssl: { rejectUnauthorized: false }, max: 5 });
+  pool = new Pool({ connectionString, ssl: { rejectUnauthorized: false }, max: 5 }) as unknown as DbClient;
   return pool;
+}
+
+async function runSafely<T>(fn: () => Promise<T>): Promise<T> {
+  try {
+    return await fn();
+  } catch (error) {
+    if (error instanceof KanbanUnavailableError) throw error;
+    console.error("[kanban] server error:", error);
+    throw new KanbanUnavailableError();
+  }
 }
 
 const priorityToUi = (value: string | null) =>
@@ -61,7 +79,7 @@ function mapCard(row: any) {
   };
 }
 
-export const loadKanbanBoard = createServerFn({ method: "GET" }).handler(async () => {
+export const loadKanbanBoard = createServerFn({ method: "GET" }).handler(async () => runSafely(async () => {
   const db = await getPool();
   const boardResult = await db.query(`
     select id, name, description
@@ -116,7 +134,7 @@ export const loadKanbanBoard = createServerFn({ method: "GET" }).handler(async (
     columns: columnsResult.rows.map((row) => ({ id: row.id, title: row.name })),
     cards: cardsResult.rows.map(mapCard),
   };
-});
+}));
 
 const cardInput = z.object({
   id: z.string().optional(),
@@ -132,7 +150,7 @@ const cardInput = z.object({
 
 export const saveKanbanCard = createServerFn({ method: "POST" })
   .validator(cardInput)
-  .handler(async ({ data }) => {
+  .handler(async ({ data }) => runSafely(async () => {
     const db = await getPool();
     const existing = data.id && z.string().uuid().safeParse(data.id).success;
     const positionResult = await db.query(
@@ -163,7 +181,7 @@ export const saveKanbanCard = createServerFn({ method: "POST" })
           values ($1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9::jsonb) returning id
         `, values);
     return { id: result.rows[0].id };
-  });
+  }));
 
 const moveInput = z.object({
   cardId: z.string().uuid(),
@@ -173,7 +191,7 @@ const moveInput = z.object({
 
 export const moveKanbanCard = createServerFn({ method: "POST" })
   .validator(moveInput)
-  .handler(async ({ data }) => {
+  .handler(async ({ data }) => runSafely(async () => {
     const db = await getPool();
     let position: number;
     if (data.beforeCardId) {
@@ -185,32 +203,32 @@ export const moveKanbanCard = createServerFn({ method: "POST" })
     }
     await db.query("update public.kanban_cards set column_id=$1, position=$2, archived=false, updated_at=now() where id=$3", [data.columnId, position, data.cardId]);
     return { ok: true };
-  });
+  }));
 
 export const deleteKanbanCard = createServerFn({ method: "POST" })
   .validator(z.object({ id: z.string().uuid() }))
-  .handler(async ({ data }) => {
+  .handler(async ({ data }) => runSafely(async () => {
     const db = await getPool();
     await db.query("delete from public.kanban_cards where id=$1", [data.id]);
     return { ok: true };
-  });
+  }));
 
 const columnInput = z.object({ boardId: z.string().uuid(), title: z.string().min(1) });
 
 export const createKanbanColumn = createServerFn({ method: "POST" })
   .validator(columnInput)
-  .handler(async ({ data }) => {
+  .handler(async ({ data }) => runSafely(async () => {
     const db = await getPool();
     const pos = await db.query("select coalesce(max(position),-1)+1 position from public.kanban_columns where board_id=$1", [data.boardId]);
     const result = await db.query("insert into public.kanban_columns(board_id,name,position) values($1,$2,$3) returning id", [data.boardId, data.title, pos.rows[0].position]);
     return { id: result.rows[0].id };
-  });
+  }));
 
 export const deleteKanbanColumn = createServerFn({ method: "POST" })
   .validator(z.object({ id: z.string().uuid(), fallbackId: z.string().uuid() }))
-  .handler(async ({ data }) => {
+  .handler(async ({ data }) => runSafely(async () => {
     const db = await getPool();
     await db.query("update public.kanban_cards set column_id=$1, updated_at=now() where column_id=$2", [data.fallbackId, data.id]);
     await db.query("delete from public.kanban_columns where id=$1", [data.id]);
     return { ok: true };
-  });
+  }));
