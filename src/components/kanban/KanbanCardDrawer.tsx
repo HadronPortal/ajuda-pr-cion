@@ -852,7 +852,6 @@ export function KanbanCardDrawer({
               <SidebarField icon={Tag} label="Prioridade">
                 <Select value={draft.priority} onValueChange={(v) => handleChangePriority(v as KanbanCard["priority"])}>
                   <SelectTrigger className="h-10 cursor-pointer">
-                    <span className={cn("h-2 w-12 shrink-0 rounded-full", priorityMeta[draft.priority].strip)} />
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
