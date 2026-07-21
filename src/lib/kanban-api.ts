@@ -7,15 +7,33 @@ type DbClient = {
 
 let pool: DbClient | null = null;
 
+class KanbanUnavailableError extends Error {
+  constructor() {
+    super("KANBAN_UNAVAILABLE");
+    this.name = "KanbanUnavailableError";
+  }
+}
+
 async function getPool(): Promise<DbClient> {
   if (pool) return pool;
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) {
-    throw new Error("DATABASE_URL nao configurada no servidor.");
+    console.error("[kanban] DATABASE_URL is not configured on the server");
+    throw new KanbanUnavailableError();
   }
   const { Pool } = await import("pg");
   pool = new Pool({ connectionString, ssl: { rejectUnauthorized: false }, max: 5 });
   return pool;
+}
+
+async function runSafely<T>(fn: () => Promise<T>): Promise<T> {
+  try {
+    return await fn();
+  } catch (error) {
+    if (error instanceof KanbanUnavailableError) throw error;
+    console.error("[kanban] server error:", error);
+    throw new KanbanUnavailableError();
+  }
 }
 
 const priorityToUi = (value: string | null) =>
