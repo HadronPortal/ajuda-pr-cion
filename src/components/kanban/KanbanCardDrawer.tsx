@@ -659,7 +659,7 @@ export function KanbanCardDrawer({
                                 category: getCategory(a.category).name,
                               })
                             }
-                            className="shrink-0 inline-flex items-center gap-1 text-[11px] text-primary hover:underline"
+                            className="cursor-pointer shrink-0 inline-flex items-center gap-1 text-[11px] text-primary hover:underline"
                           >
                             <Plus className="h-3 w-3" /> Vincular
                           </button>
