@@ -183,12 +183,17 @@ function BoardListPage() {
     });
   }, [boards, query, tab]);
 
-  const workspaceSections = useMemo(() => workspaces.map((workspace) => ({
-    ...workspace,
-    boards: filtered.filter((board) =>
-      workspace.id === "legacy" || board.workspaceId === workspace.id,
-    ),
-  })).filter((workspace) => workspace.boards.length > 0 || !query.trim()), [filtered, query, workspaces]);
+  const workspaceSections = useMemo(() => {
+    const workspaceIds = new Set(workspaces.map((workspace) => workspace.id));
+    return workspaces.map((workspace, index) => ({
+      ...workspace,
+      boards: filtered.filter((board) =>
+        workspace.id === "legacy"
+        || board.workspaceId === workspace.id
+        || (index === 0 && (!board.workspaceId || !workspaceIds.has(board.workspaceId))),
+      ),
+    })).filter((workspace) => workspace.boards.length > 0 || !query.trim());
+  }, [filtered, query, workspaces]);
 
   const toggleFavorite = async (board: BoardSummary) => {
     const next = !board.isFavorite;
