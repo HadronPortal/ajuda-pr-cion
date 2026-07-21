@@ -29,6 +29,7 @@ const unwrap = <T,>(x: Wrapped<T> | undefined): T =>
 
 export type BoardSummary = {
   id: string;
+  workspaceId: string | null;
   name: string;
   description: string;
   color: string | null;
@@ -47,6 +48,53 @@ export type BoardSummary = {
     role: string;
   }[];
 };
+
+export type WorkspaceSummary = {
+  id: string;
+  name: string;
+  description: string;
+  logoUrl: string | null;
+  visibility: "private" | "company" | string;
+  membershipRole: "admin" | "member" | "guest" | string;
+  membersCount: number;
+  boards: BoardSummary[];
+};
+
+export const listKanbanWorkspaces = () =>
+  invoke<{ workspaces: WorkspaceSummary[] }>("listWorkspaces");
+
+export const createKanbanWorkspace = (input: Wrapped<{
+  name: string;
+  description?: string;
+  visibility?: string;
+}>) => invoke<{ id: string }>("createWorkspace", unwrap(input));
+
+export const updateKanbanWorkspace = (input: Wrapped<{
+  id: string;
+  name?: string;
+  description?: string;
+  visibility?: string;
+}>) => invoke<{ ok: true }>("updateWorkspace", unwrap(input));
+
+export const listWorkspaceMembers = (input: Wrapped<{ workspaceId: string }>) =>
+  invoke<{ members: BoardMember[] }>("listWorkspaceMembers", unwrap(input));
+
+export const addWorkspaceMember = (input: Wrapped<{
+  workspaceId: string;
+  profileId: string;
+  role?: "admin" | "member" | "guest";
+}>) => invoke<{ ok: true }>("addWorkspaceMember", unwrap(input));
+
+export const updateWorkspaceMemberRole = (input: Wrapped<{
+  workspaceId: string;
+  profileId: string;
+  role: "admin" | "member" | "guest";
+}>) => invoke<{ ok: true }>("updateWorkspaceMemberRole", unwrap(input));
+
+export const removeWorkspaceMember = (input: Wrapped<{
+  workspaceId: string;
+  profileId: string;
+}>) => invoke<{ ok: true }>("removeWorkspaceMember", unwrap(input));
 
 export type BoardMember = {
   id: string;
@@ -74,6 +122,7 @@ export const createKanbanBoard = (input: Wrapped<{
   visibility?: string;
   memberIds?: string[];
   ownerId?: string | null;
+  workspaceId?: string | null;
 }>) => invoke<{ id: string }>("createBoard", unwrap(input));
 
 export const updateKanbanBoard = (input: Wrapped<{

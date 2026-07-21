@@ -45,7 +45,7 @@ function groupBy<T>(rows: T[], key: (r: T) => string): Record<string, T[]> {
 async function listBoards() {
   const { data: boards, error } = await admin
     .from("kanban_boards")
-    .select("id, name, description, color, cover, visibility, is_favorite, updated_at, created_at")
+    .select("id, workspace_id, name, description, color, cover, visibility, is_favorite, updated_at, created_at")
     .eq("archived", false)
     .order("updated_at", { ascending: false });
   if (error) throw error;
@@ -87,6 +87,7 @@ async function listBoards() {
   return {
     boards: (boards ?? []).map((b: any) => ({
       id: b.id,
+      workspaceId: b.workspace_id ?? null,
       name: b.name,
       description: b.description ?? "",
       color: b.color ?? null,
@@ -106,6 +107,106 @@ async function listBoards() {
       })).filter((m: any) => m.id),
     })),
   };
+}
+
+async function listWorkspaces() {
+  const [{ data: workspaces, error }, boardsResult, membersResult] = await Promise.all([
+    admin
+      .from("kanban_workspaces")
+      .select("id, name, description, logo_url, visibility, owner_id, created_at")
+      .order("created_at", { ascending: true }),
+    listBoards(),
+    admin
+      .from("kanban_workspace_members")
+      .select("workspace_id, role, profiles:profile_id(id, full_name, operator_code, avatar_url)"),
+  ]);
+  if (error) throw error;
+
+  const boardsByWorkspace = groupBy(boardsResult.boards ?? [], (b: any) => b.workspaceId ?? "unassigned");
+  const membersByWorkspace = groupBy(membersResult.data ?? [], (m: any) => m.workspace_id);
+
+  return {
+    workspaces: (workspaces ?? []).map((workspace: any, index: number) => ({
+      id: workspace.id,
+      name: workspace.name,
+      description: workspace.description ?? "",
+      logoUrl: workspace.logo_url ?? null,
+      visibility: workspace.visibility ?? "private",
+      membershipRole: index === 0 ? "admin" : "member",
+      membersCount: (membersByWorkspace[workspace.id] ?? []).length,
+      boards: boardsByWorkspace[workspace.id] ?? [],
+    })),
+  };
+}
+
+async function createWorkspace(payload: any) {
+  const { data, error } = await admin
+    .from("kanban_workspaces")
+    .insert({
+      name: String(payload?.name ?? "").trim(),
+      description: String(payload?.description ?? "").trim(),
+      visibility: payload?.visibility === "company" ? "company" : "private",
+    })
+    .select("id")
+    .single();
+  if (error) throw error;
+  return { id: data.id };
+}
+
+async function updateWorkspace(payload: any) {
+  const patch: any = {};
+  if (payload.name !== undefined) patch.name = String(payload.name).trim();
+  if (payload.description !== undefined) patch.description = String(payload.description).trim();
+  if (payload.visibility !== undefined) patch.visibility = payload.visibility;
+  const { error } = await admin.from("kanban_workspaces").update(patch).eq("id", payload.id);
+  if (error) throw error;
+  return { ok: true };
+}
+
+async function listWorkspaceMembers(payload: any) {
+  const { data, error } = await admin
+    .from("kanban_workspace_members")
+    .select("role, profiles:profile_id(id, full_name, email, operator_code, avatar_url)")
+    .eq("workspace_id", payload.workspaceId);
+  if (error) throw error;
+  return {
+    members: (data ?? []).map((item: any) => ({
+      id: item.profiles?.id,
+      name: item.profiles?.full_name ?? "",
+      email: item.profiles?.email ?? null,
+      operator: item.profiles?.operator_code ?? null,
+      avatarUrl: item.profiles?.avatar_url ?? null,
+      role: item.role,
+    })).filter((item: any) => item.id),
+  };
+}
+
+async function addWorkspaceMember(payload: any) {
+  const { error } = await admin.from("kanban_workspace_members").upsert([{
+    workspace_id: payload.workspaceId,
+    profile_id: payload.profileId,
+    role: payload.role ?? "member",
+  }], { onConflict: "workspace_id,profile_id" });
+  if (error) throw error;
+  return { ok: true };
+}
+
+async function updateWorkspaceMemberRole(payload: any) {
+  const { error } = await admin.from("kanban_workspace_members")
+    .update({ role: payload.role })
+    .eq("workspace_id", payload.workspaceId)
+    .eq("profile_id", payload.profileId);
+  if (error) throw error;
+  return { ok: true };
+}
+
+async function removeWorkspaceMember(payload: any) {
+  const { error } = await admin.from("kanban_workspace_members")
+    .delete()
+    .eq("workspace_id", payload.workspaceId)
+    .eq("profile_id", payload.profileId);
+  if (error) throw error;
+  return { ok: true };
 }
 
 async function getBoard(payload: any) {
@@ -395,6 +496,7 @@ async function createBoard(payload: any) {
       color: payload.color ?? null,
       cover: payload.cover ?? null,
       visibility: payload.visibility ?? "team",
+      workspace_id: payload.workspaceId ?? null,
     })
     .select("id")
     .single();
@@ -440,7 +542,7 @@ async function updateBoard(payload: any) {
 async function duplicateBoard(payload: any) {
   const { data: src, error: e1 } = await admin
     .from("kanban_boards")
-    .select("name, description, color, cover, visibility")
+    .select("name, description, color, cover, visibility, workspace_id")
     .eq("id", payload.id)
     .single();
   if (e1) throw e1;
@@ -452,6 +554,7 @@ async function duplicateBoard(payload: any) {
       color: src.color,
       cover: src.cover,
       visibility: src.visibility,
+      workspace_id: src.workspace_id,
     })
     .select("id")
     .single();
@@ -600,6 +703,27 @@ serve(async (req) => {
     const { action, data } = await req.json();
     let result: unknown;
     switch (action) {
+      case "listWorkspaces":
+        result = await listWorkspaces();
+        break;
+      case "createWorkspace":
+        result = await createWorkspace(data);
+        break;
+      case "updateWorkspace":
+        result = await updateWorkspace(data);
+        break;
+      case "listWorkspaceMembers":
+        result = await listWorkspaceMembers(data);
+        break;
+      case "addWorkspaceMember":
+        result = await addWorkspaceMember(data);
+        break;
+      case "updateWorkspaceMemberRole":
+        result = await updateWorkspaceMemberRole(data);
+        break;
+      case "removeWorkspaceMember":
+        result = await removeWorkspaceMember(data);
+        break;
       case "listBoards":
         result = await listBoards();
         break;

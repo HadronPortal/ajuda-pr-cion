@@ -35,10 +35,12 @@ export function CreateBoardModal({
   open,
   onOpenChange,
   onCreated,
+  workspaceId,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreated: (id: string) => void;
+  workspaceId?: string | null;
 }) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -66,6 +68,7 @@ export function CreateBoardModal({
           description: description.trim(),
           color,
           visibility,
+          workspaceId,
         },
       });
       toast.success("Quadro criado.");

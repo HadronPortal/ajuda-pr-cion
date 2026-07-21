@@ -21,6 +21,8 @@ import {
   Archive,
   Trash2,
   RefreshCw,
+  Settings,
+  Building2,
 } from "lucide-react";
 import { AppShell } from "@/components/portal/AppShell";
 import { Button } from "@/components/ui/button";
@@ -49,11 +51,14 @@ import {
   deleteKanbanBoard,
   duplicateKanbanBoard,
   updateKanbanBoard,
+  listKanbanWorkspaces,
   type BoardSummary,
+  type WorkspaceSummary,
 } from "@/lib/kanban-api";
 import { CreateBoardModal } from "@/components/kanban/CreateBoardModal";
 import { ManageMembersModal } from "@/components/kanban/ManageMembersModal";
 import { EditBoardModal } from "@/components/kanban/EditBoardModal";
+import { WorkspaceModal } from "@/components/kanban/WorkspaceModal";
 
 export const Route = createFileRoute("/kanban")({
   head: () => ({
@@ -102,12 +107,16 @@ function coverClass(color: string | null) {
 function BoardListPage() {
   const navigate = useNavigate();
   const [boards, setBoards] = useState<BoardSummary[]>([]);
+  const [workspaces, setWorkspaces] = useState<WorkspaceSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const [query, setQuery] = useState("");
   const [tab, setTab] = useState<FilterTab>("all");
   const [createOpen, setCreateOpen] = useState(false);
+  const [createWorkspaceOpen, setCreateWorkspaceOpen] = useState(false);
+  const [createBoardWorkspaceId, setCreateBoardWorkspaceId] = useState<string | null>(null);
+  const [workspaceModal, setWorkspaceModal] = useState<{ workspace: WorkspaceSummary; tab: "settings" | "members" } | null>(null);
   const [membersFor, setMembersFor] = useState<BoardSummary | null>(null);
   const [editFor, setEditFor] = useState<BoardSummary | null>(null);
   const [deleteFor, setDeleteFor] = useState<BoardSummary | null>(null);
@@ -116,14 +125,33 @@ function BoardListPage() {
     let active = true;
     setLoading(true);
     setLoadError(false);
-    listKanbanBoards()
+    listKanbanWorkspaces()
       .then((res) => {
         if (!active) return;
-        setBoards(res.boards ?? []);
+        const nextWorkspaces = res.workspaces ?? [];
+        setWorkspaces(nextWorkspaces);
+        setBoards(nextWorkspaces.flatMap((workspace) => workspace.boards));
       })
-      .catch(() => {
+      .catch(async () => {
         if (!active) return;
-        setLoadError(true);
+        try {
+          const res = await listKanbanBoards();
+          if (!active) return;
+          const fallbackBoards = res.boards ?? [];
+          setBoards(fallbackBoards);
+          setWorkspaces([{
+            id: "legacy",
+            name: "Desenvolvimento Procion",
+            description: "Projetos, melhorias e demandas internas da Procion.",
+            logoUrl: null,
+            visibility: "private",
+            membershipRole: "admin",
+            membersCount: 0,
+            boards: fallbackBoards,
+          }]);
+        } catch {
+          if (active) setLoadError(true);
+        }
       })
       .finally(() => active && setLoading(false));
     return () => {
@@ -145,6 +173,13 @@ function BoardListPage() {
       return true;
     });
   }, [boards, query, tab]);
+
+  const workspaceSections = useMemo(() => workspaces.map((workspace) => ({
+    ...workspace,
+    boards: filtered.filter((board) =>
+      workspace.id === "legacy" || board.workspaceId === workspace.id,
+    ),
+  })).filter((workspace) => workspace.boards.length > 0 || !query.trim()), [filtered, query, workspaces]);
 
   const toggleFavorite = async (board: BoardSummary) => {
     const next = !board.isFavorite;
@@ -217,7 +252,18 @@ function BoardListPage() {
               />
             </div>
             <Button
-              onClick={() => setCreateOpen(true)}
+              variant="outline"
+              onClick={() => setCreateWorkspaceOpen(true)}
+              className="h-11 cursor-pointer gap-2 rounded-lg"
+            >
+              <Building2 className="h-4 w-4" />
+              Criar área
+            </Button>
+            <Button
+              onClick={() => {
+                setCreateBoardWorkspaceId(workspaces[0]?.id === "legacy" ? null : workspaces[0]?.id ?? null);
+                setCreateOpen(true);
+              }}
               className="h-11 cursor-pointer gap-2 rounded-lg"
             >
               <Plus className="h-4 w-4" />
@@ -273,8 +319,27 @@ function BoardListPage() {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-            {filtered.map((board) => (
+          <div className="space-y-10">
+            {workspaceSections.map((workspace) => (
+              <section key={workspace.id}>
+                <div className="mb-4 flex flex-col gap-3 border-b border-slate-200 pb-4 sm:flex-row sm:items-center sm:justify-between dark:border-white/10">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+                      <Building2 className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <h2 className="truncate text-base font-medium">{workspace.name}</h2>
+                      <p className="truncate text-xs text-slate-500 dark:text-slate-400">{workspace.description || "Área de trabalho Kanban"}</p>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button variant="secondary" size="sm" className="cursor-pointer gap-2"><LayoutGrid className="h-4 w-4" />Quadros</Button>
+                    <Button variant="outline" size="sm" className="cursor-pointer gap-2" disabled={workspace.id === "legacy"} onClick={() => setWorkspaceModal({ workspace, tab: "members" })}><Users className="h-4 w-4" />Membros <span className="text-xs text-slate-400">{workspace.membersCount || ""}</span></Button>
+                    <Button variant="outline" size="sm" className="cursor-pointer gap-2" disabled={workspace.id === "legacy"} onClick={() => setWorkspaceModal({ workspace, tab: "settings" })}><Settings className="h-4 w-4" />Configurações</Button>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+            {workspace.boards.map((board) => (
               <div
                 key={board.id}
                 className="group relative overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md dark:border-white/10 dark:bg-[#101827]"
@@ -416,6 +481,19 @@ function BoardListPage() {
                 </div>
               </div>
             ))}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCreateBoardWorkspaceId(workspace.id === "legacy" ? null : workspace.id);
+                      setCreateOpen(true);
+                    }}
+                    className="flex min-h-[190px] cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-slate-300 bg-slate-50 text-sm text-slate-600 transition hover:border-primary hover:text-primary dark:border-white/15 dark:bg-white/[0.03] dark:text-slate-300"
+                  >
+                    <Plus className="h-4 w-4" /> Criar novo quadro
+                  </button>
+                </div>
+              </section>
+            ))}
           </div>
         )}
       </div>
@@ -423,12 +501,30 @@ function BoardListPage() {
       <CreateBoardModal
         open={createOpen}
         onOpenChange={setCreateOpen}
+        workspaceId={createBoardWorkspaceId}
         onCreated={(id) => {
           setCreateOpen(false);
           setReloadKey((k) => k + 1);
           navigate({ to: "/kanban/$boardId", params: { boardId: id } });
         }}
       />
+
+      <WorkspaceModal
+        open={createWorkspaceOpen}
+        onOpenChange={setCreateWorkspaceOpen}
+        workspace={null}
+        onChanged={() => setReloadKey((key) => key + 1)}
+      />
+
+      {workspaceModal && (
+        <WorkspaceModal
+          open={!!workspaceModal}
+          onOpenChange={(nextOpen) => !nextOpen && setWorkspaceModal(null)}
+          workspace={workspaceModal.workspace}
+          initialTab={workspaceModal.tab}
+          onChanged={() => setReloadKey((key) => key + 1)}
+        />
+      )}
 
       {editFor && (
         <EditBoardModal
