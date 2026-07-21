@@ -66,6 +66,7 @@ import {
 } from "@/lib/kanban-data";
 import { kbArticlesFull, suggestArticlesForCard, getCategory } from "@/lib/kb-data";
 import { Link } from "@tanstack/react-router";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 const kbArticles: RelatedArticle[] = kbArticlesFull.map((a) => ({
@@ -340,13 +341,22 @@ export function KanbanCardDrawer({
   };
 
   const handleSave = () => {
-    if (!draft.title.trim()) return;
+    const fallbackTitle =
+      draft.summary?.trim() ||
+      draft.description?.trim().split(/\r?\n/).find(Boolean)?.slice(0, 120) ||
+      "";
+    const title = draft.title.trim() || fallbackTitle;
+    if (!title) {
+      toast.error("Informe o título do cartão");
+      return;
+    }
     const tags = tagsInput
       .split(",")
       .map((t) => t.trim().replace(/^#/, ""))
       .filter(Boolean);
     const final: KanbanCard = {
       ...draft,
+      title,
       tags,
       comments: (draft.commentsList ?? []).length || draft.comments,
       attachments: (draft.attachmentsList ?? []).length || draft.attachments,
@@ -413,6 +423,8 @@ export function KanbanCardDrawer({
             <Input
               value={draft.title}
               onChange={(e) => update("title", e.target.value)}
+              aria-label="Título do cartão"
+              aria-required="true"
               placeholder="Ex: Erro na emissão de NF-e: rejeição XML"
               className="text-lg sm:text-xl font-semibold border-0 shadow-none focus-visible:ring-1 focus-visible:ring-ring px-2 -mx-2 h-auto py-1.5"
             />
@@ -1020,7 +1032,7 @@ export function KanbanCardDrawer({
             <Button variant="outline" size="sm" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
-            <Button size="sm" onClick={handleSave} disabled={!draft.title.trim()}>
+            <Button size="sm" onClick={handleSave} className="cursor-pointer">
               {mode === "create" ? "Criar card" : "Salvar alterações"}
             </Button>
           </div>
