@@ -276,18 +276,30 @@ export function KanbanCardDrawer({
     setNewComment("");
   };
 
-  const addAttachment = () => {
-    const name = newAttachment.trim();
-    if (!name) return;
+  const formatFileSize = (bytes: number) => {
+    if (!bytes) return "0 B";
+    const units = ["B", "KB", "MB", "GB"];
+    const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+    return `${(bytes / Math.pow(1024, i)).toFixed(i === 0 ? 0 : 1)} ${units[i]}`;
+  };
+
+  const addAttachmentFiles = (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const list = Array.from(files);
     setDraft((d) => ({
       ...d,
       attachmentsList: [
         ...(d.attachmentsList ?? []),
-        { id: uid("at"), name, size: "—", kind: name.split(".").pop() ?? "file" },
+        ...list.map((f) => ({
+          id: uid("at"),
+          name: f.name,
+          size: formatFileSize(f.size),
+          kind: (f.name.split(".").pop() ?? f.type.split("/").pop() ?? "file").toLowerCase(),
+        })),
       ],
-      attachments: (d.attachmentsList?.length ?? d.attachments ?? 0) + 1,
+      attachments: (d.attachmentsList?.length ?? d.attachments ?? 0) + list.length,
     }));
-    setNewAttachment("");
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const removeAttachment = (id: string) => {
