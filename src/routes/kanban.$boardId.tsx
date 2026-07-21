@@ -184,6 +184,7 @@ function KanbanPage() {
   const [filters, setFilters] = useState<Filters>(emptyFilters);
   const [onlyMine, setOnlyMine] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("kanban");
+  const [calendarDate, setCalendarDate] = useState(() => new Date());
   const [activeCard, setActiveCard] = useState<KanbanCard | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerMode, setDrawerMode] = useState<"edit" | "create">("edit");
@@ -651,8 +652,8 @@ function KanbanPage() {
 
             <div className="inline-flex h-11 shrink-0 items-center gap-0.5 rounded-lg border border-slate-200 bg-white p-0.5 dark:border-white/8 dark:bg-white/[0.035]">
               <ViewToggleButton active={viewMode === "kanban"} onClick={() => setViewMode("kanban")} icon={LayoutGrid} label="Kanban" />
-              <ViewToggleButton active={viewMode === "list"} onClick={() => setViewMode("list")} icon={List} label="Lista" soon />
-              <ViewToggleButton active={viewMode === "calendar"} onClick={() => setViewMode("calendar")} icon={CalendarRange} label="Calendário" soon />
+              <ViewToggleButton active={viewMode === "list"} onClick={() => setViewMode("list")} icon={List} label="Lista" />
+              <ViewToggleButton active={viewMode === "calendar"} onClick={() => setViewMode("calendar")} icon={CalendarRange} label="Calendário" />
             </div>
 
             <button
@@ -689,6 +690,10 @@ function KanbanPage() {
               </Button>
             </div>
           </div>
+        ) : viewMode === "list" ? (
+          <KanbanListView cards={filteredCards} columns={columns} onOpenCard={openCard} />
+        ) : viewMode === "calendar" ? (
+          <KanbanCalendarView cards={filteredCards} date={calendarDate} onDateChange={setCalendarDate} onOpenCard={openCard} />
         ) : viewMode !== "kanban" ? (
           <div className="grid place-items-center rounded-xl border border-dashed border-slate-300 bg-white/50 p-16 text-center dark:border-white/10 dark:bg-white/[0.02]">
             <div className="max-w-md">
@@ -905,6 +910,136 @@ function KanbanPage() {
       </Dialog>
     </AppShell>
   );
+}
+
+function KanbanListView({
+  cards,
+  columns,
+  onOpenCard,
+}: {
+  cards: KanbanCard[];
+  columns: KanbanColumn[];
+  onOpenCard: (card: KanbanCard) => void;
+}) {
+  const columnNames = new Map(columns.map((column) => [column.id, column.title]));
+  const priorityTone: Record<Priority, string> = {
+    Alta: "bg-rose-500/12 text-rose-600 dark:text-rose-300",
+    Média: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
+    Baixa: "bg-emerald-500/12 text-emerald-700 dark:text-emerald-300",
+  };
+
+  if (!cards.length) return <EmptyKanbanView message="Nenhum cartão encontrado com os filtros atuais." />;
+
+  return (
+    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-white/[0.035]">
+      <div className="app-scrollbar max-h-[calc(100dvh-240px)] overflow-auto">
+        <div className="min-w-[820px]">
+          <div className="grid grid-cols-[minmax(260px,2fr)_1fr_1fr_120px_130px] gap-4 border-b bg-slate-50 px-5 py-3 text-[10px] font-semibold uppercase text-slate-500 dark:border-white/8 dark:bg-white/[0.035] dark:text-slate-400">
+            <span>Cartão</span><span>Lista</span><span>Responsável</span><span>Prioridade</span><span>Prazo</span>
+          </div>
+          {cards.map((card) => {
+            const member = kanbanMembers.find((item) => item.id === card.assigneeId);
+            return (
+              <button
+                key={card.id}
+                type="button"
+                onClick={() => onOpenCard(card)}
+                className="grid w-full cursor-pointer grid-cols-[minmax(260px,2fr)_1fr_1fr_120px_130px] items-center gap-4 border-b px-5 py-3 text-left transition last:border-b-0 hover:bg-slate-50 dark:border-white/8 dark:hover:bg-white/[0.05]"
+              >
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-medium text-slate-900 dark:text-white">{card.title}</span>
+                  <span className="mt-0.5 block truncate text-xs text-slate-500 dark:text-slate-400">{card.client} · {card.module}</span>
+                </span>
+                <span className="truncate text-xs text-slate-600 dark:text-slate-300">{columnNames.get(card.columnId) ?? card.columnId}</span>
+                <span className="flex min-w-0 items-center gap-2 text-xs text-slate-600 dark:text-slate-300">
+                  <span className={cn("grid h-7 w-7 shrink-0 place-items-center rounded-full text-[10px] font-semibold", member?.color ?? "bg-slate-100 text-slate-600")}>{member?.initials ?? "--"}</span>
+                  <span className="truncate">{member?.name ?? "Sem responsável"}</span>
+                </span>
+                <span><span className={cn("inline-flex rounded-full px-2 py-1 text-[10px] font-semibold", priorityTone[card.priority])}>{card.priority}</span></span>
+                <span className="text-xs text-slate-500 dark:text-slate-400">{formatKanbanDate(card.dueDate)}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function KanbanCalendarView({
+  cards,
+  date,
+  onDateChange,
+  onOpenCard,
+}: {
+  cards: KanbanCard[];
+  date: Date;
+  onDateChange: (date: Date) => void;
+  onOpenCard: (card: KanbanCard) => void;
+}) {
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  const firstDay = new Date(year, month, 1);
+  const gridStart = new Date(year, month, 1 - firstDay.getDay());
+  const days = Array.from({ length: 42 }, (_, index) => {
+    const day = new Date(gridStart);
+    day.setDate(gridStart.getDate() + index);
+    return day;
+  });
+  const cardsByDate = cards.reduce<Record<string, KanbanCard[]>>((result, card) => {
+    if (card.dueDate) (result[card.dueDate] ??= []).push(card);
+    return result;
+  }, {});
+  const todayKey = new Date().toLocaleDateString("en-CA");
+  const monthLabel = date.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+  const moveMonth = (amount: number) => onDateChange(new Date(year, month + amount, 1));
+
+  return (
+    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-white/[0.035]">
+      <div className="flex items-center justify-between border-b px-4 py-3 dark:border-white/8">
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="icon" className="h-8 w-8 cursor-pointer" onClick={() => moveMonth(-1)} aria-label="Mês anterior"><ArrowLeft className="h-4 w-4" /></Button>
+          <Button variant="outline" size="icon" className="h-8 w-8 cursor-pointer" onClick={() => moveMonth(1)} aria-label="Próximo mês"><ArrowRight className="h-4 w-4" /></Button>
+          <Button variant="outline" size="sm" className="h-8 cursor-pointer text-xs" onClick={() => onDateChange(new Date())}>Hoje</Button>
+        </div>
+        <h2 className="capitalize text-sm font-semibold text-slate-900 dark:text-white">{monthLabel}</h2>
+      </div>
+      <div className="app-scrollbar overflow-auto">
+        <div className="min-w-[840px]">
+          <div className="grid grid-cols-7 border-b bg-slate-50 text-center text-[10px] font-semibold uppercase text-slate-500 dark:border-white/8 dark:bg-white/[0.03] dark:text-slate-400">
+            {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((label) => <div key={label} className="py-2">{label}</div>)}
+          </div>
+          <div className="grid grid-cols-7">
+            {days.map((day) => {
+              const key = day.toLocaleDateString("en-CA");
+              const dayCards = cardsByDate[key] ?? [];
+              const currentMonth = day.getMonth() === month;
+              return (
+                <div key={key} className="min-h-[118px] border-b border-r p-2 last:border-r-0 dark:border-white/8">
+                  <div className={cn("mb-1 grid h-6 w-6 place-items-center rounded-full text-[11px]", key === todayKey ? "bg-primary font-semibold text-primary-foreground" : currentMonth ? "text-slate-700 dark:text-slate-200" : "text-slate-300 dark:text-slate-600")}>{day.getDate()}</div>
+                  <div className="space-y-1">
+                    {dayCards.slice(0, 3).map((card) => (
+                      <button key={card.id} type="button" onClick={() => onOpenCard(card)} className="block w-full cursor-pointer truncate rounded-md border border-primary/15 bg-primary/8 px-2 py-1 text-left text-[10px] text-primary transition hover:bg-primary/15" title={card.title}>{card.title}</button>
+                    ))}
+                    {dayCards.length > 3 && <span className="block px-1 text-[10px] text-slate-500">+{dayCards.length - 3} cartões</span>}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EmptyKanbanView({ message }: { message: string }) {
+  return <div className="grid min-h-[360px] place-items-center rounded-xl border border-dashed border-slate-300 bg-white/50 p-8 text-sm text-slate-500 dark:border-white/10 dark:bg-white/[0.02] dark:text-slate-400">{message}</div>;
+}
+
+function formatKanbanDate(value: string) {
+  if (!value) return "Sem prazo";
+  return new Date(`${value}T00:00:00`).toLocaleDateString("pt-BR");
 }
 
 function MetricCard({
