@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from "react";
 import { initialCards, type KanbanCard } from "./kanban-data";
 import { saveKanbanCard, deleteKanbanCard } from "./kanban-api";
+import { toast } from "sonner";
 
 let cards: KanbanCard[] = [...initialCards];
 const listeners = new Set<() => void>();
@@ -58,16 +59,20 @@ export const kanbanStore = {
     const withId = card.id ? card : { ...card, id: nextId };
     cards = [...cards, withId];
     emit();
-    void persistCard(withId).then(({ id }) => {
-      cards = cards.map((item) => (item.id === withId.id ? { ...item, id } : item));
-      emit();
-    });
+    void persistCard(withId)
+      .then(({ id }) => {
+        cards = cards.map((item) => (item.id === withId.id ? { ...item, id } : item));
+        emit();
+      })
+      .catch(() => toast.error("Nao foi possivel salvar o cartao"));
     return withId;
   },
   updateCard: (card: KanbanCard) => {
     cards = cards.map((c) => (c.id === card.id ? card : c));
     emit();
-    void persistCard(card);
+    void persistCard(card).catch(() =>
+      toast.error("Nao foi possivel salvar as alteracoes do cartao"),
+    );
   },
   deleteCard: (id: string) => {
     cards = cards.filter((c) => c.id !== id);

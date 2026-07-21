@@ -331,6 +331,9 @@ async function loadBoard(payload: any) {
   const cards = (cardsRes.data ?? []).map((row: any) => {
     const payload = row.source_payload ?? {};
     const memberIds = row.member_legacy_ids ?? [];
+    const storedChecklist = cl[row.id] ?? [];
+    const storedComments = cm[row.id] ?? [];
+    const storedAttachments = at[row.id] ?? [];
     return {
       id: row.id,
       columnId: row.column_id,
@@ -351,25 +354,37 @@ async function loadBoard(payload: any) {
       comments: (cm[row.id] ?? []).length,
       attachments: (at[row.id] ?? []).length,
       archived: Boolean(row.archived),
-      checklist: (cl[row.id] ?? []).map((i: any) => ({
-        id: i.id,
-        text: i.title,
-        done: i.completed,
-        checklistTitle: i.checklist_title || "Checklist",
-      })),
-      commentsList: (cm[row.id] ?? []).map((i: any) => ({
-        id: i.id,
-        authorId: i.author_legacy_id ?? "trello",
-        at: i.created_at,
-        text: i.body,
-      })),
-      attachmentsList: (at[row.id] ?? []).map((i: any) => ({
-        id: i.id,
-        name: i.name ?? "Anexo",
-        size: i.source_payload?.displaySize || (i.bytes ? String(i.bytes) : ""),
-        kind: i.mime_type ?? "link",
-        url: i.url ?? undefined,
-      })),
+      checklist: storedChecklist.length
+        ? storedChecklist.map((i: any) => ({
+            id: i.id,
+            text: i.title,
+            done: i.completed,
+            checklistTitle: i.checklist_title || "Checklist",
+          }))
+        : Array.isArray(payload.checklist)
+          ? payload.checklist
+          : [],
+      commentsList: storedComments.length
+        ? storedComments.map((i: any) => ({
+            id: i.id,
+            authorId: i.author_legacy_id ?? "trello",
+            at: i.created_at,
+            text: i.body,
+          }))
+        : Array.isArray(payload.commentsList)
+          ? payload.commentsList
+          : [],
+      attachmentsList: storedAttachments.length
+        ? storedAttachments.map((i: any) => ({
+            id: i.id,
+            name: i.name ?? "Anexo",
+            size: i.source_payload?.displaySize || (i.bytes ? String(i.bytes) : ""),
+            kind: i.mime_type ?? "link",
+            url: i.url ?? undefined,
+          }))
+        : Array.isArray(payload.attachmentsList)
+          ? payload.attachmentsList
+          : [],
       activity: Array.isArray(payload.activity) ? payload.activity : [],
       relatedArticles: [],
       relatedVersions: [],
@@ -424,6 +439,9 @@ async function saveCard(payload: any) {
       module: payload.module ?? "Trello",
       type: payload.type ?? "Melhoria",
       summary: payload.summary ?? "",
+      checklist: Array.isArray(payload.checklist) ? payload.checklist : [],
+      commentsList: Array.isArray(payload.commentsList) ? payload.commentsList : [],
+      attachmentsList: Array.isArray(payload.attachmentsList) ? payload.attachmentsList : [],
       activity: Array.isArray(payload.activity) ? payload.activity : [],
     },
     updated_at: new Date().toISOString(),
