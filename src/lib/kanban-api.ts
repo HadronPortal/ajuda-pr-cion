@@ -134,7 +134,7 @@ export const loadKanbanBoard = createServerFn({ method: "GET" }).handler(async (
     columns: columnsResult.rows.map((row) => ({ id: row.id, title: row.name })),
     cards: cardsResult.rows.map(mapCard),
   };
-});
+}));
 
 const cardInput = z.object({
   id: z.string().optional(),
