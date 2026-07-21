@@ -172,6 +172,8 @@ function KanbanPage() {
   const [columns, setColumns] = useState<KanbanColumn[]>(getInitialColumns);
   const [boardId, setBoardId] = useState<string | null>(null);
   const [loadingBoard, setLoadingBoard] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
   const [query, setQuery] = useState("");
   const [filters, setFilters] = useState<Filters>(emptyFilters);
   const [onlyMine, setOnlyMine] = useState(false);
