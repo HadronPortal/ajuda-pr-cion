@@ -221,6 +221,14 @@ export const saveKanbanCard = (input: Wrapped<{
   archived?: boolean;
   tags?: string[];
   memberIds?: string[];
+  client?: string;
+  module?: string;
+  type?: string;
+  summary?: string;
+  checklist?: Array<{ id: string; text: string; done: boolean; checklistTitle?: string }>;
+  commentsList?: Array<{ id: string; authorId: string; at: string; text: string }>;
+  attachmentsList?: Array<{ id: string; name: string; size: string; kind: string; url?: string }>;
+  activity?: Array<{ id: string; at: string; text: string; authorId?: string }>;
 }>) => invoke<{ id: string }>("updateCard", unwrap(input));
 
 export const moveKanbanCard = (input: Wrapped<{

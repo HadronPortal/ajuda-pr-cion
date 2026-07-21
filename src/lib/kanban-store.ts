@@ -21,6 +21,14 @@ const persistCard = (card: KanbanCard) =>
       archived: Boolean(card.archived),
       tags: card.tags,
       memberIds: card.participants?.length ? card.participants : [card.assigneeId],
+      client: card.client,
+      module: card.module,
+      type: card.type,
+      summary: card.summary,
+      checklist: card.checklist,
+      commentsList: card.commentsList,
+      attachmentsList: card.attachmentsList,
+      activity: card.activity,
     },
   });
 

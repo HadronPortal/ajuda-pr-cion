@@ -292,7 +292,7 @@ async function loadBoard(payload: any) {
     cardIds.length
       ? admin
           .from("kanban_checklist_items")
-          .select("id, card_id, title, completed, position")
+          .select("id, card_id, title, completed, position, checklist_title")
           .in("card_id", cardIds)
           .order("position", { ascending: true })
       : { data: [], error: null },
@@ -306,7 +306,7 @@ async function loadBoard(payload: any) {
     cardIds.length
       ? admin
           .from("kanban_card_attachments")
-          .select("id, card_id, name, bytes, mime_type, position")
+          .select("id, card_id, name, bytes, mime_type, position, url, source_payload")
           .in("card_id", cardIds)
           .order("position", { ascending: true })
       : { data: [], error: null },
@@ -336,13 +336,14 @@ async function loadBoard(payload: any) {
       columnId: row.column_id,
       title: row.title,
       summary:
+        payload.summary ??
         row.description?.split(/\r?\n/).find(Boolean) ??
         "Cartao importado do Trello",
       description: row.description ?? "",
       client: payload.client || "Interno",
       module: payload.module || "Trello",
       priority: priorityToUi(row.priority),
-      type: "Melhoria",
+      type: payload.type || "Melhoria",
       assigneeId: memberIds[0] ?? "u-ar",
       participants: memberIds,
       dueDate: row.due_at ? String(row.due_at).slice(0, 10) : "",
@@ -354,6 +355,7 @@ async function loadBoard(payload: any) {
         id: i.id,
         text: i.title,
         done: i.completed,
+        checklistTitle: i.checklist_title || "Checklist",
       })),
       commentsList: (cm[row.id] ?? []).map((i: any) => ({
         id: i.id,
@@ -364,10 +366,11 @@ async function loadBoard(payload: any) {
       attachmentsList: (at[row.id] ?? []).map((i: any) => ({
         id: i.id,
         name: i.name ?? "Anexo",
-        size: i.bytes ? String(i.bytes) : "",
+        size: i.source_payload?.displaySize || (i.bytes ? String(i.bytes) : ""),
         kind: i.mime_type ?? "link",
+        url: i.url ?? undefined,
       })),
-      activity: [],
+      activity: Array.isArray(payload.activity) ? payload.activity : [],
       relatedArticles: [],
       relatedVersions: [],
     };
@@ -416,8 +419,16 @@ async function saveCard(payload: any) {
     archived: Boolean(payload.archived),
     labels: (payload.tags ?? []).map((name: string) => ({ name })),
     member_legacy_ids: payload.memberIds ?? [],
+    source_payload: {
+      client: payload.client ?? "Interno",
+      module: payload.module ?? "Trello",
+      type: payload.type ?? "Melhoria",
+      summary: payload.summary ?? "",
+      activity: Array.isArray(payload.activity) ? payload.activity : [],
+    },
     updated_at: new Date().toISOString(),
   };
+  let cardId: string;
   if (isUuid) {
     const { data, error } = await admin
       .from("kanban_cards")
@@ -426,18 +437,71 @@ async function saveCard(payload: any) {
       .select("id")
       .single();
     if (error) throw error;
-    await touchBoardOfColumn(payload.columnId);
-    return { id: data.id };
+    cardId = data.id;
+  } else {
+    row.position = await nextCardPosition(payload.columnId);
+    const { data, error } = await admin
+      .from("kanban_cards")
+      .insert(row)
+      .select("id")
+      .single();
+    if (error) throw error;
+    cardId = data.id;
   }
-  row.position = await nextCardPosition(payload.columnId);
-  const { data, error } = await admin
-    .from("kanban_cards")
-    .insert(row)
-    .select("id")
-    .single();
-  if (error) throw error;
+
+  const cleanupResults = await Promise.all([
+    admin.from("kanban_checklist_items").delete().eq("card_id", cardId),
+    admin.from("kanban_comments").delete().eq("card_id", cardId),
+    admin.from("kanban_card_attachments").delete().eq("card_id", cardId),
+  ]);
+  const cleanupError = cleanupResults.find((result) => result.error)?.error;
+  if (cleanupError) throw cleanupError;
+
+  const checklist = Array.isArray(payload.checklist) ? payload.checklist : [];
+  const comments = Array.isArray(payload.commentsList) ? payload.commentsList : [];
+  const attachments = Array.isArray(payload.attachmentsList) ? payload.attachmentsList : [];
+  if (checklist.length) {
+    const { error } = await admin.from("kanban_checklist_items").insert(
+      checklist.map((item: any, position: number) => ({
+        card_id: cardId,
+        title: item.text,
+        completed: Boolean(item.done),
+        position,
+        checklist_title: item.checklistTitle || "Checklist",
+        legacy_id: `app-${cardId}-${position}`,
+      })),
+    );
+    if (error) throw error;
+  }
+  if (comments.length) {
+    const { error } = await admin.from("kanban_comments").insert(
+      comments.map((item: any, position: number) => ({
+        card_id: cardId,
+        body: item.text,
+        created_at: item.at || new Date().toISOString(),
+        author_legacy_id: item.authorId || "app",
+        legacy_id: `app-${cardId}-${position}`,
+      })),
+    );
+    if (error) throw error;
+  }
+  if (attachments.length) {
+    const { error } = await admin.from("kanban_card_attachments").insert(
+      attachments.map((item: any, position: number) => ({
+        card_id: cardId,
+        legacy_id: `app-${cardId}-${position}`,
+        name: item.name,
+        url: item.url || null,
+        mime_type: item.kind || "link",
+        position,
+        is_upload: false,
+        source_payload: { displaySize: item.size || "" },
+      })),
+    );
+    if (error) throw error;
+  }
   await touchBoardOfColumn(payload.columnId);
-  return { id: data.id };
+  return { id: cardId };
 }
 
 async function moveCard(payload: any) {

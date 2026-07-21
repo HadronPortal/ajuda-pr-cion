@@ -9,10 +9,21 @@ export type KanbanMember = {
   color: string;
 };
 
-export type ChecklistItem = { id: string; text: string; done: boolean };
+export type ChecklistItem = {
+  id: string;
+  text: string;
+  done: boolean;
+  checklistTitle?: string;
+};
 export type CommentEntry = { id: string; authorId: string; at: string; text: string };
 export type ActivityEntry = { id: string; at: string; text: string; authorId?: string };
-export type AttachmentItem = { id: string; name: string; size: string; kind: string };
+export type AttachmentItem = {
+  id: string;
+  name: string;
+  size: string;
+  kind: string;
+  url?: string;
+};
 export type RelatedArticle = { id: string; title: string; category: string };
 export type RelatedVersion = { id: string; version: string; date: string; note: string };
 

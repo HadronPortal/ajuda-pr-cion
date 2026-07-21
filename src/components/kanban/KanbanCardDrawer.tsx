@@ -159,6 +159,7 @@ export function KanbanCardDrawer({
   const [tagsInput, setTagsInput] = useState((card?.tags ?? []).join(", "));
   const [newComment, setNewComment] = useState("");
   const [newChecklistItem, setNewChecklistItem] = useState("");
+  const [newChecklistTitle, setNewChecklistTitle] = useState("Checklist");
   const [newAttachment, setNewAttachment] = useState("");
 
   useEffect(() => {
@@ -168,6 +169,7 @@ export function KanbanCardDrawer({
       setTagsInput((base.tags ?? []).join(", "));
       setNewComment("");
       setNewChecklistItem("");
+      setNewChecklistTitle(base.checklist?.[0]?.checklistTitle || "Checklist");
       setNewAttachment("");
     }
   }, [open, card, defaultColumnId]);
@@ -227,7 +229,15 @@ export function KanbanCardDrawer({
     if (!t) return;
     setDraft((d) => ({
       ...d,
-      checklist: [...(d.checklist ?? []), { id: uid("ck"), text: t, done: false }],
+      checklist: [
+        ...(d.checklist ?? []),
+        {
+          id: uid("ck"),
+          text: t,
+          done: false,
+          checklistTitle: newChecklistTitle.trim() || "Checklist",
+        },
+      ],
     }));
     setNewChecklistItem("");
   };
@@ -351,6 +361,15 @@ export function KanbanCardDrawer({
     return Math.round((items.filter((i) => i.done).length / items.length) * 100);
   }, [draft.checklist]);
 
+  const checklistGroups = useMemo(() => {
+    const groups = new Map<string, ChecklistItem[]>();
+    for (const item of draft.checklist ?? []) {
+      const title = item.checklistTitle?.trim() || "Checklist";
+      groups.set(title, [...(groups.get(title) ?? []), item]);
+    }
+    return [...groups.entries()];
+  }, [draft.checklist]);
+
   const assignee = memberById(draft.assigneeId);
   const isCritical = draft.priority === "Crítica";
 
@@ -434,22 +453,58 @@ export function KanbanCardDrawer({
                     </div>
                   )}
                 </div>
-                <div className="space-y-1.5">
-                  {(draft.checklist ?? []).map((item) => (
-                    <ChecklistRow
-                      key={item.id}
-                      item={item}
-                      onToggle={() => toggleChecklist(item.id)}
-                      onRemove={() => removeChecklist(item.id)}
-                    />
-                  ))}
-                  {(draft.checklist ?? []).length === 0 && (
+                <div className="space-y-4">
+                  {checklistGroups.map(([title, items]) => {
+                    const completed = items.filter((item) => item.done).length;
+                    const progress = Math.round((completed / items.length) * 100);
+                    return (
+                      <div key={title} className="rounded-lg border border-border bg-card p-3 space-y-2">
+                        <div className="flex items-center justify-between gap-3">
+                          <div>
+                            <p className="text-sm font-medium">{title}</p>
+                            <p className="text-[11px] text-muted-foreground">
+                              {completed} de {items.length} concluídos
+                            </p>
+                          </div>
+                          <div className="flex w-36 items-center gap-2">
+                            <Progress value={progress} className="h-1.5" />
+                            <span className="w-8 text-right text-[11px] tabular-nums text-muted-foreground">
+                              {progress}%
+                            </span>
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          {items.map((item) => (
+                            <ChecklistRow
+                              key={item.id}
+                              item={item}
+                              onToggle={() => toggleChecklist(item.id)}
+                              onRemove={() => removeChecklist(item.id)}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {checklistGroups.length === 0 && (
                     <p className="text-xs text-muted-foreground italic">
                       Nenhum item adicionado.
                     </p>
                   )}
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-[180px_minmax(0,1fr)_auto]">
+                  <Input
+                    value={newChecklistTitle}
+                    onChange={(e) => setNewChecklistTitle(e.target.value)}
+                    placeholder="Nome do checklist"
+                    className="h-9 text-sm"
+                    list="kanban-checklist-titles"
+                  />
+                  <datalist id="kanban-checklist-titles">
+                    {checklistGroups.map(([title]) => (
+                      <option key={title} value={title} />
+                    ))}
+                  </datalist>
                   <Input
                     value={newChecklistItem}
                     onChange={(e) => setNewChecklistItem(e.target.value)}
@@ -457,7 +512,7 @@ export function KanbanCardDrawer({
                     placeholder="Adicionar item ao checklist..."
                     className="h-9 text-sm"
                   />
-                  <Button size="sm" variant="secondary" onClick={addChecklistItem}>
+                  <Button size="sm" variant="secondary" onClick={addChecklistItem} className="cursor-pointer">
                     <Plus className="h-4 w-4 mr-1" /> Adicionar
                   </Button>
                 </div>
@@ -481,7 +536,18 @@ export function KanbanCardDrawer({
                           {a.kind.slice(0, 4)}
                         </div>
                         <div className="min-w-0">
-                          <p className="text-sm font-medium truncate">{a.name}</p>
+                          {a.url ? (
+                            <a
+                              href={a.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="block truncate text-sm font-medium text-primary hover:underline"
+                            >
+                              {a.name}
+                            </a>
+                          ) : (
+                            <p className="text-sm font-medium truncate">{a.name}</p>
+                          )}
                           <p className="text-[11px] text-muted-foreground">{a.size}</p>
                         </div>
                       </div>
