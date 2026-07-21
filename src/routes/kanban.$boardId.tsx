@@ -98,6 +98,7 @@ export const Route = createFileRoute("/kanban/$boardId")({
 });
 
 type DueFilter = "all" | "overdue" | "today" | "week" | "no-date";
+type CompletionFilter = "all" | "open" | "completed";
 type ViewMode = "kanban" | "list" | "calendar";
 
 type Filters = {
@@ -108,6 +109,7 @@ type Filters = {
   status: string;
   tag: string;
   due: DueFilter;
+  completion: CompletionFilter;
 };
 
 const emptyFilters: Filters = {
@@ -118,6 +120,7 @@ const emptyFilters: Filters = {
   status: "all",
   tag: "all",
   due: "all",
+  completion: "all",
 };
 
 function daysBetween(iso: string) {
@@ -254,6 +257,15 @@ function KanbanPage() {
       if (filters.type !== "all" && c.type !== filters.type) return false;
       if (filters.status !== "all" && c.columnId !== filters.status) return false;
       if (filters.tag !== "all" && !c.tags.includes(filters.tag)) return false;
+      if (filters.completion !== "all") {
+        const column = columns.find((item) => item.id === c.columnId);
+        const isCompleted =
+          c.archived === true ||
+          c.columnId === "arquivado" ||
+          /conclu|finaliz|arquivad/i.test(column?.title ?? "");
+        if (filters.completion === "completed" && !isCompleted) return false;
+        if (filters.completion === "open" && isCompleted) return false;
+      }
       if (filters.due !== "all") {
         if (!c.dueDate) {
           if (filters.due !== "no-date") return false;
@@ -275,7 +287,7 @@ function KanbanPage() {
         c.tags.some((t) => t.toLowerCase().includes(q))
       );
     });
-  }, [cards, query, filters, onlyMine]);
+  }, [cards, query, filters, onlyMine, columns]);
 
 
 
@@ -571,16 +583,36 @@ function KanbanPage() {
                   {activeFilterCount > 0 && <Badge className="ml-2 h-5 min-w-5 bg-primary text-[10px]">{activeFilterCount}</Badge>}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-80 p-4" align="end">
+              <PopoverContent className="app-scrollbar max-h-[min(620px,calc(100dvh-120px))] w-80 overflow-y-auto p-0" align="end">
                 <div className="mb-3 flex items-center justify-between">
-                  <p className="text-sm font-semibold">Filtros</p>
+                  <div className="sticky top-0 z-10 flex w-full items-center justify-between border-b bg-popover px-4 py-3">
+                    <div>
+                      <p className="text-sm font-semibold">Filtrar cartões</p>
+                      <p className="text-[11px] text-muted-foreground">Combine critérios para refinar o quadro.</p>
+                    </div>
                   {activeFilterCount > 0 && (
                     <button onClick={clearFilters} className="cursor-pointer text-xs text-muted-foreground hover:text-foreground">
                       Limpar
                     </button>
                   )}
+                  </div>
                 </div>
-                <div className="space-y-3">
+                <div className="space-y-4 px-4 pb-4">
+                  <div className="rounded-lg border bg-muted/30 p-3">
+                    <p className="mb-2 text-[11px] font-semibold uppercase text-muted-foreground">Conclusão</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <FilterChoiceButton
+                        active={filters.completion === "open"}
+                        label="Em aberto"
+                        onClick={() => setFilters({ ...filters, completion: filters.completion === "open" ? "all" : "open" })}
+                      />
+                      <FilterChoiceButton
+                        active={filters.completion === "completed"}
+                        label="Concluídos"
+                        onClick={() => setFilters({ ...filters, completion: filters.completion === "completed" ? "all" : "completed" })}
+                      />
+                    </div>
+                  </div>
                   <FilterSelect label="Cliente" value={filters.client} onChange={(v) => setFilters({ ...filters, client: v })} options={[{ value: "all", label: "Todos" }, { value: "Interno", label: "Interno" }, ...kanbanClients.map((c) => ({ value: c, label: c }))]} />
                   <FilterSelect label="Responsavel" value={filters.assignee} onChange={(v) => setFilters({ ...filters, assignee: v })} options={[{ value: "all", label: "Todos" }, ...kanbanMembers.map((m) => ({ value: m.id, label: m.name }))]} />
                   <FilterSelect label="Prioridade" value={filters.priority} onChange={(v) => setFilters({ ...filters, priority: v as Priority | "all" })} options={[{ value: "all", label: "Todas" }, ...priorities.map((p) => ({ value: p, label: p }))]} />
@@ -989,5 +1021,31 @@ function FilterSelect({
         </SelectContent>
       </Select>
     </div>
+  );
+}
+
+function FilterChoiceButton({
+  active,
+  label,
+  onClick,
+}: {
+  active: boolean;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "flex h-9 cursor-pointer items-center justify-center gap-2 rounded-md border px-2 text-xs transition",
+        active
+          ? "border-primary bg-primary/10 text-primary"
+          : "border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground",
+      )}
+    >
+      <CheckCircle2 className={cn("h-3.5 w-3.5", active && "fill-primary/15")} />
+      {label}
+    </button>
   );
 }

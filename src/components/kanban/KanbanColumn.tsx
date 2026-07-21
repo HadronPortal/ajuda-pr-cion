@@ -73,7 +73,7 @@ export function KanbanColumnView({
   const meta = columnMeta[column.id] ?? columnMeta["a-fazer"];
 
   return (
-    <section className="relative flex h-[clamp(470px,calc(100vh-220px),760px)] w-[270px] shrink-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white p-3 shadow-sm dark:border-white/7 dark:bg-white/[0.045] dark:shadow-[0_18px_40px_rgba(0,0,0,0.16)]">
+    <section className="relative flex h-[clamp(390px,calc(100dvh-250px),720px)] w-[270px] shrink-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white p-3 shadow-sm dark:border-white/7 dark:bg-white/[0.045] dark:shadow-[0_18px_40px_rgba(0,0,0,0.16)]">
       <div className="mb-3 flex h-7 items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2">
           <span className={cn("h-2 w-2 shrink-0 rounded-full", meta.dot)} />
