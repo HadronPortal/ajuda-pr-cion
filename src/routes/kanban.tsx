@@ -626,6 +626,21 @@ function KanbanPage() {
           <div className="grid min-h-[420px] place-items-center text-sm text-slate-500">
             Carregando quadro do Supabase...
           </div>
+        ) : loadError ? (
+          <div className="grid min-h-[420px] place-items-center rounded-xl border border-dashed border-slate-300 bg-white/50 p-8 text-center dark:border-white/10 dark:bg-white/[0.02]">
+            <div className="max-w-md">
+              <p className="text-sm font-bold text-slate-900 dark:text-white">
+                Não foi possível carregar o quadro. Tente novamente.
+              </p>
+              <Button
+                size="sm"
+                className="mt-4 cursor-pointer"
+                onClick={() => setReloadKey((k) => k + 1)}
+              >
+                Tentar novamente
+              </Button>
+            </div>
+          </div>
         ) : viewMode !== "kanban" ? (
           <div className="grid place-items-center rounded-xl border border-dashed border-slate-300 bg-white/50 p-16 text-center dark:border-white/10 dark:bg-white/[0.02]">
             <div className="max-w-md">
