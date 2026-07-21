@@ -78,10 +78,15 @@ export const listKanbanWorkspaces = async () => {
     ]);
     if (error) throw error;
     const boards = boardResult.boards ?? [];
+    const workspaces = (data ?? []) as Omit<WorkspaceSummary, "boards">[];
+    const knownWorkspaceIds = new Set(workspaces.map((workspace) => workspace.id));
     return {
-      workspaces: ((data ?? []) as Omit<WorkspaceSummary, "boards">[]).map((workspace) => ({
+      workspaces: workspaces.map((workspace, index) => ({
         ...workspace,
-        boards: boards.filter((board) => board.workspaceId === workspace.id),
+        boards: boards.filter((board) =>
+          board.workspaceId === workspace.id
+          || (index === 0 && (!board.workspaceId || !knownWorkspaceIds.has(board.workspaceId))),
+        ),
       })),
     };
   }
