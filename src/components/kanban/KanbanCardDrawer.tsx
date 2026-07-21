@@ -584,7 +584,7 @@ export function KanbanCardDrawer({
                       </div>
                       <button
                         onClick={() => removeAttachment(a.id)}
-                        className="text-muted-foreground hover:text-destructive p-1"
+                        className="cursor-pointer text-muted-foreground hover:text-destructive p-1"
                         aria-label="Remover anexo"
                       >
                         <X className="h-4 w-4" />
