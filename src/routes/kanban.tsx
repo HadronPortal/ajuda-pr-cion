@@ -1,5 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import {
+  createFileRoute,
+  Link,
+  Outlet,
+  useNavigate,
+  useRouterState,
+} from "@tanstack/react-router";
 import { toast } from "sonner";
 import {
   LayoutGrid,
@@ -60,8 +66,15 @@ export const Route = createFileRoute("/kanban")({
       },
     ],
   }),
-  component: BoardListPage,
+  component: KanbanRoute,
 });
+
+function KanbanRoute() {
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const isBoardList = pathname === "/kanban" || pathname === "/kanban/";
+
+  return isBoardList ? <BoardListPage /> : <Outlet />;
+}
 
 type FilterTab = "all" | "mine" | "favorites";
 const CURRENT_USER_ID = "u-ar"; // legacy placeholder while auth is not wired
