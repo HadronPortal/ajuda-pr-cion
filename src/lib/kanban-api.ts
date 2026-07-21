@@ -68,8 +68,24 @@ export type WorkspaceSummary = {
   boards: BoardSummary[];
 };
 
-export const listKanbanWorkspaces = () =>
-  invoke<{ workspaces: WorkspaceSummary[] }>("listWorkspaces");
+export const listKanbanWorkspaces = async () => {
+  try {
+    return await invoke<{ workspaces: WorkspaceSummary[] }>("listWorkspaces");
+  } catch {
+    const [{ data, error }, boardResult] = await Promise.all([
+      (supabase as any).rpc("get_kanban_workspaces"),
+      invoke<{ boards: BoardSummary[] }>("listBoards"),
+    ]);
+    if (error) throw error;
+    const boards = boardResult.boards ?? [];
+    return {
+      workspaces: ((data ?? []) as Omit<WorkspaceSummary, "boards">[]).map((workspace) => ({
+        ...workspace,
+        boards: boards.filter((board) => board.workspaceId === workspace.id),
+      })),
+    };
+  }
+};
 
 export const createKanbanWorkspace = (input: Wrapped<{
   name: string;
@@ -80,7 +96,7 @@ export const createKanbanWorkspace = (input: Wrapped<{
   settings?: WorkspaceSummary["settings"];
 }>) => invoke<{ id: string }>("createWorkspace", unwrap(input));
 
-export const updateKanbanWorkspace = (input: Wrapped<{
+export const updateKanbanWorkspace = async (input: Wrapped<{
   id: string;
   name?: string;
   slug?: string;
@@ -88,7 +104,20 @@ export const updateKanbanWorkspace = (input: Wrapped<{
   website?: string;
   visibility?: string;
   settings?: WorkspaceSummary["settings"];
-}>) => invoke<{ ok: true }>("updateWorkspace", unwrap(input));
+}>) => {
+  const data = unwrap(input);
+  const { error } = await (supabase as any).rpc("update_kanban_workspace", {
+    workspace_id: data.id,
+    workspace_name: data.name,
+    workspace_slug: data.slug,
+    workspace_description: data.description ?? "",
+    workspace_website: data.website ?? "",
+    workspace_visibility: data.visibility ?? "private",
+    workspace_settings: data.settings,
+  });
+  if (error) throw error;
+  return { ok: true as const };
+};
 
 export const listWorkspaceMembers = (input: Wrapped<{ workspaceId: string }>) =>
   invoke<{ members: BoardMember[] }>("listWorkspaceMembers", unwrap(input));
