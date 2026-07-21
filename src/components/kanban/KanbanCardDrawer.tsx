@@ -171,7 +171,7 @@ export function KanbanCardDrawer({
       setNewComment("");
       setNewChecklistItem("");
       setNewChecklistTitle(base.checklist?.[0]?.checklistTitle || "Checklist");
-      setNewAttachment("");
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   }, [open, card, defaultColumnId]);
 
