@@ -153,8 +153,14 @@ export type BoardMember = {
   role?: string;
 };
 
-export const loadKanbanBoard = (input: Wrapped<{ boardId: string }>) =>
-  invoke<any>("loadBoard", unwrap(input));
+export const loadKanbanBoard = async (input: Wrapped<{ boardId: string }>) => {
+  const { boardId } = unwrap(input);
+  const { data, error } = await supabase.rpc("load_kanban_board_payload", {
+    target_board_id: boardId,
+  });
+  if (error || !data) throw new KanbanUnavailableError();
+  return data as { board: any; columns: any[]; cards: any[] };
+};
 
 export const getKanbanBoard = (input: Wrapped<{ boardId: string }>) =>
   invoke<{ board: BoardSummary | null }>("getBoard", unwrap(input));
