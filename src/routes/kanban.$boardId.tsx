@@ -82,7 +82,7 @@ import {
 const CURRENT_USER_ID = "u-ar";
 
 
-export const Route = createFileRoute("/kanban")({
+export const Route = createFileRoute("/kanban/$boardId")({
   head: () => ({
     meta: [
       { title: "Kanban Prócion - Demandas" },
