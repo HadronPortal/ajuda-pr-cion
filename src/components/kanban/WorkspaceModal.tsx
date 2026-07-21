@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Building2, Search, ShieldCheck, Trash2, UserPlus, Users } from "lucide-react";
+import { Building2, Globe2, LayoutGrid, LockKeyhole, Search, ShieldCheck, Trash2, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -26,6 +26,20 @@ const roleLabel: Record<string, string> = {
   guest: "Convidado",
 };
 
+const defaultSettings: WorkspaceSummary["settings"] = {
+  memberRestriction: "admins",
+  boardCreation: "members",
+  boardDeletion: "admins",
+  guestSharing: "admins",
+};
+
+const slugify = (value: string) => value
+  .normalize("NFD")
+  .replace(/[\u0300-\u036f]/g, "")
+  .toLowerCase()
+  .replace(/[^a-z0-9]+/g, "-")
+  .replace(/^-|-$/g, "");
+
 export function WorkspaceModal({
   open,
   onOpenChange,
@@ -41,8 +55,11 @@ export function WorkspaceModal({
 }) {
   const [tab, setTab] = useState(initialTab);
   const [name, setName] = useState("");
+  const [slug, setSlug] = useState("");
+  const [website, setWebsite] = useState("");
   const [description, setDescription] = useState("");
   const [visibility, setVisibility] = useState("private");
+  const [settings, setSettings] = useState<WorkspaceSummary["settings"]>(defaultSettings);
   const [members, setMembers] = useState<BoardMember[]>([]);
   const [available, setAvailable] = useState<BoardMember[]>([]);
   const [query, setQuery] = useState("");
@@ -52,8 +69,11 @@ export function WorkspaceModal({
     if (!open) return;
     setTab(initialTab);
     setName(workspace?.name ?? "");
+    setSlug(workspace?.slug ?? "");
+    setWebsite(workspace?.website ?? "");
     setDescription(workspace?.description ?? "");
     setVisibility(workspace?.visibility ?? "private");
+    setSettings(workspace?.settings ?? defaultSettings);
     if (!workspace) return;
     Promise.all([
       listWorkspaceMembers({ data: { workspaceId: workspace.id } }),
@@ -75,13 +95,15 @@ export function WorkspaceModal({
 
   const save = async () => {
     if (!name.trim()) return toast.error("Informe o nome da área de trabalho.");
+    const normalizedSlug = slugify(slug || name);
+    if (!normalizedSlug) return toast.error("Informe um nome curto válido.");
     setSaving(true);
     try {
       if (workspace) {
-        await updateKanbanWorkspace({ data: { id: workspace.id, name: name.trim(), description: description.trim(), visibility } });
+        await updateKanbanWorkspace({ data: { id: workspace.id, name: name.trim(), slug: normalizedSlug, website: website.trim(), description: description.trim(), visibility, settings } });
         toast.success("Área de trabalho atualizada.");
       } else {
-        await createKanbanWorkspace({ data: { name: name.trim(), description: description.trim(), visibility } });
+        await createKanbanWorkspace({ data: { name: name.trim(), slug: normalizedSlug, website: website.trim(), description: description.trim(), visibility, settings } });
         toast.success("Área de trabalho criada.");
       }
       onChanged();
@@ -107,7 +129,7 @@ export function WorkspaceModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[88vh] overflow-y-auto sm:max-w-2xl" onInteractOutside={(event) => event.preventDefault()}>
+      <DialogContent className="max-h-[88vh] overflow-y-auto sm:max-w-3xl" onInteractOutside={(event) => event.preventDefault()}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-lg font-medium">
             <Building2 className="h-5 w-5 text-primary" />
@@ -124,18 +146,50 @@ export function WorkspaceModal({
             </TabsList>
           )}
           <TabsContent value="settings" className="mt-4 space-y-4">
-            <div className="space-y-2"><Label htmlFor="workspace-name">Nome</Label><Input id="workspace-name" value={name} onChange={(event) => setName(event.target.value)} /></div>
-            <div className="space-y-2"><Label htmlFor="workspace-description">Descrição</Label><Textarea id="workspace-description" rows={3} value={description} onChange={(event) => setDescription(event.target.value)} /></div>
-            <div className="space-y-2">
-              <Label>Visibilidade</Label>
+            <section className="rounded-md border bg-white p-4 dark:bg-slate-950">
+              <div className="mb-4 flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary/10 text-primary"><Building2 className="h-5 w-5" /></div>
+                <div><h3 className="text-sm font-medium">Identidade da área</h3><p className="text-xs text-slate-500">Informações exibidas nos quadros e convites.</p></div>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2"><Label htmlFor="workspace-name">Nome *</Label><Input id="workspace-name" value={name} onChange={(event) => { setName(event.target.value); if (!workspace) setSlug(slugify(event.target.value)); }} /></div>
+                <div className="space-y-2"><Label htmlFor="workspace-slug">Nome curto *</Label><Input id="workspace-slug" value={slug} onChange={(event) => setSlug(slugify(event.target.value))} placeholder="desenvolvimento-procion" /></div>
+                <div className="space-y-2 sm:col-span-2"><Label htmlFor="workspace-website">Site</Label><Input id="workspace-website" type="url" value={website} onChange={(event) => setWebsite(event.target.value)} placeholder="https://procion.com" /></div>
+                <div className="space-y-2 sm:col-span-2"><Label htmlFor="workspace-description">Descrição</Label><Textarea id="workspace-description" rows={3} value={description} onChange={(event) => setDescription(event.target.value)} /></div>
+              </div>
+            </section>
+
+            <section className="rounded-md border bg-white p-4 dark:bg-slate-950">
+              <div className="mb-3 flex items-center gap-2"><Globe2 className="h-4 w-4 text-primary" /><h3 className="text-sm font-medium">Visibilidade</h3></div>
               <Select value={visibility} onValueChange={setVisibility}>
                 <SelectTrigger className="cursor-pointer"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="private" className="cursor-pointer">Privada</SelectItem>
-                  <SelectItem value="company" className="cursor-pointer">Toda a empresa</SelectItem>
-                </SelectContent>
+                <SelectContent><SelectItem value="private" className="cursor-pointer">Privada: somente membros convidados</SelectItem><SelectItem value="company" className="cursor-pointer">Empresa: todos da Prócion podem encontrar</SelectItem></SelectContent>
               </Select>
-            </div>
+            </section>
+
+            <section className="rounded-md border bg-white p-4 dark:bg-slate-950">
+              <div className="mb-1 flex items-center gap-2"><LockKeyhole className="h-4 w-4 text-primary" /><h3 className="text-sm font-medium">Regras administrativas</h3></div>
+              <p className="mb-4 text-xs text-slate-500">Defina quem pode administrar pessoas, quadros e convidados.</p>
+              <div className="divide-y rounded-md border">
+                {([
+                  ["memberRestriction", "Adicionar membros", "Quem pode convidar pessoas para esta área"],
+                  ["boardCreation", "Criar quadros", "Quem pode criar novos quadros"],
+                  ["boardDeletion", "Excluir quadros", "Quem pode remover quadros da área"],
+                  ["guestSharing", "Convidar externos", "Quem pode compartilhar quadros com convidados"],
+                ] as const).map(([key, title, detail]) => (
+                  <div key={key} className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center">
+                    <LayoutGrid className="h-4 w-4 shrink-0 text-slate-500" />
+                    <div className="min-w-0 flex-1"><p className="text-sm">{title}</p><p className="text-xs text-slate-500">{detail}</p></div>
+                    <Select value={settings[key]} onValueChange={(value) => setSettings((current) => ({ ...current, [key]: value }))}>
+                      <SelectTrigger className="w-full cursor-pointer sm:w-48"><SelectValue /></SelectTrigger>
+                      <SelectContent><SelectItem value="admins" className="cursor-pointer">Somente administradores</SelectItem><SelectItem value="members" className="cursor-pointer">Todos os membros</SelectItem></SelectContent>
+                    </Select>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {workspace && <section className="flex items-center justify-between gap-4 rounded-md border border-red-200 bg-white p-4 dark:border-red-900/60 dark:bg-slate-950"><div><h3 className="text-sm font-medium text-red-600">Excluir área de trabalho</h3><p className="text-xs text-slate-500">Remova ou transfira os quadros antes de excluir esta área.</p></div><Button variant="outline" disabled className="shrink-0 border-red-200 text-red-600"><Trash2 className="mr-2 h-4 w-4" />Excluir área</Button></section>}
           </TabsContent>
           {workspace && (
             <TabsContent value="members" className="mt-4 space-y-4">

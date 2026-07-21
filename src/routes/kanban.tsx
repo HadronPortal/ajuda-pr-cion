@@ -142,9 +142,17 @@ function BoardListPage() {
           setWorkspaces([{
             id: "legacy",
             name: "Desenvolvimento Procion",
+            slug: "desenvolvimento-procion",
             description: "Projetos, melhorias e demandas internas da Procion.",
+            website: "",
             logoUrl: null,
             visibility: "private",
+            settings: {
+              memberRestriction: "admins",
+              boardCreation: "members",
+              boardDeletion: "admins",
+              guestSharing: "admins",
+            },
             membershipRole: "admin",
             membersCount: 0,
             boards: fallbackBoards,

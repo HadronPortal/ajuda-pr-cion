@@ -113,7 +113,7 @@ async function listWorkspaces() {
   const [{ data: workspaces, error }, boardsResult, membersResult] = await Promise.all([
     admin
       .from("kanban_workspaces")
-      .select("id, name, description, logo_url, visibility, owner_id, created_at")
+      .select("id, name, slug, description, website, logo_url, visibility, settings, owner_id, created_at")
       .order("created_at", { ascending: true }),
     listBoards(),
     admin
@@ -129,9 +129,17 @@ async function listWorkspaces() {
     workspaces: (workspaces ?? []).map((workspace: any, index: number) => ({
       id: workspace.id,
       name: workspace.name,
+      slug: workspace.slug ?? "",
       description: workspace.description ?? "",
+      website: workspace.website ?? "",
       logoUrl: workspace.logo_url ?? null,
       visibility: workspace.visibility ?? "private",
+      settings: workspace.settings ?? {
+        memberRestriction: "admins",
+        boardCreation: "members",
+        boardDeletion: "admins",
+        guestSharing: "admins",
+      },
       membershipRole: index === 0 ? "admin" : "member",
       membersCount: (membersByWorkspace[workspace.id] ?? []).length,
       boards: boardsByWorkspace[workspace.id] ?? [],
@@ -144,8 +152,11 @@ async function createWorkspace(payload: any) {
     .from("kanban_workspaces")
     .insert({
       name: String(payload?.name ?? "").trim(),
+      slug: String(payload?.slug ?? "").trim() || null,
       description: String(payload?.description ?? "").trim(),
+      website: String(payload?.website ?? "").trim(),
       visibility: payload?.visibility === "company" ? "company" : "private",
+      settings: payload?.settings ?? undefined,
     })
     .select("id")
     .single();
@@ -156,8 +167,11 @@ async function createWorkspace(payload: any) {
 async function updateWorkspace(payload: any) {
   const patch: any = {};
   if (payload.name !== undefined) patch.name = String(payload.name).trim();
+  if (payload.slug !== undefined) patch.slug = String(payload.slug).trim();
   if (payload.description !== undefined) patch.description = String(payload.description).trim();
+  if (payload.website !== undefined) patch.website = String(payload.website).trim();
   if (payload.visibility !== undefined) patch.visibility = payload.visibility;
+  if (payload.settings !== undefined) patch.settings = payload.settings;
   const { error } = await admin.from("kanban_workspaces").update(patch).eq("id", payload.id);
   if (error) throw error;
   return { ok: true };

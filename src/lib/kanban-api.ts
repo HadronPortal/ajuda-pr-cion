@@ -52,9 +52,17 @@ export type BoardSummary = {
 export type WorkspaceSummary = {
   id: string;
   name: string;
+  slug: string;
   description: string;
+  website: string;
   logoUrl: string | null;
   visibility: "private" | "company" | string;
+  settings: {
+    memberRestriction: "admins" | "members";
+    boardCreation: "admins" | "members";
+    boardDeletion: "admins" | "members";
+    guestSharing: "admins" | "members";
+  };
   membershipRole: "admin" | "member" | "guest" | string;
   membersCount: number;
   boards: BoardSummary[];
@@ -65,15 +73,21 @@ export const listKanbanWorkspaces = () =>
 
 export const createKanbanWorkspace = (input: Wrapped<{
   name: string;
+  slug?: string;
   description?: string;
+  website?: string;
   visibility?: string;
+  settings?: WorkspaceSummary["settings"];
 }>) => invoke<{ id: string }>("createWorkspace", unwrap(input));
 
 export const updateKanbanWorkspace = (input: Wrapped<{
   id: string;
   name?: string;
+  slug?: string;
   description?: string;
+  website?: string;
   visibility?: string;
+  settings?: WorkspaceSummary["settings"];
 }>) => invoke<{ ok: true }>("updateWorkspace", unwrap(input));
 
 export const listWorkspaceMembers = (input: Wrapped<{ workspaceId: string }>) =>
