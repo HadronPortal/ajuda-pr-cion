@@ -342,8 +342,8 @@ function BoardListPage() {
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
                     <Button variant="secondary" size="sm" className="cursor-pointer gap-2"><LayoutGrid className="h-4 w-4" />Quadros</Button>
-                    <Button variant="outline" size="sm" className="cursor-pointer gap-2" disabled={workspace.id === "legacy"} onClick={() => setWorkspaceModal({ workspace, tab: "members" })}><Users className="h-4 w-4" />Membros <span className="text-xs text-slate-400">{workspace.membersCount || ""}</span></Button>
-                    <Button variant="outline" size="sm" className="cursor-pointer gap-2" disabled={workspace.id === "legacy"} onClick={() => setWorkspaceModal({ workspace, tab: "settings" })}><Settings className="h-4 w-4" />Configurações</Button>
+                    <Button variant="outline" size="sm" className="cursor-pointer gap-2" onClick={() => setWorkspaceModal({ workspace, tab: "members" })}><Users className="h-4 w-4" />Membros <span className="text-xs text-slate-400">{workspace.membersCount || ""}</span></Button>
+                    <Button variant="outline" size="sm" className="cursor-pointer gap-2" onClick={() => setWorkspaceModal({ workspace, tab: "settings" })}><Settings className="h-4 w-4" />Configurações</Button>
                   </div>
                 </div>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
