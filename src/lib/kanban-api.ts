@@ -211,7 +211,7 @@ export const removeBoardMember = (input: Wrapped<{ boardId: string; profileId: s
 
 /* ---------- Cards & Columns ---------- */
 
-export const saveKanbanCard = (input: Wrapped<{
+export const saveKanbanCard = async (input: Wrapped<{
   id?: string;
   columnId: string;
   title: string;
@@ -229,7 +229,18 @@ export const saveKanbanCard = (input: Wrapped<{
   commentsList?: Array<{ id: string; authorId: string; at: string; text: string }>;
   attachmentsList?: Array<{ id: string; name: string; size: string; kind: string; url?: string }>;
   activity?: Array<{ id: string; at: string; text: string; authorId?: string }>;
-}>) => invoke<{ id: string }>("updateCard", unwrap(input));
+}>) => {
+  const payload = unwrap(input);
+  const { data, error } = await supabase.rpc("save_kanban_card_payload", {
+    payload,
+  });
+
+  if (error || !data || typeof data.id !== "string") {
+    throw new KanbanUnavailableError();
+  }
+
+  return data as { id: string };
+};
 
 export const moveKanbanCard = (input: Wrapped<{
   cardId: string;
