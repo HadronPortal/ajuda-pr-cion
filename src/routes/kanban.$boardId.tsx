@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import {
   DndContext,
@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
+  ArrowLeft,
   BarChart3,
   Bell,
   BriefcaseBusiness,
@@ -167,10 +168,12 @@ function normalizeColumnId(title: string, columns: KanbanColumn[]): ColumnId {
 }
 
 function KanbanPage() {
+  const { boardId: boardIdParam } = Route.useParams();
   const cards = useKanbanCards();
   const setCards = kanbanStore.setCards;
   const [columns, setColumns] = useState<KanbanColumn[]>(getInitialColumns);
-  const [boardId, setBoardId] = useState<string | null>(null);
+  const [boardId, setBoardId] = useState<string | null>(boardIdParam ?? null);
+  const [boardName, setBoardName] = useState<string>("");
   const [loadingBoard, setLoadingBoard] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
@@ -205,10 +208,14 @@ function KanbanPage() {
     let active = true;
     setLoadingBoard(true);
     setLoadError(false);
-    loadKanbanBoard()
+    loadKanbanBoard({ data: { boardId: boardIdParam } })
       .then((result) => {
-        if (!active || !result.board) return;
+        if (!active || !result.board) {
+          if (active) setLoadError(true);
+          return;
+        }
         setBoardId(result.board.id);
+        setBoardName(result.board.name ?? "");
         setColumns(result.columns);
         kanbanStore.hydrate(result.cards as KanbanCard[]);
         setDefaultColumnId(result.columns[0]?.id ?? "a-fazer");
@@ -222,7 +229,7 @@ function KanbanPage() {
     return () => {
       active = false;
     };
-  }, [reloadKey]);
+  }, [reloadKey, boardIdParam]);
 
   useEffect(() => {
     window.localStorage.setItem(
