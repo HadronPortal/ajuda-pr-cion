@@ -61,8 +61,8 @@ const nav: NavItem[] = [
   { to: "/iniciar-hadron", label: "Hadron", icon: HadronIcon },
   { to: "/base-de-conhecimento", label: "Base", icon: BaseIcon },
   { to: "/atualizacoes", label: "Atualizações", icon: UpdatesIcon },
-  { to: "/kanban", label: "Kanban", icon: KanbanIcon },
   { to: "/analytics", label: "Analytics", icon: AnalyticsIcon },
+  { to: "/kanban", label: "Kanban", icon: KanbanIcon },
   { to: "/clientes", label: "Clientes", icon: CustomersIcon },
 ];
 
