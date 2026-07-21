@@ -161,7 +161,7 @@ export function KanbanCardDrawer({
   const [newComment, setNewComment] = useState("");
   const [newChecklistItem, setNewChecklistItem] = useState("");
   const [newChecklistTitle, setNewChecklistTitle] = useState("Checklist");
-  const [newAttachment, setNewAttachment] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (open) {
