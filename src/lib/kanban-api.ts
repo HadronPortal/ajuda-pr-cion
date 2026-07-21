@@ -22,7 +22,7 @@ async function getPool(): Promise<DbClient> {
     throw new KanbanUnavailableError();
   }
   const { Pool } = await import("pg");
-  pool = new Pool({ connectionString, ssl: { rejectUnauthorized: false }, max: 5 });
+  pool = new Pool({ connectionString, ssl: { rejectUnauthorized: false }, max: 5 }) as unknown as DbClient;
   return pool;
 }
 
