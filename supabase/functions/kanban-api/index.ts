@@ -386,8 +386,8 @@ async function loadBoard(payload: any) {
           ? payload.attachmentsList
           : [],
       activity: Array.isArray(payload.activity) ? payload.activity : [],
-      relatedArticles: [],
-      relatedVersions: [],
+      relatedArticles: Array.isArray(payload.relatedArticles) ? payload.relatedArticles : [],
+      relatedVersions: Array.isArray(payload.relatedVersions) ? payload.relatedVersions : [],
     };
   });
 
@@ -443,6 +443,8 @@ async function saveCard(payload: any) {
       commentsList: Array.isArray(payload.commentsList) ? payload.commentsList : [],
       attachmentsList: Array.isArray(payload.attachmentsList) ? payload.attachmentsList : [],
       activity: Array.isArray(payload.activity) ? payload.activity : [],
+      relatedArticles: Array.isArray(payload.relatedArticles) ? payload.relatedArticles : [],
+      relatedVersions: Array.isArray(payload.relatedVersions) ? payload.relatedVersions : [],
     },
     updated_at: new Date().toISOString(),
   };

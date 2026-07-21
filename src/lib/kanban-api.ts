@@ -229,9 +229,11 @@ export const saveKanbanCard = async (input: Wrapped<{
   commentsList?: Array<{ id: string; authorId: string; at: string; text: string }>;
   attachmentsList?: Array<{ id: string; name: string; size: string; kind: string; url?: string }>;
   activity?: Array<{ id: string; at: string; text: string; authorId?: string }>;
+  relatedArticles?: Array<{ id: string; title: string; category: string }>;
+  relatedVersions?: Array<{ id: string; version: string; date: string; note: string }>;
 }>) => {
   const payload = unwrap(input);
-  const { data, error } = await supabase.rpc("save_kanban_card_payload", {
+  const { data, error } = await supabase.rpc("save_kanban_card_payload_v2", {
     payload,
   });
 

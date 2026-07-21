@@ -30,6 +30,8 @@ const persistCard = (card: KanbanCard) =>
       commentsList: card.commentsList,
       attachmentsList: card.attachmentsList,
       activity: card.activity,
+      relatedArticles: card.relatedArticles,
+      relatedVersions: card.relatedVersions,
     },
   });
 

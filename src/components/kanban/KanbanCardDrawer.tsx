@@ -191,38 +191,20 @@ export function KanbanCardDrawer({
     setDraft((d) => ({ ...d, [key]: value }));
   };
 
-  const pushActivity = (text: string) => {
-    setDraft((d) => ({
-      ...d,
-      activity: [
-        ...(d.activity ?? []),
-        { id: uid("ac"), at: nowIso(), text, authorId: CURRENT_USER_ID },
-      ],
-    }));
-  };
-
   // === Ações ===
   const handleChangeStatus = (v: ColumnId) => {
     if (v === draft.columnId) return;
-    const from = columns.find((c) => c.id === draft.columnId)?.title ?? draft.columnId;
-    const to = columns.find((c) => c.id === v)?.title ?? v;
     setDraft((d) => ({ ...d, columnId: v, archived: v === "arquivado" }));
-    pushActivity(`Movido de "${from}" para "${to}"`);
   };
 
   const handleChangePriority = (v: KanbanCard["priority"]) => {
     if (v === draft.priority) return;
-    const prev = draft.priority;
     update("priority", v);
-    pushActivity(`Prioridade alterada de ${prev} para ${v}`);
   };
 
   const handleChangeAssignee = (v: string) => {
     if (v === draft.assigneeId) return;
-    const prev = memberById(draft.assigneeId)?.name ?? "—";
-    const next = memberById(v)?.name ?? "—";
     update("assigneeId", v);
-    pushActivity(`Responsável alterado de ${prev} para ${next}`);
   };
 
   const toggleParticipant = (id: string) => {
@@ -378,13 +360,94 @@ export function KanbanCardDrawer({
       .split(",")
       .map((t) => t.trim().replace(/^#/, ""))
       .filter(Boolean);
-    const final: KanbanCard = {
+    let final: KanbanCard = {
       ...draft,
       title,
       tags,
       comments: (draft.commentsList ?? []).length || draft.comments,
       attachments: (draft.attachmentsList ?? []).length || draft.attachments,
     };
+    const changes: string[] = [];
+    const before = card ? withDefaults(card) : null;
+    const changed = (label: string, previous: unknown, next: unknown) => {
+      if (String(previous ?? "") !== String(next ?? "")) {
+        changes.push(`${label} alterado de "${String(previous || "vazio")}" para "${String(next || "vazio")}"`);
+      }
+    };
+
+    if (!before) {
+      changes.push("Cartão criado");
+    } else {
+      changed("Título", before.title, final.title);
+      changed("Resumo", before.summary, final.summary);
+      changed("Descrição", before.description, final.description);
+      changed("Cliente", before.client, final.client);
+      changed("Módulo do sistema", before.module, final.module);
+      changed("Tipo", before.type, final.type);
+      changed("Prioridade", before.priority, final.priority);
+      changed("Prazo", before.dueDate, final.dueDate);
+
+      if (before.columnId !== final.columnId) {
+        const from = columns.find((column) => column.id === before.columnId)?.title ?? before.columnId;
+        const to = columns.find((column) => column.id === final.columnId)?.title ?? final.columnId;
+        changes.push(`Movido de "${from}" para "${to}"`);
+      }
+      if (before.assigneeId !== final.assigneeId) {
+        const from = memberById(before.assigneeId)?.name ?? before.assigneeId;
+        const to = memberById(final.assigneeId)?.name ?? final.assigneeId;
+        changes.push(`Responsável alterado de "${from}" para "${to}"`);
+      }
+      const sorted = (values: string[]) => [...values].sort().join("|");
+      if (sorted(before.participants ?? []) !== sorted(final.participants ?? [])) changes.push("Participantes atualizados");
+      if (sorted(before.tags ?? []) !== sorted(final.tags ?? [])) changes.push("Etiquetas atualizadas");
+
+      const oldChecklist = new Map((before.checklist ?? []).map((item) => [item.id, item]));
+      const newChecklist = new Map((final.checklist ?? []).map((item) => [item.id, item]));
+      for (const item of final.checklist ?? []) {
+        const old = oldChecklist.get(item.id);
+        if (!old) changes.push(`Item de checklist adicionado: "${item.text}"`);
+        else if (old.done !== item.done) changes.push(`Checklist "${item.text}" marcado como ${item.done ? "concluído" : "pendente"}`);
+        else if (old.text !== item.text) changes.push(`Item de checklist renomeado para "${item.text}"`);
+      }
+      for (const item of before.checklist ?? []) {
+        if (!newChecklist.has(item.id)) changes.push(`Item de checklist removido: "${item.text}"`);
+      }
+
+      const auditRelations = <T extends { id: string }>(
+        previous: T[],
+        next: T[],
+        label: string,
+        display: (item: T) => string,
+      ) => {
+        const oldIds = new Set(previous.map((item) => item.id));
+        const newIds = new Set(next.map((item) => item.id));
+        next.filter((item) => !oldIds.has(item.id)).forEach((item) => changes.push(`${label} adicionado: "${display(item)}"`));
+        previous.filter((item) => !newIds.has(item.id)).forEach((item) => changes.push(`${label} removido: "${display(item)}"`));
+      };
+      auditRelations(before.relatedArticles ?? [], final.relatedArticles ?? [], "Artigo", (item) => item.title);
+      auditRelations(before.relatedVersions ?? [], final.relatedVersions ?? [], "Versão", (item) => item.version);
+      auditRelations(before.attachmentsList ?? [], final.attachmentsList ?? [], "Anexo", (item) => item.name);
+
+      const oldComments = new Set((before.commentsList ?? []).map((item) => item.id));
+      const addedComments = (final.commentsList ?? []).filter((item) => !oldComments.has(item.id));
+      if (addedComments.length) changes.push(`${addedComments.length} comentário(s) adicionado(s)`);
+    }
+
+    if (changes.length) {
+      const at = nowIso();
+      final = {
+        ...final,
+        activity: [
+          ...(final.activity ?? []),
+          ...changes.map((text, index) => ({
+            id: uid(`ac-${index}`),
+            at,
+            text,
+            authorId: CURRENT_USER_ID,
+          })),
+        ],
+      };
+    }
     onSave(final);
     onOpenChange(false);
   };
