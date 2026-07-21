@@ -1201,21 +1201,28 @@ function RelationPicker({
     onToggle: () => void;
   }[];
 }) {
+  const sortedOptions = useMemo(
+    () =>
+      [...options].sort((a, b) =>
+        a.label.localeCompare(b.label, "pt-BR", { sensitivity: "base" }),
+      ),
+    [options],
+  );
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <button className="inline-flex items-center gap-1 h-6 px-2 rounded-md border border-border text-[11px] text-muted-foreground hover:text-foreground hover:border-primary/40">
+        <button className="cursor-pointer inline-flex items-center gap-1 h-6 px-2 rounded-md border border-border text-[11px] text-muted-foreground hover:text-foreground hover:border-primary/40">
           <Plus className="h-3 w-3" /> {label}
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-72 p-2" align="end">
         <div className="space-y-0.5 max-h-72 overflow-y-auto">
-          {options.map((o) => (
+          {sortedOptions.map((o) => (
             <button
               key={o.id}
               onClick={o.onToggle}
               className={cn(
-                "w-full text-left px-2 py-1.5 rounded hover:bg-muted flex items-start gap-2",
+                "cursor-pointer w-full text-left px-2 py-1.5 rounded hover:bg-muted flex items-start gap-2",
                 o.selected && "bg-muted",
               )}
             >
