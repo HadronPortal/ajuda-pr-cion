@@ -191,7 +191,7 @@ const moveInput = z.object({
 
 export const moveKanbanCard = createServerFn({ method: "POST" })
   .validator(moveInput)
-  .handler(async ({ data }) => {
+  .handler(async ({ data }) => runSafely(async () => {
     const db = await getPool();
     let position: number;
     if (data.beforeCardId) {
@@ -203,32 +203,32 @@ export const moveKanbanCard = createServerFn({ method: "POST" })
     }
     await db.query("update public.kanban_cards set column_id=$1, position=$2, archived=false, updated_at=now() where id=$3", [data.columnId, position, data.cardId]);
     return { ok: true };
-  });
+  }));
 
 export const deleteKanbanCard = createServerFn({ method: "POST" })
   .validator(z.object({ id: z.string().uuid() }))
-  .handler(async ({ data }) => {
+  .handler(async ({ data }) => runSafely(async () => {
     const db = await getPool();
     await db.query("delete from public.kanban_cards where id=$1", [data.id]);
     return { ok: true };
-  });
+  }));
 
 const columnInput = z.object({ boardId: z.string().uuid(), title: z.string().min(1) });
 
 export const createKanbanColumn = createServerFn({ method: "POST" })
   .validator(columnInput)
-  .handler(async ({ data }) => {
+  .handler(async ({ data }) => runSafely(async () => {
     const db = await getPool();
     const pos = await db.query("select coalesce(max(position),-1)+1 position from public.kanban_columns where board_id=$1", [data.boardId]);
     const result = await db.query("insert into public.kanban_columns(board_id,name,position) values($1,$2,$3) returning id", [data.boardId, data.title, pos.rows[0].position]);
     return { id: result.rows[0].id };
-  });
+  }));
 
 export const deleteKanbanColumn = createServerFn({ method: "POST" })
   .validator(z.object({ id: z.string().uuid(), fallbackId: z.string().uuid() }))
-  .handler(async ({ data }) => {
+  .handler(async ({ data }) => runSafely(async () => {
     const db = await getPool();
     await db.query("update public.kanban_cards set column_id=$1, updated_at=now() where column_id=$2", [data.fallbackId, data.id]);
     await db.query("delete from public.kanban_columns where id=$1", [data.id]);
     return { ok: true };
-  });
+  }));
