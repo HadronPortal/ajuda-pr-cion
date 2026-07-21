@@ -332,13 +332,26 @@ columnId: "concluido",
   },
 ];
 
-export const priorityMeta: Record<Priority, { badge: string; dot: string; ring?: string }> = {
-  Baixa: { badge: "bg-muted text-muted-foreground", dot: "bg-muted-foreground" },
-  Média: { badge: "bg-accent/20 text-accent-foreground", dot: "bg-accent" },
-  Alta: { badge: "bg-warning/25 text-warning-foreground", dot: "bg-warning" },
+export const priorityMeta: Record<Priority, { badge: string; dot: string; strip: string; ring?: string }> = {
+  Baixa: {
+    badge: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
+    dot: "bg-emerald-500",
+    strip: "bg-emerald-500",
+  },
+  Média: {
+    badge: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
+    dot: "bg-amber-400",
+    strip: "bg-amber-400",
+  },
+  Alta: {
+    badge: "bg-rose-500/15 text-rose-700 dark:text-rose-300",
+    dot: "bg-rose-500",
+    strip: "bg-rose-500",
+  },
   Crítica: {
-    badge: "bg-destructive/10 text-destructive",
-    dot: "bg-destructive",
+    badge: "bg-red-600/15 text-red-700 dark:text-red-300",
+    dot: "bg-red-600",
+    strip: "bg-red-600",
     ring: "ring-1 ring-destructive/40",
   },
 };

@@ -24,7 +24,7 @@ function getPriorityMeta(priority: string) {
     return { label: "Baixa", accent: "bg-emerald-400", strip: "bg-emerald-500" };
   }
   if (normalized.includes("alta")) {
-    return { label: "Alta", accent: "bg-rose-400", strip: "bg-orange-500" };
+    return { label: "Alta", accent: "bg-rose-400", strip: "bg-rose-500" };
   }
   if (normalized.includes("cr")) {
     return { label: "Crítica", accent: "bg-red-500", strip: "bg-red-600" };

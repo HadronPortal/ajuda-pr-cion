@@ -420,14 +420,21 @@ export function KanbanCardDrawer({
                 ? "Preencha as informações da nova demanda."
                 : "Edite as informações e clique em salvar."}
             </SheetDescription>
-            <Input
-              value={draft.title}
-              onChange={(e) => update("title", e.target.value)}
-              aria-label="Título do cartão"
-              aria-required="true"
-              placeholder="Ex: Erro na emissão de NF-e: rejeição XML"
-              className="text-lg sm:text-xl font-semibold border-0 shadow-none focus-visible:ring-1 focus-visible:ring-ring px-2 -mx-2 h-auto py-1.5"
-            />
+            <div className="space-y-1.5 pt-1">
+              <Label htmlFor="kanban-card-title" className="text-[11px] uppercase text-muted-foreground">
+                Título do cartão <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="kanban-card-title"
+                value={draft.title}
+                onChange={(e) => update("title", e.target.value)}
+                aria-label="Título do cartão"
+                aria-required="true"
+                autoFocus={mode === "create"}
+                placeholder="Ex: Erro na emissão de NF-e: rejeição XML"
+                className="h-11 border-border bg-card px-3 text-base font-medium shadow-sm transition-colors placeholder:text-muted-foreground/70 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20 sm:text-lg"
+              />
+            </div>
           </SheetHeader>
         </div>
 
@@ -826,12 +833,15 @@ export function KanbanCardDrawer({
 
               <SidebarField icon={Tag} label="Prioridade">
                 <Select value={draft.priority} onValueChange={(v) => handleChangePriority(v as KanbanCard["priority"])}>
-                  <SelectTrigger className="h-9 cursor-pointer"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="h-10 cursor-pointer">
+                    <span className={cn("h-2 w-12 shrink-0 rounded-full", priorityMeta[draft.priority].strip)} />
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     {priorities.map((p) => (
                       <SelectItem key={p} value={p}>
-                        <span className="inline-flex items-center gap-2">
-                          <span className={cn("h-1.5 w-1.5 rounded-full", priorityMeta[p].dot)} />
+                        <span className="inline-flex items-center gap-2.5">
+                          <span className={cn("h-2 w-14 rounded-full", priorityMeta[p].strip)} />
                           {p}
                         </span>
                       </SelectItem>
