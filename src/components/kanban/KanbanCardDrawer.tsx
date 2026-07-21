@@ -117,8 +117,20 @@ const uid = (prefix: string) =>
 
 const nowIso = () => new Date().toISOString();
 
+const normalizePriority = (value: unknown): KanbanCard["priority"] => {
+  const normalized = String(value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+  if (normalized === "baixa" || normalized === "low") return "Baixa";
+  if (normalized === "alta" || normalized === "high") return "Alta";
+  if (normalized === "critica" || normalized === "critical") return "Crítica";
+  return "Média";
+};
+
 const withDefaults = (c: KanbanCard): KanbanCard => ({
   ...c,
+  priority: normalizePriority(c.priority),
   description: c.description ?? c.summary,
   participants: c.participants ?? [c.assigneeId],
   checklist: c.checklist ?? [],
@@ -394,6 +406,7 @@ export function KanbanCardDrawer({
 
   const assignee = memberById(draft.assigneeId);
   const isCritical = draft.priority === "Crítica";
+  const currentPriorityMeta = priorityMeta[draft.priority] ?? priorityMeta["Média"];
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -408,7 +421,7 @@ export function KanbanCardDrawer({
                 <span className="font-mono">{draft.id}</span>
               )}
               {mode === "edit" && draft.id && <span>·</span>}
-              <Badge className={cn("text-[10px]", priorityMeta[draft.priority].badge)}>
+              <Badge className={cn("text-[10px]", currentPriorityMeta.badge)}>
                 {isCritical && "🚨 "}
                 {draft.priority}
               </Badge>

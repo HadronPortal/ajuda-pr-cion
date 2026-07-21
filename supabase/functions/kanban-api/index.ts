@@ -320,7 +320,7 @@ async function loadBoard(payload: any) {
   const at = groupBy((attachmentsRes as any).data ?? [], (r: any) => r.card_id);
 
   const priorityToUi = (v: string | null) =>
-    v === "high" ? "Alta" : v === "low" ? "Baixa" : "Media";
+    v === "high" ? "Alta" : v === "low" ? "Baixa" : "Média";
   const labelNames = (labels: unknown): string[] => {
     if (!Array.isArray(labels)) return [];
     return labels
