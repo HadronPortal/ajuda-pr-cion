@@ -73,7 +73,7 @@ export function KanbanColumnView({
   const meta = columnMeta[column.id] ?? columnMeta["a-fazer"];
 
   return (
-    <section className="relative flex min-h-[470px] w-[270px] shrink-0 flex-col rounded-xl border border-slate-200 bg-white p-3 shadow-sm dark:border-white/7 dark:bg-white/[0.045] dark:shadow-[0_18px_40px_rgba(0,0,0,0.16)]">
+    <section className="relative flex h-[clamp(470px,calc(100vh-220px),760px)] w-[270px] shrink-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white p-3 shadow-sm dark:border-white/7 dark:bg-white/[0.045] dark:shadow-[0_18px_40px_rgba(0,0,0,0.16)]">
       <div className="mb-3 flex h-7 items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2">
           <span className={cn("h-2 w-2 shrink-0 rounded-full", meta.dot)} />
@@ -176,12 +176,12 @@ export function KanbanColumnView({
       <div
         ref={setNodeRef}
         className={cn(
-          "flex-1 rounded-lg border border-dashed border-transparent transition-colors",
+          "flex min-h-0 flex-1 flex-col rounded-lg border border-dashed border-transparent transition-colors",
           isOver && "border-primary/50 bg-primary/10",
         )}
       >
         <SortableContext items={cards.map((c) => c.id)} strategy={verticalListSortingStrategy}>
-          <div className="space-y-2.5">
+          <div className="app-scrollbar min-h-0 flex-1 space-y-2.5 overflow-y-auto overscroll-contain pr-1">
             {cards.map((c) => (
               <KanbanCardItem
                 key={c.id}
@@ -197,7 +197,7 @@ export function KanbanColumnView({
 
         <button
           onClick={() => onAddCard(column.id)}
-          className="mt-2 flex h-9 w-full cursor-pointer items-center justify-center gap-1.5 rounded-lg text-[11px] font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/7 dark:hover:text-white"
+          className="mt-2 flex h-9 w-full shrink-0 cursor-pointer items-center justify-center gap-1.5 rounded-lg text-[11px] font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/7 dark:hover:text-white"
         >
           <Plus className="h-3 w-3" />
           Adicionar um cartão
