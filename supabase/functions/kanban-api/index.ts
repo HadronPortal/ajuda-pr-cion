@@ -52,7 +52,7 @@ async function listBoards() {
   const ids = (boards ?? []).map((b: any) => b.id);
   if (!ids.length) return { boards: [] };
 
-  const [colsRes, cardsRes, membersRes] = await Promise.all([
+  const [colsResult, cardsResult, membersResult] = await Promise.allSettled([
     admin.from("kanban_columns").select("id, board_id").in("board_id", ids).eq("archived", false),
     admin
       .from("kanban_cards")
@@ -65,9 +65,16 @@ async function listBoards() {
       .select("board_id, role, profiles:profile_id(id, full_name, avatar_url, operator_code)")
       .in("board_id", ids),
   ]);
-  if (colsRes.error) throw colsRes.error;
-  if (cardsRes.error) throw cardsRes.error;
-  if (membersRes.error) throw membersRes.error;
+
+  // Optional board summaries must never prevent users from opening the board list.
+  // This also keeps the UI available while a freshly deployed schema cache settles.
+  const colsRes = colsResult.status === "fulfilled" ? colsResult.value : { data: [] };
+  const cardsRes = cardsResult.status === "fulfilled" ? cardsResult.value : { data: [] };
+  const membersRes = membersResult.status === "fulfilled" ? membersResult.value : { data: [] };
+
+  if ("error" in colsRes && colsRes.error) console.error("[kanban-api:listBoards:columns]", colsRes.error);
+  if ("error" in cardsRes && cardsRes.error) console.error("[kanban-api:listBoards:cards]", cardsRes.error);
+  if ("error" in membersRes && membersRes.error) console.error("[kanban-api:listBoards:members]", membersRes.error);
 
   const colsByBoard = groupBy(colsRes.data ?? [], (r: any) => r.board_id);
   const cardsByBoard: Record<string, number> = {};
