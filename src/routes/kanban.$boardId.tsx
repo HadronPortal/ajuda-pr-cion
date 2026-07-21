@@ -373,7 +373,7 @@ function KanbanPage() {
         },
       }).catch(() => {
         toast.error("Nao foi possivel salvar a movimentacao");
-        void loadKanbanBoard().then((result) => kanbanStore.hydrate(result.cards as KanbanCard[]));
+        void loadKanbanBoard({ data: { boardId: boardIdParam } }).then((result) => kanbanStore.hydrate(result.cards as KanbanCard[]));
       });
     }
   };
