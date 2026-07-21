@@ -27,6 +27,12 @@ const json = (body: unknown, status = 200) =>
 const priorityToDb = (v: string) =>
   v === "Alta" || v === "Critica" ? "high" : v === "Baixa" ? "low" : "medium";
 
+const DEFAULT_COLUMNS = [
+  { name: "A fazer", position: 0 },
+  { name: "Em andamento", position: 1 },
+  { name: "Concluido", position: 2 },
+];
+
 function groupBy<T>(rows: T[], key: (r: T) => string): Record<string, T[]> {
   const out: Record<string, T[]> = {};
   for (const r of rows) {
@@ -36,16 +42,95 @@ function groupBy<T>(rows: T[], key: (r: T) => string): Record<string, T[]> {
   return out;
 }
 
-async function loadBoard() {
-  const { data: boards, error: e1 } = await admin
+async function listBoards() {
+  const { data: boards, error } = await admin
     .from("kanban_boards")
-    .select("id, name, description, legacy_id, created_at")
+    .select("id, name, description, color, cover, visibility, is_favorite, updated_at, created_at")
     .eq("archived", false)
-    .order("legacy_id", { ascending: false, nullsFirst: false })
-    .order("created_at", { ascending: false })
-    .limit(1);
+    .order("updated_at", { ascending: false });
+  if (error) throw error;
+  const ids = (boards ?? []).map((b: any) => b.id);
+  if (!ids.length) return { boards: [] };
+
+  const [colsRes, cardsRes, membersRes] = await Promise.all([
+    admin.from("kanban_columns").select("id, board_id").in("board_id", ids).eq("archived", false),
+    admin
+      .from("kanban_cards")
+      .select("id, archived, kanban_columns!inner(board_id, archived)")
+      .in("kanban_columns.board_id", ids)
+      .eq("kanban_columns.archived", false)
+      .eq("archived", false),
+    admin
+      .from("kanban_board_members")
+      .select("board_id, role, profiles:profile_id(id, full_name, avatar_url, operator_code)")
+      .in("board_id", ids),
+  ]);
+  if (colsRes.error) throw colsRes.error;
+  if (cardsRes.error) throw cardsRes.error;
+  if (membersRes.error) throw membersRes.error;
+
+  const colsByBoard = groupBy(colsRes.data ?? [], (r: any) => r.board_id);
+  const cardsByBoard: Record<string, number> = {};
+  for (const row of (cardsRes.data ?? []) as any[]) {
+    const b = row.kanban_columns?.board_id;
+    if (b) cardsByBoard[b] = (cardsByBoard[b] ?? 0) + 1;
+  }
+  const membersByBoard = groupBy(membersRes.data ?? [], (r: any) => r.board_id);
+
+  return {
+    boards: (boards ?? []).map((b: any) => ({
+      id: b.id,
+      name: b.name,
+      description: b.description ?? "",
+      color: b.color ?? null,
+      cover: b.cover ?? null,
+      visibility: b.visibility ?? "team",
+      isFavorite: Boolean(b.is_favorite),
+      updatedAt: b.updated_at,
+      createdAt: b.created_at,
+      columnsCount: (colsByBoard[b.id] ?? []).length,
+      cardsCount: cardsByBoard[b.id] ?? 0,
+      members: (membersByBoard[b.id] ?? []).map((m: any) => ({
+        id: m.profiles?.id,
+        name: m.profiles?.full_name ?? "",
+        avatarUrl: m.profiles?.avatar_url ?? null,
+        operator: m.profiles?.operator_code ?? null,
+        role: m.role,
+      })).filter((m: any) => m.id),
+    })),
+  };
+}
+
+async function getBoard(payload: any) {
+  const { data, error } = await admin
+    .from("kanban_boards")
+    .select("id, name, description, color, cover, visibility, is_favorite")
+    .eq("id", payload.boardId)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) return { board: null };
+  return {
+    board: {
+      id: data.id,
+      name: data.name,
+      description: data.description ?? "",
+      color: data.color ?? null,
+      cover: data.cover ?? null,
+      visibility: data.visibility ?? "team",
+      isFavorite: Boolean(data.is_favorite),
+    },
+  };
+}
+
+async function loadBoard(payload: any) {
+  if (!payload?.boardId) throw new Error("boardId_required");
+  const { data: board, error: e1 } = await admin
+    .from("kanban_boards")
+    .select("id, name, description")
+    .eq("id", payload.boardId)
+    .eq("archived", false)
+    .maybeSingle();
   if (e1) throw e1;
-  const board = boards?.[0];
   if (!board) return { board: null, columns: [], cards: [] };
 
   const [colsRes, cardsRes] = await Promise.all([
@@ -172,6 +257,20 @@ async function nextCardPosition(columnId: string) {
   return Number(data?.[0]?.position ?? 0) + 1024;
 }
 
+async function touchBoardOfColumn(columnId: string) {
+  const { data } = await admin
+    .from("kanban_columns")
+    .select("board_id")
+    .eq("id", columnId)
+    .maybeSingle();
+  if (data?.board_id) {
+    await admin
+      .from("kanban_boards")
+      .update({ updated_at: new Date().toISOString() })
+      .eq("id", data.board_id);
+  }
+}
+
 async function saveCard(payload: any) {
   const isUuid = payload.id && /^[0-9a-f-]{36}$/i.test(payload.id);
   const row: any = {
@@ -193,6 +292,7 @@ async function saveCard(payload: any) {
       .select("id")
       .single();
     if (error) throw error;
+    await touchBoardOfColumn(payload.columnId);
     return { id: data.id };
   }
   row.position = await nextCardPosition(payload.columnId);
@@ -202,6 +302,7 @@ async function saveCard(payload: any) {
     .select("id")
     .single();
   if (error) throw error;
+  await touchBoardOfColumn(payload.columnId);
   return { id: data.id };
 }
 
@@ -228,6 +329,7 @@ async function moveCard(payload: any) {
     })
     .eq("id", payload.cardId);
   if (error) throw error;
+  await touchBoardOfColumn(payload.columnId);
   return { ok: true };
 }
 
@@ -275,14 +377,260 @@ async function deleteColumn(payload: any) {
   return { ok: true };
 }
 
+/* ---------- BOARDS ---------- */
+
+async function createBoard(payload: any) {
+  const { data: board, error } = await admin
+    .from("kanban_boards")
+    .insert({
+      name: payload.name,
+      description: payload.description ?? "",
+      color: payload.color ?? null,
+      cover: payload.cover ?? null,
+      visibility: payload.visibility ?? "team",
+    })
+    .select("id")
+    .single();
+  if (error) throw error;
+
+  const cols = DEFAULT_COLUMNS.map((c) => ({ ...c, board_id: board.id }));
+  const { error: eCols } = await admin.from("kanban_columns").insert(cols);
+  if (eCols) throw eCols;
+
+  const memberIds: string[] = Array.isArray(payload.memberIds) ? payload.memberIds : [];
+  if (memberIds.length) {
+    const rows = memberIds.map((id: string) => ({
+      board_id: board.id,
+      profile_id: id,
+      role: "member",
+    }));
+    await admin.from("kanban_board_members").upsert(rows, { onConflict: "board_id,profile_id" });
+  }
+  if (payload.ownerId) {
+    await admin
+      .from("kanban_board_members")
+      .upsert(
+        [{ board_id: board.id, profile_id: payload.ownerId, role: "admin" }],
+        { onConflict: "board_id,profile_id" },
+      );
+  }
+  return { id: board.id };
+}
+
+async function updateBoard(payload: any) {
+  const patch: any = { updated_at: new Date().toISOString() };
+  if (payload.name !== undefined) patch.name = payload.name;
+  if (payload.description !== undefined) patch.description = payload.description;
+  if (payload.color !== undefined) patch.color = payload.color;
+  if (payload.cover !== undefined) patch.cover = payload.cover;
+  if (payload.visibility !== undefined) patch.visibility = payload.visibility;
+  if (payload.isFavorite !== undefined) patch.is_favorite = Boolean(payload.isFavorite);
+  const { error } = await admin.from("kanban_boards").update(patch).eq("id", payload.id);
+  if (error) throw error;
+  return { ok: true };
+}
+
+async function duplicateBoard(payload: any) {
+  const { data: src, error: e1 } = await admin
+    .from("kanban_boards")
+    .select("name, description, color, cover, visibility")
+    .eq("id", payload.id)
+    .single();
+  if (e1) throw e1;
+  const { data: newBoard, error: e2 } = await admin
+    .from("kanban_boards")
+    .insert({
+      name: `${src.name} (cópia)`,
+      description: src.description,
+      color: src.color,
+      cover: src.cover,
+      visibility: src.visibility,
+    })
+    .select("id")
+    .single();
+  if (e2) throw e2;
+
+  const { data: cols, error: e3 } = await admin
+    .from("kanban_columns")
+    .select("id, name, position, color")
+    .eq("board_id", payload.id)
+    .eq("archived", false)
+    .order("position");
+  if (e3) throw e3;
+
+  const colMap = new Map<string, string>();
+  for (const c of cols ?? []) {
+    const { data: nc, error } = await admin
+      .from("kanban_columns")
+      .insert({ board_id: newBoard.id, name: c.name, position: c.position, color: c.color })
+      .select("id")
+      .single();
+    if (error) throw error;
+    colMap.set(c.id, nc.id);
+  }
+
+  const { data: cards, error: e4 } = await admin
+    .from("kanban_cards")
+    .select("column_id, title, description, priority, due_at, position, labels, member_legacy_ids")
+    .in("column_id", Array.from(colMap.keys()))
+    .eq("archived", false);
+  if (e4) throw e4;
+
+  if (cards?.length) {
+    const rows = cards.map((c: any) => ({
+      column_id: colMap.get(c.column_id),
+      title: c.title,
+      description: c.description,
+      priority: c.priority,
+      due_at: c.due_at,
+      position: c.position,
+      labels: c.labels ?? [],
+      member_legacy_ids: c.member_legacy_ids ?? [],
+    }));
+    const { error } = await admin.from("kanban_cards").insert(rows);
+    if (error) throw error;
+  }
+  return { id: newBoard.id };
+}
+
+async function archiveBoard(payload: any) {
+  const { error } = await admin
+    .from("kanban_boards")
+    .update({ archived: true, updated_at: new Date().toISOString() })
+    .eq("id", payload.id);
+  if (error) throw error;
+  return { ok: true };
+}
+
+async function deleteBoard(payload: any) {
+  const { error } = await admin.from("kanban_boards").delete().eq("id", payload.id);
+  if (error) throw error;
+  return { ok: true };
+}
+
+/* ---------- MEMBERS ---------- */
+
+async function listAvailableMembers(payload: any) {
+  const q = String(payload?.query ?? "").trim();
+  let query = admin
+    .from("profiles")
+    .select("id, full_name, email, operator_code, avatar_url, role, active")
+    .eq("active", true)
+    .order("full_name", { ascending: true })
+    .limit(100);
+  if (q) {
+    query = query.or(
+      `full_name.ilike.%${q}%,email.ilike.%${q}%,operator_code.ilike.%${q}%`,
+    );
+  }
+  const { data, error } = await query;
+  if (error) throw error;
+  return {
+    members: (data ?? []).map((p: any) => ({
+      id: p.id,
+      name: p.full_name,
+      email: p.email,
+      operator: p.operator_code,
+      avatarUrl: p.avatar_url,
+    })),
+  };
+}
+
+async function listBoardMembers(payload: any) {
+  const { data, error } = await admin
+    .from("kanban_board_members")
+    .select("role, profiles:profile_id(id, full_name, email, operator_code, avatar_url)")
+    .eq("board_id", payload.boardId);
+  if (error) throw error;
+  return {
+    members: (data ?? [])
+      .map((m: any) => ({
+        id: m.profiles?.id,
+        name: m.profiles?.full_name ?? "",
+        email: m.profiles?.email,
+        operator: m.profiles?.operator_code,
+        avatarUrl: m.profiles?.avatar_url,
+        role: m.role,
+      }))
+      .filter((m: any) => m.id),
+  };
+}
+
+async function addBoardMember(payload: any) {
+  const { error } = await admin
+    .from("kanban_board_members")
+    .upsert(
+      [{ board_id: payload.boardId, profile_id: payload.profileId, role: payload.role ?? "member" }],
+      { onConflict: "board_id,profile_id" },
+    );
+  if (error) throw error;
+  return { ok: true };
+}
+
+async function updateBoardMemberRole(payload: any) {
+  const { error } = await admin
+    .from("kanban_board_members")
+    .update({ role: payload.role })
+    .eq("board_id", payload.boardId)
+    .eq("profile_id", payload.profileId);
+  if (error) throw error;
+  return { ok: true };
+}
+
+async function removeBoardMember(payload: any) {
+  const { error } = await admin
+    .from("kanban_board_members")
+    .delete()
+    .eq("board_id", payload.boardId)
+    .eq("profile_id", payload.profileId);
+  if (error) throw error;
+  return { ok: true };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   try {
     const { action, data } = await req.json();
     let result: unknown;
     switch (action) {
+      case "listBoards":
+        result = await listBoards();
+        break;
+      case "getBoard":
+        result = await getBoard(data);
+        break;
       case "loadBoard":
-        result = await loadBoard();
+        result = await loadBoard(data);
+        break;
+      case "createBoard":
+        result = await createBoard(data);
+        break;
+      case "updateBoard":
+        result = await updateBoard(data);
+        break;
+      case "duplicateBoard":
+        result = await duplicateBoard(data);
+        break;
+      case "archiveBoard":
+        result = await archiveBoard(data);
+        break;
+      case "deleteBoard":
+        result = await deleteBoard(data);
+        break;
+      case "listAvailableMembers":
+        result = await listAvailableMembers(data);
+        break;
+      case "listBoardMembers":
+        result = await listBoardMembers(data);
+        break;
+      case "addBoardMember":
+        result = await addBoardMember(data);
+        break;
+      case "updateBoardMemberRole":
+        result = await updateBoardMemberRole(data);
+        break;
+      case "removeBoardMember":
+        result = await removeBoardMember(data);
         break;
       case "createCard":
       case "updateCard":
@@ -308,7 +656,6 @@ serve(async (req) => {
     }
     return json({ data: result });
   } catch (err) {
-    // Full error stays in Edge Function logs only.
     console.error("[kanban-api]", err);
     return json({ error: "KANBAN_UNAVAILABLE" }, 500);
   }

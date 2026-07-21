@@ -23,6 +23,7 @@ import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ClientesIndexRouteImport } from './routes/clientes.index'
 import { Route as BaseDeConhecimentoIndexRouteImport } from './routes/base-de-conhecimento.index'
+import { Route as KanbanBoardIdRouteImport } from './routes/kanban.$boardId'
 import { Route as ClientesClienteIdRouteImport } from './routes/clientes.$clienteId'
 import { Route as ChamadosNovoRouteImport } from './routes/chamados.novo'
 import { Route as BaseDeConhecimentoSlugRouteImport } from './routes/base-de-conhecimento.$slug'
@@ -97,6 +98,11 @@ const BaseDeConhecimentoIndexRoute = BaseDeConhecimentoIndexRouteImport.update({
   path: '/',
   getParentRoute: () => BaseDeConhecimentoRoute,
 } as any)
+const KanbanBoardIdRoute = KanbanBoardIdRouteImport.update({
+  id: '/$boardId',
+  path: '/$boardId',
+  getParentRoute: () => KanbanRoute,
+} as any)
 const ClientesClienteIdRoute = ClientesClienteIdRouteImport.update({
   id: '/clientes/$clienteId',
   path: '/clientes/$clienteId',
@@ -122,13 +128,14 @@ export interface FileRoutesByFullPath {
   '/chamados': typeof ChamadosRouteWithChildren
   '/frota': typeof FrotaRoute
   '/iniciar-hadron': typeof IniciarHadronRoute
-  '/kanban': typeof KanbanRoute
+  '/kanban': typeof KanbanRouteWithChildren
   '/kanban-dashboard': typeof KanbanDashboardRoute
   '/minha-conta': typeof MinhaContaRoute
   '/versoes': typeof VersoesRoute
   '/base-de-conhecimento/$slug': typeof BaseDeConhecimentoSlugRoute
   '/chamados/novo': typeof ChamadosNovoRoute
   '/clientes/$clienteId': typeof ClientesClienteIdRoute
+  '/kanban/$boardId': typeof KanbanBoardIdRoute
   '/base-de-conhecimento/': typeof BaseDeConhecimentoIndexRoute
   '/clientes/': typeof ClientesIndexRoute
 }
@@ -140,13 +147,14 @@ export interface FileRoutesByTo {
   '/chamados': typeof ChamadosRouteWithChildren
   '/frota': typeof FrotaRoute
   '/iniciar-hadron': typeof IniciarHadronRoute
-  '/kanban': typeof KanbanRoute
+  '/kanban': typeof KanbanRouteWithChildren
   '/kanban-dashboard': typeof KanbanDashboardRoute
   '/minha-conta': typeof MinhaContaRoute
   '/versoes': typeof VersoesRoute
   '/base-de-conhecimento/$slug': typeof BaseDeConhecimentoSlugRoute
   '/chamados/novo': typeof ChamadosNovoRoute
   '/clientes/$clienteId': typeof ClientesClienteIdRoute
+  '/kanban/$boardId': typeof KanbanBoardIdRoute
   '/base-de-conhecimento': typeof BaseDeConhecimentoIndexRoute
   '/clientes': typeof ClientesIndexRoute
 }
@@ -160,13 +168,14 @@ export interface FileRoutesById {
   '/chamados': typeof ChamadosRouteWithChildren
   '/frota': typeof FrotaRoute
   '/iniciar-hadron': typeof IniciarHadronRoute
-  '/kanban': typeof KanbanRoute
+  '/kanban': typeof KanbanRouteWithChildren
   '/kanban-dashboard': typeof KanbanDashboardRoute
   '/minha-conta': typeof MinhaContaRoute
   '/versoes': typeof VersoesRoute
   '/base-de-conhecimento/$slug': typeof BaseDeConhecimentoSlugRoute
   '/chamados/novo': typeof ChamadosNovoRoute
   '/clientes/$clienteId': typeof ClientesClienteIdRoute
+  '/kanban/$boardId': typeof KanbanBoardIdRoute
   '/base-de-conhecimento/': typeof BaseDeConhecimentoIndexRoute
   '/clientes/': typeof ClientesIndexRoute
 }
@@ -188,6 +197,7 @@ export interface FileRouteTypes {
     | '/base-de-conhecimento/$slug'
     | '/chamados/novo'
     | '/clientes/$clienteId'
+    | '/kanban/$boardId'
     | '/base-de-conhecimento/'
     | '/clientes/'
   fileRoutesByTo: FileRoutesByTo
@@ -206,6 +216,7 @@ export interface FileRouteTypes {
     | '/base-de-conhecimento/$slug'
     | '/chamados/novo'
     | '/clientes/$clienteId'
+    | '/kanban/$boardId'
     | '/base-de-conhecimento'
     | '/clientes'
   id:
@@ -225,6 +236,7 @@ export interface FileRouteTypes {
     | '/base-de-conhecimento/$slug'
     | '/chamados/novo'
     | '/clientes/$clienteId'
+    | '/kanban/$boardId'
     | '/base-de-conhecimento/'
     | '/clientes/'
   fileRoutesById: FileRoutesById
@@ -238,7 +250,7 @@ export interface RootRouteChildren {
   ChamadosRoute: typeof ChamadosRouteWithChildren
   FrotaRoute: typeof FrotaRoute
   IniciarHadronRoute: typeof IniciarHadronRoute
-  KanbanRoute: typeof KanbanRoute
+  KanbanRoute: typeof KanbanRouteWithChildren
   KanbanDashboardRoute: typeof KanbanDashboardRoute
   MinhaContaRoute: typeof MinhaContaRoute
   VersoesRoute: typeof VersoesRoute
@@ -346,6 +358,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BaseDeConhecimentoIndexRouteImport
       parentRoute: typeof BaseDeConhecimentoRoute
     }
+    '/kanban/$boardId': {
+      id: '/kanban/$boardId'
+      path: '/$boardId'
+      fullPath: '/kanban/$boardId'
+      preLoaderRoute: typeof KanbanBoardIdRouteImport
+      parentRoute: typeof KanbanRoute
+    }
     '/clientes/$clienteId': {
       id: '/clientes/$clienteId'
       path: '/clientes/$clienteId'
@@ -395,6 +414,17 @@ const ChamadosRouteWithChildren = ChamadosRoute._addFileChildren(
   ChamadosRouteChildren,
 )
 
+interface KanbanRouteChildren {
+  KanbanBoardIdRoute: typeof KanbanBoardIdRoute
+}
+
+const KanbanRouteChildren: KanbanRouteChildren = {
+  KanbanBoardIdRoute: KanbanBoardIdRoute,
+}
+
+const KanbanRouteWithChildren =
+  KanbanRoute._addFileChildren(KanbanRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AnalyticsRoute: AnalyticsRoute,
@@ -404,7 +434,7 @@ const rootRouteChildren: RootRouteChildren = {
   ChamadosRoute: ChamadosRouteWithChildren,
   FrotaRoute: FrotaRoute,
   IniciarHadronRoute: IniciarHadronRoute,
-  KanbanRoute: KanbanRoute,
+  KanbanRoute: KanbanRouteWithChildren,
   KanbanDashboardRoute: KanbanDashboardRoute,
   MinhaContaRoute: MinhaContaRoute,
   VersoesRoute: VersoesRoute,
@@ -414,13 +444,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

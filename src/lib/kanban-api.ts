@@ -21,13 +21,98 @@ async function invoke<T>(action: string, data?: unknown): Promise<T> {
   return (res as { data: T }).data;
 }
 
-// Signatures preserved: callers pass `{ data: {...} }` (TanStack-style) or
-// call with no args. We accept both.
 type Wrapped<T> = { data: T } | T;
 const unwrap = <T,>(x: Wrapped<T> | undefined): T =>
   (x && typeof x === "object" && "data" in (x as any) ? (x as any).data : x) as T;
 
-export const loadKanbanBoard = () => invoke<any>("loadBoard");
+/* ---------- Board (contents) ---------- */
+
+export type BoardSummary = {
+  id: string;
+  name: string;
+  description: string;
+  color: string | null;
+  cover: string | null;
+  visibility: "team" | "private" | string;
+  isFavorite: boolean;
+  updatedAt: string;
+  createdAt: string;
+  columnsCount: number;
+  cardsCount: number;
+  members: {
+    id: string;
+    name: string;
+    avatarUrl: string | null;
+    operator: string | null;
+    role: string;
+  }[];
+};
+
+export type BoardMember = {
+  id: string;
+  name: string;
+  email?: string | null;
+  operator?: string | null;
+  avatarUrl?: string | null;
+  role?: string;
+};
+
+export const loadKanbanBoard = (input: Wrapped<{ boardId: string }>) =>
+  invoke<any>("loadBoard", unwrap(input));
+
+export const getKanbanBoard = (input: Wrapped<{ boardId: string }>) =>
+  invoke<{ board: BoardSummary | null }>("getBoard", unwrap(input));
+
+export const listKanbanBoards = () =>
+  invoke<{ boards: BoardSummary[] }>("listBoards");
+
+export const createKanbanBoard = (input: Wrapped<{
+  name: string;
+  description?: string;
+  color?: string | null;
+  cover?: string | null;
+  visibility?: string;
+  memberIds?: string[];
+  ownerId?: string | null;
+}>) => invoke<{ id: string }>("createBoard", unwrap(input));
+
+export const updateKanbanBoard = (input: Wrapped<{
+  id: string;
+  name?: string;
+  description?: string;
+  color?: string | null;
+  cover?: string | null;
+  visibility?: string;
+  isFavorite?: boolean;
+}>) => invoke<{ ok: true }>("updateBoard", unwrap(input));
+
+export const duplicateKanbanBoard = (input: Wrapped<{ id: string }>) =>
+  invoke<{ id: string }>("duplicateBoard", unwrap(input));
+
+export const archiveKanbanBoard = (input: Wrapped<{ id: string }>) =>
+  invoke<{ ok: true }>("archiveBoard", unwrap(input));
+
+export const deleteKanbanBoard = (input: Wrapped<{ id: string }>) =>
+  invoke<{ ok: true }>("deleteBoard", unwrap(input));
+
+/* ---------- Members ---------- */
+
+export const listAvailableMembers = (input?: Wrapped<{ query?: string }>) =>
+  invoke<{ members: BoardMember[] }>("listAvailableMembers", unwrap(input ?? { data: {} }));
+
+export const listBoardMembers = (input: Wrapped<{ boardId: string }>) =>
+  invoke<{ members: BoardMember[] }>("listBoardMembers", unwrap(input));
+
+export const addBoardMember = (input: Wrapped<{ boardId: string; profileId: string; role?: string }>) =>
+  invoke<{ ok: true }>("addBoardMember", unwrap(input));
+
+export const updateBoardMemberRole = (input: Wrapped<{ boardId: string; profileId: string; role: string }>) =>
+  invoke<{ ok: true }>("updateBoardMemberRole", unwrap(input));
+
+export const removeBoardMember = (input: Wrapped<{ boardId: string; profileId: string }>) =>
+  invoke<{ ok: true }>("removeBoardMember", unwrap(input));
+
+/* ---------- Cards & Columns ---------- */
 
 export const saveKanbanCard = (input: Wrapped<{
   id?: string;
