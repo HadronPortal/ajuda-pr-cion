@@ -138,9 +138,10 @@ function BoardListPage() {
           const res = await listKanbanBoards();
           if (!active) return;
           const fallbackBoards = res.boards ?? [];
+          const fallbackWorkspaceId = fallbackBoards.find((board) => board.workspaceId)?.workspaceId ?? "legacy";
           setBoards(fallbackBoards);
           setWorkspaces([{
-            id: "legacy",
+            id: fallbackWorkspaceId,
             name: "Desenvolvimento Procion",
             slug: "desenvolvimento-procion",
             description: "Projetos, melhorias e demandas internas da Procion.",

@@ -165,6 +165,18 @@ async function createWorkspace(payload: any) {
 }
 
 async function updateWorkspace(payload: any) {
+  let workspaceId = payload.id;
+  if (workspaceId === "legacy") {
+    const { data: fallbackWorkspace, error: fallbackError } = await admin
+      .from("kanban_workspaces")
+      .select("id")
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    if (fallbackError) throw fallbackError;
+    if (!fallbackWorkspace?.id) throw new Error("Área de trabalho não encontrada.");
+    workspaceId = fallbackWorkspace.id;
+  }
   const patch: any = {};
   if (payload.name !== undefined) patch.name = String(payload.name).trim();
   if (payload.slug !== undefined) patch.slug = String(payload.slug).trim();
@@ -172,7 +184,7 @@ async function updateWorkspace(payload: any) {
   if (payload.website !== undefined) patch.website = String(payload.website).trim();
   if (payload.visibility !== undefined) patch.visibility = payload.visibility;
   if (payload.settings !== undefined) patch.settings = payload.settings;
-  const { error } = await admin.from("kanban_workspaces").update(patch).eq("id", payload.id);
+  const { error } = await admin.from("kanban_workspaces").update(patch).eq("id", workspaceId);
   if (error) throw error;
   return { ok: true };
 }
