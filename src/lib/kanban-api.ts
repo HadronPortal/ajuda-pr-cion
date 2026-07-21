@@ -79,7 +79,7 @@ function mapCard(row: any) {
   };
 }
 
-export const loadKanbanBoard = createServerFn({ method: "GET" }).handler(async () => {
+export const loadKanbanBoard = createServerFn({ method: "GET" }).handler(async () => runSafely(async () => {
   const db = await getPool();
   const boardResult = await db.query(`
     select id, name, description
