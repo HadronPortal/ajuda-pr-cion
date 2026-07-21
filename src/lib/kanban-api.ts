@@ -150,7 +150,7 @@ const cardInput = z.object({
 
 export const saveKanbanCard = createServerFn({ method: "POST" })
   .validator(cardInput)
-  .handler(async ({ data }) => {
+  .handler(async ({ data }) => runSafely(async () => {
     const db = await getPool();
     const existing = data.id && z.string().uuid().safeParse(data.id).success;
     const positionResult = await db.query(
@@ -181,7 +181,7 @@ export const saveKanbanCard = createServerFn({ method: "POST" })
           values ($1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9::jsonb) returning id
         `, values);
     return { id: result.rows[0].id };
-  });
+  }));
 
 const moveInput = z.object({
   cardId: z.string().uuid(),
