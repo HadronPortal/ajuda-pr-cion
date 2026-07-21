@@ -1,37 +1,28 @@
 import { useSyncExternalStore } from "react";
 import { initialCards, type KanbanCard } from "./kanban-data";
+import { saveKanbanCard, deleteKanbanCard } from "./kanban-api";
 
-const STORAGE_KEY = "procion-kanban-cards";
-
-function loadInitial(): KanbanCard[] {
-  if (typeof window === "undefined") return [...initialCards];
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [...initialCards];
-    const parsed = JSON.parse(raw) as KanbanCard[];
-    if (!Array.isArray(parsed) || parsed.length === 0) return [...initialCards];
-    return parsed;
-  } catch {
-    return [...initialCards];
-  }
-}
-
-let cards: KanbanCard[] = loadInitial();
+let cards: KanbanCard[] = [...initialCards];
 const listeners = new Set<() => void>();
 
-function persist() {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(cards));
-  } catch {
-    /* ignore quota */
-  }
-}
-
 const emit = () => {
-  persist();
   listeners.forEach((l) => l());
 };
+
+const persistCard = (card: KanbanCard) =>
+  saveKanbanCard({
+    data: {
+      id: card.id || undefined,
+      columnId: card.columnId,
+      title: card.title,
+      description: card.description ?? card.summary,
+      priority: card.priority,
+      dueDate: card.dueDate,
+      archived: Boolean(card.archived),
+      tags: card.tags,
+      memberIds: card.participants?.length ? card.participants : [card.assigneeId],
+    },
+  });
 
 export const kanbanStore = {
   getSnapshot: () => cards,
@@ -40,6 +31,10 @@ export const kanbanStore = {
     return () => {
       listeners.delete(l);
     };
+  },
+  hydrate: (nextCards: KanbanCard[]) => {
+    cards = nextCards;
+    emit();
   },
   setCards: (updater: (prev: KanbanCard[]) => KanbanCard[]) => {
     cards = updater(cards);
@@ -55,15 +50,21 @@ export const kanbanStore = {
     const withId = card.id ? card : { ...card, id: nextId };
     cards = [...cards, withId];
     emit();
+    void persistCard(withId).then(({ id }) => {
+      cards = cards.map((item) => (item.id === withId.id ? { ...item, id } : item));
+      emit();
+    });
     return withId;
   },
   updateCard: (card: KanbanCard) => {
     cards = cards.map((c) => (c.id === card.id ? card : c));
     emit();
+    void persistCard(card);
   },
   deleteCard: (id: string) => {
     cards = cards.filter((c) => c.id !== id);
     emit();
+    if (/^[0-9a-f-]{36}$/i.test(id)) void deleteKanbanCard({ data: { id } });
   },
 };
 

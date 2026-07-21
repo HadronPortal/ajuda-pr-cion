@@ -12,7 +12,9 @@ import { KanbanCardMenu } from "./KanbanCardMenu";
 
 
 function formatDue(iso: string) {
+  if (!iso) return "Sem prazo";
   const d = new Date(iso + "T00:00:00");
+  if (Number.isNaN(d.getTime())) return "Sem prazo";
   return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
 }
 

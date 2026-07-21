@@ -40,6 +40,12 @@ import {
 } from "lucide-react";
 import { AppShell } from "@/components/portal/AppShell";
 import { kanbanStore, useKanbanCards } from "@/lib/kanban-store";
+import {
+  createKanbanColumn,
+  deleteKanbanColumn,
+  loadKanbanBoard,
+  moveKanbanCard,
+} from "@/lib/kanban-api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -120,7 +126,6 @@ function daysBetween(iso: string) {
   return Math.round((d.getTime() - now.getTime()) / 86400000);
 }
 
-const KANBAN_COLUMNS_STORAGE_KEY = "procion-kanban-columns";
 const FOLLOWED_COLUMNS_STORAGE_KEY = "procion-kanban-followed-columns";
 
 const kanbanCollisionDetection: CollisionDetection = (args) => {
@@ -129,16 +134,7 @@ const kanbanCollisionDetection: CollisionDetection = (args) => {
 };
 
 function getInitialColumns(): KanbanColumn[] {
-  if (typeof window === "undefined") return kanbanColumnsDef;
-  try {
-    const saved = window.localStorage.getItem(KANBAN_COLUMNS_STORAGE_KEY);
-    if (!saved) return kanbanColumnsDef;
-    const parsed = JSON.parse(saved) as KanbanColumn[];
-    if (!Array.isArray(parsed) || parsed.length === 0) return kanbanColumnsDef;
-    return parsed.filter((col) => col?.id && col?.title);
-  } catch {
-    return kanbanColumnsDef;
-  }
+  return kanbanColumnsDef;
 }
 
 function getInitialFollowedColumns() {
@@ -174,6 +170,8 @@ function KanbanPage() {
   const cards = useKanbanCards();
   const setCards = kanbanStore.setCards;
   const [columns, setColumns] = useState<KanbanColumn[]>(getInitialColumns);
+  const [boardId, setBoardId] = useState<string | null>(null);
+  const [loadingBoard, setLoadingBoard] = useState(true);
   const [query, setQuery] = useState("");
   const [filters, setFilters] = useState<Filters>(emptyFilters);
   const [onlyMine, setOnlyMine] = useState(false);
@@ -202,8 +200,25 @@ function KanbanPage() {
   }, [cards]);
 
   useEffect(() => {
-    window.localStorage.setItem(KANBAN_COLUMNS_STORAGE_KEY, JSON.stringify(columns));
-  }, [columns]);
+    let active = true;
+    loadKanbanBoard()
+      .then((result) => {
+        if (!active || !result.board) return;
+        setBoardId(result.board.id);
+        setColumns(result.columns);
+        kanbanStore.hydrate(result.cards as KanbanCard[]);
+        setDefaultColumnId(result.columns[0]?.id ?? "a-fazer");
+        setMobileColumn(result.columns[0]?.id ?? "a-fazer");
+      })
+      .catch((error) => {
+        console.error(error);
+        toast.error("Nao foi possivel carregar o quadro do Supabase");
+      })
+      .finally(() => active && setLoadingBoard(false));
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     window.localStorage.setItem(
@@ -337,6 +352,19 @@ function KanbanPage() {
     lastOverColumnRef.current = null;
     if (!targetColumn) return;
     moveCardToColumn(String(active.id), targetColumn, overCardId);
+    if (/^[0-9a-f-]{36}$/i.test(String(active.id))) {
+      void moveKanbanCard({
+        data: {
+          cardId: String(active.id),
+          columnId: targetColumn,
+          beforeCardId:
+            overCardId && /^[0-9a-f-]{36}$/i.test(overCardId) ? overCardId : undefined,
+        },
+      }).catch(() => {
+        toast.error("Nao foi possivel salvar a movimentacao");
+        void loadKanbanBoard().then((result) => kanbanStore.hydrate(result.cards as KanbanCard[]));
+      });
+    }
   };
 
   const handleDragCancel = () => {
@@ -351,20 +379,19 @@ function KanbanPage() {
   };
 
   const handleArchiveCard = (card: KanbanCard) => {
-    setCards((prev) =>
-      prev.map((c) =>
-        c.id === card.id ? { ...c, columnId: "arquivado", archived: true } : c,
-      ),
+    const archiveColumn = columns.find((column) =>
+      /arquiv|finaliz/i.test(column.title),
     );
+    kanbanStore.updateCard({
+      ...card,
+      columnId: archiveColumn?.id ?? card.columnId,
+      archived: true,
+    });
   };
 
   const handleRestoreCard = (card: KanbanCard) => {
     const fallbackColumn = columns.find((column) => column.id !== "arquivado")?.id ?? "a-fazer";
-    setCards((prev) =>
-      prev.map((c) =>
-        c.id === card.id ? { ...c, columnId: fallbackColumn, archived: false } : c,
-      ),
-    );
+    kanbanStore.updateCard({ ...card, columnId: fallbackColumn, archived: false });
     toast.success(`Card "${card.title}" restaurado`);
   };
 
@@ -376,21 +403,12 @@ function KanbanPage() {
   };
 
   const handleSave = (card: KanbanCard) => {
-    setCards((prev) => {
-      if (drawerMode === "create") {
-        const nextId =
-          "PRC-" +
-          (Math.max(
-            ...prev.map((c) => parseInt(c.id.replace(/\D/g, ""), 10) || 0),
-          ) + 1);
-        return [...prev, { ...card, id: nextId }];
-      }
-      return prev.map((c) => (c.id === card.id ? card : c));
-    });
+    if (drawerMode === "create") kanbanStore.addCard(card);
+    else kanbanStore.updateCard(card);
   };
 
   const handleDelete = (id: string) => {
-    setCards((prev) => prev.filter((c) => c.id !== id));
+    kanbanStore.deleteCard(id);
   };
 
   const handleNewColumn = () => {
@@ -398,13 +416,18 @@ function KanbanPage() {
     setNewColumnOpen(true);
   };
 
-  const confirmNewColumn = () => {
+  const confirmNewColumn = async () => {
     const cleanTitle = newColumnName.trim();
     if (!cleanTitle) {
       toast.error("Informe um nome para a coluna");
       return;
     }
-    const id = normalizeColumnId(cleanTitle, columns);
+    if (!boardId) {
+      toast.error("Quadro ainda nao carregado");
+      return;
+    }
+    const result = await createKanbanColumn({ data: { boardId, title: cleanTitle } });
+    const id = result.id;
     setColumns((prev) => [...prev, { id, title: cleanTitle }]);
     setMobileColumn(id);
     setNewColumnOpen(false);
@@ -420,12 +443,13 @@ function KanbanPage() {
     setDeleteTarget(column);
   };
 
-  const confirmDeleteColumn = () => {
+  const confirmDeleteColumn = async () => {
     if (!deleteTarget) return;
     if (columns.length <= 1) return;
     const column = deleteTarget;
     const nextColumns = columns.filter((col) => col.id !== column.id);
     const fallbackColumn = nextColumns[0]?.id ?? "a-fazer";
+    await deleteKanbanColumn({ data: { id: column.id, fallbackId: fallbackColumn } });
     setColumns(nextColumns);
     setCards((prev) =>
       prev.map((card) =>
@@ -594,7 +618,11 @@ function KanbanPage() {
           </div>
         </div>
 
-        {viewMode !== "kanban" ? (
+        {loadingBoard ? (
+          <div className="grid min-h-[420px] place-items-center text-sm text-slate-500">
+            Carregando quadro do Supabase...
+          </div>
+        ) : viewMode !== "kanban" ? (
           <div className="grid place-items-center rounded-xl border border-dashed border-slate-300 bg-white/50 p-16 text-center dark:border-white/10 dark:bg-white/[0.02]">
             <div className="max-w-md">
               <p className="text-sm font-bold text-slate-900 dark:text-white">
