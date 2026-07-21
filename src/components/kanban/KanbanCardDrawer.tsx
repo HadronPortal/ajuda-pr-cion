@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Trash2,
   Archive,
@@ -161,7 +161,7 @@ export function KanbanCardDrawer({
   const [newComment, setNewComment] = useState("");
   const [newChecklistItem, setNewChecklistItem] = useState("");
   const [newChecklistTitle, setNewChecklistTitle] = useState("Checklist");
-  const [newAttachment, setNewAttachment] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (open) {
@@ -171,7 +171,7 @@ export function KanbanCardDrawer({
       setNewComment("");
       setNewChecklistItem("");
       setNewChecklistTitle(base.checklist?.[0]?.checklistTitle || "Checklist");
-      setNewAttachment("");
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   }, [open, card, defaultColumnId]);
 
@@ -276,18 +276,30 @@ export function KanbanCardDrawer({
     setNewComment("");
   };
 
-  const addAttachment = () => {
-    const name = newAttachment.trim();
-    if (!name) return;
+  const formatFileSize = (bytes: number) => {
+    if (!bytes) return "0 B";
+    const units = ["B", "KB", "MB", "GB"];
+    const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+    return `${(bytes / Math.pow(1024, i)).toFixed(i === 0 ? 0 : 1)} ${units[i]}`;
+  };
+
+  const addAttachmentFiles = (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const list = Array.from(files);
     setDraft((d) => ({
       ...d,
       attachmentsList: [
         ...(d.attachmentsList ?? []),
-        { id: uid("at"), name, size: "—", kind: name.split(".").pop() ?? "file" },
+        ...list.map((f) => ({
+          id: uid("at"),
+          name: f.name,
+          size: formatFileSize(f.size),
+          kind: (f.name.split(".").pop() ?? f.type.split("/").pop() ?? "file").toLowerCase(),
+        })),
       ],
-      attachments: (d.attachmentsList?.length ?? d.attachments ?? 0) + 1,
+      attachments: (d.attachmentsList?.length ?? d.attachments ?? 0) + list.length,
     }));
-    setNewAttachment("");
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const removeAttachment = (id: string) => {
@@ -572,7 +584,7 @@ export function KanbanCardDrawer({
                       </div>
                       <button
                         onClick={() => removeAttachment(a.id)}
-                        className="text-muted-foreground hover:text-destructive p-1"
+                        className="cursor-pointer text-muted-foreground hover:text-destructive p-1"
                         aria-label="Remover anexo"
                       >
                         <X className="h-4 w-4" />
@@ -585,17 +597,23 @@ export function KanbanCardDrawer({
                     </p>
                   )}
                 </div>
-                <div className="flex items-center gap-2">
-                  <Input
-                    value={newAttachment}
-                    onChange={(e) => setNewAttachment(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && addAttachment()}
-                    placeholder="Nome do arquivo (ex: log-erro.txt)"
-                    className="h-9 text-sm"
+                <div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    multiple
+                    className="hidden"
+                    onChange={(e) => addAttachmentFiles(e.target.files)}
                   />
-                  <Button size="sm" variant="secondary" onClick={addAttachment}>
-                    <Paperclip className="h-4 w-4 mr-1" /> Anexar
-                  </Button>
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-full cursor-pointer rounded-lg border-2 border-dashed border-border bg-muted/30 px-4 py-6 text-center text-sm text-muted-foreground transition-colors hover:border-primary/50 hover:bg-muted/50 hover:text-foreground"
+                  >
+                    <Paperclip className="mx-auto mb-1.5 h-5 w-5" />
+                    <span className="block font-medium">Clique para anexar arquivos</span>
+                    <span className="block text-[11px]">Você pode selecionar um ou mais arquivos do computador</span>
+                  </button>
                 </div>
               </section>
 
@@ -625,7 +643,7 @@ export function KanbanCardDrawer({
                             <Link
                               to="/base-de-conhecimento/$slug"
                               params={{ slug: a.slug }}
-                              className="text-sm font-medium hover:underline block truncate"
+                              className="cursor-pointer text-sm font-medium hover:underline block truncate"
                             >
                               {a.title}
                             </Link>
@@ -641,7 +659,7 @@ export function KanbanCardDrawer({
                                 category: getCategory(a.category).name,
                               })
                             }
-                            className="shrink-0 inline-flex items-center gap-1 text-[11px] text-primary hover:underline"
+                            className="cursor-pointer shrink-0 inline-flex items-center gap-1 text-[11px] text-primary hover:underline"
                           >
                             <Plus className="h-3 w-3" /> Vincular
                           </button>
@@ -834,7 +852,6 @@ export function KanbanCardDrawer({
               <SidebarField icon={Tag} label="Prioridade">
                 <Select value={draft.priority} onValueChange={(v) => handleChangePriority(v as KanbanCard["priority"])}>
                   <SelectTrigger className="h-10 cursor-pointer">
-                    <span className={cn("h-2 w-12 shrink-0 rounded-full", priorityMeta[draft.priority].strip)} />
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -1184,21 +1201,28 @@ function RelationPicker({
     onToggle: () => void;
   }[];
 }) {
+  const sortedOptions = useMemo(
+    () =>
+      [...options].sort((a, b) =>
+        a.label.localeCompare(b.label, "pt-BR", { sensitivity: "base" }),
+      ),
+    [options],
+  );
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <button className="inline-flex items-center gap-1 h-6 px-2 rounded-md border border-border text-[11px] text-muted-foreground hover:text-foreground hover:border-primary/40">
+        <button className="cursor-pointer inline-flex items-center gap-1 h-6 px-2 rounded-md border border-border text-[11px] text-muted-foreground hover:text-foreground hover:border-primary/40">
           <Plus className="h-3 w-3" /> {label}
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-72 p-2" align="end">
         <div className="space-y-0.5 max-h-72 overflow-y-auto">
-          {options.map((o) => (
+          {sortedOptions.map((o) => (
             <button
               key={o.id}
               onClick={o.onToggle}
               className={cn(
-                "w-full text-left px-2 py-1.5 rounded hover:bg-muted flex items-start gap-2",
+                "cursor-pointer w-full text-left px-2 py-1.5 rounded hover:bg-muted flex items-start gap-2",
                 o.selected && "bg-muted",
               )}
             >
