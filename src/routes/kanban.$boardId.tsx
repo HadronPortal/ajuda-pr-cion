@@ -29,7 +29,7 @@ import {
   BarChart3,
   Bell,
   BriefcaseBusiness,
-  CalendarRange,
+  
   CheckCircle2,
   Clock3,
   Inbox,
