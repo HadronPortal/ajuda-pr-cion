@@ -259,7 +259,7 @@ let lastFilters: Filters = { ...emptyFilters };
 const PAGE_SIZE = 10;
 
 function ClientsPage() {
-  const { clients } = Route.useLoaderData();
+  const { clients } = Route.useLoaderData() as { clients: ClientRow[] };
   const navigate = useNavigate();
   const [filters, setFilters] = useState<Filters>(() => lastFilters);
   const [draft, setDraft] = useState<Filters>(() => lastFilters);
