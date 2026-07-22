@@ -575,28 +575,32 @@ function ClientsPage() {
                     </div>
                   </td>
                   <td className="whitespace-nowrap px-4 py-4">
-                    <div
-                      className={cn(
-                        "inline-flex flex-col rounded-md px-2 py-1",
-                        isErpVersionOutdated(client.versionDate) &&
-                          "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300",
-                      )}
-                    >
-                      <div>
-                        Versão: {client.version} ({client.versionDate})
-                      </div>
-                      <div
-                        className={cn(
-                          "flex items-center gap-1.5 text-[11px] font-normal",
-                          isErpVersionOutdated(client.versionDate)
-                            ? "text-red-600/80 dark:text-red-300/80"
-                            : "text-muted-foreground",
-                        )}
-                      >
-                        <span>{client.versionUpdatedAt}</span>
-                        <RefreshCw className="h-3 w-3" />
-                      </div>
-                    </div>
+                    {(() => {
+                      const outdated = isErpVersionOutdated(client.versionDate);
+                      return (
+                        <div
+                          className={cn(
+                            "flex flex-col",
+                            outdated && "border-l-2 border-red-500 pl-2 dark:border-red-400",
+                          )}
+                        >
+                          <div className="flex items-center gap-2 whitespace-nowrap">
+                            <span>
+                              Versão: {client.version} ({client.versionDate})
+                            </span>
+                            {outdated && (
+                              <span className="inline-flex items-center rounded-sm bg-red-100 px-1.5 py-0.5 text-[10px] font-medium leading-none text-red-700 dark:bg-red-500/15 dark:text-red-300">
+                                Desatualizada
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1.5 text-[11px] font-normal text-muted-foreground">
+                            <span>{client.versionUpdatedAt}</span>
+                            <RefreshCw className="h-3 w-3" />
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </td>
                   <td className="whitespace-nowrap px-4 py-4">{normalizeCityUf(client.city)}</td>
                   <td className="whitespace-nowrap px-4 py-4 text-muted-foreground">
