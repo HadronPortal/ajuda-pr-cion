@@ -14,6 +14,7 @@ alter table public.clients
   add column if not exists cnae text,
   add column if not exists tax_regime text;
 
+drop function if exists public.list_crm_clients(integer, integer);
 drop function if exists public.list_crm_clients();
 create function public.list_crm_clients(p_limit integer default 500, p_offset integer default 0)
 returns table (
