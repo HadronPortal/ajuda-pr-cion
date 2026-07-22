@@ -26,6 +26,10 @@ export const erpVersions = [...(versionTable?.data ?? [])].sort((a, b) =>
 
 export const latestErpVersion = erpVersions[0];
 
+export const latestErpAlterationDate = latestErpVersion?.data_alterar ?? "";
+
+const ERP_2_CUTOFF_DATE = "2025-07-28";
+
 const toIsoDate = (value: string) => {
   const trimmed = value.trim();
   if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
@@ -38,9 +42,34 @@ export const isErpVersionOutdated = (releaseDate: string) => {
   const clientReleaseDate = toIsoDate(releaseDate);
   return Boolean(
     clientReleaseDate &&
-      latestErpVersion &&
-      clientReleaseDate < latestErpVersion.data_versao,
+      latestErpAlterationDate &&
+      clientReleaseDate < latestErpAlterationDate,
   );
+};
+
+export const getClientErpVersionStatus = (version: string, releaseDate: string) => {
+  const normalizedVersion = version.trim();
+  const clientReleaseDate = toIsoDate(releaseDate);
+  const isMissing = !normalizedVersion && !clientReleaseDate;
+  const isVersion2 =
+    normalizedVersion === "2.0" || clientReleaseDate >= ERP_2_CUTOFF_DATE;
+  const isLegacy = !isMissing && !isVersion2;
+  const isOutdated = isErpVersionOutdated(releaseDate);
+
+  return {
+    displayVersion: isMissing ? "Sem versão" : isVersion2 ? "2.0" : normalizedVersion || "1.X",
+    isMissing,
+    isLegacy,
+    isOutdated,
+    needsAttention: isMissing || isLegacy || isOutdated,
+    label: isMissing
+      ? "Sem versão"
+      : isLegacy
+        ? "Versão anterior"
+        : isOutdated
+          ? "Desatualizada"
+          : "Atualizada",
+  };
 };
 
 export const formatVersionDate = (value: string) => {

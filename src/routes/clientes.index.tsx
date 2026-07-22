@@ -27,7 +27,11 @@ import {
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { AppShell, PageHeader } from "@/components/portal/AppShell";
-import { isErpVersionOutdated } from "@/lib/erp-versions";
+import {
+  formatVersionDate,
+  getClientErpVersionStatus,
+  latestErpAlterationDate,
+} from "@/lib/erp-versions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -289,6 +293,42 @@ function compareByKey(a: ClientRow, b: ClientRow, key: SortKey): number {
     default:
       return 0;
   }
+}
+
+function ClientVersionCell({ client }: { client: ClientRow }) {
+  const status = getClientErpVersionStatus(client.version, client.versionDate);
+  const warningClass =
+    "rounded-md border border-red-200 bg-red-50 px-1.5 py-0.5 text-red-700 dark:border-red-500/30 dark:bg-red-500/15 dark:text-red-300";
+
+  return (
+    <td className="whitespace-nowrap px-4 py-4">
+      <div className="inline-flex flex-col items-start gap-1">
+        <div className="flex items-center gap-1.5 text-[11px] font-normal">
+          <span className={cn((status.isMissing || status.isLegacy) && warningClass)}>
+            {status.isMissing ? status.displayVersion : `Versão: ${status.displayVersion}`}
+          </span>
+          {!status.isMissing && client.versionDate && (
+            <span
+              className={cn(status.isOutdated && warningClass)}
+              title={
+                status.isOutdated
+                  ? `Versão anterior à alteração mínima de ${formatVersionDate(latestErpAlterationDate)}`
+                  : undefined
+              }
+            >
+              ({client.versionDate})
+            </span>
+          )}
+        </div>
+        {client.versionUpdatedAt && (
+          <div className="flex items-center gap-1.5 text-[11px] font-normal text-muted-foreground">
+            <span>{client.versionUpdatedAt}</span>
+            <RefreshCw className="h-3 w-3" />
+          </div>
+        )}
+      </div>
+    </td>
+  );
 }
 
 function ClientsPage() {
@@ -574,34 +614,7 @@ function ClientsPage() {
                       {client.segment} - Porte: {client.size}
                     </div>
                   </td>
-                  <td className="whitespace-nowrap px-4 py-4">
-                    {(() => {
-                      const outdated = isErpVersionOutdated(client.versionDate);
-                      return (
-                        <div
-                          className={cn(
-                            "flex flex-col",
-                            outdated && "border-l-2 border-red-500 pl-2 dark:border-red-400",
-                          )}
-                        >
-                          <div className="flex items-center gap-2 whitespace-nowrap">
-                            <span>
-                              Versão: {client.version} ({client.versionDate})
-                            </span>
-                            {outdated && (
-                              <span className="inline-flex items-center rounded-sm bg-red-100 px-1.5 py-0.5 text-[10px] font-medium leading-none text-red-700 dark:bg-red-500/15 dark:text-red-300">
-                                Desatualizada
-                              </span>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-1.5 text-[11px] font-normal text-muted-foreground">
-                            <span>{client.versionUpdatedAt}</span>
-                            <RefreshCw className="h-3 w-3" />
-                          </div>
-                        </div>
-                      );
-                    })()}
-                  </td>
+                  <ClientVersionCell client={client} />
                   <td className="whitespace-nowrap px-4 py-4">{normalizeCityUf(client.city)}</td>
                   <td className="whitespace-nowrap px-4 py-4 text-muted-foreground">
                     {client.cnpj}
