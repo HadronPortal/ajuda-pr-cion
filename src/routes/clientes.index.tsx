@@ -512,7 +512,8 @@ function ClientsPage() {
                         className={cn(
                           client.status === "Ativo"
                             ? "bg-emerald-500/12 text-emerald-600 dark:text-emerald-400"
-                            : "bg-slate-500/15 text-slate-600 dark:text-slate-300",
+                            : "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300",
+
                         )}
                       >
                         {client.status}
