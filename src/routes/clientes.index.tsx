@@ -492,20 +492,52 @@ function ClientsPage() {
           <table className="w-full min-w-[1050px] text-sm">
             <thead className="bg-muted/35 text-xs uppercase text-muted-foreground">
               <tr>
-                {[
-                  "Cadastro",
-                  "Sigla",
-                  "Nome / perfil",
-                  "Versao / setup",
-                  "Cidade / UF",
-                  "CNPJ",
-                  "Status",
-                  "",
-                ].map((label) => (
-                  <th key={label} className="whitespace-nowrap px-4 py-3 text-left font-medium">
-                    {label}
-                  </th>
-                ))}
+                {(
+                  [
+                    { label: "Cadastro", key: "registered" as SortKey },
+                    { label: "Sigla", key: "acronym" as SortKey },
+                    { label: "Nome / perfil", key: "name" as SortKey },
+                    { label: "Versao / setup", key: "version" as SortKey },
+                    { label: "Cidade / UF", key: "city" as SortKey },
+                    { label: "CNPJ", key: "cnpj" as SortKey },
+                    { label: "Status", key: "status" as SortKey },
+                  ]
+                ).map(({ label, key }) => {
+                  const active = sort?.key === key;
+                  const dir = active ? sort!.dir : null;
+                  return (
+                    <th
+                      key={label}
+                      onClick={() =>
+                        setSort((prev) => {
+                          if (!prev || prev.key !== key) return { key, dir: "asc" };
+                          if (prev.dir === "asc") return { key, dir: "desc" };
+                          return null;
+                        })
+                      }
+                      aria-sort={
+                        dir === "asc"
+                          ? "ascending"
+                          : dir === "desc"
+                            ? "descending"
+                            : "none"
+                      }
+                      className="cursor-pointer whitespace-nowrap px-4 py-3 text-left font-medium select-none hover:text-foreground transition-colors"
+                    >
+                      <span className="inline-flex items-center gap-1">
+                        {label}
+                        {dir === "asc" ? (
+                          <ArrowUp className="h-3 w-3" />
+                        ) : dir === "desc" ? (
+                          <ArrowDown className="h-3 w-3" />
+                        ) : (
+                          <ArrowUpDown className="h-3 w-3 opacity-40" />
+                        )}
+                      </span>
+                    </th>
+                  );
+                })}
+                <th className="whitespace-nowrap px-4 py-3" />
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
