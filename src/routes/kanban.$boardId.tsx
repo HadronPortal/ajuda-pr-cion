@@ -34,6 +34,7 @@ import {
   Inbox,
   CalendarDays,
   Filter,
+  FileStack,
   LayoutGrid,
   List,
   Plus,
@@ -69,6 +70,8 @@ import { KanbanColumnView } from "@/components/kanban/KanbanColumn";
 import { KanbanCardItem } from "@/components/kanban/KanbanCard";
 import { KanbanCardDrawer } from "@/components/kanban/KanbanCardDrawer";
 import { KanbanBoardMenu } from "@/components/kanban/KanbanBoardMenu";
+import { KanbanTemplateDialog } from "@/components/kanban/KanbanTemplateDialog";
+import { templateToCard, type KanbanCardTemplate } from "@/lib/kanban-templates";
 import {
   type KanbanCard,
   type ColumnId,
@@ -198,6 +201,7 @@ function KanbanPage() {
   const [deleteTarget, setDeleteTarget] = useState<KanbanColumn | null>(null);
   const [followedColumns, setFollowedColumns] = useState<Set<ColumnId>>(getInitialFollowedColumns);
   const [boardMenuOpen, setBoardMenuOpen] = useState(false);
+  const [templatesOpen, setTemplatesOpen] = useState(false);
   const lastOverColumnRef = useRef<ColumnId | null>(null);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
@@ -428,6 +432,16 @@ function KanbanPage() {
     setDrawerOpen(true);
   };
 
+  const handleUseTemplate = (template: KanbanCardTemplate) => {
+    const columnId = columns.some((column) => column.id === defaultColumnId)
+      ? defaultColumnId
+      : (columns[0]?.id ?? "a-fazer");
+    setDrawerMode("create");
+    setDrawerCard(templateToCard(template, columnId));
+    setTemplatesOpen(false);
+    setDrawerOpen(true);
+  };
+
   const handleSave = (card: KanbanCard) => {
     if (drawerMode === "create") kanbanStore.addCard(card);
     else kanbanStore.updateCard(card);
@@ -652,6 +666,15 @@ function KanbanPage() {
               Meus cards
             </button>
 
+            <button
+              onClick={() => setTemplatesOpen(true)}
+              className="inline-flex h-11 shrink-0 cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:border-white/8 dark:bg-white/[0.035] dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white"
+              title="Criar cartao a partir de um template"
+            >
+              <FileStack className="h-4 w-4" />
+              Templates
+            </button>
+
             <div className="inline-flex h-11 shrink-0 items-center gap-0.5 rounded-lg border border-slate-200 bg-white p-0.5 dark:border-white/8 dark:bg-white/[0.035]">
               <ViewToggleButton active={viewMode === "kanban"} onClick={() => setViewMode("kanban")} icon={LayoutGrid} label="Kanban" />
               <ViewToggleButton active={viewMode === "inbox"} onClick={() => setViewMode("inbox")} icon={Inbox} label="Caixa de entrada" />
@@ -851,6 +874,12 @@ function KanbanPage() {
         onRestoreCard={handleRestoreCard}
         onDeleteCard={handleDelete}
         onCreateColumn={handleNewColumn}
+      />
+
+      <KanbanTemplateDialog
+        open={templatesOpen}
+        onOpenChange={setTemplatesOpen}
+        onUse={handleUseTemplate}
       />
 
       <Dialog open={newColumnOpen} onOpenChange={setNewColumnOpen}>
