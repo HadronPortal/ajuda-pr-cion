@@ -465,7 +465,7 @@ function ClientsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {filtered.map((client) => (
+              {pageRows.map((client) => (
                 <tr
                   key={client.id}
                   onClick={() =>
