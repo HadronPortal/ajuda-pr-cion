@@ -758,7 +758,7 @@ function ClientsPage() {
                     </div>
                   </td>
                 </tr>
-              );})}
+              ))}
 
               {filtered.length === 0 && (
                 <tr>
