@@ -688,9 +688,7 @@ function ClientsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {pageRows.map((client) => {
-                const cnpjInfo = formatCnpjDisplay(client.cnpj);
-                return (
+              {pageRows.map((client) => (
                 <tr
                   key={client.id}
                   onClick={() =>
