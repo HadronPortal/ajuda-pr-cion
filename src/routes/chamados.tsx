@@ -851,14 +851,73 @@ function TicketsPage() {
 
 
 
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-        <div>
+      <div className="mb-3 grid items-center gap-3 xl:grid-cols-[230px_minmax(0,1fr)_auto]">
+        <div className="shrink-0">
           <p className="text-base font-bold text-foreground">Fila de suporte</p>
           <p className="mt-0.5 text-xs text-muted-foreground">
             {filteredTickets.length} chamado(s) exibidos com os filtros atuais.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+
+        <div className="grid min-w-0 gap-2 sm:grid-cols-2 xl:grid-cols-[minmax(190px,1fr)_110px_150px_220px]">
+          <label className="relative min-w-0">
+            <span className="sr-only">Pesquisa avancada</span>
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              type="search"
+              value={filters.query}
+              onChange={(event) => setFilters((current) => ({ ...current, query: event.target.value }))}
+              placeholder="Pesquisa avancada"
+              className="h-9 w-full min-w-0 rounded-lg border border-border bg-background pl-9 pr-3 text-[13px] outline-none transition focus:ring-2 focus:ring-ring"
+            />
+          </label>
+
+          <label className="min-w-0">
+            <span className="sr-only">Sigla do cliente</span>
+            <input
+              type="text"
+              value={filters.sigla}
+              onChange={(event) =>
+                setFilters((current) => ({ ...current, sigla: event.target.value.toUpperCase() }))
+              }
+              placeholder="SIGLA"
+              className="h-9 w-full min-w-0 rounded-lg border border-border bg-background px-3 text-[13px] uppercase outline-none transition focus:ring-2 focus:ring-ring"
+            />
+          </label>
+
+          <label className="min-w-0">
+            <span className="sr-only">Operador</span>
+            <select
+              value={filters.operator}
+              onChange={(event) => setFilters((current) => ({ ...current, operator: event.target.value }))}
+              className={cn(
+                "h-9 w-full min-w-0 cursor-pointer rounded-lg border border-border bg-background px-3 text-[13px] outline-none transition focus:ring-2 focus:ring-ring",
+                filters.operator === "Todos" && "text-muted-foreground",
+              )}
+            >
+              <option value="Todos">OPERADOR</option>
+              {ticketOperators.map((operator) => (
+                <option key={operator} value={operator}>
+                  {operator}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <DateRangeFilter
+            start={filters.dateStart}
+            end={filters.dateEnd}
+            onChange={(range) =>
+              setFilters((current) => ({
+                ...current,
+                dateStart: range.start,
+                dateEnd: range.end,
+              }))
+            }
+          />
+        </div>
+
+        <div className="flex shrink-0 items-center justify-end gap-2">
           <Badge variant="secondary" className="rounded-full">
             CRM lado suporte
           </Badge>
