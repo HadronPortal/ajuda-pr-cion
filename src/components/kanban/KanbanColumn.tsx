@@ -28,11 +28,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const columnMeta: Record<string, { dot: string; text: string }> = {
-  "a-fazer": { dot: "bg-sky-400", text: "text-sky-300" },
-  "em-andamento": { dot: "bg-amber-400", text: "text-amber-300" },
-  concluido: { dot: "bg-blue-400", text: "text-blue-300" },
-  homologacao: { dot: "bg-violet-400", text: "text-violet-300" },
-  arquivado: { dot: "bg-emerald-400", text: "text-emerald-300" },
+  "a-fazer": { dot: "bg-sky-500", text: "text-slate-800 dark:text-slate-100" },
+  "em-andamento": { dot: "bg-amber-400", text: "text-slate-800 dark:text-slate-100" },
+  concluido: { dot: "bg-blue-500", text: "text-slate-800 dark:text-slate-100" },
+  homologacao: { dot: "bg-violet-500", text: "text-slate-800 dark:text-slate-100" },
+  arquivado: { dot: "bg-emerald-500", text: "text-slate-800 dark:text-slate-100" },
 };
 
 export function KanbanColumnView({
@@ -76,11 +76,11 @@ export function KanbanColumnView({
   const meta = columnMeta[column.id] ?? columnMeta["a-fazer"];
 
   return (
-    <section className="relative flex h-[clamp(390px,calc(100dvh-250px),720px)] w-[270px] shrink-0 flex-col overflow-hidden rounded-xl border border-slate-200 bg-white p-3 shadow-sm dark:border-white/7 dark:bg-white/[0.045] dark:shadow-[0_18px_40px_rgba(0,0,0,0.16)]">
+    <section className="relative flex h-[clamp(390px,calc(100dvh-250px),720px)] w-[280px] shrink-0 flex-col overflow-hidden rounded-xl border border-slate-300 bg-slate-100 p-2.5 shadow-sm dark:border-white/8 dark:bg-[#171a20] dark:shadow-[0_18px_40px_rgba(0,0,0,0.16)]">
       <div className="mb-3 flex h-7 items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2">
           <span className={cn("h-2 w-2 shrink-0 rounded-full", meta.dot)} />
-          <h2 className={cn("truncate text-[11px] font-black", meta.text)}>{column.title}</h2>
+          <h2 className={cn("truncate text-[12px] font-semibold", meta.text)}>{column.title}</h2>
           <span className="grid h-5 min-w-5 place-items-center rounded-full border border-slate-200 bg-white px-1.5 text-[10px] font-black text-slate-600 dark:border-white/10 dark:bg-white/8 dark:text-slate-300">
             {cards.length}
           </span>

@@ -7,6 +7,7 @@ export type KanbanMember = {
   name: string;
   initials: string;
   color: string;
+  avatarUrl?: string;
 };
 
 export type ChecklistItem = {
@@ -58,12 +59,12 @@ export type KanbanColumn = {
 };
 
 export const kanbanMembers: KanbanMember[] = [
-  { id: "u-ar", name: "Ana Ribeiro", initials: "AR", color: "bg-primary/15 text-primary" },
-  { id: "u-bl", name: "Bruno Lima", initials: "BL", color: "bg-accent/20 text-accent-foreground" },
-  { id: "u-ms", name: "Marina Souza", initials: "MS", color: "bg-success/15 text-success" },
-  { id: "u-rt", name: "Rafael Torres", initials: "RT", color: "bg-warning/25 text-warning-foreground" },
-  { id: "u-ca", name: "Camila Alves", initials: "CA", color: "bg-primary/15 text-primary" },
-  { id: "u-jp", name: "João Prado", initials: "JP", color: "bg-accent/20 text-accent-foreground" },
+  { id: "u-ar", name: "Ana Ribeiro", initials: "AR", color: "bg-primary/15 text-primary", avatarUrl: "https://i.pravatar.cc/96?img=47" },
+  { id: "u-bl", name: "Bruno Lima", initials: "BL", color: "bg-accent/20 text-accent-foreground", avatarUrl: "https://i.pravatar.cc/96?img=12" },
+  { id: "u-ms", name: "Marina Souza", initials: "MS", color: "bg-success/15 text-success", avatarUrl: "https://i.pravatar.cc/96?img=33" },
+  { id: "u-rt", name: "Rafael Torres", initials: "RT", color: "bg-warning/25 text-warning-foreground", avatarUrl: "https://i.pravatar.cc/96?img=59" },
+  { id: "u-ca", name: "Camila Alves", initials: "CA", color: "bg-primary/15 text-primary", avatarUrl: "https://i.pravatar.cc/96?img=15" },
+  { id: "u-jp", name: "João Prado", initials: "JP", color: "bg-accent/20 text-accent-foreground", avatarUrl: "https://i.pravatar.cc/96?img=52" },
 ];
 
 export const kanbanColumnsDef: KanbanColumn[] = [

@@ -1,7 +1,7 @@
 import { CalendarDays, MessageSquare, Paperclip } from "lucide-react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import {
   type KanbanCard as CardType,
@@ -75,7 +75,10 @@ export function KanbanCardItem({
     transition,
   };
 
-  const assignee = kanbanMembers.find((m) => m.id === card.assigneeId);
+  const memberIds = Array.from(new Set([...(card.participants ?? []), card.assigneeId])).filter(Boolean);
+  const members = memberIds
+    .map((id) => kanbanMembers.find((member) => member.id === id))
+    .filter((member): member is (typeof kanbanMembers)[number] => Boolean(member));
   const priority = getPriorityMeta(card.priority);
   const total = card.checklist?.length || (priority.label === "Alta" ? 7 : 5);
   const done =
@@ -95,32 +98,32 @@ export function KanbanCardItem({
         onClick?.();
       }}
       className={cn(
-        "group cursor-pointer rounded-xl border border-slate-200 bg-white p-4 text-slate-900 shadow-sm transition duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1.5 hover:border-slate-300 hover:bg-slate-50 hover:shadow-md dark:border-white/7 dark:bg-[#101827] dark:text-slate-100 dark:shadow-[0_10px_28px_rgba(0,0,0,0.18)] dark:hover:border-white/14 dark:hover:bg-[#141e30] dark:hover:shadow-[0_18px_34px_rgba(0,0,0,0.28)]",
+        "group cursor-pointer rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-slate-900 shadow-[0_1px_1px_rgba(15,23,42,0.08)] transition duration-200 ease-out hover:-translate-y-0.5 hover:border-slate-400 hover:shadow-md dark:border-white/10 dark:bg-[#22252a] dark:text-slate-100 dark:hover:border-white/20 dark:hover:bg-[#292c31]",
         isDragging && !overlay && "opacity-40",
         overlay && "rotate-1 shadow-2xl",
       )}
     >
       {/* Trello-style label strips */}
-      <div className="mb-2 flex flex-wrap gap-1">
+      <div className="mb-1.5 flex flex-wrap gap-1">
         <span
           title={`Prioridade: ${priority.label}`}
-          className={cn("h-2 w-10 rounded-full", priority.strip)}
+          className={cn("h-1.5 w-10 rounded-full", priority.strip)}
         />
         {card.tags?.slice(0, 6).map((t) => (
           <span
             key={t}
             title={t}
-            className={cn("h-2 w-10 rounded-full opacity-90", getTagColor(t))}
+            className={cn("h-1.5 w-10 rounded-full opacity-90", getTagColor(t))}
           />
         ))}
       </div>
 
       <div className="mb-2 flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="line-clamp-2 text-[12px] font-medium leading-snug text-slate-900 dark:text-white">
+          <p className="line-clamp-3 text-[12px] font-medium leading-[1.35] text-slate-800 dark:text-slate-100">
             {card.title}
           </p>
-          <p className="mt-1 text-[11px] font-medium text-slate-500 line-clamp-1 dark:text-slate-400">
+          <p className="mt-1 line-clamp-1 text-[10px] text-slate-500 dark:text-slate-400">
             {card.client} <span className="text-slate-400 dark:text-slate-600">•</span> {card.module}
           </p>
         </div>
@@ -134,7 +137,7 @@ export function KanbanCardItem({
         </div>
       </div>
 
-      <div className="flex items-center gap-3 text-[10px] text-slate-500 dark:text-slate-400">
+      <div className="flex min-h-6 items-center gap-2.5 text-[10px] text-slate-500 dark:text-slate-400">
         <span className="inline-flex items-center gap-1" title="Prazo">
           <CalendarDays className="h-3 w-3" />
           {formatDue(card.dueDate)}
@@ -164,13 +167,23 @@ export function KanbanCardItem({
             ☑ {done}/{total}
           </span>
         )}
-        <span className="ml-auto flex items-center">
-          {assignee && (
-            <Avatar className="h-6 w-6 border border-slate-200 dark:border-white/10">
-              <AvatarFallback className={cn("text-[9px] font-black", assignee.color)}>
-                {assignee.initials}
+        <span className="ml-auto flex -space-x-1.5 pl-1">
+          {members.slice(0, 4).map((member) => (
+            <Avatar
+              key={member.id}
+              title={member.name}
+              className="h-6 w-6 border-2 border-white bg-white shadow-sm dark:border-[#22252a] dark:bg-[#22252a]"
+            >
+              <AvatarImage src={member.avatarUrl} alt={member.name} />
+              <AvatarFallback className={cn("text-[8px] font-semibold", member.color)}>
+                {member.initials}
               </AvatarFallback>
             </Avatar>
+          ))}
+          {members.length > 4 && (
+            <span className="grid h-6 min-w-6 place-items-center rounded-full border-2 border-white bg-slate-200 px-1 text-[8px] text-slate-700 dark:border-[#22252a] dark:bg-slate-700 dark:text-slate-100">
+              +{members.length - 4}
+            </span>
           )}
         </span>
       </div>

@@ -575,12 +575,12 @@ function KanbanPage() {
 
   return (
     <AppShell>
-      <div className="min-h-[calc(100vh-92px)] rounded-[18px] border border-slate-200 bg-white p-5 text-slate-900 shadow-[0_8px_24px_rgba(15,23,42,0.06)] dark:border-white/8 dark:bg-[#050c18] dark:text-slate-100 dark:shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
-        <div className="mb-4 flex flex-col gap-3 border-b border-slate-200 pb-3 dark:border-white/8 lg:flex-row lg:items-center lg:justify-between">
+      <div className="min-h-[calc(100vh-92px)] rounded-[18px] border border-slate-300 bg-slate-200 p-4 text-slate-900 shadow-[0_8px_24px_rgba(15,23,42,0.06)] dark:border-white/8 dark:bg-[#10151f] dark:text-slate-100 dark:shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
+        <div className="mb-3 flex flex-col gap-3 rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 shadow-sm dark:border-white/8 dark:bg-[#1e2633] lg:flex-row lg:items-center lg:justify-between">
           <div className="min-w-0 shrink-0 lg:max-w-[260px]">
             <Link
               to="/kanban"
-              className="mb-1 inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-500 hover:text-primary dark:text-slate-400 dark:hover:text-primary"
+              className="mb-1 inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
               Meus quadros
@@ -1323,7 +1323,7 @@ function ViewToggleButton({
       className={cn(
         "inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-md text-[11px] font-medium transition",
         active
-          ? "bg-violet-600 text-white shadow-sm"
+          ? "bg-slate-700 text-white shadow-sm dark:bg-slate-100 dark:text-slate-900"
           : "text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/8 dark:hover:text-white",
       )}
       title={soon ? `${label} — em breve` : label}
