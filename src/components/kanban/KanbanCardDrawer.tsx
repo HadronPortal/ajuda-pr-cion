@@ -277,19 +277,31 @@ export function KanbanCardDrawer({
     return `${(bytes / Math.pow(1024, i)).toFixed(i === 0 ? 0 : 1)} ${units[i]}`;
   };
 
-  const addAttachmentFiles = (files: FileList | null) => {
+  const readFileAsDataUrl = (file: File) =>
+    new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(file);
+    });
+
+  const addAttachmentFiles = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
     const list = Array.from(files);
+    const attachments = await Promise.all(
+      list.map(async (f) => ({
+        id: uid("at"),
+        name: f.name,
+        size: formatFileSize(f.size),
+        kind: (f.name.split(".").pop() ?? f.type.split("/").pop() ?? "file").toLowerCase(),
+        url: await readFileAsDataUrl(f),
+      })),
+    );
     setDraft((d) => ({
       ...d,
       attachmentsList: [
         ...(d.attachmentsList ?? []),
-        ...list.map((f) => ({
-          id: uid("at"),
-          name: f.name,
-          size: formatFileSize(f.size),
-          kind: (f.name.split(".").pop() ?? f.type.split("/").pop() ?? "file").toLowerCase(),
-        })),
+        ...attachments,
       ],
       attachments: (d.attachmentsList?.length ?? d.attachments ?? 0) + list.length,
     }));
@@ -636,7 +648,19 @@ export function KanbanCardDrawer({
                   {(draft.attachmentsList ?? []).map((a) => (
                     <div
                       key={a.id}
-                      className="flex items-center justify-between gap-3 rounded-lg border border-border bg-card px-3 py-2"
+                      className={cn(
+                        "flex items-center justify-between gap-3 rounded-lg border border-border bg-card px-3 py-2",
+                        a.url && "cursor-pointer transition-colors hover:bg-muted/40",
+                      )}
+                      role={a.url ? "link" : undefined}
+                      tabIndex={a.url ? 0 : undefined}
+                      onClick={() => a.url && window.open(a.url, "_blank", "noopener,noreferrer")}
+                      onKeyDown={(event) => {
+                        if (a.url && (event.key === "Enter" || event.key === " ")) {
+                          event.preventDefault();
+                          window.open(a.url, "_blank", "noopener,noreferrer");
+                        }
+                      }}
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
                         <div className="h-8 w-8 shrink-0 grid place-items-center rounded bg-muted text-[10px] font-medium uppercase text-muted-foreground">
@@ -649,6 +673,7 @@ export function KanbanCardDrawer({
                               target="_blank"
                               rel="noreferrer"
                               className="block truncate text-sm font-medium text-primary hover:underline"
+                              onClick={(event) => event.stopPropagation()}
                             >
                               {a.name}
                             </a>
@@ -659,7 +684,10 @@ export function KanbanCardDrawer({
                         </div>
                       </div>
                       <button
-                        onClick={() => removeAttachment(a.id)}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          removeAttachment(a.id);
+                        }}
                         className="cursor-pointer text-muted-foreground hover:text-destructive p-1"
                         aria-label="Remover anexo"
                       >

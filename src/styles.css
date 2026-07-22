@@ -151,7 +151,7 @@
   .app-scrollbar,
   .kanban-scrollbar {
     scrollbar-width: thin;
-    scrollbar-color: color-mix(in oklab, var(--primary) 26%, transparent) transparent;
+    scrollbar-color: rgb(148 163 184 / 55%) transparent;
   }
 
   .app-scrollbar::-webkit-scrollbar,
@@ -162,8 +162,18 @@
 
   .app-scrollbar::-webkit-scrollbar-thumb,
   .kanban-scrollbar::-webkit-scrollbar-thumb {
-    background: color-mix(in oklab, var(--primary) 24%, transparent);
+    background: rgb(148 163 184 / 55%);
     border-radius: 999px;
+  }
+
+  .dark .app-scrollbar,
+  .dark .kanban-scrollbar {
+    scrollbar-color: rgb(100 116 139 / 70%) transparent;
+  }
+
+  .dark .app-scrollbar::-webkit-scrollbar-thumb,
+  .dark .kanban-scrollbar::-webkit-scrollbar-thumb {
+    background: rgb(100 116 139 / 70%);
   }
 
   .app-scrollbar::-webkit-scrollbar-track,
