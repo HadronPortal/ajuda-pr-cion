@@ -618,47 +618,14 @@ function TicketsPage() {
 
   return (
     <AppShell>
-      <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-start lg:gap-4">
-        <div className="min-w-0 shrink-0 lg:max-w-[280px]">
-          <Breadcrumbs items={[{ label: "Chamados" }]} />
-          <h1 className="text-lg font-medium tracking-tight text-foreground">Chamados</h1>
-          <p className="mt-1 max-w-2xl text-xs text-muted-foreground">
-            CRM de suporte para acompanhar abertura, atendimento, atrasos e produtividade dos chamados.
-          </p>
-        </div>
-
-        <div className="min-w-0 flex-1 lg:pt-1">
-          <QuickFiltersBar
-            filters={filters}
-            setFilters={setFilters}
-            tickets={supportTickets}
-          />
-        </div>
-
-        <div className="flex shrink-0 items-center gap-2 lg:pt-1">
-          <Button
-            type="button"
-            onClick={() => setFiltersOpen(true)}
-            className="relative h-9 shrink-0 cursor-pointer gap-2 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white shadow-md hover:bg-blue-700"
-          >
-            <Filter className="h-4 w-4" />
-            Filtros
-            {advancedActiveCount > 0 && (
-              <span className="ml-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-white/95 px-1.5 text-[11px] font-semibold text-blue-700">
-                {advancedActiveCount}
-              </span>
-            )}
-          </Button>
-          <Link
-            to="/chamados/novo"
-            aria-label="Novo chamado"
-            className="inline-flex h-9 shrink-0 cursor-pointer items-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground shadow-md transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-          >
-            <MessageSquarePlus className="h-4 w-4" />
-            Novo chamado
-          </Link>
-        </div>
+      <div className="mb-5">
+        <Breadcrumbs items={[{ label: "Chamados" }]} />
+        <h1 className="text-lg font-medium tracking-tight text-foreground">Chamados</h1>
+        <p className="mt-1 max-w-2xl text-xs text-muted-foreground">
+          CRM de suporte para acompanhar abertura, atendimento, atrasos e produtividade dos chamados.
+        </p>
       </div>
+
 
 
 
@@ -851,16 +818,16 @@ function TicketsPage() {
 
 
 
-      <div className="mb-3 grid items-center gap-3 xl:grid-cols-[230px_minmax(0,1fr)_auto]">
-        <div className="shrink-0">
+      <div className="mb-3 flex flex-wrap items-center gap-3 xl:flex-nowrap">
+        <div className="min-w-0 shrink-0">
           <p className="text-base font-bold text-foreground">Fila de suporte</p>
           <p className="mt-0.5 text-xs text-muted-foreground">
             {filteredTickets.length} chamado(s) exibidos com os filtros atuais.
           </p>
         </div>
 
-        <div className="grid min-w-0 gap-2 sm:grid-cols-2 xl:grid-cols-[minmax(190px,1fr)_110px_150px_220px]">
-          <label className="relative min-w-0">
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2 xl:flex-nowrap">
+          <label className="relative min-w-[180px] flex-[2]">
             <span className="sr-only">Pesquisa avancada</span>
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <input
@@ -872,7 +839,7 @@ function TicketsPage() {
             />
           </label>
 
-          <label className="min-w-0">
+          <label className="min-w-[100px] flex-1">
             <span className="sr-only">Sigla do cliente</span>
             <input
               type="text"
@@ -885,7 +852,7 @@ function TicketsPage() {
             />
           </label>
 
-          <label className="min-w-0">
+          <label className="min-w-[130px] flex-1">
             <span className="sr-only">Operador</span>
             <select
               value={filters.operator}
@@ -904,18 +871,45 @@ function TicketsPage() {
             </select>
           </label>
 
-          <DateRangeFilter
-            start={filters.dateStart}
-            end={filters.dateEnd}
-            onChange={(range) =>
-              setFilters((current) => ({
-                ...current,
-                dateStart: range.start,
-                dateEnd: range.end,
-              }))
-            }
-          />
+          <div className="min-w-[200px] flex-[1.4]">
+            <DateRangeFilter
+              start={filters.dateStart}
+              end={filters.dateEnd}
+              onChange={(range) =>
+                setFilters((current) => ({
+                  ...current,
+                  dateStart: range.start,
+                  dateEnd: range.end,
+                }))
+              }
+            />
+          </div>
+
+          <Button
+            type="button"
+            onClick={() => setFiltersOpen(true)}
+            className="relative h-9 shrink-0 cursor-pointer gap-2 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white shadow-md hover:bg-blue-700"
+          >
+            <Filter className="h-4 w-4" />
+            Filtros
+            {advancedActiveCount > 0 && (
+              <span className="ml-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-white/95 px-1.5 text-[11px] font-semibold text-blue-700">
+                {advancedActiveCount}
+              </span>
+            )}
+          </Button>
+
+          <Link
+            to="/chamados/novo"
+            aria-label="Novo chamado"
+            className="inline-flex h-9 shrink-0 cursor-pointer items-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground shadow-md transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          >
+            <MessageSquarePlus className="h-4 w-4" />
+            Novo chamado
+          </Link>
         </div>
+
+
 
         <div className="flex shrink-0 items-center justify-end gap-2">
           <Badge variant="secondary" className="rounded-full">
