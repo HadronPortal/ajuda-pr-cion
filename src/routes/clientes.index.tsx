@@ -256,15 +256,19 @@ function countActive(f: Filters): number {
 // Cache de filtros preservado ao navegar entre lista e ficha detalhada.
 let lastFilters: Filters = { ...emptyFilters };
 
+const PAGE_SIZE = 10;
+
 function ClientsPage() {
   const { clients } = Route.useLoaderData();
   const navigate = useNavigate();
   const [filters, setFilters] = useState<Filters>(() => lastFilters);
   const [draft, setDraft] = useState<Filters>(() => lastFilters);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     lastFilters = filters;
+    setPage(1);
   }, [filters]);
 
   useEffect(() => {
