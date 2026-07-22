@@ -29,7 +29,6 @@ import {
   BarChart3,
   Bell,
   BriefcaseBusiness,
-  
   CheckCircle2,
   Clock3,
   Inbox,
@@ -588,9 +587,12 @@ function KanbanPage() {
     : boardSummary?.backgroundValue
       ? { backgroundImage: `linear-gradient(rgba(15,23,42,.18),rgba(15,23,42,.18)), url(${boardSummary.backgroundValue})`, backgroundSize: boardSummary.backgroundMode === "tile" ? "auto" : "cover", backgroundPosition: "center", backgroundRepeat: boardSummary.backgroundMode === "tile" ? "repeat" : "no-repeat" }
       : undefined;
+  const hasPhotoBackground = Boolean(
+    boardSummary?.backgroundValue && boardSummary.backgroundType !== "color",
+  );
 
   return (
-    <AppShell>
+    <AppShell fullWidth={hasPhotoBackground}>
       <div style={boardBackgroundStyle} className="min-h-[calc(100vh-92px)] overflow-hidden rounded-[18px] border border-slate-300 bg-slate-200 p-4 text-slate-900 shadow-[0_8px_24px_rgba(15,23,42,0.06)] dark:border-white/8 dark:bg-[#10151f] dark:text-slate-100 dark:shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
         <div className={cn("mb-3 flex flex-col gap-3 rounded-xl border px-4 py-3 shadow-sm lg:flex-row lg:items-center lg:justify-between", hasBgImage ? "border-white/20 bg-white/70 backdrop-blur-md dark:border-white/10 dark:bg-slate-900/55" : "border-slate-300 bg-slate-50 dark:border-white/8 dark:bg-[#1e2633]")}>
           <div className="min-w-0 shrink-0 lg:max-w-[260px]">
@@ -707,7 +709,6 @@ function KanbanPage() {
               <ViewToggleButton active={viewMode === "inbox"} onClick={() => setViewMode("inbox")} icon={Inbox} label="Caixa de entrada" />
               <ViewToggleButton active={viewMode === "planner"} onClick={() => setViewMode("planner")} icon={CalendarDays} label="Planejador" />
               <ViewToggleButton active={viewMode === "list"} onClick={() => setViewMode("list")} icon={List} label="Lista" />
-              
             </div>
 
             <button

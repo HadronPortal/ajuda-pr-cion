@@ -6,14 +6,19 @@ import { FleetActionModals } from "@/components/fleet/FleetActionModals";
 import { useSidebarCollapsed } from "@/lib/sidebar-store";
 import { cn } from "@/lib/utils";
 
-export function AppShell({ children }: { children: ReactNode }) {
+export function AppShell({ children, fullWidth = false }: { children: ReactNode; fullWidth?: boolean }) {
   const collapsed = useSidebarCollapsed();
   return (
     <div className="min-h-screen bg-background">
       <AppSidebar />
       <div className={cn("transition-[padding] duration-300 ease-out", collapsed ? "lg:pl-[86px]" : "lg:pl-[286px]")}>
         <AppHeader />
-        <main className="mx-auto max-w-[1680px] min-w-0 overflow-x-hidden px-4 py-6 pb-24 sm:px-6 lg:px-7 lg:py-7 lg:pb-8">
+        <main
+          className={cn(
+            "mx-auto min-w-0 overflow-x-hidden px-4 py-6 pb-24 sm:px-6 lg:px-7 lg:py-7 lg:pb-8",
+            fullWidth ? "w-full max-w-none" : "max-w-[1680px]",
+          )}
+        >
           {children}
         </main>
       </div>
