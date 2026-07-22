@@ -761,8 +761,6 @@ function KanbanPage() {
           </div>
         ) : viewMode === "list" ? (
           <KanbanListView cards={filteredCards} columns={columns} onOpenCard={openCard} />
-        ) : viewMode === "calendar" ? (
-          <KanbanCalendarView cards={filteredCards} date={calendarDate} onDateChange={setCalendarDate} onOpenCard={openCard} />
         ) : viewMode === "inbox" ? (
           <KanbanInboxView
             cards={filteredCards}
