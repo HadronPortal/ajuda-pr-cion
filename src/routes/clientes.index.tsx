@@ -729,16 +729,7 @@ function ClientsPage() {
                     </div>
                   </td>
                   <td className="whitespace-nowrap px-2.5 py-4 text-muted-foreground">
-                    {cnpjInfo.incomplete ? (
-                      <span
-                        className="text-[12px] italic text-muted-foreground/80"
-                        title={cnpjInfo.raw ? `Valor original: ${cnpjInfo.raw}` : "CNPJ não informado"}
-                      >
-                        {cnpjInfo.text}
-                      </span>
-                    ) : (
-                      <span title={cnpjInfo.raw}>{cnpjInfo.text}</span>
-                    )}
+                    <ClientCnpjCell client={client} />
                   </td>
                   <td className="px-2.5 py-4">
                     <div className="flex flex-col items-start gap-1">
