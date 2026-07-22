@@ -598,7 +598,7 @@ function ClientsPage() {
                     </th>
                   );
                 })}
-                <th className="w-8 px-1 py-3" />
+                
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
