@@ -1197,3 +1197,74 @@ function DataTable({ headers, rows }: { headers: string[]; rows: string[][] }) {
     </div>
   );
 }
+
+function Pagination({
+  page,
+  totalPages,
+  start,
+  end,
+  total,
+  onChange,
+}: {
+  page: number;
+  totalPages: number;
+  start: number;
+  end: number;
+  total: number;
+  onChange: (p: number) => void;
+}) {
+  const go = (p: number) => onChange(Math.max(1, Math.min(totalPages, p)));
+  const showEdges = totalPages > 7;
+  const windowSize = 5;
+  let from = Math.max(1, page - Math.floor(windowSize / 2));
+  let to = Math.min(totalPages, from + windowSize - 1);
+  from = Math.max(1, Math.min(from, to - windowSize + 1));
+  const pages: number[] = [];
+  for (let i = from; i <= to; i++) pages.push(i);
+
+  const btnBase =
+    "inline-flex h-8 min-w-8 items-center justify-center rounded-md border border-border px-2 text-xs font-medium cursor-pointer transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50";
+
+  return (
+    <div className="flex flex-col gap-2 border-t border-border bg-muted/20 px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between">
+      <p className="text-xs text-muted-foreground">
+        Mostrando <span className="font-medium text-foreground">{start}</span> a{" "}
+        <span className="font-medium text-foreground">{end}</span> de{" "}
+        <span className="font-medium text-foreground">{total}</span> clientes
+      </p>
+      <div className="flex flex-wrap items-center gap-1">
+        {showEdges && (
+          <button type="button" className={btnBase} onClick={() => go(1)} disabled={page === 1} aria-label="Primeira página">
+            «
+          </button>
+        )}
+        <button type="button" className={btnBase} onClick={() => go(page - 1)} disabled={page === 1} aria-label="Página anterior">
+          ‹
+        </button>
+        {pages.map((p) => (
+          <button
+            key={p}
+            type="button"
+            onClick={() => go(p)}
+            aria-current={p === page ? "page" : undefined}
+            className={cn(
+              btnBase,
+              p === page && "border-primary bg-primary text-primary-foreground hover:bg-primary",
+            )}
+          >
+            {p}
+          </button>
+        ))}
+        <button type="button" className={btnBase} onClick={() => go(page + 1)} disabled={page === totalPages} aria-label="Próxima página">
+          ›
+        </button>
+        {showEdges && (
+          <button type="button" className={btnBase} onClick={() => go(totalPages)} disabled={page === totalPages} aria-label="Última página">
+            »
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
