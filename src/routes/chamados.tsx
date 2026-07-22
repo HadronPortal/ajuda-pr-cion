@@ -401,33 +401,22 @@ function QuickFiltersBar({
   };
 
   return (
-    <div className="mb-6 flex flex-col gap-2">
-      <div className="flex justify-end">
-        <Link
-          to="/chamados/novo"
-          aria-label="Novo chamado"
-          className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground shadow-md transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-        >
-          <MessageSquarePlus className="h-4 w-4" />
-          Novo chamado
-        </Link>
+    <div className="flex w-full min-w-0 flex-wrap items-center gap-2 lg:flex-nowrap">
+      {/* Pesquisa avançada — um pouco maior */}
+      <div className="relative min-w-[180px] flex-[2] lg:flex-[2]">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <input
+          value={queryDraft}
+          onChange={(e) => setQueryDraft(e.target.value)}
+          type="search"
+          placeholder="Pesquisa avançada"
+          title="Buscar por protocolo, cliente, contato, assunto ou módulo"
+          className="h-9 w-full rounded-lg border border-border bg-background pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+        />
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 lg:flex-nowrap">
-        {/* Pesquisa avançada */}
-        <div className="relative min-w-[200px] flex-1 lg:flex-none lg:w-[280px] xl:w-[340px]">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <input
-            value={queryDraft}
-            onChange={(e) => setQueryDraft(e.target.value)}
-            type="search"
-            placeholder="Pesquisa avançada"
-            title="Buscar por protocolo, cliente, contato, assunto ou módulo"
-            className="h-10 w-full rounded-lg border border-border bg-background pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-          />
-        </div>
-
-        {/* Sigla */}
+      {/* Sigla */}
+      <div className="min-w-[90px] flex-1">
         <input
           list="quick-siglas"
           value={filters.sigla}
@@ -436,15 +425,17 @@ function QuickFiltersBar({
           }
           type="text"
           placeholder="Sigla"
-          className="h-10 w-full min-w-[110px] rounded-lg border border-border bg-background px-3 text-sm uppercase outline-none focus:ring-2 focus:ring-ring lg:w-[130px] lg:flex-none"
+          className="h-9 w-full rounded-lg border border-border bg-background px-3 text-sm uppercase outline-none focus:ring-2 focus:ring-ring"
         />
         <datalist id="quick-siglas">
           {siglas.map((s) => (
             <option key={s} value={s} />
           ))}
         </datalist>
+      </div>
 
-        {/* Operador */}
+      {/* Operador */}
+      <div className="min-w-[110px] flex-1">
         <input
           list="quick-operators"
           value={filters.operator === "Todos" ? "" : filters.operator}
@@ -454,15 +445,17 @@ function QuickFiltersBar({
           }}
           type="text"
           placeholder="Operador"
-          className="h-10 w-full min-w-[140px] cursor-pointer rounded-lg border border-border bg-background px-3 text-sm uppercase outline-none focus:ring-2 focus:ring-ring lg:w-[170px] lg:flex-none"
+          className="h-9 w-full cursor-pointer rounded-lg border border-border bg-background px-3 text-sm uppercase outline-none focus:ring-2 focus:ring-ring"
         />
         <datalist id="quick-operators">
           {ticketOperators.map((op) => (
             <option key={op} value={op} />
           ))}
         </datalist>
+      </div>
 
-        {/* Período */}
+      {/* Período */}
+      <div className="min-w-[180px] flex-[1.4]">
         <DateRangeFilter
           start={filters.dateStart}
           end={filters.dateEnd}
@@ -470,36 +463,22 @@ function QuickFiltersBar({
             setFilters((p) => ({ ...p, dateStart: range.start, dateEnd: range.end }))
           }
         />
-
-        {/* Filtros avançados */}
-        <Button
-          type="button"
-          onClick={onOpenAdvanced}
-          className="relative h-10 shrink-0 cursor-pointer gap-2 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white shadow-md hover:bg-blue-700"
-        >
-          <Filter className="h-4 w-4" />
-          Filtros
-          {advancedActive > 0 && (
-            <span className="ml-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-white/95 px-1.5 text-[11px] font-semibold text-blue-700">
-              {advancedActive}
-            </span>
-          )}
-        </Button>
-
-        {/* Limpar */}
-        {anyActive && (
-          <button
-            type="button"
-            onClick={clearAll}
-            className="h-10 shrink-0 cursor-pointer rounded-lg px-2 text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-          >
-            Limpar
-          </button>
-        )}
       </div>
+
+      {/* Limpar */}
+      {anyActive && (
+        <button
+          type="button"
+          onClick={clearAll}
+          className="h-9 shrink-0 cursor-pointer rounded-lg px-2 text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+        >
+          Limpar
+        </button>
+      )}
     </div>
   );
 }
+
 
 
 function ChamadosRouteShell() {
