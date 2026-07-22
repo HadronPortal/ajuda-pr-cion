@@ -494,7 +494,7 @@ function ClientsPage() {
                     </div>
                   </td>
                   <td className="whitespace-nowrap px-4 py-4">
-                    <div className="text-[12px] font-normal leading-[1.2]">
+                    <div>
                       Versão: {client.version} ({client.versionDate})
                     </div>
                     <div className="flex items-center gap-1.5 text-[11px] font-normal text-muted-foreground">
@@ -502,9 +502,7 @@ function ClientsPage() {
                       <RefreshCw className="h-3 w-3" />
                     </div>
                   </td>
-                  <td className="whitespace-nowrap px-4 py-4">
-                    <div className="text-[12px] font-normal leading-[1.2]">{client.city}</div>
-                  </td>
+                  <td className="whitespace-nowrap px-4 py-4">{client.city}</td>
                   <td className="whitespace-nowrap px-4 py-4 text-muted-foreground">
                     {client.cnpj}
                   </td>
