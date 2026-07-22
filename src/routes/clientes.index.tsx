@@ -265,7 +265,13 @@ function countActive(f: Filters): number {
 // Cache de filtros preservado ao navegar entre lista e ficha detalhada.
 let lastFilters: Filters = { ...emptyFilters };
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 50;
+
+function formatCep(v: string): string {
+  const d = v.replace(/\D+/g, "");
+  if (d.length !== 8) return v.trim();
+  return `${d.slice(0, 5)}-${d.slice(5)}`;
+}
 
 type SortKey = "registered" | "acronym" | "name" | "version" | "city" | "cnpj" | "status";
 
@@ -338,7 +344,7 @@ function ClientsPage() {
   const [draft, setDraft] = useState<Filters>(() => lastFilters);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [page, setPage] = useState(1);
-  const [sort, setSort] = useState<{ key: SortKey; dir: "asc" | "desc" } | null>(null);
+  const [sort, setSort] = useState<{ key: SortKey; dir: "asc" | "desc" } | null>({ key: "registered", dir: "desc" });
 
   useEffect(() => {
     lastFilters = filters;
@@ -615,7 +621,14 @@ function ClientsPage() {
                     </div>
                   </td>
                   <ClientVersionCell client={client} />
-                  <td className="whitespace-nowrap px-4 py-4">{normalizeCityUf(client.city)}</td>
+                  <td className="whitespace-nowrap px-4 py-4">
+                    <div className="flex flex-col items-start">
+                      <span>{normalizeCityUf(client.city)}</span>
+                      {client.cep && client.cep.replace(/\D+/g, "").length > 0 && (
+                        <span className="text-[11px] text-muted-foreground">{formatCep(client.cep)}</span>
+                      )}
+                    </div>
+                  </td>
                   <td className="whitespace-nowrap px-4 py-4 text-muted-foreground">
                     {client.cnpj}
                   </td>
