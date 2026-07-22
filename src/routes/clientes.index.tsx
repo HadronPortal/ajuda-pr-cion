@@ -678,7 +678,7 @@ function ClientsPage() {
 
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-4 py-10 text-center text-sm text-muted-foreground">
+                  <td colSpan={7} className="px-4 py-10 text-center text-sm text-muted-foreground">
                     Nenhum cliente encontrado com os filtros atuais.
                   </td>
                 </tr>
