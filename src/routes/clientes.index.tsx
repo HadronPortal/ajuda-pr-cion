@@ -539,7 +539,18 @@ function ClientsPage() {
             </tbody>
           </table>
         </div>
+        {totalItems > 0 && (
+          <Pagination
+            page={currentPage}
+            totalPages={totalPages}
+            start={startIndex + 1}
+            end={endIndex}
+            total={totalItems}
+            onChange={setPage}
+          />
+        )}
       </Card>
+
 
       <FiltersPanel
         open={filtersOpen}
