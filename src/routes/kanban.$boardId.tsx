@@ -1172,6 +1172,7 @@ function KanbanListView({
     Alta: "bg-rose-500/12 text-rose-600 dark:text-rose-300",
     Média: "bg-amber-500/15 text-amber-700 dark:text-amber-300",
     Baixa: "bg-emerald-500/12 text-emerald-700 dark:text-emerald-300",
+    Crítica: "bg-red-700/20 text-red-700 dark:text-red-300",
   };
 
   if (!cards.length) return <EmptyKanbanView message="Nenhum cartão encontrado com os filtros atuais." />;
