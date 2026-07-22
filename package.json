@@ -9,6 +9,7 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "import:crm-clients": "node scripts/import-crm-clients.mjs",
+    "import:crm-json": "node scripts/import-crm-json.mjs",
     "import:trello": "node scripts/import-trello-board.mjs",
     "lint": "eslint .",
     "format": "prettier --write ."

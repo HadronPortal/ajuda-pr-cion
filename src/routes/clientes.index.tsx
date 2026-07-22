@@ -31,9 +31,18 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+import { listClients } from "@/lib/clients-api";
 
 export const Route = createFileRoute("/clientes/")({
   head: () => ({ meta: [{ title: "Clientes - Portal Procion" }] }),
+  loader: async () => {
+    try {
+      return { clients: await listClients() };
+    } catch (error) {
+      console.error("Nao foi possivel carregar clientes do Supabase", error);
+      return { clients: clientRows };
+    }
+  },
   component: ClientsPage,
 });
 
@@ -146,10 +155,6 @@ export const clientRows: ClientRow[] = [
   },
 ];
 
-const sizes = Array.from(new Set(clientRows.map((c) => c.size)));
-const segments = Array.from(new Set(clientRows.map((c) => c.segment)));
-const ufs = Array.from(new Set(clientRows.map((c) => c.uf))).sort();
-
 const modules = [
   "Faturamento",
   "Compras",
@@ -252,6 +257,7 @@ function countActive(f: Filters): number {
 let lastFilters: Filters = { ...emptyFilters };
 
 function ClientsPage() {
+  const { clients } = Route.useLoaderData();
   const navigate = useNavigate();
   const [filters, setFilters] = useState<Filters>(() => lastFilters);
   const [draft, setDraft] = useState<Filters>(() => lastFilters);
@@ -266,7 +272,7 @@ function ClientsPage() {
   }, [filtersOpen, filters]);
 
   const filtered = useMemo(() => {
-    return clientRows.filter((c) => {
+    return clients.filter((c) => {
       if (filters.sigla && !normalize(c.acronym).includes(normalize(filters.sigla))) return false;
       if (filters.siglaGrupo && !normalize(c.group).includes(normalize(filters.siglaGrupo)))
         return false;
@@ -301,7 +307,11 @@ function ClientsPage() {
       }
       return true;
     });
-  }, [filters]);
+  }, [clients, filters]);
+
+  const sizes = useMemo(() => Array.from(new Set(clients.map((c) => c.size))).sort(), [clients]);
+  const segments = useMemo(() => Array.from(new Set(clients.map((c) => c.segment))).sort(), [clients]);
+  const ufs = useMemo(() => Array.from(new Set(clients.map((c) => c.uf))).filter(Boolean).sort(), [clients]);
 
   const activeCount = countActive(filters);
 

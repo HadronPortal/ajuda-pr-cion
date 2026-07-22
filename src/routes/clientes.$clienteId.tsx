@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  clientRows,
   ClientTab,
   HadronTab,
   UsersTab,
@@ -20,6 +19,7 @@ import {
   CompaniesTab,
   Summary,
 } from "./clientes.index";
+import { getClient } from "@/lib/clients-api";
 
 const tabs = ["cliente", "hadron", "usuarios", "terminais", "empresas"] as const;
 type TabValue = (typeof tabs)[number];
@@ -36,8 +36,8 @@ export const Route = createFileRoute("/clientes/$clienteId")({
     meta: [{ title: `Cliente ${params.clienteId.toUpperCase()} - Portal Procion` }],
   }),
   validateSearch: zodValidator(searchSchema),
-  loader: ({ params }) => {
-    const client = clientRows.find((c) => c.id === params.clienteId);
+  loader: async ({ params }) => {
+    const client = await getClient(params.clienteId);
     if (!client) throw notFound();
     return { client };
   },
