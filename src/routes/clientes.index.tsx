@@ -40,6 +40,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { cn } from "@/lib/utils";
 import { listClients } from "@/lib/clients-api";
 import { normalizeCityUf } from "@/lib/br-city";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/clientes/")({
   head: () => ({ meta: [{ title: "Clientes - Portal Procion" }] }),
