@@ -20,6 +20,7 @@ import {
   Summary,
 } from "./clientes.index";
 import { getClient } from "@/lib/clients-api";
+import { normalizeCityUf, normalizeCityName } from "@/lib/br-city";
 
 const tabs = ["cliente", "hadron", "usuarios", "terminais", "empresas"] as const;
 type TabValue = (typeof tabs)[number];
@@ -147,13 +148,13 @@ function ClientDetailPage() {
             </div>
 
             <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm lg:grid-cols-4">
-              <Summary label="Atendimento" value="Sao Carlos" />
+              <Summary label="Atendimento" value={normalizeCityName("Sao Carlos")} />
               <Summary label="Versao Hadron" value={isAvc ? "02/07/2026" : client.version} />
               <Summary
                 label="Atualizacao"
                 value={isAvc ? "09/07/2026 09:14" : client.updated}
               />
-              <Summary label="Cidade" value={client.city} />
+              <Summary label="Cidade" value={normalizeCityUf(client.city)} />
             </div>
           </div>
         </header>

@@ -35,6 +35,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { listClients } from "@/lib/clients-api";
+import { normalizeCityUf } from "@/lib/br-city";
 
 export const Route = createFileRoute("/clientes/")({
   head: () => ({ meta: [{ title: "Clientes - Portal Procion" }] }),
@@ -581,7 +582,7 @@ function ClientsPage() {
                       <RefreshCw className="h-3 w-3" />
                     </div>
                   </td>
-                  <td className="whitespace-nowrap px-4 py-4">{client.city}</td>
+                  <td className="whitespace-nowrap px-4 py-4">{normalizeCityUf(client.city)}</td>
                   <td className="whitespace-nowrap px-4 py-4 text-muted-foreground">
                     {client.cnpj}
                   </td>

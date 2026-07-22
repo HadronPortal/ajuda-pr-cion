@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { normalizeCityName } from "@/lib/br-city";
 import type { ClientRow } from "@/routes/clientes.index";
 
 type DatabaseClient = Record<string, string | boolean | null>;
@@ -42,7 +43,7 @@ export function mapDatabaseClient(c: DatabaseClient): ClientRow {
     versionUpdatedAt: date(c.setup_at, true),
     updated: date(c.crm_updated_at, true),
     updatedAt: date(c.crm_updated_at, true),
-    city: [c.city, c.state].filter(Boolean).join(" - "),
+    city: [normalizeCityName(String(c.city || "")), c.state ? String(c.state).toUpperCase() : ""].filter(Boolean).join(" - "),
     uf: String(c.state || ""),
     cep: String(c.postal_code || ""),
     cnpj: String(c.document || ""),
