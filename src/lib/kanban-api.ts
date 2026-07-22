@@ -267,3 +267,15 @@ export const createKanbanColumn = (input: Wrapped<{ boardId: string; title: stri
 
 export const deleteKanbanColumn = (input: Wrapped<{ id: string; fallbackId: string }>) =>
   invoke<{ ok: true }>("deleteColumn", unwrap(input));
+
+export const copyKanbanColumn = (input: Wrapped<{ id: string; title: string }>) =>
+  invoke<{ column: { id: string; title: string }; cards: Array<Record<string, unknown>> }>(
+    "copyColumn",
+    unwrap(input),
+  );
+
+export const reorderKanbanColumns = (input: Wrapped<{ columnIds: string[] }>) =>
+  invoke<{ ok: true }>("reorderColumns", unwrap(input));
+
+export const archiveKanbanColumnCards = (input: Wrapped<{ columnId: string }>) =>
+  invoke<{ ok: true; count: number }>("archiveColumnCards", unwrap(input));

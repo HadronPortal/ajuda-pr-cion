@@ -46,9 +46,12 @@ import { AppShell } from "@/components/portal/AppShell";
 import { kanbanStore, useKanbanCards } from "@/lib/kanban-store";
 import {
   createKanbanColumn,
+  copyKanbanColumn,
   deleteKanbanColumn,
+  archiveKanbanColumnCards,
   loadKanbanBoard,
   moveKanbanCard,
+  reorderKanbanColumns,
 } from "@/lib/kanban-api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -199,6 +202,7 @@ function KanbanPage() {
   const [newColumnOpen, setNewColumnOpen] = useState(false);
   const [newColumnName, setNewColumnName] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<KanbanColumn | null>(null);
+  const [archiveTarget, setArchiveTarget] = useState<KanbanColumn | null>(null);
   const [followedColumns, setFollowedColumns] = useState<Set<ColumnId>>(getInitialFollowedColumns);
   const [boardMenuOpen, setBoardMenuOpen] = useState(false);
   const [templatesOpen, setTemplatesOpen] = useState(false);
@@ -504,43 +508,52 @@ function KanbanPage() {
     toast.success(`Coluna "${column.title}" excluída`);
   };
 
-  const handleCopyColumn = (column: KanbanColumn) => {
+  const handleCopyColumn = async (column: KanbanColumn) => {
     const newTitle = `Cópia de ${column.title}`;
-    const newId = normalizeColumnId(newTitle, columns);
-    const originalIdx = columns.findIndex((c) => c.id === column.id);
-    setColumns((prev) => {
-      const next = [...prev];
-      next.splice(originalIdx + 1, 0, { id: newId, title: newTitle });
-      return next;
-    });
-    setCards((prev) => {
-      const sourceCards = prev.filter((c) => c.columnId === column.id);
-      let maxId = Math.max(
-        0,
-        ...prev.map((c) => parseInt(c.id.replace(/\D/g, ""), 10) || 0),
-      );
-      const clones: KanbanCard[] = sourceCards.map((c) => {
-        maxId += 1;
-        return { ...c, id: `PRC-${maxId}`, columnId: newId };
-      });
-      return [...prev, ...clones];
-    });
-    toast.success(`Lista "${column.title}" copiada`);
+    try {
+      await copyKanbanColumn({ data: { id: column.id, title: newTitle } });
+      const result = await loadKanbanBoard({ data: { boardId: boardIdParam } });
+      setColumns(result.columns);
+      kanbanStore.hydrate(result.cards as KanbanCard[]);
+      toast.success(`Lista "${column.title}" copiada`);
+    } catch {
+      toast.error("Não foi possível copiar a lista");
+    }
   };
 
-  const handleMoveColumn = (column: KanbanColumn, direction: "left" | "right") => {
-    setColumns((prev) => {
-      const idx = prev.findIndex((c) => c.id === column.id);
-      if (idx === -1) return prev;
-      const target = direction === "left" ? idx - 1 : idx + 1;
-      if (target < 0 || target >= prev.length) return prev;
-      const next = [...prev];
-      [next[idx], next[target]] = [next[target], next[idx]];
-      return next;
-    });
-    toast.success(
-      `Lista "${column.title}" movida para a ${direction === "left" ? "esquerda" : "direita"}`,
-    );
+  const handleMoveColumn = async (column: KanbanColumn, direction: "left" | "right") => {
+    const idx = columns.findIndex((item) => item.id === column.id);
+    const target = direction === "left" ? idx - 1 : idx + 1;
+    if (idx < 0 || target < 0 || target >= columns.length) return;
+    const next = [...columns];
+    [next[idx], next[target]] = [next[target], next[idx]];
+    setColumns(next);
+    try {
+      await reorderKanbanColumns({ data: { columnIds: next.map((item) => item.id) } });
+      toast.success(
+        `Lista "${column.title}" movida para a ${direction === "left" ? "esquerda" : "direita"}`,
+      );
+    } catch {
+      setColumns(columns);
+      toast.error("Não foi possível mover a lista");
+    }
+  };
+
+  const confirmArchiveColumnCards = async () => {
+    if (!archiveTarget) return;
+    const target = archiveTarget;
+    try {
+      const result = await archiveKanbanColumnCards({ data: { columnId: target.id } });
+      setCards((prev) =>
+        prev.map((card) =>
+          card.columnId === target.id ? { ...card, archived: true } : card,
+        ),
+      );
+      setArchiveTarget(null);
+      toast.success(`${result.count} cartão(ões) arquivado(s)`);
+    } catch {
+      toast.error("Não foi possível arquivar os cartões da lista");
+    }
   };
 
   const handleToggleFollow = (column: KanbanColumn) => {
@@ -784,6 +797,7 @@ function KanbanPage() {
                       canMoveRight={idx < columns.length - 1}
                       isFollowing={followedColumns.has(col.id)}
                       onToggleFollow={handleToggleFollow}
+                      onArchiveAll={setArchiveTarget}
                     />
                   ))}
                   <button
@@ -832,6 +846,7 @@ function KanbanPage() {
                       canMoveRight={idx < columns.length - 1}
                       isFollowing={followedColumns.has(col.id)}
                       onToggleFollow={handleToggleFollow}
+                      onArchiveAll={setArchiveTarget}
                     />
                   );
                 })}
@@ -952,6 +967,26 @@ function KanbanPage() {
               onClick={confirmDeleteColumn}
             >
               Excluir coluna
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!archiveTarget} onOpenChange={(open) => !open && setArchiveTarget(null)}>
+        <DialogContent className="sm:max-w-[440px]">
+          <DialogHeader>
+            <DialogTitle>Arquivar todos os cartões?</DialogTitle>
+            <DialogDescription>
+              Todos os cartões de {archiveTarget ? `"${archiveTarget.title}"` : "esta lista"} serão
+              removidos do quadro e continuarão disponíveis no arquivo para restauração.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" className="cursor-pointer" onClick={() => setArchiveTarget(null)}>
+              Cancelar
+            </Button>
+            <Button className="cursor-pointer" onClick={confirmArchiveColumnCards}>
+              Arquivar cartões
             </Button>
           </DialogFooter>
         </DialogContent>

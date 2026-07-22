@@ -10,6 +10,7 @@ import {
   Trash2,
   ArrowLeft,
   ArrowRight,
+  Archive,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { KanbanCardItem } from "./KanbanCard";
@@ -49,6 +50,7 @@ export function KanbanColumnView({
   canMoveRight = false,
   isFollowing = false,
   onToggleFollow,
+  onArchiveAll,
 }: {
   column: KanbanColumn;
   columns: KanbanColumn[];
@@ -64,6 +66,7 @@ export function KanbanColumnView({
   canMoveRight?: boolean;
   isFollowing?: boolean;
   onToggleFollow?: (column: KanbanColumn) => void;
+  onArchiveAll?: (column: KanbanColumn) => void;
 }) {
 
   const { setNodeRef, isOver } = useDroppable({
@@ -160,6 +163,14 @@ export function KanbanColumnView({
                 )}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="cursor-pointer"
+                disabled={cards.length === 0}
+                onSelect={() => onArchiveAll?.(column)}
+              >
+                <Archive className="mr-2 h-4 w-4" />
+                Arquivar todos os cartões
+              </DropdownMenuItem>
               <DropdownMenuItem
                 className="cursor-pointer text-rose-600 focus:text-rose-600 dark:text-rose-400"
                 disabled={!canDeleteColumn}

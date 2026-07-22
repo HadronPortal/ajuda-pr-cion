@@ -595,6 +595,70 @@ async function deleteColumn(payload: any) {
   return { ok: true };
 }
 
+async function copyColumn(payload: any) {
+  const { data: source, error: sourceError } = await admin
+    .from("kanban_columns")
+    .select("board_id, position")
+    .eq("id", payload.id)
+    .single();
+  if (sourceError) throw sourceError;
+
+  const { data: created, error: createError } = await admin
+    .from("kanban_columns")
+    .insert({
+      board_id: source.board_id,
+      name: payload.title,
+      position: Number(source.position) + 0.5,
+    })
+    .select("id, name")
+    .single();
+  if (createError) throw createError;
+
+  const { data: sourceCards, error: cardsError } = await admin
+    .from("kanban_cards")
+    .select("title, description, priority, due_at, position, archived, labels, member_legacy_ids, source_payload")
+    .eq("column_id", payload.id)
+    .eq("archived", false)
+    .order("position");
+  if (cardsError) throw cardsError;
+
+  let copiedCards: any[] = [];
+  if (sourceCards?.length) {
+    const { data, error } = await admin
+      .from("kanban_cards")
+      .insert(sourceCards.map((card: any) => ({ ...card, column_id: created.id })))
+      .select("id, column_id, title, description, priority, due_at, archived, labels, member_legacy_ids, source_payload");
+    if (error) throw error;
+    copiedCards = data ?? [];
+  }
+
+  return { column: { id: created.id, title: created.name }, cards: copiedCards };
+}
+
+async function reorderColumns(payload: any) {
+  const ids = Array.isArray(payload.columnIds) ? payload.columnIds : [];
+  for (let position = 0; position < ids.length; position += 1) {
+    const { error } = await admin
+      .from("kanban_columns")
+      .update({ position })
+      .eq("id", ids[position]);
+    if (error) throw error;
+  }
+  return { ok: true };
+}
+
+async function archiveColumnCards(payload: any) {
+  const { data, error } = await admin
+    .from("kanban_cards")
+    .update({ archived: true, updated_at: new Date().toISOString() })
+    .eq("column_id", payload.columnId)
+    .eq("archived", false)
+    .select("id");
+  if (error) throw error;
+  await touchBoardOfColumn(payload.columnId);
+  return { ok: true, count: data?.length ?? 0 };
+}
+
 /* ---------- BOARDS ---------- */
 
 async function createBoard(payload: any) {
@@ -891,6 +955,15 @@ serve(async (req) => {
         break;
       case "deleteColumn":
         result = await deleteColumn(data);
+        break;
+      case "copyColumn":
+        result = await copyColumn(data);
+        break;
+      case "reorderColumns":
+        result = await reorderColumns(data);
+        break;
+      case "archiveColumnCards":
+        result = await archiveColumnCards(data);
         break;
       default:
         return json({ error: "unknown_action" }, 400);
