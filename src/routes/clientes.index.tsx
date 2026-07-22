@@ -265,7 +265,13 @@ function countActive(f: Filters): number {
 // Cache de filtros preservado ao navegar entre lista e ficha detalhada.
 let lastFilters: Filters = { ...emptyFilters };
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 50;
+
+function formatCep(v: string): string {
+  const d = v.replace(/\D+/g, "");
+  if (d.length !== 8) return v.trim();
+  return `${d.slice(0, 5)}-${d.slice(5)}`;
+}
 
 type SortKey = "registered" | "acronym" | "name" | "version" | "city" | "cnpj" | "status";
 
