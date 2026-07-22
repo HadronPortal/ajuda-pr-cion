@@ -582,7 +582,7 @@ function ClientsPage() {
                       <RefreshCw className="h-3 w-3" />
                     </div>
                   </td>
-                  <td className="whitespace-nowrap px-4 py-4">{client.city}</td>
+                  <td className="whitespace-nowrap px-4 py-4">{normalizeCityUf(client.city)}</td>
                   <td className="whitespace-nowrap px-4 py-4 text-muted-foreground">
                     {client.cnpj}
                   </td>
