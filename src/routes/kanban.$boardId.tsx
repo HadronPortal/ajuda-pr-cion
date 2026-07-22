@@ -31,6 +31,8 @@ import {
   CalendarRange,
   CheckCircle2,
   Clock3,
+  Inbox,
+  CalendarDays,
   Filter,
   LayoutGrid,
   List,
@@ -99,7 +101,7 @@ export const Route = createFileRoute("/kanban/$boardId")({
 
 type DueFilter = "all" | "overdue" | "today" | "week" | "no-date";
 type CompletionFilter = "all" | "open" | "completed";
-type ViewMode = "kanban" | "list" | "calendar";
+type ViewMode = "kanban" | "list" | "calendar" | "inbox" | "planner";
 
 type Filters = {
   client: string;
@@ -652,6 +654,8 @@ function KanbanPage() {
 
             <div className="inline-flex h-11 shrink-0 items-center gap-0.5 rounded-lg border border-slate-200 bg-white p-0.5 dark:border-white/8 dark:bg-white/[0.035]">
               <ViewToggleButton active={viewMode === "kanban"} onClick={() => setViewMode("kanban")} icon={LayoutGrid} label="Kanban" />
+              <ViewToggleButton active={viewMode === "inbox"} onClick={() => setViewMode("inbox")} icon={Inbox} label="Caixa de entrada" />
+              <ViewToggleButton active={viewMode === "planner"} onClick={() => setViewMode("planner")} icon={CalendarDays} label="Planejador" />
               <ViewToggleButton active={viewMode === "list"} onClick={() => setViewMode("list")} icon={List} label="Lista" />
               <ViewToggleButton active={viewMode === "calendar"} onClick={() => setViewMode("calendar")} icon={CalendarRange} label="Calendário" />
             </div>
@@ -694,6 +698,21 @@ function KanbanPage() {
           <KanbanListView cards={filteredCards} columns={columns} onOpenCard={openCard} />
         ) : viewMode === "calendar" ? (
           <KanbanCalendarView cards={filteredCards} date={calendarDate} onDateChange={setCalendarDate} onOpenCard={openCard} />
+        ) : viewMode === "inbox" ? (
+          <KanbanInboxView
+            cards={filteredCards}
+            columns={columns}
+            onOpenCard={openCard}
+            onCreateCard={() => handleNewCard(columns[0]?.id ?? "a-fazer")}
+          />
+        ) : viewMode === "planner" ? (
+          <KanbanPlannerView
+            cards={filteredCards}
+            date={calendarDate}
+            onDateChange={setCalendarDate}
+            onOpenCard={openCard}
+            onSchedule={(card, dueDate) => kanbanStore.updateCard({ ...card, dueDate })}
+          />
         ) : viewMode !== "kanban" ? (
           <div className="grid place-items-center rounded-xl border border-dashed border-slate-300 bg-white/50 p-16 text-center dark:border-white/10 dark:bg-white/[0.02]">
             <div className="max-w-md">
@@ -910,6 +929,135 @@ function KanbanPage() {
       </Dialog>
     </AppShell>
   );
+}
+
+function KanbanInboxView({
+  cards,
+  columns,
+  onOpenCard,
+  onCreateCard,
+}: {
+  cards: KanbanCard[];
+  columns: KanbanColumn[];
+  onOpenCard: (card: KanbanCard) => void;
+  onCreateCard: () => void;
+}) {
+  const firstColumnId = columns[0]?.id;
+  const inboxCards = cards.filter((card) =>
+    !card.archived && (card.columnId === firstColumnId || !card.dueDate || !card.assigneeId),
+  );
+
+  return (
+    <div className="grid min-h-[480px] gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
+      <section className="overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-white/[0.035]">
+        <div className="flex items-center justify-between border-b px-5 py-4 dark:border-white/8">
+          <div>
+            <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white"><Inbox className="h-4 w-4 text-primary" />Caixa de entrada</h2>
+            <p className="mt-1 text-xs text-slate-500">Cartões novos ou que ainda precisam de organização.</p>
+          </div>
+          <Button size="sm" className="cursor-pointer" onClick={onCreateCard}><Plus className="mr-1.5 h-4 w-4" />Adicionar</Button>
+        </div>
+        <div className="app-scrollbar max-h-[calc(100dvh-310px)] space-y-2 overflow-y-auto p-4">
+          {inboxCards.length ? inboxCards.map((card) => {
+            const member = kanbanMembers.find((item) => item.id === card.assigneeId);
+            return (
+              <button key={card.id} type="button" onClick={() => onOpenCard(card)} className="flex w-full cursor-pointer items-center gap-3 rounded-lg border border-slate-200 p-3 text-left transition hover:border-primary/30 hover:bg-primary/[0.035] dark:border-white/10 dark:hover:bg-white/[0.05]">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary"><Inbox className="h-4 w-4" /></span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-medium text-slate-900 dark:text-white">{card.title}</span>
+                  <span className="mt-0.5 block truncate text-xs text-slate-500">{card.client} · {card.module}</span>
+                </span>
+                <span className="hidden rounded-full bg-slate-100 px-2 py-1 text-[10px] text-slate-600 dark:bg-white/8 dark:text-slate-300 sm:inline-flex">{card.priority}</span>
+                <span className={cn("grid h-7 w-7 shrink-0 place-items-center rounded-full text-[10px] font-semibold", member?.color ?? "bg-slate-100 text-slate-600")}>{member?.initials ?? "--"}</span>
+              </button>
+            );
+          }) : <EmptyKanbanView message="A caixa de entrada está organizada." />}
+        </div>
+      </section>
+      <aside className="rounded-xl border border-slate-200 bg-white p-5 dark:border-white/10 dark:bg-white/[0.035]">
+        <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Triagem rápida</h3>
+        <p className="mt-2 text-xs leading-5 text-slate-500">Abra um cartão para definir responsável, prioridade, prazo, etiquetas e a lista correta.</p>
+        <div className="mt-5 space-y-3 text-xs">
+          <div className="flex items-center justify-between rounded-lg bg-slate-50 p-3 dark:bg-white/[0.04]"><span className="text-slate-500">Aguardando triagem</span><strong className="text-slate-900 dark:text-white">{inboxCards.length}</strong></div>
+          <div className="flex items-center justify-between rounded-lg bg-slate-50 p-3 dark:bg-white/[0.04]"><span className="text-slate-500">Sem prazo</span><strong className="text-slate-900 dark:text-white">{cards.filter((card) => !card.dueDate).length}</strong></div>
+          <div className="flex items-center justify-between rounded-lg bg-slate-50 p-3 dark:bg-white/[0.04]"><span className="text-slate-500">Alta prioridade</span><strong className="text-rose-500">{inboxCards.filter((card) => card.priority === "Alta").length}</strong></div>
+        </div>
+      </aside>
+    </div>
+  );
+}
+
+function KanbanPlannerView({
+  cards,
+  date,
+  onDateChange,
+  onOpenCard,
+  onSchedule,
+}: {
+  cards: KanbanCard[];
+  date: Date;
+  onDateChange: (date: Date) => void;
+  onOpenCard: (card: KanbanCard) => void;
+  onSchedule: (card: KanbanCard, dueDate: string) => void;
+}) {
+  const weekStart = new Date(date);
+  weekStart.setHours(0, 0, 0, 0);
+  weekStart.setDate(weekStart.getDate() - weekStart.getDay() + 1);
+  const weekDays = Array.from({ length: 7 }, (_, index) => {
+    const day = new Date(weekStart);
+    day.setDate(weekStart.getDate() + index);
+    return day;
+  });
+  const unscheduled = cards.filter((card) => !card.archived && !card.dueDate);
+  const moveWeek = (amount: number) => {
+    const next = new Date(date);
+    next.setDate(next.getDate() + amount * 7);
+    onDateChange(next);
+  };
+  const weekLabel = `${weekDays[0].toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })} – ${weekDays[6].toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}`;
+
+  return (
+    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-white/10 dark:bg-white/[0.035]">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3 dark:border-white/8">
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="icon" className="h-8 w-8 cursor-pointer" onClick={() => moveWeek(-1)}><ArrowLeft className="h-4 w-4" /></Button>
+          <Button variant="outline" size="icon" className="h-8 w-8 cursor-pointer" onClick={() => moveWeek(1)}><ArrowRight className="h-4 w-4" /></Button>
+          <Button variant="outline" size="sm" className="h-8 cursor-pointer text-xs" onClick={() => onDateChange(new Date())}>Esta semana</Button>
+        </div>
+        <h2 className="text-sm font-semibold text-slate-900 dark:text-white">{weekLabel}</h2>
+      </div>
+      <div className="app-scrollbar overflow-x-auto">
+        <div className="grid min-w-[1040px] grid-cols-[240px_repeat(7,minmax(110px,1fr))]">
+          <div className="border-b border-r bg-slate-50 p-3 text-[10px] font-semibold uppercase text-slate-500 dark:border-white/8 dark:bg-white/[0.03]">Sem data ({unscheduled.length})</div>
+          {weekDays.map((day) => <div key={day.toISOString()} className="border-b border-r bg-slate-50 p-3 text-center dark:border-white/8 dark:bg-white/[0.03]"><span className="block text-[10px] uppercase text-slate-500">{day.toLocaleDateString("pt-BR", { weekday: "short" })}</span><span className="mt-1 block text-sm font-semibold text-slate-900 dark:text-white">{day.getDate()}</span></div>)}
+          <div className="app-scrollbar max-h-[calc(100dvh-330px)] space-y-2 overflow-y-auto border-r p-2 dark:border-white/8">
+            {unscheduled.map((card) => <PlannerCard key={card.id} card={card} onOpen={() => onOpenCard(card)} />)}
+            {!unscheduled.length && <p className="p-3 text-center text-xs text-slate-400">Todos os cartões têm prazo.</p>}
+          </div>
+          {weekDays.map((day) => {
+            const dateKey = toLocalDateKey(day);
+            const dayCards = cards.filter((card) => card.dueDate === dateKey && !card.archived);
+            return <div key={dateKey} className="group min-h-[420px] space-y-2 border-r p-2 dark:border-white/8">
+              {dayCards.map((card) => <PlannerCard key={card.id} card={card} onOpen={() => onOpenCard(card)} />)}
+              {unscheduled.slice(0, 3).map((card) => <button key={card.id} type="button" onClick={() => { onSchedule(card, dateKey); toast.success(`Cartão agendado para ${day.toLocaleDateString("pt-BR")}`); }} className="hidden w-full cursor-pointer rounded-md border border-dashed border-slate-200 px-2 py-1.5 text-[9px] text-slate-400 transition hover:border-primary/40 hover:text-primary group-hover:block dark:border-white/10">Agendar {card.title}</button>)}
+            </div>;
+          })}
+        </div>
+      </div>
+      {unscheduled.length > 0 && <div className="border-t px-4 py-2 text-[11px] text-slate-500 dark:border-white/8">Para agendar rapidamente, abra um cartão sem data ou use os atalhos exibidos em cada dia.</div>}
+    </div>
+  );
+}
+
+function PlannerCard({ card, onOpen }: { card: KanbanCard; onOpen: () => void }) {
+  return <button type="button" onClick={onOpen} className="block w-full cursor-pointer rounded-lg border border-slate-200 bg-white p-2 text-left shadow-sm transition hover:border-primary/30 hover:shadow dark:border-white/10 dark:bg-white/[0.045]"><span className="block line-clamp-2 text-[11px] font-medium text-slate-800 dark:text-slate-100">{card.title}</span><span className="mt-1 block truncate text-[9px] text-slate-500">{card.client}</span></button>;
+}
+
+function toLocalDateKey(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 function KanbanListView({
