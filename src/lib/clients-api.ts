@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { normalizeCityName } from "@/lib/br-city";
 import type { ClientRow } from "@/routes/clientes.index";
 
 type DatabaseClient = Record<string, string | boolean | null>;
