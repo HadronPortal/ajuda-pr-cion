@@ -8,7 +8,6 @@ import {
   CalendarDays,
   Check,
   CheckCircle2,
-  ChevronRight,
   CircleUserRound,
   Cpu,
   Database,
