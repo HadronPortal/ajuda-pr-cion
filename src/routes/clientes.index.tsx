@@ -319,6 +319,17 @@ function ClientsPage() {
 
   const activeCount = countActive(filters);
 
+  const totalItems = filtered.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [page, totalPages]);
+  const startIndex = (currentPage - 1) * PAGE_SIZE;
+  const endIndex = Math.min(startIndex + PAGE_SIZE, totalItems);
+  const pageRows = filtered.slice(startIndex, endIndex);
+
+
   const removeChip = (key: keyof Filters) => {
     setFilters((p) => ({
       ...p,
