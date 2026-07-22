@@ -909,26 +909,7 @@ function TicketsPage() {
           </Link>
         </div>
 
-              {ticketOperators.map((operator) => (
-                <option key={operator} value={operator}>
-                  {operator}
-                </option>
-              ))}
-            </select>
-          </label>
 
-          <DateRangeFilter
-            start={filters.dateStart}
-            end={filters.dateEnd}
-            onChange={(range) =>
-              setFilters((current) => ({
-                ...current,
-                dateStart: range.start,
-                dateEnd: range.end,
-              }))
-            }
-          />
-        </div>
 
         <div className="flex shrink-0 items-center justify-end gap-2">
           <Badge variant="secondary" className="rounded-full">
