@@ -621,7 +621,14 @@ function ClientsPage() {
                     </div>
                   </td>
                   <ClientVersionCell client={client} />
-                  <td className="whitespace-nowrap px-4 py-4">{normalizeCityUf(client.city)}</td>
+                  <td className="whitespace-nowrap px-4 py-4">
+                    <div className="flex flex-col items-start">
+                      <span>{normalizeCityUf(client.city)}</span>
+                      {client.cep && client.cep.replace(/\D+/g, "").length > 0 && (
+                        <span className="text-[11px] text-muted-foreground">{formatCep(client.cep)}</span>
+                      )}
+                    </div>
+                  </td>
                   <td className="whitespace-nowrap px-4 py-4 text-muted-foreground">
                     {client.cnpj}
                   </td>
