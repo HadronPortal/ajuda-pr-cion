@@ -113,7 +113,7 @@ export const Route = createFileRoute("/kanban/$boardId")({
 
 type DueFilter = "all" | "overdue" | "today" | "week" | "no-date";
 type CompletionFilter = "all" | "open" | "completed";
-type ViewMode = "kanban" | "list" | "calendar" | "inbox" | "planner";
+type ViewMode = "kanban" | "list" | "inbox" | "planner";
 
 type Filters = {
   client: string;
