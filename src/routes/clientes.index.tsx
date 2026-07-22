@@ -256,15 +256,19 @@ function countActive(f: Filters): number {
 // Cache de filtros preservado ao navegar entre lista e ficha detalhada.
 let lastFilters: Filters = { ...emptyFilters };
 
+const PAGE_SIZE = 10;
+
 function ClientsPage() {
-  const { clients } = Route.useLoaderData();
+  const { clients } = Route.useLoaderData() as { clients: ClientRow[] };
   const navigate = useNavigate();
   const [filters, setFilters] = useState<Filters>(() => lastFilters);
   const [draft, setDraft] = useState<Filters>(() => lastFilters);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     lastFilters = filters;
+    setPage(1);
   }, [filters]);
 
   useEffect(() => {
@@ -314,6 +318,17 @@ function ClientsPage() {
   const ufs = useMemo(() => Array.from(new Set(clients.map((c) => c.uf))).filter(Boolean).sort(), [clients]);
 
   const activeCount = countActive(filters);
+
+  const totalItems = filtered.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [page, totalPages]);
+  const startIndex = (currentPage - 1) * PAGE_SIZE;
+  const endIndex = Math.min(startIndex + PAGE_SIZE, totalItems);
+  const pageRows = filtered.slice(startIndex, endIndex);
+
 
   const removeChip = (key: keyof Filters) => {
     setFilters((p) => ({
@@ -450,7 +465,7 @@ function ClientsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {filtered.map((client) => (
+              {pageRows.map((client) => (
                 <tr
                   key={client.id}
                   onClick={() =>
@@ -497,7 +512,8 @@ function ClientsPage() {
                         className={cn(
                           client.status === "Ativo"
                             ? "bg-emerald-500/12 text-emerald-600 dark:text-emerald-400"
-                            : "bg-slate-500/15 text-slate-600 dark:text-slate-300",
+                            : "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300",
+
                         )}
                       >
                         {client.status}
@@ -523,7 +539,18 @@ function ClientsPage() {
             </tbody>
           </table>
         </div>
+        {totalItems > 0 && (
+          <Pagination
+            page={currentPage}
+            totalPages={totalPages}
+            start={startIndex + 1}
+            end={endIndex}
+            total={totalItems}
+            onChange={setPage}
+          />
+        )}
       </Card>
+
 
       <FiltersPanel
         open={filtersOpen}
@@ -1170,3 +1197,74 @@ function DataTable({ headers, rows }: { headers: string[]; rows: string[][] }) {
     </div>
   );
 }
+
+function Pagination({
+  page,
+  totalPages,
+  start,
+  end,
+  total,
+  onChange,
+}: {
+  page: number;
+  totalPages: number;
+  start: number;
+  end: number;
+  total: number;
+  onChange: (p: number) => void;
+}) {
+  const go = (p: number) => onChange(Math.max(1, Math.min(totalPages, p)));
+  const showEdges = totalPages > 7;
+  const windowSize = 5;
+  let from = Math.max(1, page - Math.floor(windowSize / 2));
+  let to = Math.min(totalPages, from + windowSize - 1);
+  from = Math.max(1, Math.min(from, to - windowSize + 1));
+  const pages: number[] = [];
+  for (let i = from; i <= to; i++) pages.push(i);
+
+  const btnBase =
+    "inline-flex h-8 min-w-8 items-center justify-center rounded-md border border-border px-2 text-xs font-medium cursor-pointer transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50";
+
+  return (
+    <div className="flex flex-col gap-2 border-t border-border bg-muted/20 px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between">
+      <p className="text-xs text-muted-foreground">
+        Mostrando <span className="font-medium text-foreground">{start}</span> a{" "}
+        <span className="font-medium text-foreground">{end}</span> de{" "}
+        <span className="font-medium text-foreground">{total}</span> clientes
+      </p>
+      <div className="flex flex-wrap items-center gap-1">
+        {showEdges && (
+          <button type="button" className={btnBase} onClick={() => go(1)} disabled={page === 1} aria-label="Primeira página">
+            «
+          </button>
+        )}
+        <button type="button" className={btnBase} onClick={() => go(page - 1)} disabled={page === 1} aria-label="Página anterior">
+          ‹
+        </button>
+        {pages.map((p) => (
+          <button
+            key={p}
+            type="button"
+            onClick={() => go(p)}
+            aria-current={p === page ? "page" : undefined}
+            className={cn(
+              btnBase,
+              p === page && "border-primary bg-primary text-primary-foreground hover:bg-primary",
+            )}
+          >
+            {p}
+          </button>
+        ))}
+        <button type="button" className={btnBase} onClick={() => go(page + 1)} disabled={page === totalPages} aria-label="Próxima página">
+          ›
+        </button>
+        {showEdges && (
+          <button type="button" className={btnBase} onClick={() => go(totalPages)} disabled={page === totalPages} aria-label="Última página">
+            »
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
