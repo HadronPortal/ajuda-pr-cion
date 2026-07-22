@@ -9,6 +9,7 @@ import {
   FileCode2,
   Filter,
   GitBranch,
+  History,
   ListChecks,
   PackageCheck,
   Rocket,
@@ -32,6 +33,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { erpVersions, formatVersionDate } from "@/lib/erp-versions";
 
 export const Route = createFileRoute("/iniciar-hadron")({
   head: () => ({ meta: [{ title: "Iniciar Hadron - CRM Procion" }] }),
@@ -228,6 +230,7 @@ function HadronPage() {
               ["opcoes", "Opcoes", ListChecks],
               ["ocorrencias", "Ocorrencias", ClipboardCheck],
               ["releases", "Releases", GitBranch],
+              ["versoes", "Versões", History],
               ["artigos", "Artigos", BookOpenText],
             ].map(([value, label, Icon]) => (
               <TabsTrigger
@@ -251,6 +254,9 @@ function HadronPage() {
           </TabsContent>
           <TabsContent value="releases">
             <ReleasesTable query={query} onOpen={setDetail} />
+          </TabsContent>
+          <TabsContent value="versoes">
+            <VersionsTable query={query} onOpen={setDetail} />
           </TabsContent>
           <TabsContent value="artigos">
             <ArticlesTable query={query} onOpen={setDetail} />
@@ -470,6 +476,51 @@ function ReleasesTable({ query, onOpen }: TableProps) {
     </DataCard>
   );
 }
+
+function VersionsTable({ query, onOpen }: TableProps) {
+  const normalizedQuery = query.trim().toLocaleLowerCase("pt-BR");
+  const rows = erpVersions.filter((version) =>
+    Object.values(version).some((value) =>
+      value.toLocaleLowerCase("pt-BR").includes(normalizedQuery),
+    ),
+  );
+
+  return (
+    <DataCard
+      title="Versões do ERP"
+      subtitle="Histórico oficial das versões liberadas do Hadron."
+      headers={["Versão", "Liberação", "Runtime", "Arquivos", "Base", "Alteração"]}
+    >
+      {rows.map((version) => (
+        <DataRow
+          key={version.id}
+          onClick={() =>
+            onOpen({
+              title: `Versão ${version.versao}`,
+              subtitle: `Liberada em ${formatVersionDate(version.data_versao)}`,
+              body: "Registro técnico da versão liberada do ERP Hadron.",
+              meta: [
+                `Runtime: ${formatVersionDate(version.data_runtime)}`,
+                `Arquivos: ${formatVersionDate(version.data_arq)}`,
+                `Base: ${formatVersionDate(version.data_arq_bas)}`,
+                `Alteração: ${formatVersionDate(version.data_alterar)}`,
+              ],
+            })
+          }
+          cells={[
+            version.versao,
+            formatVersionDate(version.data_versao),
+            formatVersionDate(version.data_runtime),
+            formatVersionDate(version.data_arq),
+            formatVersionDate(version.data_arq_bas),
+            formatVersionDate(version.data_alterar),
+          ]}
+        />
+      ))}
+    </DataCard>
+  );
+}
+
 function ArticlesTable({ query, onOpen }: TableProps) {
   const rows = useFiltered(articles, query);
   return (

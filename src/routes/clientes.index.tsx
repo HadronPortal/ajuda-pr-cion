@@ -27,6 +27,7 @@ import {
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { AppShell, PageHeader } from "@/components/portal/AppShell";
+import { isErpVersionOutdated } from "@/lib/erp-versions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -574,12 +575,27 @@ function ClientsPage() {
                     </div>
                   </td>
                   <td className="whitespace-nowrap px-4 py-4">
-                    <div>
-                      Versão: {client.version} ({client.versionDate})
-                    </div>
-                    <div className="flex items-center gap-1.5 text-[11px] font-normal text-muted-foreground">
-                      <span>{client.versionUpdatedAt}</span>
-                      <RefreshCw className="h-3 w-3" />
+                    <div
+                      className={cn(
+                        "inline-flex flex-col rounded-md px-2 py-1",
+                        isErpVersionOutdated(client.versionDate) &&
+                          "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300",
+                      )}
+                    >
+                      <div>
+                        Versão: {client.version} ({client.versionDate})
+                      </div>
+                      <div
+                        className={cn(
+                          "flex items-center gap-1.5 text-[11px] font-normal",
+                          isErpVersionOutdated(client.versionDate)
+                            ? "text-red-600/80 dark:text-red-300/80"
+                            : "text-muted-foreground",
+                        )}
+                      >
+                        <span>{client.versionUpdatedAt}</span>
+                        <RefreshCw className="h-3 w-3" />
+                      </div>
                     </div>
                   </td>
                   <td className="whitespace-nowrap px-4 py-4">{normalizeCityUf(client.city)}</td>

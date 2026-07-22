@@ -27,6 +27,15 @@ const date = (value: unknown, withTime = false) => {
   return new Intl.DateTimeFormat("pt-BR", withTime ? { dateStyle: "short", timeStyle: "short" } : { dateStyle: "short" }).format(parsed);
 };
 
+const formatCnpj = (value: unknown) => {
+  const digits = String(value || "").replace(/\D/g, "");
+  if (digits.length !== 14) return String(value || "");
+  return digits.replace(
+    /^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,
+    "$1.$2.$3/$4-$5",
+  );
+};
+
 export function mapDatabaseClient(c: DatabaseClient): ClientRow {
   return {
     id: String(c.acronym || c.legacy_id || "").toLowerCase(),
@@ -46,7 +55,7 @@ export function mapDatabaseClient(c: DatabaseClient): ClientRow {
     city: [normalizeCityName(String(c.city || "")), c.state ? String(c.state).toUpperCase() : ""].filter(Boolean).join(" - "),
     uf: String(c.state || ""),
     cep: String(c.postal_code || ""),
-    cnpj: String(c.document || ""),
+    cnpj: formatCnpj(c.document),
     status: c.active ? "Ativo" : "Inativo",
   };
 }
