@@ -401,16 +401,28 @@ function QuickFiltersBar({
   };
 
   return (
-    <div className="mb-6 flex flex-col gap-3">
-      <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:gap-2">
-        {/* Busca rápida */}
-        <div className="relative flex-1 min-w-[220px]">
+    <div className="mb-6 flex flex-col gap-2">
+      <div className="flex justify-end">
+        <Link
+          to="/chamados/novo"
+          aria-label="Novo chamado"
+          className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground shadow-md transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+        >
+          <MessageSquarePlus className="h-4 w-4" />
+          Novo chamado
+        </Link>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2 lg:flex-nowrap">
+        {/* Pesquisa avançada */}
+        <div className="relative min-w-[200px] flex-1 lg:flex-none lg:w-[280px] xl:w-[340px]">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <input
             value={queryDraft}
             onChange={(e) => setQueryDraft(e.target.value)}
             type="search"
-            placeholder="Buscar por protocolo, cliente, contato, assunto ou módulo…"
+            placeholder="Pesquisa avançada"
+            title="Buscar por protocolo, cliente, contato, assunto ou módulo"
             className="h-10 w-full rounded-lg border border-border bg-background pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
@@ -423,8 +435,8 @@ function QuickFiltersBar({
             setFilters((p) => ({ ...p, sigla: e.target.value.toUpperCase() }))
           }
           type="text"
-          placeholder="Sigla (ex.: MIT)"
-          className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm uppercase outline-none focus:ring-2 focus:ring-ring lg:w-[160px]"
+          placeholder="Sigla"
+          className="h-10 w-full min-w-[110px] rounded-lg border border-border bg-background px-3 text-sm uppercase outline-none focus:ring-2 focus:ring-ring lg:w-[130px] lg:flex-none"
         />
         <datalist id="quick-siglas">
           {siglas.map((s) => (
@@ -441,8 +453,8 @@ function QuickFiltersBar({
             setFilters((p) => ({ ...p, operator: v === "" ? "Todos" : v.toUpperCase() }));
           }}
           type="text"
-          placeholder="Todos os operadores"
-          className="h-10 w-full cursor-pointer rounded-lg border border-border bg-background px-3 text-sm uppercase outline-none focus:ring-2 focus:ring-ring lg:w-[200px]"
+          placeholder="Operador"
+          className="h-10 w-full min-w-[140px] cursor-pointer rounded-lg border border-border bg-background px-3 text-sm uppercase outline-none focus:ring-2 focus:ring-ring lg:w-[170px] lg:flex-none"
         />
         <datalist id="quick-operators">
           {ticketOperators.map((op) => (
@@ -450,11 +462,20 @@ function QuickFiltersBar({
           ))}
         </datalist>
 
+        {/* Período */}
+        <DateRangeFilter
+          start={filters.dateStart}
+          end={filters.dateEnd}
+          onChange={(range) =>
+            setFilters((p) => ({ ...p, dateStart: range.start, dateEnd: range.end }))
+          }
+        />
+
         {/* Filtros avançados */}
         <Button
           type="button"
           onClick={onOpenAdvanced}
-          className="relative h-10 cursor-pointer gap-2 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white shadow-md hover:bg-blue-700"
+          className="relative h-10 shrink-0 cursor-pointer gap-2 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white shadow-md hover:bg-blue-700"
         >
           <Filter className="h-4 w-4" />
           Filtros
@@ -465,31 +486,21 @@ function QuickFiltersBar({
           )}
         </Button>
 
-        {/* Novo chamado */}
-        <Link
-          to="/chamados/novo"
-          aria-label="Novo chamado"
-          className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground shadow-md transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-        >
-          <MessageSquarePlus className="h-4 w-4" />
-          Novo chamado
-        </Link>
-      </div>
-
-      {anyActive && (
-        <div className="flex justify-end">
+        {/* Limpar */}
+        {anyActive && (
           <button
             type="button"
             onClick={clearAll}
-            className="cursor-pointer text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+            className="h-10 shrink-0 cursor-pointer rounded-lg px-2 text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
           >
-            Limpar filtros
+            Limpar
           </button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
+
 
 function ChamadosRouteShell() {
 
