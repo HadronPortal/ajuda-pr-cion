@@ -261,6 +261,34 @@ let lastFilters: Filters = { ...emptyFilters };
 
 const PAGE_SIZE = 10;
 
+type SortKey = "registered" | "acronym" | "name" | "version" | "city" | "cnpj" | "status";
+
+const ptCollator = new Intl.Collator("pt-BR", { sensitivity: "base", numeric: true });
+
+function compareByKey(a: ClientRow, b: ClientRow, key: SortKey): number {
+  switch (key) {
+    case "registered":
+      return parseBRDate(a.registered).getTime() - parseBRDate(b.registered).getTime();
+    case "acronym":
+      return ptCollator.compare(a.acronym, b.acronym);
+    case "name":
+      return ptCollator.compare(a.razaoSocial || a.name, b.razaoSocial || b.name);
+    case "version":
+      return ptCollator.compare(a.version, b.version);
+    case "city":
+      return ptCollator.compare(a.city, b.city);
+    case "cnpj": {
+      const na = Number(digits(a.cnpj)) || 0;
+      const nb = Number(digits(b.cnpj)) || 0;
+      return na - nb;
+    }
+    case "status":
+      return ptCollator.compare(a.status, b.status);
+    default:
+      return 0;
+  }
+}
+
 function ClientsPage() {
   const { clients } = Route.useLoaderData() as { clients: ClientRow[] };
   const navigate = useNavigate();
