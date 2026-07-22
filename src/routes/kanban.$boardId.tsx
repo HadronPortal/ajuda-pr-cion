@@ -576,23 +576,22 @@ function KanbanPage() {
   return (
     <AppShell>
       <div className="min-h-[calc(100vh-92px)] rounded-[18px] border border-slate-200 bg-white p-5 text-slate-900 shadow-[0_8px_24px_rgba(15,23,42,0.06)] dark:border-white/8 dark:bg-[#050c18] dark:text-slate-100 dark:shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
-        <div className="mb-5 flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-          <div>
+        <div className="mb-4 flex flex-col gap-3 border-b border-slate-200 pb-3 dark:border-white/8 lg:flex-row lg:items-center lg:justify-between">
+          <div className="min-w-0 shrink-0 lg:max-w-[260px]">
             <Link
               to="/kanban"
-              className="mb-2 inline-flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-primary dark:text-slate-400 dark:hover:text-primary"
+              className="mb-1 inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-500 hover:text-primary dark:text-slate-400 dark:hover:text-primary"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
               Meus quadros
             </Link>
-            <h1 className="text-[22px] font-medium tracking-tight text-slate-900 dark:text-white">
+            <h1 className="truncate text-base font-semibold text-slate-900 dark:text-white">
               {boardName || "Kanban Prócion"}
             </h1>
-            <p className="mt-1 text-xs font-medium text-slate-500 dark:text-slate-400">Gestão inteligente de demandas e projetos internos</p>
           </div>
 
-          <div className="flex flex-nowrap items-center gap-2 overflow-x-auto pb-1 xl:overflow-visible xl:pb-0">
-            <div className="relative h-11 w-full min-w-[200px] shrink-0 sm:w-[240px]">
+          <div className="flex min-w-0 flex-1 flex-wrap items-center justify-end gap-1.5 lg:flex-nowrap">
+            <div className="relative h-9 min-w-[170px] flex-1 lg:max-w-[280px]">
 
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
               <input
@@ -600,17 +599,16 @@ function KanbanPage() {
                 onChange={(e) => setQuery(e.target.value)}
                 type="search"
                 placeholder="Buscar demandas..."
-                className="h-full w-full rounded-lg border border-slate-200 bg-white pl-10 pr-10 text-xs text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-primary/50 dark:border-white/8 dark:bg-white/[0.035] dark:text-slate-200 dark:placeholder:text-slate-500 dark:focus:bg-white/[0.055]"
+                className="h-full w-full rounded-lg border border-slate-200 bg-white pl-9 pr-9 text-xs text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-primary/50 dark:border-white/8 dark:bg-white/[0.035] dark:text-slate-200 dark:placeholder:text-slate-500 dark:focus:bg-white/[0.055]"
               />
               <Search className="absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
             </div>
 
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" className="h-11 shrink-0 cursor-pointer rounded-lg border-slate-200 bg-white px-4 text-xs text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:border-white/8 dark:bg-white/[0.035] dark:text-slate-200 dark:hover:bg-white/10 dark:hover:text-white">
-                  <Filter className="mr-2 h-4 w-4" />
-                  Filtros
-                  {activeFilterCount > 0 && <Badge className="ml-2 h-5 min-w-5 bg-primary text-[10px]">{activeFilterCount}</Badge>}
+                <Button variant="outline" className="relative h-9 w-9 shrink-0 cursor-pointer rounded-lg border-slate-200 bg-white p-0 text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:border-white/8 dark:bg-white/[0.035] dark:text-slate-200 dark:hover:bg-white/10 dark:hover:text-white" title="Filtros" aria-label="Abrir filtros">
+                  <Filter className="h-4 w-4" />
+                  {activeFilterCount > 0 && <Badge className="absolute -right-1.5 -top-1.5 h-4 min-w-4 bg-primary px-1 text-[9px]">{activeFilterCount}</Badge>}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="app-scrollbar max-h-[min(620px,calc(100dvh-120px))] w-80 overflow-y-auto p-0" align="end">
@@ -668,7 +666,7 @@ function KanbanPage() {
             <button
               onClick={() => setOnlyMine((v) => !v)}
               className={cn(
-                "inline-flex h-11 shrink-0 cursor-pointer items-center gap-2 rounded-lg border px-3 text-xs font-semibold transition",
+                "inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border text-xs font-semibold transition",
                 onlyMine
                   ? "border-violet-500/60 bg-violet-500/15 text-violet-700 dark:text-violet-200"
                   : "border-slate-200 bg-white text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:border-white/8 dark:bg-white/[0.035] dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white",
@@ -676,19 +674,19 @@ function KanbanPage() {
               title="Ver somente cards em que você é responsável ou participante"
             >
               <Star className={cn("h-4 w-4", onlyMine && "fill-current")} />
-              Meus cards
+              <span className="sr-only">Meus cards</span>
             </button>
 
             <button
               onClick={() => setTemplatesOpen(true)}
-              className="inline-flex h-11 shrink-0 cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:border-white/8 dark:bg-white/[0.035] dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white"
+              className="inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:border-white/8 dark:bg-white/[0.035] dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white"
               title="Criar cartao a partir de um template"
             >
               <FileStack className="h-4 w-4" />
-              Templates
+              <span className="sr-only">Templates</span>
             </button>
 
-            <div className="inline-flex h-11 shrink-0 items-center gap-0.5 rounded-lg border border-slate-200 bg-white p-0.5 dark:border-white/8 dark:bg-white/[0.035]">
+            <div className="inline-flex h-9 shrink-0 items-center gap-0.5 rounded-lg border border-slate-200 bg-white p-0.5 dark:border-white/8 dark:bg-white/[0.035]">
               <ViewToggleButton active={viewMode === "kanban"} onClick={() => setViewMode("kanban")} icon={LayoutGrid} label="Kanban" />
               <ViewToggleButton active={viewMode === "inbox"} onClick={() => setViewMode("inbox")} icon={Inbox} label="Caixa de entrada" />
               <ViewToggleButton active={viewMode === "planner"} onClick={() => setViewMode("planner")} icon={CalendarDays} label="Planejador" />
@@ -698,12 +696,12 @@ function KanbanPage() {
 
             <button
               onClick={() => setBoardMenuOpen(true)}
-              className="grid h-11 w-11 shrink-0 cursor-pointer place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:border-white/8 dark:bg-white/[0.035] dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white"
+              className="grid h-9 w-9 shrink-0 cursor-pointer place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:border-white/8 dark:bg-white/[0.035] dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white"
               aria-label="Abrir menu do quadro"
             >
               <BarChart3 className="h-4 w-4" />
             </button>
-            <button className="relative grid h-11 w-11 shrink-0 cursor-pointer place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:border-white/8 dark:bg-white/[0.035] dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white">
+            <button className="relative grid h-9 w-9 shrink-0 cursor-pointer place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:border-white/8 dark:bg-white/[0.035] dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white" title="Notificações" aria-label="Abrir notificações">
               <Bell className="h-4 w-4" />
               <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-rose-500 px-1 text-[10px] font-black text-white">3</span>
             </button>
@@ -1323,7 +1321,7 @@ function ViewToggleButton({
     <button
       onClick={onClick}
       className={cn(
-        "inline-flex h-9 cursor-pointer items-center gap-1.5 rounded-md px-2.5 text-[11px] font-medium transition",
+        "inline-flex h-8 w-8 cursor-pointer items-center justify-center rounded-md text-[11px] font-medium transition",
         active
           ? "bg-violet-600 text-white shadow-sm"
           : "text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/8 dark:hover:text-white",
@@ -1331,7 +1329,7 @@ function ViewToggleButton({
       title={soon ? `${label} — em breve` : label}
     >
       <Icon className="h-3.5 w-3.5" />
-      {label}
+      <span className="sr-only">{label}</span>
       {soon && !active && (
         <span className="ml-1 rounded bg-amber-500/20 px-1 py-px text-[8px] font-black uppercase text-amber-700 dark:text-amber-300">
           Em breve
