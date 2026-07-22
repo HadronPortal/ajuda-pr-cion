@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
   Building2,
   CalendarDays,
   Check,
@@ -258,6 +261,34 @@ let lastFilters: Filters = { ...emptyFilters };
 
 const PAGE_SIZE = 10;
 
+type SortKey = "registered" | "acronym" | "name" | "version" | "city" | "cnpj" | "status";
+
+const ptCollator = new Intl.Collator("pt-BR", { sensitivity: "base", numeric: true });
+
+function compareByKey(a: ClientRow, b: ClientRow, key: SortKey): number {
+  switch (key) {
+    case "registered":
+      return parseBRDate(a.registered).getTime() - parseBRDate(b.registered).getTime();
+    case "acronym":
+      return ptCollator.compare(a.acronym, b.acronym);
+    case "name":
+      return ptCollator.compare(a.razaoSocial || a.name, b.razaoSocial || b.name);
+    case "version":
+      return ptCollator.compare(a.version, b.version);
+    case "city":
+      return ptCollator.compare(a.city, b.city);
+    case "cnpj": {
+      const na = Number(digits(a.cnpj)) || 0;
+      const nb = Number(digits(b.cnpj)) || 0;
+      return na - nb;
+    }
+    case "status":
+      return ptCollator.compare(a.status, b.status);
+    default:
+      return 0;
+  }
+}
+
 function ClientsPage() {
   const { clients } = Route.useLoaderData() as { clients: ClientRow[] };
   const navigate = useNavigate();
@@ -265,11 +296,16 @@ function ClientsPage() {
   const [draft, setDraft] = useState<Filters>(() => lastFilters);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [page, setPage] = useState(1);
+  const [sort, setSort] = useState<{ key: SortKey; dir: "asc" | "desc" } | null>(null);
 
   useEffect(() => {
     lastFilters = filters;
     setPage(1);
   }, [filters]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [sort]);
 
   useEffect(() => {
     if (filtersOpen) setDraft(filters);
@@ -319,7 +355,15 @@ function ClientsPage() {
 
   const activeCount = countActive(filters);
 
-  const totalItems = filtered.length;
+  const sorted = useMemo(() => {
+    if (!sort) return filtered;
+    const arr = filtered.slice();
+    const factor = sort.dir === "asc" ? 1 : -1;
+    arr.sort((a, b) => compareByKey(a, b, sort.key) * factor);
+    return arr;
+  }, [filtered, sort]);
+
+  const totalItems = sorted.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
   useEffect(() => {
@@ -327,7 +371,7 @@ function ClientsPage() {
   }, [page, totalPages]);
   const startIndex = (currentPage - 1) * PAGE_SIZE;
   const endIndex = Math.min(startIndex + PAGE_SIZE, totalItems);
-  const pageRows = filtered.slice(startIndex, endIndex);
+  const pageRows = sorted.slice(startIndex, endIndex);
 
 
   const removeChip = (key: keyof Filters) => {
@@ -448,20 +492,52 @@ function ClientsPage() {
           <table className="w-full min-w-[1050px] text-sm">
             <thead className="bg-muted/35 text-xs uppercase text-muted-foreground">
               <tr>
-                {[
-                  "Cadastro",
-                  "Sigla",
-                  "Nome / perfil",
-                  "Versao / setup",
-                  "Cidade / UF",
-                  "CNPJ",
-                  "Status",
-                  "",
-                ].map((label) => (
-                  <th key={label} className="whitespace-nowrap px-4 py-3 text-left font-medium">
-                    {label}
-                  </th>
-                ))}
+                {(
+                  [
+                    { label: "Cadastro", key: "registered" as SortKey },
+                    { label: "Sigla", key: "acronym" as SortKey },
+                    { label: "Nome / perfil", key: "name" as SortKey },
+                    { label: "Versao / setup", key: "version" as SortKey },
+                    { label: "Cidade / UF", key: "city" as SortKey },
+                    { label: "CNPJ", key: "cnpj" as SortKey },
+                    { label: "Status", key: "status" as SortKey },
+                  ]
+                ).map(({ label, key }) => {
+                  const active = sort?.key === key;
+                  const dir = active ? sort!.dir : null;
+                  return (
+                    <th
+                      key={label}
+                      onClick={() =>
+                        setSort((prev) => {
+                          if (!prev || prev.key !== key) return { key, dir: "asc" };
+                          if (prev.dir === "asc") return { key, dir: "desc" };
+                          return null;
+                        })
+                      }
+                      aria-sort={
+                        dir === "asc"
+                          ? "ascending"
+                          : dir === "desc"
+                            ? "descending"
+                            : "none"
+                      }
+                      className="cursor-pointer whitespace-nowrap px-4 py-3 text-left font-medium select-none hover:text-foreground transition-colors"
+                    >
+                      <span className="inline-flex items-center gap-1">
+                        {label}
+                        {dir === "asc" ? (
+                          <ArrowUp className="h-3 w-3" />
+                        ) : dir === "desc" ? (
+                          <ArrowDown className="h-3 w-3" />
+                        ) : (
+                          <ArrowUpDown className="h-3 w-3 opacity-40" />
+                        )}
+                      </span>
+                    </th>
+                  );
+                })}
+                <th className="whitespace-nowrap px-4 py-3" />
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -494,7 +570,7 @@ function ClientsPage() {
                     </div>
                   </td>
                   <td className="whitespace-nowrap px-4 py-4">
-                    <div className="text-[12px] font-normal leading-[1.2]">
+                    <div>
                       Versão: {client.version} ({client.versionDate})
                     </div>
                     <div className="flex items-center gap-1.5 text-[11px] font-normal text-muted-foreground">
@@ -502,9 +578,7 @@ function ClientsPage() {
                       <RefreshCw className="h-3 w-3" />
                     </div>
                   </td>
-                  <td className="whitespace-nowrap px-4 py-4">
-                    <div className="text-[12px] font-normal leading-[1.2]">{client.city}</div>
-                  </td>
+                  <td className="whitespace-nowrap px-4 py-4">{client.city}</td>
                   <td className="whitespace-nowrap px-4 py-4 text-muted-foreground">
                     {client.cnpj}
                   </td>
