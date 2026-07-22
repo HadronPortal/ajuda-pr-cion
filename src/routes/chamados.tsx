@@ -363,12 +363,10 @@ function QuickFiltersBar({
   filters,
   setFilters,
   tickets,
-  onOpenAdvanced,
 }: {
   filters: Filters;
   setFilters: React.Dispatch<React.SetStateAction<Filters>>;
   tickets: SupportTicket[];
-  onOpenAdvanced: () => void;
 }) {
   const [queryDraft, setQueryDraft] = useState(filters.query);
 
@@ -392,8 +390,8 @@ function QuickFiltersBar({
     return Array.from(set).sort();
   }, [tickets]);
 
-  const advancedActive = countAdvancedActive(filters);
   const anyActive = hasAnyActive(filters);
+
 
   const clearAll = () => {
     setQueryDraft("");
