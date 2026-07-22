@@ -551,7 +551,7 @@ function ClientsPage() {
 
       <Card className="overflow-hidden p-0">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[1050px] text-sm">
+          <table className="w-full text-sm">
             <thead className="bg-muted/35 text-xs uppercase text-muted-foreground">
               <tr>
                 {(
@@ -584,7 +584,7 @@ function ClientsPage() {
                             ? "descending"
                             : "none"
                       }
-                      className="cursor-pointer whitespace-nowrap px-4 py-3 text-left font-medium select-none hover:text-foreground transition-colors"
+                      className="cursor-pointer whitespace-nowrap px-2.5 py-3 text-left font-medium select-none hover:text-foreground transition-colors"
                     >
                       <span className="inline-flex items-center gap-1">
                         {label}
@@ -599,11 +599,13 @@ function ClientsPage() {
                     </th>
                   );
                 })}
-                <th className="whitespace-nowrap px-4 py-3" />
+                <th className="w-8 px-1 py-3" />
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {pageRows.map((client) => (
+              {pageRows.map((client) => {
+                const cnpjInfo = formatCnpjDisplay(client.cnpj);
+                return (
                 <tr
                   key={client.id}
                   onClick={() =>
@@ -614,16 +616,16 @@ function ClientsPage() {
                   }
                   className="cursor-pointer transition-colors hover:bg-primary/[0.04]"
                 >
-                  <td className="whitespace-nowrap px-4 py-4 text-muted-foreground">
+                  <td className="whitespace-nowrap px-2.5 py-4 text-muted-foreground">
                     {client.registered}
                   </td>
-                  <td className="whitespace-nowrap px-4 py-4">
+                  <td className="whitespace-nowrap px-2.5 py-4">
                     <div className="font-medium text-primary">{client.acronym}</div>
                     <div className="text-xs text-muted-foreground">
                       {client.group || "Sem grupo"}
                     </div>
                   </td>
-                  <td className="min-w-[280px] px-4 py-4">
+                  <td className="min-w-[240px] px-2.5 py-4">
                     <div className="text-[12px] font-normal leading-[1.2] [display:-webkit-box] [-webkit-line-clamp:2] [-webkit-box-orient:vertical] overflow-hidden">
                       {client.name}
                     </div>
@@ -635,7 +637,7 @@ function ClientsPage() {
                     </div>
                   </td>
                   <ClientVersionCell client={client} />
-                  <td className="whitespace-nowrap px-4 py-4">
+                  <td className="whitespace-nowrap px-2.5 py-4">
                     <div className="flex flex-col items-start">
                       <span>{normalizeCityUf(client.city)}</span>
                       {client.cep && client.cep.replace(/\D+/g, "").length > 0 && (
@@ -643,32 +645,41 @@ function ClientsPage() {
                       )}
                     </div>
                   </td>
-                  <td className="whitespace-nowrap px-4 py-4 text-muted-foreground">
-                    {client.cnpj}
+                  <td className="whitespace-nowrap px-2.5 py-4 text-muted-foreground">
+                    {cnpjInfo.incomplete ? (
+                      <span
+                        className="text-[12px] italic text-muted-foreground/80"
+                        title={cnpjInfo.raw ? `Valor original: ${cnpjInfo.raw}` : "CNPJ não informado"}
+                      >
+                        {cnpjInfo.text}
+                      </span>
+                    ) : (
+                      <span title={cnpjInfo.raw}>{cnpjInfo.text}</span>
+                    )}
                   </td>
-                  <td className="whitespace-nowrap px-4 py-4">
+                  <td className="px-2.5 py-4">
                     <div className="flex flex-col items-start gap-1">
                       <Badge
                         className={cn(
                           client.status === "Ativo"
                             ? "bg-emerald-500/12 text-emerald-600 dark:text-emerald-400"
                             : "bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300",
-
                         )}
                       >
                         {client.status}
                       </Badge>
-                      <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                        <RefreshCw className="h-3 w-3" />
+                      <div className="flex items-center gap-1 whitespace-nowrap text-[11px] text-muted-foreground">
+                        <RefreshCw className="h-3 w-3 shrink-0" />
                         <span>{client.updatedAt}</span>
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-4">
+                  <td className="w-8 px-1 py-4">
                     <ChevronRight className="h-4 w-4 text-muted-foreground" />
                   </td>
                 </tr>
-              ))}
+              );})}
+
               {filtered.length === 0 && (
                 <tr>
                   <td colSpan={8} className="px-4 py-10 text-center text-sm text-muted-foreground">
