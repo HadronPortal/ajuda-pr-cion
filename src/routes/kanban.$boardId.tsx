@@ -776,25 +776,6 @@ function KanbanPage() {
             onOpenCard={openCard}
             onSchedule={(card, dueDate) => kanbanStore.updateCard({ ...card, dueDate })}
           />
-        ) : viewMode !== "kanban" ? (
-          <div className="grid place-items-center rounded-xl border border-dashed border-slate-300 bg-white/50 p-16 text-center dark:border-white/10 dark:bg-white/[0.02]">
-            <div className="max-w-md">
-              <p className="text-sm font-bold text-slate-900 dark:text-white">
-                Visualização em {viewMode === "list" ? "Lista" : "Calendário"} — em breve
-              </p>
-              <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                Estamos preparando esta visualização. Enquanto isso, continue usando o Kanban para gerenciar as demandas.
-              </p>
-              <Button
-                variant="outline"
-                size="sm"
-                className="mt-4 cursor-pointer"
-                onClick={() => setViewMode("kanban")}
-              >
-                Voltar ao Kanban
-              </Button>
-            </div>
-          </div>
         ) : (
           <DndContext
             sensors={sensors}
