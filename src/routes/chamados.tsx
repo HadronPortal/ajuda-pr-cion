@@ -885,37 +885,38 @@ function TicketsPage() {
             />
           </div>
 
-          <Button
-            type="button"
-            onClick={() => setFiltersOpen(true)}
-            className="relative h-9 shrink-0 cursor-pointer gap-2 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white shadow-md hover:bg-blue-700"
-          >
-            <Filter className="h-4 w-4" />
-            Filtros
-            {advancedActiveCount > 0 && (
-              <span className="ml-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-white/95 px-1.5 text-[11px] font-semibold text-blue-700">
-                {advancedActiveCount}
-              </span>
-            )}
-          </Button>
-
-          <Link
-            to="/chamados/novo"
-            aria-label="Novo chamado"
-            className="inline-flex h-9 shrink-0 cursor-pointer items-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground shadow-md transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-          >
-            <MessageSquarePlus className="h-4 w-4" />
-            Novo chamado
-          </Link>
         </div>
 
+        <div className="flex shrink-0 flex-col items-end gap-1.5">
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              onClick={() => setFiltersOpen(true)}
+              className="relative h-9 shrink-0 cursor-pointer gap-2 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white shadow-md hover:bg-blue-700"
+            >
+              <Filter className="h-4 w-4" />
+              Filtros
+              {advancedActiveCount > 0 && (
+                <span className="ml-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-white/95 px-1.5 text-[11px] font-semibold text-blue-700">
+                  {advancedActiveCount}
+                </span>
+              )}
+            </Button>
 
-
-        <div className="flex shrink-0 items-center justify-end gap-2">
+            <Link
+              to="/chamados/novo"
+              aria-label="Novo chamado"
+              className="inline-flex h-9 shrink-0 cursor-pointer items-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground shadow-md transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            >
+              <MessageSquarePlus className="h-4 w-4" />
+              Novo chamado
+            </Link>
+          </div>
           <Badge variant="secondary" className="rounded-full">
             CRM lado suporte
           </Badge>
         </div>
+
       </div>
       <div className="min-h-[560px]">
         {filteredTickets.length === 0 ? (
