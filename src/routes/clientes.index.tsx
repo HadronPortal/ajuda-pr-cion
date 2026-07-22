@@ -8,7 +8,6 @@ import {
   CalendarDays,
   Check,
   CheckCircle2,
-  ChevronRight,
   CircleUserRound,
   Cpu,
   Database,
@@ -41,6 +40,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { cn } from "@/lib/utils";
 import { listClients } from "@/lib/clients-api";
 import { normalizeCityUf } from "@/lib/br-city";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/clientes/")({
   head: () => ({ meta: [{ title: "Clientes - Portal Procion" }] }),
@@ -284,6 +284,91 @@ function formatCnpjDisplay(v: string): { text: string; incomplete: boolean; raw:
     };
   }
   return { text: "CNPJ incompleto", incomplete: true, raw };
+}
+
+type CnpjInfo = { text: string; incomplete: boolean; raw: string; missing?: boolean };
+
+const cnpjResolveCache = new Map<string, CnpjInfo>();
+const cnpjResolvePending = new Map<string, Promise<CnpjInfo>>();
+
+function formatCnpjDigits(d: string) {
+  return d.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
+}
+
+async function resolveClientCnpj(client: ClientRow, initial: CnpjInfo): Promise<CnpjInfo> {
+  const key = client.acronym || client.id;
+  const cached = cnpjResolveCache.get(key);
+  if (cached) return cached;
+  const pending = cnpjResolvePending.get(key);
+  if (pending) return pending;
+  const promise = (async () => {
+    try {
+      const { data, error } = await supabase.rpc("get_crm_client", { client_acronym: client.acronym });
+      if (error) throw error;
+      const candidates: unknown[] = [];
+      const clientDoc = (data as { client?: { document?: unknown } } | null)?.client?.document;
+      if (clientDoc) candidates.push(clientDoc);
+      const companies = (data as { companies?: Array<{ document?: unknown }> } | null)?.companies || [];
+      for (const co of companies) if (co?.document) candidates.push(co.document);
+      for (const raw of candidates) {
+        const d = String(raw ?? "").replace(/\D+/g, "");
+        if (d.length === 14) {
+          const result: CnpjInfo = { text: formatCnpjDigits(d), incomplete: false, raw: String(raw) };
+          cnpjResolveCache.set(key, result);
+          return result;
+        }
+      }
+    } catch {
+      /* silencioso; mostraremos "CNPJ não informado" */
+    }
+    const result: CnpjInfo = { text: "CNPJ não informado", incomplete: true, missing: true, raw: initial.raw };
+    cnpjResolveCache.set(key, result);
+    return result;
+  })();
+  cnpjResolvePending.set(key, promise);
+  try {
+    return await promise;
+  } finally {
+    cnpjResolvePending.delete(key);
+  }
+}
+
+function ClientCnpjCell({ client }: { client: ClientRow }) {
+  const initial = useMemo(() => formatCnpjDisplay(client.cnpj), [client.cnpj]);
+  const [info, setInfo] = useState<CnpjInfo>(() =>
+    initial.incomplete ? cnpjResolveCache.get(client.acronym || client.id) ?? initial : initial,
+  );
+
+  useEffect(() => {
+    if (!initial.incomplete) {
+      setInfo(initial);
+      return;
+    }
+    const cached = cnpjResolveCache.get(client.acronym || client.id);
+    if (cached) {
+      setInfo(cached);
+      return;
+    }
+    let cancelled = false;
+    resolveClientCnpj(client, initial).then((result) => {
+      if (!cancelled) setInfo(result);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [client, initial]);
+
+  if (info.incomplete) {
+    return (
+      <span
+        className="text-[12px] italic text-muted-foreground/80"
+        title={info.raw ? `Valor original: ${info.raw}` : "CNPJ não informado"}
+      >
+        {info.missing ? "CNPJ não informado" : initial.raw ? "…" : "CNPJ não informado"}
+      </span>
+    );
+  }
+  return <span title={info.raw}>{info.text}</span>;
 }
 
 
@@ -599,13 +684,11 @@ function ClientsPage() {
                     </th>
                   );
                 })}
-                <th className="w-8 px-1 py-3" />
+                
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {pageRows.map((client) => {
-                const cnpjInfo = formatCnpjDisplay(client.cnpj);
-                return (
+              {pageRows.map((client) => (
                 <tr
                   key={client.id}
                   onClick={() =>
@@ -646,16 +729,7 @@ function ClientsPage() {
                     </div>
                   </td>
                   <td className="whitespace-nowrap px-2.5 py-4 text-muted-foreground">
-                    {cnpjInfo.incomplete ? (
-                      <span
-                        className="text-[12px] italic text-muted-foreground/80"
-                        title={cnpjInfo.raw ? `Valor original: ${cnpjInfo.raw}` : "CNPJ não informado"}
-                      >
-                        {cnpjInfo.text}
-                      </span>
-                    ) : (
-                      <span title={cnpjInfo.raw}>{cnpjInfo.text}</span>
-                    )}
+                    <ClientCnpjCell client={client} />
                   </td>
                   <td className="px-2.5 py-4">
                     <div className="flex flex-col items-start gap-1">
@@ -674,15 +748,12 @@ function ClientsPage() {
                       </div>
                     </div>
                   </td>
-                  <td className="w-8 px-1 py-4">
-                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                  </td>
                 </tr>
-              );})}
+              ))}
 
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-4 py-10 text-center text-sm text-muted-foreground">
+                  <td colSpan={7} className="px-4 py-10 text-center text-sm text-muted-foreground">
                     Nenhum cliente encontrado com os filtros atuais.
                   </td>
                 </tr>
