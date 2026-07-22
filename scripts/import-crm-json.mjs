@@ -34,6 +34,7 @@ function rows(file) {
 }
 const data = Object.fromEntries(Object.entries(files).map(([key, file]) => [key, rows(file)]));
 const contactsOnly = args.includes("--contacts-only");
+const clientsOnly = args.includes("--clients-only");
 const text = (value) => String(value ?? "").trim() || null;
 const integer = (value) => Number.isFinite(Number(value)) ? Number(value) : null;
 const bool = (value) => ["1", "true", "ativo", "a"].includes(String(value ?? "").trim().toLowerCase());
@@ -51,12 +52,19 @@ const migration = fs.readFileSync(path.resolve("supabase/migrations/202607221430
 await pool.query(migration);
 
 const clientIds = new Map();
+const clientsByAcronym = new Map(
+  data.clients.map((row) => [(text(row.cli_sigla) || "").toUpperCase(), row]),
+);
 if (contactsOnly) {
   const existing = await pool.query("select legacy_id, id from public.clients where legacy_id is not null");
   for (const row of existing.rows) clientIds.set(String(row.legacy_id), row.id);
 }
 for (const row of contactsOnly ? [] : data.clients) {
   const acronym = text(row.cli_sigla) || `CLI${row.cli_id}`;
+  const groupClient = clientsByAcronym.get((text(row.cli_sigla_grupo) || "").toUpperCase());
+  const versionReleasedAt = row.cli_data_versao || groupClient?.cli_data_versao;
+  const setupAt = row.cli_data_setup || groupClient?.cli_data_setup;
+  const version = versionReleasedAt ? "2.0" : null;
   const result = await pool.query(`
     insert into public.clients
       (legacy_id, acronym, group_acronym, name, legal_name, trade_name, document,
@@ -84,8 +92,8 @@ for (const row of contactsOnly ? [] : data.clients) {
     text(row.cli_razao_social) || text(row.cli_nome) || text(row.cli_nome_fantasia) || acronym,
     text(row.cli_nome_fantasia), text(row.cli_cnpj), text(row.cli_setor), text(row.cli_porte),
     text(row.cli_cidade), text(row.cli_uf), text(row.cli_cep), bool(row.cli_status),
-    iso(row.created || row.cli_data_cadastro), iso(row.modified), text(row.cli_serial1),
-    iso(row.cli_data_versao), iso(row.cli_data_setup), text(row.cli_endereco), text(row.cli_numero),
+    iso(row.created || row.cli_data_cadastro), iso(row.modified), version,
+    iso(versionReleasedAt), iso(setupAt), text(row.cli_endereco), text(row.cli_numero),
     text(row.cli_bairro), text(row.cli_complemento), text(row.cli_operador_resp1),
     text(row.cli_operador_resp2), iso(row.cli_data_inativa), text(row.cli_ope_inativa),
     text(row.cli_site), text(row.cli_insc_estadual), text(row.cli_insc_municipal),
@@ -94,7 +102,7 @@ for (const row of contactsOnly ? [] : data.clients) {
 }
 
 let companies = 0;
-for (const row of contactsOnly ? [] : data.companies) {
+for (const row of contactsOnly || clientsOnly ? [] : data.companies) {
   const clientId = clientIds.get(String(row.tab_clientes_cli_id));
   if (!clientId) continue;
   const responsible = jsonObject(row.tcl_responsavel);
@@ -125,10 +133,10 @@ for (const row of contactsOnly ? [] : data.companies) {
   companies++;
 }
 
-await pool.query("delete from public.client_contacts where legacy_key like 'json:%'");
+if (!clientsOnly) await pool.query("delete from public.client_contacts where legacy_key like 'json:%'");
 let contacts = 0;
 const contactValues = [];
-for (const [type, records] of [["phone", data.phones], ["email", data.emails]]) {
+for (const [type, records] of clientsOnly ? [] : [["phone", data.phones], ["email", data.emails]]) {
   const occurrences = new Map();
   for (const row of records) {
     const clientId = clientIds.get(String(row.id));

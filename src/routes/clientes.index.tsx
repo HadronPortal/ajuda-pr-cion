@@ -563,7 +563,7 @@ function ClientsPage() {
                   </td>
                   <td className="min-w-[280px] px-4 py-4">
                     <div className="text-[12px] font-normal leading-[1.2] [display:-webkit-box] [-webkit-line-clamp:2] [-webkit-box-orient:vertical] overflow-hidden">
-                      {client.razaoSocial}
+                      {client.name}
                     </div>
                     <div className="text-[11px] font-normal text-muted-foreground">
                       {client.segment} · {client.size}
