@@ -618,47 +618,14 @@ function TicketsPage() {
 
   return (
     <AppShell>
-      <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-start lg:gap-4">
-        <div className="min-w-0 shrink-0 lg:max-w-[280px]">
-          <Breadcrumbs items={[{ label: "Chamados" }]} />
-          <h1 className="text-lg font-medium tracking-tight text-foreground">Chamados</h1>
-          <p className="mt-1 max-w-2xl text-xs text-muted-foreground">
-            CRM de suporte para acompanhar abertura, atendimento, atrasos e produtividade dos chamados.
-          </p>
-        </div>
-
-        <div className="min-w-0 flex-1 lg:pt-1">
-          <QuickFiltersBar
-            filters={filters}
-            setFilters={setFilters}
-            tickets={supportTickets}
-          />
-        </div>
-
-        <div className="flex shrink-0 items-center gap-2 lg:pt-1">
-          <Button
-            type="button"
-            onClick={() => setFiltersOpen(true)}
-            className="relative h-9 shrink-0 cursor-pointer gap-2 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white shadow-md hover:bg-blue-700"
-          >
-            <Filter className="h-4 w-4" />
-            Filtros
-            {advancedActiveCount > 0 && (
-              <span className="ml-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-white/95 px-1.5 text-[11px] font-semibold text-blue-700">
-                {advancedActiveCount}
-              </span>
-            )}
-          </Button>
-          <Link
-            to="/chamados/novo"
-            aria-label="Novo chamado"
-            className="inline-flex h-9 shrink-0 cursor-pointer items-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground shadow-md transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-          >
-            <MessageSquarePlus className="h-4 w-4" />
-            Novo chamado
-          </Link>
-        </div>
+      <div className="mb-5">
+        <Breadcrumbs items={[{ label: "Chamados" }]} />
+        <h1 className="text-lg font-medium tracking-tight text-foreground">Chamados</h1>
+        <p className="mt-1 max-w-2xl text-xs text-muted-foreground">
+          CRM de suporte para acompanhar abertura, atendimento, atrasos e produtividade dos chamados.
+        </p>
       </div>
+
 
 
 
