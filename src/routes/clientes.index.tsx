@@ -355,7 +355,15 @@ function ClientsPage() {
 
   const activeCount = countActive(filters);
 
-  const totalItems = filtered.length;
+  const sorted = useMemo(() => {
+    if (!sort) return filtered;
+    const arr = filtered.slice();
+    const factor = sort.dir === "asc" ? 1 : -1;
+    arr.sort((a, b) => compareByKey(a, b, sort.key) * factor);
+    return arr;
+  }, [filtered, sort]);
+
+  const totalItems = sorted.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
   useEffect(() => {
@@ -363,7 +371,7 @@ function ClientsPage() {
   }, [page, totalPages]);
   const startIndex = (currentPage - 1) * PAGE_SIZE;
   const endIndex = Math.min(startIndex + PAGE_SIZE, totalItems);
-  const pageRows = filtered.slice(startIndex, endIndex);
+  const pageRows = sorted.slice(startIndex, endIndex);
 
 
   const removeChip = (key: keyof Filters) => {
