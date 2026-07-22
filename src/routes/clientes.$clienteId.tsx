@@ -20,6 +20,7 @@ import {
   Summary,
 } from "./clientes.index";
 import { getClient } from "@/lib/clients-api";
+import { normalizeCityUf, normalizeCityName } from "@/lib/br-city";
 
 const tabs = ["cliente", "hadron", "usuarios", "terminais", "empresas"] as const;
 type TabValue = (typeof tabs)[number];
