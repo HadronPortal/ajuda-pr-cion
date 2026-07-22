@@ -273,6 +273,20 @@ function formatCep(v: string): string {
   return `${d.slice(0, 5)}-${d.slice(5)}`;
 }
 
+function formatCnpjDisplay(v: string): { text: string; incomplete: boolean; raw: string } {
+  const raw = String(v ?? "");
+  const d = raw.replace(/\D+/g, "");
+  if (d.length === 14) {
+    return {
+      text: d.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5"),
+      incomplete: false,
+      raw,
+    };
+  }
+  return { text: "CNPJ incompleto", incomplete: true, raw };
+}
+
+
 type SortKey = "registered" | "acronym" | "name" | "version" | "city" | "cnpj" | "status";
 
 const ptCollator = new Intl.Collator("pt-BR", { sensitivity: "base", numeric: true });
