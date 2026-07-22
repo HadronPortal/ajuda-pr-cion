@@ -493,24 +493,13 @@ function TicketsPage() {
 
 
 
-      <div className="mb-6 flex justify-end gap-2">
-        <Link
-          to="/chamados/novo"
-          aria-label="Novo chamado"
-          className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground shadow-md transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-        >
-          <MessageSquarePlus className="h-4 w-4" />
-          Novo chamado
-        </Link>
-        <Button
-          type="button"
-          onClick={() => setFiltersOpen(true)}
-          className="h-10 cursor-pointer gap-2 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white shadow-md hover:bg-blue-700"
-        >
-          <Filter className="h-4 w-4" />
-          Filtros
-        </Button>
-      </div>
+      <QuickFiltersBar
+        filters={filters}
+        setFilters={setFilters}
+        tickets={supportTickets}
+        onOpenAdvanced={() => setFiltersOpen(true)}
+      />
+
 
 
       <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
