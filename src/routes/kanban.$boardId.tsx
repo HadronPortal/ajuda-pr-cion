@@ -582,6 +582,7 @@ function KanbanPage() {
 
   const clearFilters = () => setFilters(emptyFilters);
   const getColumnCount = (id: ColumnId) => cardsByColumn[id]?.length ?? 0;
+  const hasBgImage = !!boardSummary?.backgroundValue && boardSummary?.backgroundType !== "color";
   const boardBackgroundStyle = boardSummary?.backgroundType === "color" && boardSummary.backgroundValue
     ? { backgroundColor: boardSummary.backgroundValue }
     : boardSummary?.backgroundValue
@@ -590,8 +591,8 @@ function KanbanPage() {
 
   return (
     <AppShell>
-      <div style={boardBackgroundStyle} className="min-h-[calc(100vh-92px)] rounded-[18px] border border-slate-300 bg-slate-200 p-4 text-slate-900 shadow-[0_8px_24px_rgba(15,23,42,0.06)] dark:border-white/8 dark:bg-[#10151f] dark:text-slate-100 dark:shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
-        <div className="mb-3 flex flex-col gap-3 rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 shadow-sm dark:border-white/8 dark:bg-[#1e2633] lg:flex-row lg:items-center lg:justify-between">
+      <div style={boardBackgroundStyle} className="min-h-[calc(100vh-92px)] overflow-hidden rounded-[18px] border border-slate-300 bg-slate-200 p-4 text-slate-900 shadow-[0_8px_24px_rgba(15,23,42,0.06)] dark:border-white/8 dark:bg-[#10151f] dark:text-slate-100 dark:shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
+        <div className={cn("mb-3 flex flex-col gap-3 rounded-xl border px-4 py-3 shadow-sm lg:flex-row lg:items-center lg:justify-between", hasBgImage ? "border-white/20 bg-white/70 backdrop-blur-md dark:border-white/10 dark:bg-slate-900/55" : "border-slate-300 bg-slate-50 dark:border-white/8 dark:bg-[#1e2633]")}>
           <div className="min-w-0 shrink-0 lg:max-w-[260px]">
             <Link
               to="/kanban"
