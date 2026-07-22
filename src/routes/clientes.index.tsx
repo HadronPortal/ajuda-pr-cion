@@ -268,11 +268,16 @@ function ClientsPage() {
   const [draft, setDraft] = useState<Filters>(() => lastFilters);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [page, setPage] = useState(1);
+  const [sort, setSort] = useState<{ key: SortKey; dir: "asc" | "desc" } | null>(null);
 
   useEffect(() => {
     lastFilters = filters;
     setPage(1);
   }, [filters]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [sort]);
 
   useEffect(() => {
     if (filtersOpen) setDraft(filters);
