@@ -34,6 +34,10 @@ export type BoardSummary = {
   description: string;
   color: string | null;
   cover: string | null;
+  backgroundType?: "color" | "photo" | "custom";
+  backgroundValue?: string | null;
+  backgroundMode?: "cover" | "tile";
+  backgroundTextTheme?: "auto" | "light" | "dark";
   visibility: "team" | "private" | string;
   isFavorite: boolean;
   updatedAt: string;
@@ -187,7 +191,45 @@ export const updateKanbanBoard = (input: Wrapped<{
   cover?: string | null;
   visibility?: string;
   isFavorite?: boolean;
+  backgroundType?: "color" | "photo" | "custom";
+  backgroundValue?: string | null;
+  backgroundMode?: "cover" | "tile";
+  backgroundTextTheme?: "auto" | "light" | "dark";
 }>) => invoke<{ ok: true }>("updateBoard", unwrap(input));
+
+export type BoardInvite = {
+  id: string;
+  type: "email" | "link";
+  email: string | null;
+  role: "admin" | "member" | "observer";
+  token: string;
+  status: string;
+  expiresAt: string | null;
+  maxUses: number | null;
+  usesCount: number;
+  createdAt: string;
+};
+
+export const listBoardInvites = (input: Wrapped<{ boardId: string }>) =>
+  invoke<{ invites: BoardInvite[] }>("listBoardInvites", unwrap(input));
+
+export const createBoardInvite = (input: Wrapped<{
+  boardId: string;
+  type: "email" | "link";
+  email?: string;
+  role?: "admin" | "member" | "observer";
+  expiresAt?: string | null;
+  maxUses?: number | null;
+}>) => invoke<{ invite: BoardInvite; joinedExistingMember?: boolean }>("createBoardInvite", unwrap(input));
+
+export const revokeBoardInvite = (input: Wrapped<{ id: string }>) =>
+  invoke<{ ok: true }>("revokeBoardInvite", unwrap(input));
+
+export const uploadBoardBackground = (input: Wrapped<{
+  boardId: string;
+  fileName: string;
+  dataUrl: string;
+}>) => invoke<{ url: string }>("uploadBoardBackground", unwrap(input));
 
 export const duplicateKanbanBoard = (input: Wrapped<{ id: string }>) =>
   invoke<{ id: string }>("duplicateBoard", unwrap(input));

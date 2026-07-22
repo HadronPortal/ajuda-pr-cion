@@ -41,6 +41,8 @@ import {
   Search,
   Star,
   UserRound,
+  Users,
+  Palette,
 } from "lucide-react";
 import { AppShell } from "@/components/portal/AppShell";
 import { kanbanStore, useKanbanCards } from "@/lib/kanban-store";
@@ -50,8 +52,10 @@ import {
   deleteKanbanColumn,
   archiveKanbanColumnCards,
   loadKanbanBoard,
+  getKanbanBoard,
   moveKanbanCard,
   reorderKanbanColumns,
+  type BoardSummary,
 } from "@/lib/kanban-api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -74,6 +78,7 @@ import { KanbanCardItem } from "@/components/kanban/KanbanCard";
 import { KanbanCardDrawer } from "@/components/kanban/KanbanCardDrawer";
 import { KanbanBoardMenu } from "@/components/kanban/KanbanBoardMenu";
 import { KanbanTemplateDialog } from "@/components/kanban/KanbanTemplateDialog";
+import { BoardCollaborationDialog } from "@/components/kanban/BoardCollaborationDialog";
 import { templateToCard, type KanbanCardTemplate } from "@/lib/kanban-templates";
 import {
   type KanbanCard,
@@ -185,6 +190,7 @@ function KanbanPage() {
   const [columns, setColumns] = useState<KanbanColumn[]>(getInitialColumns);
   const [boardId, setBoardId] = useState<string | null>(boardIdParam ?? null);
   const [boardName, setBoardName] = useState<string>("");
+  const [boardSummary, setBoardSummary] = useState<BoardSummary | null>(null);
   const [loadingBoard, setLoadingBoard] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
@@ -206,6 +212,8 @@ function KanbanPage() {
   const [followedColumns, setFollowedColumns] = useState<Set<ColumnId>>(getInitialFollowedColumns);
   const [boardMenuOpen, setBoardMenuOpen] = useState(false);
   const [templatesOpen, setTemplatesOpen] = useState(false);
+  const [collaborationOpen, setCollaborationOpen] = useState(false);
+  const [collaborationTab, setCollaborationTab] = useState<"share" | "background">("share");
   const lastOverColumnRef = useRef<ColumnId | null>(null);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
@@ -222,14 +230,15 @@ function KanbanPage() {
     let active = true;
     setLoadingBoard(true);
     setLoadError(false);
-    loadKanbanBoard({ data: { boardId: boardIdParam } })
-      .then((result) => {
+    Promise.all([loadKanbanBoard({ data: { boardId: boardIdParam } }), getKanbanBoard({ boardId: boardIdParam })])
+      .then(([result, summary]) => {
         if (!active || !result.board) {
           if (active) setLoadError(true);
           return;
         }
         setBoardId(result.board.id);
         setBoardName(result.board.name ?? "");
+        setBoardSummary(summary.board);
         setColumns(result.columns);
         kanbanStore.hydrate(result.cards as KanbanCard[]);
         setDefaultColumnId(result.columns[0]?.id ?? "a-fazer");
@@ -572,10 +581,15 @@ function KanbanPage() {
 
   const clearFilters = () => setFilters(emptyFilters);
   const getColumnCount = (id: ColumnId) => cardsByColumn[id]?.length ?? 0;
+  const boardBackgroundStyle = boardSummary?.backgroundType === "color" && boardSummary.backgroundValue
+    ? { backgroundColor: boardSummary.backgroundValue }
+    : boardSummary?.backgroundValue
+      ? { backgroundImage: `linear-gradient(rgba(15,23,42,.18),rgba(15,23,42,.18)), url(${boardSummary.backgroundValue})`, backgroundSize: boardSummary.backgroundMode === "tile" ? "auto" : "cover", backgroundPosition: "center", backgroundRepeat: boardSummary.backgroundMode === "tile" ? "repeat" : "no-repeat" }
+      : undefined;
 
   return (
     <AppShell>
-      <div className="min-h-[calc(100vh-92px)] rounded-[18px] border border-slate-300 bg-slate-200 p-4 text-slate-900 shadow-[0_8px_24px_rgba(15,23,42,0.06)] dark:border-white/8 dark:bg-[#10151f] dark:text-slate-100 dark:shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
+      <div style={boardBackgroundStyle} className="min-h-[calc(100vh-92px)] rounded-[18px] border border-slate-300 bg-slate-200 p-4 text-slate-900 shadow-[0_8px_24px_rgba(15,23,42,0.06)] dark:border-white/8 dark:bg-[#10151f] dark:text-slate-100 dark:shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
         <div className="mb-3 flex flex-col gap-3 rounded-xl border border-slate-300 bg-slate-50 px-4 py-3 shadow-sm dark:border-white/8 dark:bg-[#1e2633] lg:flex-row lg:items-center lg:justify-between">
           <div className="min-w-0 shrink-0 lg:max-w-[260px]">
             <Link
@@ -694,6 +708,22 @@ function KanbanPage() {
               <ViewToggleButton active={viewMode === "calendar"} onClick={() => setViewMode("calendar")} icon={CalendarRange} label="Calendário" />
             </div>
 
+            <button
+              onClick={() => { setCollaborationTab("share"); setCollaborationOpen(true); }}
+              className="grid h-9 w-9 shrink-0 cursor-pointer place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:border-white/8 dark:bg-white/[0.08] dark:text-slate-200 dark:hover:bg-white/15"
+              aria-label="Compartilhar quadro"
+              title="Compartilhar"
+            >
+              <Users className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => { setCollaborationTab("background"); setCollaborationOpen(true); }}
+              className="grid h-9 w-9 shrink-0 cursor-pointer place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:border-white/8 dark:bg-white/[0.08] dark:text-slate-200 dark:hover:bg-white/15"
+              aria-label="Alterar fundo do quadro"
+              title="Alterar fundo"
+            >
+              <Palette className="h-4 w-4" />
+            </button>
             <button
               onClick={() => setBoardMenuOpen(true)}
               className="grid h-9 w-9 shrink-0 cursor-pointer place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:border-white/8 dark:bg-white/[0.035] dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white"
@@ -893,6 +923,13 @@ function KanbanPage() {
         open={templatesOpen}
         onOpenChange={setTemplatesOpen}
         onUse={handleUseTemplate}
+      />
+      <BoardCollaborationDialog
+        board={boardSummary}
+        open={collaborationOpen}
+        onOpenChange={setCollaborationOpen}
+        initialTab={collaborationTab}
+        onChanged={() => setReloadKey((key) => key + 1)}
       />
 
       <Dialog open={newColumnOpen} onOpenChange={setNewColumnOpen}>

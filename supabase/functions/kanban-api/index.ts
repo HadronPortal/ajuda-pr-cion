@@ -238,7 +238,7 @@ async function removeWorkspaceMember(payload: any) {
 async function getBoard(payload: any) {
   const { data, error } = await admin
     .from("kanban_boards")
-    .select("id, name, description, color, cover, visibility, is_favorite")
+    .select("id, name, description, color, cover, visibility, is_favorite, background_type, background_value, background_mode, background_text_theme")
     .eq("id", payload.boardId)
     .maybeSingle();
   if (error) throw error;
@@ -252,6 +252,10 @@ async function getBoard(payload: any) {
       cover: data.cover ?? null,
       visibility: data.visibility ?? "team",
       isFavorite: Boolean(data.is_favorite),
+      backgroundType: data.background_type ?? "color",
+      backgroundValue: data.background_value ?? null,
+      backgroundMode: data.background_mode ?? "cover",
+      backgroundTextTheme: data.background_text_theme ?? "auto",
     },
   };
 }
@@ -708,6 +712,10 @@ async function updateBoard(payload: any) {
   if (payload.cover !== undefined) patch.cover = payload.cover;
   if (payload.visibility !== undefined) patch.visibility = payload.visibility;
   if (payload.isFavorite !== undefined) patch.is_favorite = Boolean(payload.isFavorite);
+  if (payload.backgroundType !== undefined) patch.background_type = payload.backgroundType;
+  if (payload.backgroundValue !== undefined) patch.background_value = payload.backgroundValue;
+  if (payload.backgroundMode !== undefined) patch.background_mode = payload.backgroundMode;
+  if (payload.backgroundTextTheme !== undefined) patch.background_text_theme = payload.backgroundTextTheme;
   const { error } = await admin.from("kanban_boards").update(patch).eq("id", payload.id);
   if (error) throw error;
   return { ok: true };
@@ -871,6 +879,57 @@ async function removeBoardMember(payload: any) {
   return { ok: true };
 }
 
+function mapInvite(row: any) {
+  return { id: row.id, type: row.invite_type, email: row.email, role: row.role, token: row.token,
+    status: row.status, expiresAt: row.expires_at, maxUses: row.max_uses, usesCount: row.uses_count,
+    createdAt: row.created_at };
+}
+
+async function listBoardInvites(payload: any) {
+  const { data, error } = await admin.from("kanban_board_invites").select("*")
+    .eq("board_id", payload.boardId).neq("status", "revoked").order("created_at", { ascending: false });
+  if (error) throw error;
+  return { invites: (data ?? []).map(mapInvite) };
+}
+
+async function createBoardInvite(payload: any) {
+  const email = payload.email?.trim().toLowerCase() || null;
+  let joinedExistingMember = false;
+  if (payload.type === "email" && email) {
+    const { data: profile } = await admin.from("profiles").select("id").ilike("email", email).maybeSingle();
+    if (profile?.id) {
+      await admin.from("kanban_board_members").upsert({ board_id: payload.boardId, profile_id: profile.id, role: payload.role ?? "member" }, { onConflict: "board_id,profile_id" });
+      joinedExistingMember = true;
+    }
+  }
+  const { data, error } = await admin.from("kanban_board_invites").insert({
+    board_id: payload.boardId, invite_type: payload.type, email, role: payload.role ?? "member",
+    status: joinedExistingMember ? "accepted" : "pending", expires_at: payload.expiresAt ?? null,
+    max_uses: payload.maxUses ?? null,
+  }).select("*").single();
+  if (error) throw error;
+  return { invite: mapInvite(data), joinedExistingMember };
+}
+
+async function revokeBoardInvite(payload: any) {
+  const { error } = await admin.from("kanban_board_invites").update({ status: "revoked", updated_at: new Date().toISOString() }).eq("id", payload.id);
+  if (error) throw error;
+  return { ok: true };
+}
+
+async function uploadBoardBackground(payload: any) {
+  const match = String(payload.dataUrl ?? "").match(/^data:(.+);base64,(.+)$/);
+  if (!match) throw new Error("invalid_file");
+  const bytes = Uint8Array.from(atob(match[2]), (char) => char.charCodeAt(0));
+  const extension = String(payload.fileName ?? "image.jpg").split(".").pop()?.replace(/[^a-z0-9]/gi, "") || "jpg";
+  const path = `${payload.boardId}/${crypto.randomUUID()}.${extension}`;
+  const { error } = await admin.storage.from("kanban-backgrounds").upload(path, bytes, { contentType: match[1], upsert: false });
+  if (error) throw error;
+  const { data } = admin.storage.from("kanban-backgrounds").getPublicUrl(path);
+  await admin.from("kanban_boards").update({ background_type: "custom", background_value: data.publicUrl, updated_at: new Date().toISOString() }).eq("id", payload.boardId);
+  return { url: data.publicUrl };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   try {
@@ -936,6 +995,18 @@ serve(async (req) => {
         break;
       case "removeBoardMember":
         result = await removeBoardMember(data);
+        break;
+      case "listBoardInvites":
+        result = await listBoardInvites(data);
+        break;
+      case "createBoardInvite":
+        result = await createBoardInvite(data);
+        break;
+      case "revokeBoardInvite":
+        result = await revokeBoardInvite(data);
+        break;
+      case "uploadBoardBackground":
+        result = await uploadBoardBackground(data);
         break;
       case "createCard":
       case "updateCard":
