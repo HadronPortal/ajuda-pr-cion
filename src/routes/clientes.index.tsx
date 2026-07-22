@@ -530,6 +530,9 @@ function ClientsPage() {
         onOpenChange={setFiltersOpen}
         draft={draft}
         setDraft={setDraft}
+        sizes={sizes}
+        segments={segments}
+        ufs={ufs}
         onApply={() => {
           setFilters(draft);
           setFiltersOpen(false);
@@ -545,6 +548,9 @@ function FiltersPanel({
   onOpenChange,
   draft,
   setDraft,
+  sizes,
+  segments,
+  ufs,
   onApply,
   onClear,
 }: {
@@ -552,6 +558,9 @@ function FiltersPanel({
   onOpenChange: (v: boolean) => void;
   draft: Filters;
   setDraft: React.Dispatch<React.SetStateAction<Filters>>;
+  sizes: string[];
+  segments: string[];
+  ufs: string[];
   onApply: () => void;
   onClear: () => void;
 }) {
