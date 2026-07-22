@@ -673,9 +673,6 @@ function ClientsPage() {
                       </div>
                     </div>
                   </td>
-                  <td className="w-8 px-1 py-4">
-                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                  </td>
                 </tr>
               );})}
 
