@@ -565,8 +565,11 @@ function ClientsPage() {
                     <div className="text-[12px] font-normal leading-[1.2] [display:-webkit-box] [-webkit-line-clamp:2] [-webkit-box-orient:vertical] overflow-hidden">
                       {client.name}
                     </div>
+                    <div className="mt-1 truncate text-[11px] font-normal leading-[1.2] text-foreground/80">
+                      {client.razaoSocial}
+                    </div>
                     <div className="text-[11px] font-normal text-muted-foreground">
-                      {client.segment} · {client.size}
+                      {client.segment} - Porte: {client.size}
                     </div>
                   </td>
                   <td className="whitespace-nowrap px-4 py-4">

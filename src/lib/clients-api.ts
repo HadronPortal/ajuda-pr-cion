@@ -3,6 +3,22 @@ import type { ClientRow } from "@/routes/clientes.index";
 
 type DatabaseClient = Record<string, string | boolean | null>;
 
+const industryLabels: Record<string, string> = {
+  "1": "Comércio",
+  "4": "Indústria",
+};
+
+const sizeLabels: Record<string, string> = {
+  P: "Pequeno",
+  M: "Médio",
+  G: "Grande",
+};
+
+const labelFromCode = (value: unknown, labels: Record<string, string>) => {
+  const code = String(value || "").trim();
+  return labels[code.toUpperCase()] || code || "Não informado";
+};
+
 const date = (value: unknown, withTime = false) => {
   if (!value) return "";
   const parsed = new Date(String(value));
@@ -19,8 +35,8 @@ export function mapDatabaseClient(c: DatabaseClient): ClientRow {
     name: String(c.name || c.trade_name || c.legal_name || ""),
     razaoSocial: String(c.legal_name || c.name || c.acronym || ""),
     fantasia: String(c.trade_name || c.name || ""),
-    segment: String(c.industry || "Nao informado"),
-    size: String(c.size || "Nao informado"),
+    segment: labelFromCode(c.industry, industryLabels),
+    size: labelFromCode(c.size, sizeLabels),
     version: String(c.version || ""),
     versionDate: date(c.version_released_at),
     versionUpdatedAt: date(c.setup_at, true),
