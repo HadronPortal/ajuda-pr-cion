@@ -340,7 +340,159 @@ function DateRangeFilter({
 
 
 
+function countAdvancedActive(f: Filters): number {
+  let n = 0;
+  if (f.status !== "Todos") n += 1;
+  if (f.priority !== "Todas") n += 1;
+  if (f.operatorType !== "Todos") n += 1;
+  if (f.dateType !== "Registro") n += 1;
+  if (f.dateStart || f.dateEnd) n += 1;
+  return n;
+}
+
+function hasAnyActive(f: Filters): boolean {
+  return (
+    countAdvancedActive(f) > 0 ||
+    f.query.trim() !== "" ||
+    f.sigla.trim() !== "" ||
+    f.operator !== "Todos"
+  );
+}
+
+function QuickFiltersBar({
+  filters,
+  setFilters,
+  tickets,
+  onOpenAdvanced,
+}: {
+  filters: Filters;
+  setFilters: React.Dispatch<React.SetStateAction<Filters>>;
+  tickets: SupportTicket[];
+  onOpenAdvanced: () => void;
+}) {
+  const [queryDraft, setQueryDraft] = useState(filters.query);
+
+  // Debounce: apply query typing after 250ms of inactivity.
+  useEffect(() => {
+    const handle = window.setTimeout(() => {
+      setFilters((p) => (p.query === queryDraft ? p : { ...p, query: queryDraft }));
+    }, 250);
+    return () => window.clearTimeout(handle);
+  }, [queryDraft, setFilters]);
+
+  // Keep local input in sync when external clears/resets occur.
+  useEffect(() => {
+    if (filters.query !== queryDraft) setQueryDraft(filters.query);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters.query]);
+
+  const siglas = useMemo(() => {
+    const set = new Set<string>();
+    tickets.forEach((t) => t.clientCode && set.add(t.clientCode.toUpperCase()));
+    return Array.from(set).sort();
+  }, [tickets]);
+
+  const advancedActive = countAdvancedActive(filters);
+  const anyActive = hasAnyActive(filters);
+
+  const clearAll = () => {
+    setQueryDraft("");
+    setFilters({ ...initialFilters });
+  };
+
+  return (
+    <div className="mb-6 flex flex-col gap-3">
+      <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:gap-2">
+        {/* Busca rápida */}
+        <div className="relative flex-1 min-w-[220px]">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <input
+            value={queryDraft}
+            onChange={(e) => setQueryDraft(e.target.value)}
+            type="search"
+            placeholder="Buscar por protocolo, cliente, contato, assunto ou módulo…"
+            className="h-10 w-full rounded-lg border border-border bg-background pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+          />
+        </div>
+
+        {/* Sigla */}
+        <input
+          list="quick-siglas"
+          value={filters.sigla}
+          onChange={(e) =>
+            setFilters((p) => ({ ...p, sigla: e.target.value.toUpperCase() }))
+          }
+          type="text"
+          placeholder="Sigla (ex.: MIT)"
+          className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm uppercase outline-none focus:ring-2 focus:ring-ring lg:w-[160px]"
+        />
+        <datalist id="quick-siglas">
+          {siglas.map((s) => (
+            <option key={s} value={s} />
+          ))}
+        </datalist>
+
+        {/* Operador */}
+        <input
+          list="quick-operators"
+          value={filters.operator === "Todos" ? "" : filters.operator}
+          onChange={(e) => {
+            const v = e.target.value.trim();
+            setFilters((p) => ({ ...p, operator: v === "" ? "Todos" : v.toUpperCase() }));
+          }}
+          type="text"
+          placeholder="Todos os operadores"
+          className="h-10 w-full cursor-pointer rounded-lg border border-border bg-background px-3 text-sm uppercase outline-none focus:ring-2 focus:ring-ring lg:w-[200px]"
+        />
+        <datalist id="quick-operators">
+          {ticketOperators.map((op) => (
+            <option key={op} value={op} />
+          ))}
+        </datalist>
+
+        {/* Filtros avançados */}
+        <Button
+          type="button"
+          onClick={onOpenAdvanced}
+          className="relative h-10 cursor-pointer gap-2 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white shadow-md hover:bg-blue-700"
+        >
+          <Filter className="h-4 w-4" />
+          Filtros
+          {advancedActive > 0 && (
+            <span className="ml-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-white/95 px-1.5 text-[11px] font-semibold text-blue-700">
+              {advancedActive}
+            </span>
+          )}
+        </Button>
+
+        {/* Novo chamado */}
+        <Link
+          to="/chamados/novo"
+          aria-label="Novo chamado"
+          className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground shadow-md transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+        >
+          <MessageSquarePlus className="h-4 w-4" />
+          Novo chamado
+        </Link>
+      </div>
+
+      {anyActive && (
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={clearAll}
+            className="cursor-pointer text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+          >
+            Limpar filtros
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ChamadosRouteShell() {
+
   const location = useLocation();
   if (location.pathname !== "/chamados") {
     return <Outlet />;
