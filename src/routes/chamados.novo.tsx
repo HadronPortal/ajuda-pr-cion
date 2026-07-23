@@ -369,7 +369,7 @@ function NewTicketPage() {
       description:
         `${form.description}\n\n` +
         `Tipo: ${form.type}. Operador: ${form.operator}. ` +
-        `Contato: ${form.emails.filter(Boolean).join(", ")} · ${form.phones.filter(Boolean).join(", ")}.`,
+        `Contato: ${form.emailValue} · ${form.phoneValue}.`,
     });
     toast.success("Chamado criado", {
       description: `${ticket.protocol} foi adicionado na fila de suporte.`,
