@@ -509,8 +509,13 @@ function ClientsPage() {
   const filtered = useMemo(() => {
     return clients.filter((c) => {
       if (filters.sigla && !normalize(c.acronym).includes(normalize(filters.sigla))) return false;
-      if (filters.siglaGrupo && !normalize(c.group).includes(normalize(filters.siglaGrupo)))
-        return false;
+      if (filters.siglaGrupo) {
+        // Match tanto o group_acronym quanto a sigla do próprio cliente (raiz).
+        const target = normalize(filters.siglaGrupo);
+        const matchesGroup = normalize(c.group).includes(target);
+        const matchesRoot = normalize(c.acronym) === target;
+        if (!matchesGroup && !matchesRoot) return false;
+      }
       if (filters.nome && !normalize(c.name).includes(normalize(filters.nome))) return false;
       if (
         filters.razaoSocial &&
