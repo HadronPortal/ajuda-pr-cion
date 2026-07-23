@@ -460,7 +460,7 @@ function ClientsPage() {
   const navigate = useNavigate();
   const grupoParam = (grupo ?? "").trim().toUpperCase();
   const [filters, setFilters] = useState<Filters>(() =>
-    grupoParam ? { ...lastFilters, siglaGrupo: grupoParam } : lastFilters,
+    grupoParam ? { ...emptyFilters, siglaGrupo: grupoParam } : lastFilters,
   );
   const [draft, setDraft] = useState<Filters>(() => filters);
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -472,10 +472,18 @@ function ClientsPage() {
     setPage(1);
   }, [filters]);
 
-  // Sincroniza URL <-> filtro de grupo, permitindo compartilhar/atualizar mantendo o filtro.
+  // Sincroniza URL <-> filtro de grupo. Ao entrar via ?grupo=XXX, descarta qualquer
+  // filtro anterior (sigla, busca etc.) para exibir todas as empresas do grupo.
   useEffect(() => {
-    if (grupoParam && filters.siglaGrupo.toUpperCase() !== grupoParam) {
-      setFilters((p) => ({ ...p, siglaGrupo: grupoParam }));
+    if (grupoParam) {
+      setFilters((p) =>
+        p.siglaGrupo.toUpperCase() === grupoParam &&
+        !p.sigla && !p.nome && !p.razaoSocial && !p.fantasia &&
+        !p.porte && !p.ramo && !p.cep && !p.cidade && !p.uf && !p.cnpj &&
+        p.status === "Todos" && !p.dateStart && !p.dateEnd
+          ? p
+          : { ...emptyFilters, siglaGrupo: grupoParam },
+      );
     }
   }, [grupoParam]);
 
