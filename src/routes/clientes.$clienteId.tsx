@@ -133,14 +133,45 @@ function ClientDetailPage() {
               </div>
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-sm font-medium text-primary">{client.acronym}</span>
+                  {client.group ? (
+                    <Link
+                      to="/clientes"
+                      search={{ grupo: client.group }}
+                      className="cursor-pointer text-sm font-medium text-primary hover:underline"
+                      title={`Ver empresas do grupo ${client.group}`}
+                    >
+                      {client.acronym}
+                    </Link>
+                  ) : (
+                    <span className="text-sm font-medium text-primary">{client.acronym}</span>
+                  )}
                   <Badge className="bg-emerald-500/12 text-emerald-600 dark:text-emerald-400">
                     {client.status}
                   </Badge>
                 </div>
 
                 <h2 className="mt-1 truncate text-xl font-medium">
-                  {client.razaoSocial} {client.group && `(${client.group})`}
+                  {client.group ? (
+                    <>
+                      <Link
+                        to="/clientes"
+                        search={{ grupo: client.group }}
+                        className="cursor-pointer hover:underline"
+                      >
+                        {client.razaoSocial}
+                      </Link>{" "}
+                      <Link
+                        to="/clientes"
+                        search={{ grupo: client.group }}
+                        className="cursor-pointer text-primary hover:underline"
+                        title={`Ver empresas do grupo ${client.group}`}
+                      >
+                        ({client.group})
+                      </Link>
+                    </>
+                  ) : (
+                    client.razaoSocial
+                  )}
                 </h2>
                 <p className="text-sm text-muted-foreground">{client.fantasia}</p>
               </div>

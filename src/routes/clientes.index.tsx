@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { zodValidator, fallback } from "@tanstack/zod-adapter";
+import { z } from "zod";
 import {
   ArrowDown,
   ArrowUp,
@@ -16,6 +18,7 @@ import {
   RefreshCw,
   HardDrive,
   Monitor,
+  Mail,
   Phone,
   ShieldCheck,
   Server,
@@ -51,8 +54,13 @@ import type {
 import { normalizeCityUf } from "@/lib/br-city";
 import { supabase } from "@/lib/supabase";
 
+const clientesSearchSchema = z.object({
+  grupo: fallback(z.string(), "").optional(),
+});
+
 export const Route = createFileRoute("/clientes/")({
   head: () => ({ meta: [{ title: "Clientes - Portal Procion" }] }),
+  validateSearch: zodValidator(clientesSearchSchema),
   loader: async () => {
     try {
       return { clients: await listClients() };
@@ -447,9 +455,13 @@ function ClientVersionCell({ client }: { client: ClientRow }) {
 
 function ClientsPage() {
   const { clients } = Route.useLoaderData() as { clients: ClientRow[] };
+  const { grupo } = Route.useSearch();
   const navigate = useNavigate();
-  const [filters, setFilters] = useState<Filters>(() => lastFilters);
-  const [draft, setDraft] = useState<Filters>(() => lastFilters);
+  const grupoParam = (grupo ?? "").trim().toUpperCase();
+  const [filters, setFilters] = useState<Filters>(() =>
+    grupoParam ? { ...lastFilters, siglaGrupo: grupoParam } : lastFilters,
+  );
+  const [draft, setDraft] = useState<Filters>(() => filters);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState<{ key: SortKey; dir: "asc" | "desc" } | null>({ key: "registered", dir: "desc" });
@@ -458,6 +470,24 @@ function ClientsPage() {
     lastFilters = filters;
     setPage(1);
   }, [filters]);
+
+  // Sincroniza URL <-> filtro de grupo, permitindo compartilhar/atualizar mantendo o filtro.
+  useEffect(() => {
+    if (grupoParam && filters.siglaGrupo.toUpperCase() !== grupoParam) {
+      setFilters((p) => ({ ...p, siglaGrupo: grupoParam }));
+    }
+  }, [grupoParam]);
+
+  useEffect(() => {
+    const current = filters.siglaGrupo.trim().toUpperCase();
+    if (current !== grupoParam) {
+      navigate({
+        to: "/clientes",
+        search: current ? { grupo: current } : {},
+        replace: true,
+      });
+    }
+  }, [filters.siglaGrupo]);
 
   useEffect(() => {
     setPage(1);
@@ -640,6 +670,15 @@ function ClientsPage() {
           >
             Limpar todos
           </button>
+        </div>
+      )}
+
+      {grupoParam && (
+        <div className="mb-3 flex items-baseline gap-2">
+          <h2 className="text-base font-medium">Empresas do grupo {grupoParam}</h2>
+          <span className="text-sm text-muted-foreground">
+            {filtered.length} {filtered.length === 1 ? "empresa" : "empresas"}
+          </span>
         </div>
       )}
 
@@ -1160,6 +1199,166 @@ function EmptyState({ text }: { text: string }) {
   return <p className="rounded-md border border-dashed border-border p-5 text-sm text-muted-foreground">{text}</p>;
 }
 
+function formatPhoneBR(raw: string): string {
+  const d = raw.replace(/\D+/g, "");
+  if (d.length === 11) return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+  if (d.length === 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+  if (d.length === 13 && d.startsWith("55")) {
+    const r = d.slice(2);
+    return `+55 (${r.slice(0, 2)}) ${r.slice(2, 7)}-${r.slice(7)}`;
+  }
+  if (d.length === 9) return `${d.slice(0, 5)}-${d.slice(5)}`;
+  if (d.length === 8) return `${d.slice(0, 4)}-${d.slice(4)}`;
+  return raw.trim();
+}
+
+type ContactLine = { key: string; value: string; display: string; description: string; href: string };
+
+function buildContactLines(
+  contacts: ClientContact[],
+  kind: "phone" | "email",
+): ContactLine[] {
+  const seen = new Set<string>();
+  const out: ContactLine[] = [];
+  for (const c of contacts) {
+    const description = [c.name, c.department].filter(Boolean).join(" / ").trim();
+    const values: string[] = kind === "phone" ? [c.phone, c.mobile, c.whatsapp] : [c.email];
+    for (const raw of values) {
+      const trimmed = (raw || "").trim();
+      if (!trimmed) continue;
+      const norm = kind === "email" ? trimmed.toLowerCase() : trimmed.replace(/\D+/g, "");
+      if (!norm) continue;
+      const dedupeKey = `${norm}|${description.toLowerCase()}`;
+      if (seen.has(dedupeKey)) continue;
+      seen.add(dedupeKey);
+      if (kind === "phone") {
+        const digits = trimmed.replace(/\D+/g, "");
+        out.push({
+          key: `${c.id}-${digits || trimmed}`,
+          value: trimmed,
+          display: formatPhoneBR(trimmed),
+          description,
+          href: `tel:${digits || trimmed}`,
+        });
+      } else {
+        const lower = trimmed.toLowerCase();
+        out.push({
+          key: `${c.id}-${lower}`,
+          value: lower,
+          display: lower,
+          description,
+          href: `mailto:${lower}`,
+        });
+      }
+    }
+  }
+  return out;
+}
+
+function ContactsCard({ contacts }: { contacts: ClientContact[] }) {
+  const phones = useMemo(() => buildContactLines(contacts, "phone"), [contacts]);
+  const emails = useMemo(() => buildContactLines(contacts, "email"), [contacts]);
+  const total = phones.length + emails.length;
+  return (
+    <Card className="bg-card p-5 dark:bg-card">
+      <div className="mb-4 flex items-center justify-between gap-2">
+        <h3 className="flex items-center gap-2 font-medium">
+          <span className="grid h-8 w-8 place-items-center rounded-md bg-primary/10 text-primary">
+            <Phone className="h-4 w-4" />
+          </span>
+          Contatos
+        </h3>
+        <span className="text-xs text-muted-foreground">
+          {total} {total === 1 ? "contato" : "contatos"}
+        </span>
+      </div>
+      {total === 0 ? (
+        <p className="text-sm text-muted-foreground">Nenhum contato cadastrado para este cliente.</p>
+      ) : (
+        <div className="grid gap-5 lg:grid-cols-2">
+          <ContactList
+            title="Telefones"
+            icon={Phone}
+            items={phones}
+            emptyText="Nenhum telefone cadastrado."
+          />
+          <ContactList
+            title="E-mails"
+            icon={Mail}
+            items={emails}
+            emptyText="Nenhum e-mail cadastrado."
+          />
+        </div>
+      )}
+    </Card>
+  );
+}
+
+function ContactList({
+  title,
+  icon: Icon,
+  items,
+  emptyText,
+}: {
+  title: string;
+  icon: typeof Phone;
+  items: ContactLine[];
+  emptyText: string;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const LIMIT = 6;
+  const visible = expanded ? items : items.slice(0, LIMIT);
+  return (
+    <div className="min-w-0">
+      <div className="mb-2 flex items-baseline justify-between">
+        <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+          {title}
+        </p>
+        <span className="text-[11px] text-muted-foreground">{items.length}</span>
+      </div>
+      {items.length === 0 ? (
+        <p className="text-xs text-muted-foreground">{emptyText}</p>
+      ) : (
+        <>
+          <ul className="space-y-1.5">
+            {visible.map((item) => (
+              <li key={item.key}>
+                <a
+                  href={item.href}
+                  className="group flex min-w-0 cursor-pointer items-start gap-2 rounded-md px-2 py-1.5 transition hover:bg-accent/60"
+                >
+                  <Icon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground group-hover:text-foreground" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-[13px] font-normal text-foreground group-hover:underline">
+                      {item.display}
+                    </span>
+                    {item.description && (
+                      <span className="block truncate text-[11px] text-muted-foreground">
+                        {item.description}
+                      </span>
+                    )}
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
+          {items.length > LIMIT && (
+            <button
+              type="button"
+              onClick={() => setExpanded((v) => !v)}
+              className="mt-2 cursor-pointer text-xs font-medium text-primary hover:underline"
+            >
+              {expanded ? "Recolher" : `Ver todos (${items.length})`}
+            </button>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+
+
 export function ClientTab({
   client,
   contacts,
@@ -1174,15 +1373,6 @@ export function ClientTab({
   events: ClientEvent[];
 }) {
   const company = companies[0];
-  const contactItems = contacts.flatMap((contact) => {
-    const description = contactDescription(contact);
-    const items: Array<{ id: string; label: string; value: string }> = [];
-    if (contact.phone) items.push({ id: `${contact.id}-phone`, label: "Telefone", value: `${contact.phone} - ${description}` });
-    if (contact.mobile) items.push({ id: `${contact.id}-mobile`, label: "Celular", value: `${contact.mobile} - ${description}` });
-    if (contact.whatsapp) items.push({ id: `${contact.id}-whatsapp`, label: "WhatsApp", value: `${contact.whatsapp} - ${description}` });
-    if (contact.email) items.push({ id: `${contact.id}-email`, label: "E-mail", value: `${contact.email} - ${description}` });
-    return items;
-  });
   const companyCity = [company?.city || client.city, company?.state].filter(Boolean).join(" - ");
   const companyProfile = [company?.industry || client.segment, company?.size || client.size, company?.taxRegime]
     .filter(Boolean)
@@ -1190,23 +1380,7 @@ export function ClientTab({
   return (
     <>
       <div className="grid gap-5 xl:grid-cols-2">
-        <Section title="Contatos" icon={Phone}>
-          {contactItems.length ? (
-            <div className="grid gap-4 sm:grid-cols-2">
-              {contactItems.map((item) => (
-                <Field key={item.id} label={item.label} value={item.value} />
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">Nenhum contato cadastrado para este cliente.</p>
-          )}
-          <div className="hidden">
-            <Field label="Telefone principal" value="(16) 3116-5795 · Helden / Marketing" />
-            <Field label="Loja Sao Carlos" value="Leticia · Atendimento" />
-            <Field label="E-mail" value="contato@autovidrossaocarlos.com.br" />
-            <Field label="Financeiro" value="financeiro@autovidrossacarlos.com.br · Marina" />
-          </div>
-        </Section>
+        <ContactsCard contacts={contacts} />
         <Section title="Empresa principal" icon={Building2}>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Nome fantasia" value={company?.tradeName || client.fantasia || "Nao informado"} />
