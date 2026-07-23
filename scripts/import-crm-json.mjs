@@ -102,6 +102,12 @@ for (const row of contactsOnly ? [] : data.clients) {
 }
 
 let companies = 0;
+if (!contactsOnly && !clientsOnly && clientIds.size) {
+  await pool.query(
+    "delete from public.client_companies where client_id = any($1::uuid[])",
+    [Array.from(clientIds.values())],
+  );
+}
 for (const row of contactsOnly || clientsOnly ? [] : data.companies) {
   const clientId = clientIds.get(String(row.tab_clientes_cli_id));
   if (!clientId) continue;
@@ -133,7 +139,12 @@ for (const row of contactsOnly || clientsOnly ? [] : data.companies) {
   companies++;
 }
 
-if (!clientsOnly) await pool.query("delete from public.client_contacts where legacy_key like 'json:%'");
+if (!clientsOnly && clientIds.size) {
+  await pool.query(
+    "delete from public.client_contacts where client_id = any($1::uuid[])",
+    [Array.from(clientIds.values())],
+  );
+}
 let contacts = 0;
 const contactValues = [];
 for (const [type, records] of clientsOnly ? [] : [["phone", data.phones], ["email", data.emails]]) {
