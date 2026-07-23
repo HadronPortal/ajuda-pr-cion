@@ -49,6 +49,7 @@ import {
   fetchClientContacts,
   formatPhoneDisplay,
   type ClientContact,
+  type ClientCompanySummary,
 } from "@/lib/client-contacts";
 import type { ClientRow } from "@/routes/clientes.index";
 import { cn } from "@/lib/utils";
@@ -158,6 +159,7 @@ const priorityOptions: {
 
 type FormState = {
   clientId: string;
+  companyId: string; // subempresa selecionada (id do client_companies)
   contactName: string;
   emailContactId: string;
   emailValue: string;
@@ -175,6 +177,7 @@ type FormState = {
 
 const initialForm: FormState = {
   clientId: "",
+  companyId: "",
   contactName: "",
   emailContactId: "",
   emailValue: "",
@@ -216,6 +219,7 @@ function NewTicketPage() {
   const [clientUuid, setClientUuid] = useState<string | null>(null);
   const [emails, setEmails] = useState<ClientContact[]>([]);
   const [phones, setPhones] = useState<ClientContact[]>([]);
+  const [companies, setCompanies] = useState<ClientCompanySummary[]>([]);
   const [contactsLoading, setContactsLoading] = useState(false);
   const [addContact, setAddContact] = useState<AddContactState>(initialAddContact);
 
@@ -226,6 +230,7 @@ function NewTicketPage() {
 
   const submodules = modulesMap[form.module] ?? [];
   const operatorObj = operators.find((o) => o.code === form.operator);
+  const selectedCompany = companies.find((c) => c.id === form.companyId) ?? null;
 
   useEffect(() => {
     if (!submodules.includes(form.submodule)) {
@@ -233,18 +238,20 @@ function NewTicketPage() {
     }
   }, [form.module, form.submodule, submodules]);
 
-  // Carrega contatos ao selecionar/alterar a empresa.
+  // Carrega contatos + empresas/subempresas ao selecionar/alterar o cliente.
   useEffect(() => {
     if (!client?.acronym) {
       setClientUuid(null);
       setEmails([]);
       setPhones([]);
+      setCompanies([]);
       return;
     }
     let cancelled = false;
     setContactsLoading(true);
     setEmails([]);
     setPhones([]);
+    setCompanies([]);
     setClientUuid(null);
     fetchClientContacts(client.acronym)
       .then((bundle) => {
@@ -252,6 +259,12 @@ function NewTicketPage() {
         setClientUuid(bundle.clientId);
         setEmails(bundle.emails);
         setPhones(bundle.phones);
+        setCompanies(bundle.companies);
+        // Se houver apenas uma empresa, seleciona automaticamente.
+        setForm((prev) => ({
+          ...prev,
+          companyId: bundle.companies.length === 1 ? bundle.companies[0].id : "",
+        }));
       })
       .catch((err) => {
         if (cancelled) return;
@@ -268,6 +281,7 @@ function NewTicketPage() {
 
   const requiredMissing =
     !form.clientId ||
+    (companies.length > 0 && !form.companyId) ||
     !form.contactName.trim() ||
     !form.emailValue.trim() ||
     !form.phoneValue.trim() ||
@@ -279,6 +293,7 @@ function NewTicketPage() {
     setForm((prev) => ({
       ...prev,
       clientId: c.id,
+      companyId: "",
       emailContactId: "",
       emailValue: "",
       phoneContactId: "",
@@ -369,7 +384,14 @@ function NewTicketPage() {
       description:
         `${form.description}\n\n` +
         `Tipo: ${form.type}. Operador: ${form.operator}. ` +
-        `Contato: ${form.emailValue} · ${form.phoneValue}.`,
+        `Contato: ${form.emailValue} · ${form.phoneValue}.` +
+        (selectedCompany
+          ? `\nEmpresa: ${selectedCompany.companyNumber ? String(selectedCompany.companyNumber).padStart(3, "0") + " · " : ""}${selectedCompany.tradeName || selectedCompany.legalName}${selectedCompany.document ? " · " + selectedCompany.document : ""}`
+          : ""),
+      companyId: selectedCompany?.id ?? null,
+      companyNumber: selectedCompany?.companyNumber ?? null,
+      companyName: selectedCompany?.tradeName || selectedCompany?.legalName || undefined,
+      companyDocument: selectedCompany?.document || undefined,
     });
     toast.success("Chamado criado", {
       description: `${ticket.protocol} foi adicionado na fila de suporte.`,
@@ -398,12 +420,12 @@ function NewTicketPage() {
         className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_360px]"
       >
         <div className="space-y-5">
-          {/* 1. Empresa */}
+          {/* 1. Cliente */}
           <Card className="rounded-[16px] border border-border/70 bg-card p-5">
             <SectionTitle
               icon={Building2}
-              title="Empresa"
-              description="Selecione a empresa cadastrada no CRM."
+              title="Cliente"
+              description="Selecione o cliente cadastrado no CRM."
             />
             <div className="mt-4 space-y-3">
               <ClientPicker value={client} onSelect={handleClientSelect} required />
@@ -415,6 +437,63 @@ function NewTicketPage() {
                     {client.cnpj && ` · ${client.cnpj}`}
                   </p>
                   {client.city && <p className="truncate">{client.city}</p>}
+                </div>
+              )}
+
+              {/* Empresa / subempresa vinculada ao cliente selecionado */}
+              {client && (
+                <div>
+                  <Label className="mb-1.5 block text-[12px] font-medium text-foreground">
+                    Empresa / subempresa
+                    {companies.length > 0 && <span className="ml-1 text-destructive">*</span>}
+                  </Label>
+                  {contactsLoading ? (
+                    <div className="rounded-xl border border-dashed border-border/70 bg-muted/30 px-3 py-2.5 text-[12px] text-muted-foreground">
+                      Carregando empresas…
+                    </div>
+                  ) : companies.length === 0 ? (
+                    <div className="rounded-xl border border-dashed border-border/70 bg-muted/30 px-3 py-2.5 text-[12px] text-muted-foreground">
+                      Nenhuma empresa vinculada.
+                    </div>
+                  ) : (
+                    <Select
+                      value={form.companyId}
+                      onValueChange={(v) => setForm((prev) => ({ ...prev, companyId: v }))}
+                    >
+                      <SelectTrigger className="h-11 rounded-xl cursor-pointer">
+                        <SelectValue placeholder="Selecione a empresa ou filial" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {companies.map((co) => {
+                          const number = co.companyNumber
+                            ? String(co.companyNumber).padStart(3, "0")
+                            : "—";
+                          const name = co.tradeName || co.legalName || "Empresa";
+                          const location = [co.city, co.state].filter(Boolean).join(" / ");
+                          return (
+                            <SelectItem
+                              key={co.id}
+                              value={co.id}
+                              className="cursor-pointer"
+                            >
+                              <span className="inline-flex flex-col">
+                                <span className="text-[12.5px]">
+                                  <span className="font-semibold">{number}</span>
+                                  {" · "}
+                                  {name}
+                                  {co.document ? ` · ${co.document}` : ""}
+                                </span>
+                                <span className="text-[11px] text-muted-foreground">
+                                  {co.isPrincipal ? "Principal" : "Filial"}
+                                  {location ? ` · ${location}` : ""}
+                                </span>
+                              </span>
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
               )}
             </div>
@@ -709,8 +788,20 @@ function NewTicketPage() {
                       {client?.acronym ?? "COD"}
                     </span>
                     {" · "}
-                    {client?.fantasia || client?.name || "Empresa"}
+                    {client?.fantasia || client?.name || "Cliente"}
                   </p>
+                  {selectedCompany && (
+                    <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
+                      <span className="font-semibold text-foreground">
+                        {selectedCompany.companyNumber
+                          ? String(selectedCompany.companyNumber).padStart(3, "0")
+                          : "—"}
+                      </span>
+                      {" · "}
+                      {selectedCompany.tradeName || selectedCompany.legalName}
+                      {selectedCompany.document ? ` · ${selectedCompany.document}` : ""}
+                    </p>
+                  )}
                 </div>
               </div>
 

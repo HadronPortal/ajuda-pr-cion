@@ -28,6 +28,11 @@ export type SupportTicket = {
   source: "Telefone" | "Portal do cliente" | "WhatsApp" | "Email";
   lockedBy?: string;
   description?: string;
+  // Empresa/subempresa escolhida no momento da abertura.
+  companyId?: string | null;
+  companyNumber?: number | null;
+  companyName?: string;
+  companyDocument?: string;
 };
 
 export const ticketStatuses: TicketStatus[] = [
