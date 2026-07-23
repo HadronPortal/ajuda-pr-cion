@@ -49,6 +49,7 @@ import {
   fetchClientContacts,
   formatPhoneDisplay,
   type ClientContact,
+  type ClientCompanySummary,
 } from "@/lib/client-contacts";
 import type { ClientRow } from "@/routes/clientes.index";
 import { cn } from "@/lib/utils";
@@ -158,6 +159,7 @@ const priorityOptions: {
 
 type FormState = {
   clientId: string;
+  companyId: string; // subempresa selecionada (id do client_companies)
   contactName: string;
   emailContactId: string;
   emailValue: string;
@@ -175,6 +177,7 @@ type FormState = {
 
 const initialForm: FormState = {
   clientId: "",
+  companyId: "",
   contactName: "",
   emailContactId: "",
   emailValue: "",
