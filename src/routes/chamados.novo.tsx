@@ -11,6 +11,7 @@ import {
   MessageSquarePlus,
   Minus,
   Phone,
+  Plus,
   Send,
   Sparkles,
   UserRound,
@@ -21,6 +22,14 @@ import { ClientPicker } from "@/components/portal/ClientPicker";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -35,6 +44,12 @@ import { ticketsStore } from "@/lib/tickets-store";
 import type { SupportTicket, TicketPriority } from "@/lib/support-tickets-data";
 import type { ClosurePayload } from "@/lib/tickets-store";
 import { loadClients } from "@/lib/clients-store";
+import {
+  addClientContact,
+  fetchClientContacts,
+  formatPhoneDisplay,
+  type ClientContact,
+} from "@/lib/client-contacts";
 import type { ClientRow } from "@/routes/clientes.index";
 import { cn } from "@/lib/utils";
 
