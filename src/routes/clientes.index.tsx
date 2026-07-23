@@ -1547,7 +1547,7 @@ export function ClientTab({
   return (
     <>
       <div className="grid gap-5 xl:grid-cols-2">
-        <ContactsCard contacts={contacts} />
+        <ContactsCard contacts={contacts} client={client} />
         <Section title="Empresa principal" icon={Building2}>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Nome fantasia" value={company?.tradeName || client.fantasia || "Nao informado"} />
