@@ -53,8 +53,13 @@ import type {
 import { normalizeCityUf } from "@/lib/br-city";
 import { supabase } from "@/lib/supabase";
 
+const clientesSearchSchema = z.object({
+  grupo: fallback(z.string(), "").optional(),
+});
+
 export const Route = createFileRoute("/clientes/")({
   head: () => ({ meta: [{ title: "Clientes - Portal Procion" }] }),
+  validateSearch: zodValidator(clientesSearchSchema),
   loader: async () => {
     try {
       return { clients: await listClients() };
