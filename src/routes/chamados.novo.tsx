@@ -159,8 +159,10 @@ const priorityOptions: {
 type FormState = {
   clientId: string;
   contactName: string;
-  emails: string[];
-  phones: string[];
+  emailContactId: string;
+  emailValue: string;
+  phoneContactId: string;
+  phoneValue: string;
   module: string;
   submodule: string;
   operator: string;
@@ -174,8 +176,10 @@ type FormState = {
 const initialForm: FormState = {
   clientId: "",
   contactName: "",
-  emails: [""],
-  phones: [""],
+  emailContactId: "",
+  emailValue: "",
+  phoneContactId: "",
+  phoneValue: "",
   module: "Vendas",
   submodule: "NFE",
   operator: operators[0].code,
@@ -186,11 +190,34 @@ const initialForm: FormState = {
   source: "Portal do cliente",
 };
 
+type AddContactState = {
+  open: boolean;
+  kind: "email" | "phone";
+  value: string;
+  name: string;
+  saving: boolean;
+};
+
+const initialAddContact: AddContactState = {
+  open: false,
+  kind: "email",
+  value: "",
+  name: "",
+  saving: false,
+};
+
 function NewTicketPage() {
   const navigate = useNavigate();
   const [form, setForm] = useState<FormState>(initialForm);
   const [client, setClient] = useState<ClientRow | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  // Contatos vinculados ao cliente (carregados do Supabase).
+  const [clientUuid, setClientUuid] = useState<string | null>(null);
+  const [emails, setEmails] = useState<ClientContact[]>([]);
+  const [phones, setPhones] = useState<ClientContact[]>([]);
+  const [contactsLoading, setContactsLoading] = useState(false);
+  const [addContact, setAddContact] = useState<AddContactState>(initialAddContact);
 
   // Garante que a fonte única de clientes esteja carregada.
   useEffect(() => {
@@ -206,29 +233,122 @@ function NewTicketPage() {
     }
   }, [form.module, form.submodule, submodules]);
 
+  // Carrega contatos ao selecionar/alterar a empresa.
+  useEffect(() => {
+    if (!client?.acronym) {
+      setClientUuid(null);
+      setEmails([]);
+      setPhones([]);
+      return;
+    }
+    let cancelled = false;
+    setContactsLoading(true);
+    setEmails([]);
+    setPhones([]);
+    setClientUuid(null);
+    fetchClientContacts(client.acronym)
+      .then((bundle) => {
+        if (cancelled) return;
+        setClientUuid(bundle.clientId);
+        setEmails(bundle.emails);
+        setPhones(bundle.phones);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        console.error("[chamados.novo] falha ao carregar contatos", err);
+        toast.error("Não foi possível carregar os contatos deste cliente.");
+      })
+      .finally(() => {
+        if (!cancelled) setContactsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [client?.acronym]);
+
   const requiredMissing =
     !form.clientId ||
     !form.contactName.trim() ||
-    !form.emails[0]?.trim() ||
-    !form.phones[0]?.trim() ||
+    !form.emailValue.trim() ||
+    !form.phoneValue.trim() ||
     !form.subject.trim() ||
     !form.description.trim();
 
   const handleClientSelect = (c: ClientRow) => {
     setClient(c);
-    setForm((prev) => ({ ...prev, clientId: c.id }));
+    setForm((prev) => ({
+      ...prev,
+      clientId: c.id,
+      emailContactId: "",
+      emailValue: "",
+      phoneContactId: "",
+      phoneValue: "",
+    }));
   };
 
-  const updateEmail = (i: number, v: string) =>
+  const handleSelectEmail = (id: string) => {
+    const found = emails.find((e) => e.id === id);
     setForm((prev) => ({
       ...prev,
-      emails: prev.emails.map((e, idx) => (idx === i ? v : e)),
+      emailContactId: id,
+      emailValue: found?.value ?? "",
+      contactName: prev.contactName || found?.name || "",
     }));
-  const updatePhone = (i: number, v: string) =>
+  };
+
+  const handleSelectPhone = (id: string) => {
+    const found = phones.find((p) => p.id === id);
     setForm((prev) => ({
       ...prev,
-      phones: prev.phones.map((p, idx) => (idx === i ? v : p)),
+      phoneContactId: id,
+      phoneValue: found?.value ?? "",
+      contactName: prev.contactName || found?.name || "",
     }));
+  };
+
+  const openAddContact = (kind: "email" | "phone") => {
+    setAddContact({ ...initialAddContact, open: true, kind });
+  };
+
+  const handleSaveNewContact = async () => {
+    if (!clientUuid) {
+      toast.error("Selecione uma empresa antes de cadastrar um contato.");
+      return;
+    }
+    const value = addContact.value.trim();
+    if (!value) return;
+    setAddContact((prev) => ({ ...prev, saving: true }));
+    try {
+      const created = await addClientContact(
+        clientUuid,
+        addContact.kind,
+        value,
+        addContact.name.trim(),
+      );
+      if (addContact.kind === "email") {
+        setEmails((prev) =>
+          [...prev.filter((e) => e.id !== created.id), created].sort((a, b) =>
+            a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" }),
+          ),
+        );
+        handleSelectEmail(created.id);
+      } else {
+        setPhones((prev) =>
+          [...prev.filter((p) => p.id !== created.id), created].sort((a, b) =>
+            a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" }),
+          ),
+        );
+        handleSelectPhone(created.id);
+      }
+      toast.success("Contato cadastrado.");
+      setAddContact(initialAddContact);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Não foi possível cadastrar o contato.";
+      toast.error(msg);
+      setAddContact((prev) => ({ ...prev, saving: false }));
+    }
+  };
+
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
