@@ -454,9 +454,13 @@ function ClientVersionCell({ client }: { client: ClientRow }) {
 
 function ClientsPage() {
   const { clients } = Route.useLoaderData() as { clients: ClientRow[] };
+  const { grupo } = Route.useSearch();
   const navigate = useNavigate();
-  const [filters, setFilters] = useState<Filters>(() => lastFilters);
-  const [draft, setDraft] = useState<Filters>(() => lastFilters);
+  const grupoParam = (grupo ?? "").trim().toUpperCase();
+  const [filters, setFilters] = useState<Filters>(() =>
+    grupoParam ? { ...lastFilters, siglaGrupo: grupoParam } : lastFilters,
+  );
+  const [draft, setDraft] = useState<Filters>(() => filters);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState<{ key: SortKey; dir: "asc" | "desc" } | null>({ key: "registered", dir: "desc" });
@@ -465,6 +469,24 @@ function ClientsPage() {
     lastFilters = filters;
     setPage(1);
   }, [filters]);
+
+  // Sincroniza URL <-> filtro de grupo, permitindo compartilhar/atualizar mantendo o filtro.
+  useEffect(() => {
+    if (grupoParam && filters.siglaGrupo.toUpperCase() !== grupoParam) {
+      setFilters((p) => ({ ...p, siglaGrupo: grupoParam }));
+    }
+  }, [grupoParam]);
+
+  useEffect(() => {
+    const current = filters.siglaGrupo.trim().toUpperCase();
+    if (current !== grupoParam) {
+      navigate({
+        to: "/clientes",
+        search: current ? { grupo: current } : {},
+        replace: true,
+      });
+    }
+  }, [filters.siglaGrupo]);
 
   useEffect(() => {
     setPage(1);
