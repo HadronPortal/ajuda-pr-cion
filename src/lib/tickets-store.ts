@@ -73,6 +73,10 @@ export type CreateTicketInput = {
   module: string;
   source: SupportTicket["source"];
   description: string;
+  companyId?: string | null;
+  companyNumber?: number | null;
+  companyName?: string;
+  companyDocument?: string;
 };
 
 let tickets: SupportTicket[] = supportTickets.map((t) => ({ ...t }));
@@ -302,6 +306,10 @@ export const ticketsStore = {
       module: input.module.trim(),
       source: input.source,
       description: input.description.trim(),
+      companyId: input.companyId ?? null,
+      companyNumber: input.companyNumber ?? null,
+      companyName: input.companyName?.trim() || undefined,
+      companyDocument: input.companyDocument?.trim() || undefined,
     };
 
     tickets = [ticket, ...tickets];
