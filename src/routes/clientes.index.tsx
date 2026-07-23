@@ -18,6 +18,7 @@ import {
   RefreshCw,
   HardDrive,
   Monitor,
+  Mail,
   Phone,
   ShieldCheck,
   Server,
