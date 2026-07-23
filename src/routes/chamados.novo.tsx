@@ -11,6 +11,7 @@ import {
   MessageSquarePlus,
   Minus,
   Phone,
+  Plus,
   Send,
   Sparkles,
   UserRound,
@@ -21,6 +22,14 @@ import { ClientPicker } from "@/components/portal/ClientPicker";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -35,6 +44,12 @@ import { ticketsStore } from "@/lib/tickets-store";
 import type { SupportTicket, TicketPriority } from "@/lib/support-tickets-data";
 import type { ClosurePayload } from "@/lib/tickets-store";
 import { loadClients } from "@/lib/clients-store";
+import {
+  addClientContact,
+  fetchClientContacts,
+  formatPhoneDisplay,
+  type ClientContact,
+} from "@/lib/client-contacts";
 import type { ClientRow } from "@/routes/clientes.index";
 import { cn } from "@/lib/utils";
 
@@ -144,8 +159,10 @@ const priorityOptions: {
 type FormState = {
   clientId: string;
   contactName: string;
-  emails: string[];
-  phones: string[];
+  emailContactId: string;
+  emailValue: string;
+  phoneContactId: string;
+  phoneValue: string;
   module: string;
   submodule: string;
   operator: string;
@@ -159,8 +176,10 @@ type FormState = {
 const initialForm: FormState = {
   clientId: "",
   contactName: "",
-  emails: [""],
-  phones: [""],
+  emailContactId: "",
+  emailValue: "",
+  phoneContactId: "",
+  phoneValue: "",
   module: "Vendas",
   submodule: "NFE",
   operator: operators[0].code,
@@ -171,11 +190,34 @@ const initialForm: FormState = {
   source: "Portal do cliente",
 };
 
+type AddContactState = {
+  open: boolean;
+  kind: "email" | "phone";
+  value: string;
+  name: string;
+  saving: boolean;
+};
+
+const initialAddContact: AddContactState = {
+  open: false,
+  kind: "email",
+  value: "",
+  name: "",
+  saving: false,
+};
+
 function NewTicketPage() {
   const navigate = useNavigate();
   const [form, setForm] = useState<FormState>(initialForm);
   const [client, setClient] = useState<ClientRow | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  // Contatos vinculados ao cliente (carregados do Supabase).
+  const [clientUuid, setClientUuid] = useState<string | null>(null);
+  const [emails, setEmails] = useState<ClientContact[]>([]);
+  const [phones, setPhones] = useState<ClientContact[]>([]);
+  const [contactsLoading, setContactsLoading] = useState(false);
+  const [addContact, setAddContact] = useState<AddContactState>(initialAddContact);
 
   // Garante que a fonte única de clientes esteja carregada.
   useEffect(() => {
@@ -191,29 +233,122 @@ function NewTicketPage() {
     }
   }, [form.module, form.submodule, submodules]);
 
+  // Carrega contatos ao selecionar/alterar a empresa.
+  useEffect(() => {
+    if (!client?.acronym) {
+      setClientUuid(null);
+      setEmails([]);
+      setPhones([]);
+      return;
+    }
+    let cancelled = false;
+    setContactsLoading(true);
+    setEmails([]);
+    setPhones([]);
+    setClientUuid(null);
+    fetchClientContacts(client.acronym)
+      .then((bundle) => {
+        if (cancelled) return;
+        setClientUuid(bundle.clientId);
+        setEmails(bundle.emails);
+        setPhones(bundle.phones);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        console.error("[chamados.novo] falha ao carregar contatos", err);
+        toast.error("Não foi possível carregar os contatos deste cliente.");
+      })
+      .finally(() => {
+        if (!cancelled) setContactsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [client?.acronym]);
+
   const requiredMissing =
     !form.clientId ||
     !form.contactName.trim() ||
-    !form.emails[0]?.trim() ||
-    !form.phones[0]?.trim() ||
+    !form.emailValue.trim() ||
+    !form.phoneValue.trim() ||
     !form.subject.trim() ||
     !form.description.trim();
 
   const handleClientSelect = (c: ClientRow) => {
     setClient(c);
-    setForm((prev) => ({ ...prev, clientId: c.id }));
+    setForm((prev) => ({
+      ...prev,
+      clientId: c.id,
+      emailContactId: "",
+      emailValue: "",
+      phoneContactId: "",
+      phoneValue: "",
+    }));
   };
 
-  const updateEmail = (i: number, v: string) =>
+  const handleSelectEmail = (id: string) => {
+    const found = emails.find((e) => e.id === id);
     setForm((prev) => ({
       ...prev,
-      emails: prev.emails.map((e, idx) => (idx === i ? v : e)),
+      emailContactId: id,
+      emailValue: found?.value ?? "",
+      contactName: prev.contactName || found?.name || "",
     }));
-  const updatePhone = (i: number, v: string) =>
+  };
+
+  const handleSelectPhone = (id: string) => {
+    const found = phones.find((p) => p.id === id);
     setForm((prev) => ({
       ...prev,
-      phones: prev.phones.map((p, idx) => (idx === i ? v : p)),
+      phoneContactId: id,
+      phoneValue: found?.value ?? "",
+      contactName: prev.contactName || found?.name || "",
     }));
+  };
+
+  const openAddContact = (kind: "email" | "phone") => {
+    setAddContact({ ...initialAddContact, open: true, kind });
+  };
+
+  const handleSaveNewContact = async () => {
+    if (!clientUuid) {
+      toast.error("Selecione uma empresa antes de cadastrar um contato.");
+      return;
+    }
+    const value = addContact.value.trim();
+    if (!value) return;
+    setAddContact((prev) => ({ ...prev, saving: true }));
+    try {
+      const created = await addClientContact(
+        clientUuid,
+        addContact.kind,
+        value,
+        addContact.name.trim(),
+      );
+      if (addContact.kind === "email") {
+        setEmails((prev) =>
+          [...prev.filter((e) => e.id !== created.id), created].sort((a, b) =>
+            a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" }),
+          ),
+        );
+        handleSelectEmail(created.id);
+      } else {
+        setPhones((prev) =>
+          [...prev.filter((p) => p.id !== created.id), created].sort((a, b) =>
+            a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" }),
+          ),
+        );
+        handleSelectPhone(created.id);
+      }
+      toast.success("Contato cadastrado.");
+      setAddContact(initialAddContact);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Não foi possível cadastrar o contato.";
+      toast.error(msg);
+      setAddContact((prev) => ({ ...prev, saving: false }));
+    }
+  };
+
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -234,7 +369,7 @@ function NewTicketPage() {
       description:
         `${form.description}\n\n` +
         `Tipo: ${form.type}. Operador: ${form.operator}. ` +
-        `Contato: ${form.emails.filter(Boolean).join(", ")} · ${form.phones.filter(Boolean).join(", ")}.`,
+        `Contato: ${form.emailValue} · ${form.phoneValue}.`,
     });
     toast.success("Chamado criado", {
       description: `${ticket.protocol} foi adicionado na fila de suporte.`,
@@ -305,28 +440,47 @@ function NewTicketPage() {
               </Field>
 
               <Field label="E-mail do contato" required>
-                <div className="relative">
-                  <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    type="email"
-                    value={form.emails[0] ?? ""}
-                    onChange={(e) => updateEmail(0, e.target.value)}
-                    placeholder="email@empresa.com"
-                    className="h-11 rounded-xl pl-9"
-                  />
-                </div>
+                <ContactSelectField
+                  icon={Mail}
+                  kind="email"
+                  disabled={!client}
+                  loading={contactsLoading}
+                  options={emails}
+                  value={form.emailContactId}
+                  placeholder={
+                    !client
+                      ? "Selecione uma empresa"
+                      : contactsLoading
+                        ? "Carregando contatos..."
+                        : emails.length === 0
+                          ? "Nenhum e-mail cadastrado"
+                          : "Selecione um e-mail"
+                  }
+                  onChange={handleSelectEmail}
+                  onAdd={() => openAddContact("email")}
+                />
               </Field>
 
               <Field label="Telefone" required>
-                <div className="relative">
-                  <Phone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    value={form.phones[0] ?? ""}
-                    onChange={(e) => updatePhone(0, e.target.value)}
-                    placeholder="(00) 00000-0000"
-                    className="h-11 rounded-xl pl-9"
-                  />
-                </div>
+                <ContactSelectField
+                  icon={Phone}
+                  kind="phone"
+                  disabled={!client}
+                  loading={contactsLoading}
+                  options={phones}
+                  value={form.phoneContactId}
+                  placeholder={
+                    !client
+                      ? "Selecione uma empresa"
+                      : contactsLoading
+                        ? "Carregando contatos..."
+                        : phones.length === 0
+                          ? "Nenhum telefone cadastrado"
+                          : "Selecione um telefone"
+                  }
+                  onChange={handleSelectPhone}
+                  onAdd={() => openAddContact("phone")}
+                />
               </Field>
             </div>
           </Card>
@@ -608,6 +762,70 @@ function NewTicketPage() {
           </Card>
         </aside>
       </form>
+
+      <Dialog
+        open={addContact.open}
+        onOpenChange={(open) => {
+          if (!open && !addContact.saving) setAddContact(initialAddContact);
+        }}
+      >
+        <DialogContent className="sm:max-w-[420px]">
+          <DialogHeader>
+            <DialogTitle>
+              {addContact.kind === "email" ? "Novo e-mail" : "Novo telefone"}
+            </DialogTitle>
+            <DialogDescription>
+              O contato será vinculado a {client?.fantasia || client?.razaoSocial || "esta empresa"}.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid gap-3 py-2">
+            <div>
+              <Label className="mb-1.5 block text-[12px] font-medium">Nome do contato</Label>
+              <Input
+                value={addContact.name}
+                onChange={(e) => setAddContact((prev) => ({ ...prev, name: e.target.value }))}
+                placeholder="Nome ou descrição"
+                className="h-10 rounded-xl"
+              />
+            </div>
+            <div>
+              <Label className="mb-1.5 block text-[12px] font-medium">
+                {addContact.kind === "email" ? "E-mail" : "Telefone"}
+              </Label>
+              <Input
+                type={addContact.kind === "email" ? "email" : "tel"}
+                value={addContact.value}
+                onChange={(e) => setAddContact((prev) => ({ ...prev, value: e.target.value }))}
+                placeholder={
+                  addContact.kind === "email" ? "email@empresa.com" : "(00) 00000-0000"
+                }
+                className="h-10 rounded-xl"
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              className="rounded-xl cursor-pointer"
+              onClick={() => setAddContact(initialAddContact)}
+              disabled={addContact.saving}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              className="rounded-xl cursor-pointer"
+              onClick={handleSaveNewContact}
+              disabled={addContact.saving || !addContact.value.trim()}
+            >
+              {addContact.saving ? "Salvando..." : "Salvar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AppShell>
   );
 }
@@ -674,6 +892,66 @@ function PreviewItem({
         {label}
       </p>
       <p className="mt-0.5 truncate font-semibold text-foreground">{value}</p>
+    </div>
+  );
+}
+
+function ContactSelectField({
+  icon: Icon,
+  kind,
+  disabled,
+  loading,
+  options,
+  value,
+  placeholder,
+  onChange,
+  onAdd,
+}: {
+  icon: typeof Mail;
+  kind: "email" | "phone";
+  disabled?: boolean;
+  loading?: boolean;
+  options: ClientContact[];
+  value: string;
+  placeholder: string;
+  onChange: (id: string) => void;
+  onAdd: () => void;
+}) {
+  const hasOptions = options.length > 0;
+  return (
+    <div className="flex items-center gap-2">
+      <div className="relative flex-1">
+        <Icon className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Select
+          value={value}
+          onValueChange={onChange}
+          disabled={disabled || loading || !hasOptions}
+        >
+          <SelectTrigger className="h-11 rounded-xl pl-9 cursor-pointer">
+            <SelectValue placeholder={placeholder} />
+          </SelectTrigger>
+          <SelectContent>
+            {options.map((opt) => (
+              <SelectItem key={opt.id} value={opt.id} className="cursor-pointer">
+                {kind === "email"
+                  ? `${opt.value} - ${opt.name}`
+                  : `${formatPhoneDisplay(opt.value)} | ${opt.name}`}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <Button
+        type="button"
+        variant="default"
+        size="icon"
+        onClick={onAdd}
+        disabled={disabled}
+        aria-label={kind === "email" ? "Adicionar e-mail" : "Adicionar telefone"}
+        className="h-11 w-11 shrink-0 rounded-xl cursor-pointer"
+      >
+        <Plus className="h-4 w-4" />
+      </Button>
     </div>
   );
 }
