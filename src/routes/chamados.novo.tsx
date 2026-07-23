@@ -1,10 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
   ArrowLeft,
   ArrowUp,
   Building2,
-  Check,
   ChevronDown,
   FileText,
   Info,
@@ -12,13 +11,13 @@ import {
   MessageSquarePlus,
   Minus,
   Phone,
-  Search,
   Send,
   Sparkles,
   UserRound,
 } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell, PageHeader } from "@/components/portal/AppShell";
+import { ClientPicker } from "@/components/portal/ClientPicker";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -35,6 +34,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { ticketsStore } from "@/lib/tickets-store";
 import type { SupportTicket, TicketPriority } from "@/lib/support-tickets-data";
 import type { ClosurePayload } from "@/lib/tickets-store";
+import { loadClients } from "@/lib/clients-store";
+import type { ClientRow } from "@/routes/clientes.index";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/chamados/novo")({
