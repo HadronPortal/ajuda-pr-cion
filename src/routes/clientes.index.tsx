@@ -672,6 +672,15 @@ function ClientsPage() {
         </div>
       )}
 
+      {grupoParam && (
+        <div className="mb-3 flex items-baseline gap-2">
+          <h2 className="text-base font-medium">Empresas do grupo {grupoParam}</h2>
+          <span className="text-sm text-muted-foreground">
+            {filtered.length} {filtered.length === 1 ? "empresa" : "empresas"}
+          </span>
+        </div>
+      )}
+
       <Card className="overflow-hidden p-0">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
