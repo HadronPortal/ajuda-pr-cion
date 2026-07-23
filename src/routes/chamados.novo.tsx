@@ -895,3 +895,63 @@ function PreviewItem({
     </div>
   );
 }
+
+function ContactSelectField({
+  icon: Icon,
+  kind,
+  disabled,
+  loading,
+  options,
+  value,
+  placeholder,
+  onChange,
+  onAdd,
+}: {
+  icon: typeof Mail;
+  kind: "email" | "phone";
+  disabled?: boolean;
+  loading?: boolean;
+  options: ClientContact[];
+  value: string;
+  placeholder: string;
+  onChange: (id: string) => void;
+  onAdd: () => void;
+}) {
+  const hasOptions = options.length > 0;
+  return (
+    <div className="flex items-center gap-2">
+      <div className="relative flex-1">
+        <Icon className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Select
+          value={value}
+          onValueChange={onChange}
+          disabled={disabled || loading || !hasOptions}
+        >
+          <SelectTrigger className="h-11 rounded-xl pl-9 cursor-pointer">
+            <SelectValue placeholder={placeholder} />
+          </SelectTrigger>
+          <SelectContent>
+            {options.map((opt) => (
+              <SelectItem key={opt.id} value={opt.id} className="cursor-pointer">
+                {kind === "email"
+                  ? `${opt.value} - ${opt.name}`
+                  : `${formatPhoneDisplay(opt.value)} | ${opt.name}`}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <Button
+        type="button"
+        variant="default"
+        size="icon"
+        onClick={onAdd}
+        disabled={disabled}
+        aria-label={kind === "email" ? "Adicionar e-mail" : "Adicionar telefone"}
+        className="h-11 w-11 shrink-0 rounded-xl cursor-pointer"
+      >
+        <Plus className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+}
