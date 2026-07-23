@@ -362,12 +362,26 @@ export function TicketDetailSheet({
                 </>
               }
               meta={
-                <span className="inline-flex items-center gap-1">
+                <span className="inline-flex flex-wrap items-center gap-x-1 gap-y-0.5">
                   <span className="font-semibold text-primary">{ticket.clientCode || "—"}</span>
                   <span aria-hidden className="text-border">
                     ·
                   </span>
                   <span className="truncate text-foreground">{ticket.clientName || "Cliente não vinculado"}</span>
+                  {(ticket.companyName || ticket.companyNumber || ticket.companyDocument) && (
+                    <>
+                      <span aria-hidden className="text-border">
+                        ·
+                      </span>
+                      <span className="truncate text-[11px] text-muted-foreground">
+                        {ticket.companyNumber
+                          ? `${String(ticket.companyNumber).padStart(3, "0")} · `
+                          : ""}
+                        {ticket.companyName || "Empresa"}
+                        {ticket.companyDocument ? ` · ${ticket.companyDocument}` : ""}
+                      </span>
+                    </>
+                  )}
                 </span>
               }
             />
