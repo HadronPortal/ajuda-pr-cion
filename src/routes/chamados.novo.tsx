@@ -52,81 +52,8 @@ export const Route = createFileRoute("/chamados/novo")({
 });
 
 // -----------------------------------------------------------------------------
-// Mock data específico da tela (será substituído por API futuramente)
+// Metadados fixos do formulário (não são dados de cliente).
 // -----------------------------------------------------------------------------
-
-type Company = {
-  code: string;
-  name: string;
-  fantasy: string;
-  cnpj: string;
-  subs: { id: string; name: string; cnpj: string }[];
-  defaultContact: {
-    name: string;
-    emails: string[];
-    phones: string[];
-  };
-};
-
-const companies: Company[] = [
-  {
-    code: "MIT",
-    name: "Mineração Itaporanga LTDA",
-    fantasy: "Mineração Itaporanga",
-    cnpj: "12.345.678/0001-90",
-    subs: [
-      { id: "MIT-01", name: "Matriz — Itaporanga", cnpj: "12.345.678/0001-90" },
-      { id: "MIT-02", name: "Filial — Currais Novos", cnpj: "12.345.678/0002-71" },
-    ],
-    defaultContact: {
-      name: "Samuel Ferreira",
-      emails: ["samuel@itaporanga.com.br"],
-      phones: ["(84) 99988-1122"],
-    },
-  },
-  {
-    code: "VGA",
-    name: "Vega Distribuidora S/A",
-    fantasy: "Vega Distribuidora",
-    cnpj: "22.555.888/0001-40",
-    subs: [
-      { id: "VGA-01", name: "Matriz — Natal", cnpj: "22.555.888/0001-40" },
-      { id: "VGA-02", name: "CD — Parnamirim", cnpj: "22.555.888/0002-21" },
-    ],
-    defaultContact: {
-      name: "Cláudia Nogueira",
-      emails: ["compras@vega.com.br"],
-      phones: ["(84) 3222-4477"],
-    },
-  },
-  {
-    code: "ALP",
-    name: "Alpha Comércio LTDA",
-    fantasy: "Alpha Comércio",
-    cnpj: "33.111.222/0001-55",
-    subs: [{ id: "ALP-01", name: "Matriz — Mossoró", cnpj: "33.111.222/0001-55" }],
-    defaultContact: {
-      name: "Ricardo Alves",
-      emails: ["ti@alpha.com.br"],
-      phones: ["(84) 3333-8899"],
-    },
-  },
-  {
-    code: "NEB",
-    name: "Nébula Indústria S/A",
-    fantasy: "Nébula Indústria",
-    cnpj: "44.222.333/0001-10",
-    subs: [
-      { id: "NEB-01", name: "Matriz — Natal", cnpj: "44.222.333/0001-10" },
-      { id: "NEB-02", name: "Unidade Industrial", cnpj: "44.222.333/0002-90" },
-    ],
-    defaultContact: {
-      name: "Paula Menezes",
-      emails: ["sistemas@nebula.com.br"],
-      phones: ["(84) 99911-2233"],
-    },
-  },
-];
 
 const modulesMap: Record<string, string[]> = {
   "Vendas": ["NFE", "Pedidos", "Orçamentos", "Devoluções"],
@@ -171,8 +98,6 @@ const priorityTone: Record<TicketPriority, string> = {
   Baixa: "border-success/30 bg-success/10 text-success",
 };
 
-// Radio segmentado de prioridade -----------------------------------------------
-
 const priorityOptions: {
   value: TicketPriority;
   label: string;
@@ -186,8 +111,7 @@ const priorityOptions: {
     value: "Baixa",
     label: "Baixa",
     icon: ChevronDown,
-    baseClass:
-      "border-success/25 bg-success/10 dark:bg-success/15",
+    baseClass: "border-success/25 bg-success/10 dark:bg-success/15",
     activeClass:
       "border-success/70 ring-2 ring-success/40 shadow-sm bg-success/15 dark:bg-success/20",
     iconWrapClass: "bg-success text-success-foreground",
@@ -197,8 +121,7 @@ const priorityOptions: {
     value: "Media",
     label: "Média",
     icon: Minus,
-    baseClass:
-      "border-warning/30 bg-warning/12 dark:bg-warning/15",
+    baseClass: "border-warning/30 bg-warning/12 dark:bg-warning/15",
     activeClass:
       "border-warning/70 ring-2 ring-warning/40 shadow-sm bg-warning/20 dark:bg-warning/25",
     iconWrapClass: "bg-warning text-warning-foreground",
@@ -208,8 +131,7 @@ const priorityOptions: {
     value: "Alta",
     label: "Alta",
     icon: ArrowUp,
-    baseClass:
-      "border-destructive/25 bg-destructive/10 dark:bg-destructive/15",
+    baseClass: "border-destructive/25 bg-destructive/10 dark:bg-destructive/15",
     activeClass:
       "border-destructive/70 ring-2 ring-destructive/40 shadow-sm bg-destructive/15 dark:bg-destructive/20",
     iconWrapClass: "bg-destructive text-destructive-foreground",
@@ -220,8 +142,7 @@ const priorityOptions: {
 // -----------------------------------------------------------------------------
 
 type FormState = {
-  companyCode: string;
-  subId: string;
+  clientId: string;
   contactName: string;
   emails: string[];
   phones: string[];
@@ -236,8 +157,7 @@ type FormState = {
 };
 
 const initialForm: FormState = {
-  companyCode: "",
-  subId: "",
+  clientId: "",
   contactName: "",
   emails: [""],
   phones: [""],
@@ -254,14 +174,17 @@ const initialForm: FormState = {
 function NewTicketPage() {
   const navigate = useNavigate();
   const [form, setForm] = useState<FormState>(initialForm);
+  const [client, setClient] = useState<ClientRow | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const company = companies.find((c) => c.code === form.companyCode) ?? null;
-  const sub = company?.subs.find((s) => s.id === form.subId) ?? null;
+  // Garante que a fonte única de clientes esteja carregada.
+  useEffect(() => {
+    void loadClients().catch(() => undefined);
+  }, []);
+
   const submodules = modulesMap[form.module] ?? [];
   const operatorObj = operators.find((o) => o.code === form.operator);
 
-  // Sincroniza submódulo quando o módulo muda
   useEffect(() => {
     if (!submodules.includes(form.submodule)) {
       setForm((prev) => ({ ...prev, submodule: submodules[0] ?? "" }));
@@ -269,23 +192,16 @@ function NewTicketPage() {
   }, [form.module, form.submodule, submodules]);
 
   const requiredMissing =
-    !form.companyCode ||
-    !form.subId ||
+    !form.clientId ||
     !form.contactName.trim() ||
     !form.emails[0]?.trim() ||
     !form.phones[0]?.trim() ||
     !form.subject.trim() ||
     !form.description.trim();
 
-  const handleCompanySelect = (c: Company) => {
-    setForm((prev) => ({
-      ...prev,
-      companyCode: c.code,
-      subId: c.subs[0]?.id ?? "",
-      contactName: c.defaultContact.name,
-      emails: [...c.defaultContact.emails],
-      phones: [...c.defaultContact.phones],
-    }));
+  const handleClientSelect = (c: ClientRow) => {
+    setClient(c);
+    setForm((prev) => ({ ...prev, clientId: c.id }));
   };
 
   const updateEmail = (i: number, v: string) =>
@@ -301,7 +217,7 @@ function NewTicketPage() {
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (requiredMissing || !company || !sub) {
+    if (requiredMissing || !client) {
       toast.error("Preencha os campos obrigatórios para abrir o chamado.");
       return;
     }
@@ -309,8 +225,8 @@ function NewTicketPage() {
     setSubmitting(true);
     const ticket = ticketsStore.createTicket({
       priority: form.priority,
-      clientCode: company.code,
-      clientName: `${company.fantasy} — ${sub.name}`,
+      clientCode: client.acronym,
+      clientName: client.fantasia || client.razaoSocial || client.name,
       contact: form.contactName,
       subject: form.subject,
       module: `${form.module} - ${form.submodule}`,
@@ -352,38 +268,20 @@ function NewTicketPage() {
             <SectionTitle
               icon={Building2}
               title="Empresa"
-              description="Selecione a empresa e a subempresa relacionadas ao chamado."
+              description="Selecione a empresa cadastrada no CRM."
             />
             <div className="mt-4 space-y-3">
-              <CompanyCombobox
-                value={company}
-                onSelect={handleCompanySelect}
-              />
+              <ClientPicker value={client} onSelect={handleClientSelect} required />
 
-              <div>
-                <Label className="mb-1.5 block text-[12px] font-medium text-foreground">
-                  Subempresa <span className="text-destructive">*</span>
-                </Label>
-                <Select
-                  value={form.subId}
-                  onValueChange={(v) => setForm((prev) => ({ ...prev, subId: v }))}
-                  disabled={!company}
-                >
-                  <SelectTrigger className="h-11 rounded-xl cursor-pointer">
-                    <SelectValue placeholder="Selecione a subempresa" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {company?.subs.map((s) => (
-                      <SelectItem key={s.id} value={s.id}>
-                        <div className="flex flex-col">
-                          <span className="text-sm">{s.name}</span>
-                          <span className="text-[11px] text-muted-foreground">{s.cnpj}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              {client && (
+                <div className="rounded-xl border border-border bg-muted/30 px-3 py-2 text-[12px] text-muted-foreground">
+                  <p className="truncate">
+                    <span className="font-semibold text-foreground">{client.razaoSocial}</span>
+                    {client.cnpj && ` · ${client.cnpj}`}
+                  </p>
+                  {client.city && <p className="truncate">{client.city}</p>}
+                </div>
+              )}
             </div>
           </Card>
 
@@ -654,11 +552,10 @@ function NewTicketPage() {
                   </p>
                   <p className="mt-0.5 truncate text-xs text-muted-foreground">
                     <span className="font-semibold text-foreground">
-                      {company?.code ?? "COD"}
+                      {client?.acronym ?? "COD"}
                     </span>
                     {" · "}
-                    {company?.fantasy ?? "Empresa"}
-                    {sub && ` — ${sub.name}`}
+                    {client?.fantasia || client?.name || "Empresa"}
                   </p>
                 </div>
               </div>
@@ -698,8 +595,8 @@ function NewTicketPage() {
               <div className="flex gap-2">
                 <Info className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                 <p>
-                  Por enquanto este formulário salva em dados mockados. Quando o backend estiver
-                  pronto, o envio será trocado para a API.
+                  Clientes carregados diretamente da base do CRM. O chamado é registrado com o
+                  ID real do cliente selecionado.
                 </p>
               </div>
             </div>
@@ -712,121 +609,6 @@ function NewTicketPage() {
         </aside>
       </form>
     </AppShell>
-  );
-}
-
-// -----------------------------------------------------------------------------
-// Combobox de empresas (busca por nome, razão, fantasia, CNPJ, sigla)
-// -----------------------------------------------------------------------------
-
-function CompanyCombobox({
-  value,
-  onSelect,
-}: {
-  value: Company | null;
-  onSelect: (c: Company) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState("");
-  const rootRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const onDown = (e: MouseEvent) => {
-      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener("mousedown", onDown);
-    return () => document.removeEventListener("mousedown", onDown);
-  }, []);
-
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return companies;
-    return companies.filter((c) =>
-      [c.name, c.fantasy, c.cnpj, c.code]
-        .join(" ")
-        .toLowerCase()
-        .includes(q),
-    );
-  }, [query]);
-
-  return (
-    <div ref={rootRef} className="relative">
-      <Label className="mb-1.5 block text-[12px] font-medium text-foreground">
-        Empresa <span className="text-destructive">*</span>
-      </Label>
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="flex h-11 w-full items-center gap-2 rounded-xl border border-border bg-card px-3 text-left text-sm cursor-pointer transition hover:bg-accent/40"
-      >
-        <Search className="h-4 w-4 text-muted-foreground" />
-        {value ? (
-          <span className="flex min-w-0 flex-1 items-center gap-2">
-            <span className="font-mono text-xs text-muted-foreground">{value.code}</span>
-            <span className="truncate">{value.fantasy}</span>
-            <span className="hidden truncate text-xs text-muted-foreground md:inline">
-              · {value.cnpj}
-            </span>
-          </span>
-        ) : (
-          <span className="flex-1 text-muted-foreground">
-            Buscar por nome, razão social, CNPJ ou sigla...
-          </span>
-        )}
-        <ChevronDown className="h-4 w-4 text-muted-foreground" />
-      </button>
-      {open && (
-        <div className="absolute z-30 mt-1 w-full overflow-hidden rounded-xl border border-border bg-popover shadow-lg">
-          <div className="border-b border-border p-2">
-            <div className="relative">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                autoFocus
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Digite para filtrar..."
-                className="h-10 rounded-lg pl-9"
-              />
-            </div>
-          </div>
-          <ul className="max-h-64 overflow-y-auto py-1">
-            {filtered.length === 0 && (
-              <li className="px-3 py-4 text-center text-sm text-muted-foreground">
-                Nenhuma empresa encontrada.
-              </li>
-            )}
-            {filtered.map((c) => (
-              <li key={c.code}>
-                <button
-                  type="button"
-                  onClick={() => {
-                    onSelect(c);
-                    setOpen(false);
-                    setQuery("");
-                  }}
-                  className="flex w-full items-start gap-3 px-3 py-2 text-left text-sm cursor-pointer hover:bg-accent"
-                >
-                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
-                    <Building2 className="h-4 w-4" />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-[11px] text-muted-foreground">
-                        {c.code}
-                      </span>
-                      <span className="truncate font-medium">{c.fantasy}</span>
-                    </div>
-                    <div className="truncate text-[11px] text-muted-foreground">
-                      {c.name} · {c.cnpj}
-                    </div>
-                  </div>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </div>
   );
 }
 
@@ -875,7 +657,6 @@ function Field({
     </div>
   );
 }
-
 
 function PreviewItem({
   icon: Icon,
