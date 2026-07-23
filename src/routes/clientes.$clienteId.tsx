@@ -19,7 +19,7 @@ import {
   CompaniesTab,
   Summary,
 } from "./clientes.index";
-import { getClient } from "@/lib/clients-api";
+import { getClientDetail } from "@/lib/clients-api";
 import { normalizeCityUf, normalizeCityName } from "@/lib/br-city";
 
 const tabs = ["cliente", "hadron", "usuarios", "terminais", "empresas"] as const;
@@ -38,9 +38,9 @@ export const Route = createFileRoute("/clientes/$clienteId")({
   }),
   validateSearch: zodValidator(searchSchema),
   loader: async ({ params }) => {
-    const client = await getClient(params.clienteId);
-    if (!client) throw notFound();
-    return { client };
+    const detail = await getClientDetail(params.clienteId);
+    if (!detail) throw notFound();
+    return detail;
   },
   notFoundComponent: () => (
     <AppShell>
@@ -67,7 +67,7 @@ export const Route = createFileRoute("/clientes/$clienteId")({
 });
 
 function ClientDetailPage() {
-  const { client } = Route.useLoaderData();
+  const { client, contacts, companies } = Route.useLoaderData();
   const { tab, from, ticketId } = Route.useSearch();
   const navigate = useNavigate();
   const isAvc = client.id === "avc";
@@ -203,7 +203,7 @@ function ClientDetailPage() {
 
           <div className="bg-muted/10 p-6">
             <TabsContent value="cliente" className="m-0 space-y-5">
-              <ClientTab />
+              <ClientTab client={client} contacts={contacts} companies={companies} />
             </TabsContent>
             <TabsContent value="hadron" className="m-0 space-y-5">
               <HadronTab />

@@ -4,6 +4,45 @@ import type { ClientRow } from "@/routes/clientes.index";
 
 type DatabaseClient = Record<string, string | boolean | null>;
 
+export type ClientContact = {
+  id: string;
+  name: string;
+  department: string;
+  email: string;
+  phone: string;
+  mobile: string;
+  whatsapp: string;
+  active: boolean;
+};
+
+export type ClientCompany = {
+  id: string;
+  companyNumber: number | null;
+  legalName: string;
+  tradeName: string;
+  document: string;
+  stateRegistration: string;
+  cnae: string;
+  industry: string;
+  size: string;
+  taxRegime: string;
+  address: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  responsibleName: string;
+  responsibleDocument: string;
+  accountantName: string;
+  accountantPhone: string;
+  accountantEmail: string;
+};
+
+export type ClientDetail = {
+  client: ClientRow;
+  contacts: ClientContact[];
+  companies: ClientCompany[];
+};
+
 const industryLabels: Record<string, string> = {
   "1": "Comércio",
   "4": "Indústria",
@@ -75,4 +114,49 @@ export async function getClient(acronym: string): Promise<ClientRow | null> {
   const { data, error } = await supabase.rpc("get_crm_client", { client_acronym: acronym });
   if (error) throw error;
   return data?.client ? mapDatabaseClient(data.client) : null;
+}
+
+export async function getClientDetail(acronym: string): Promise<ClientDetail | null> {
+  const { data, error } = await supabase.rpc("get_crm_client", { client_acronym: acronym });
+  if (error) throw error;
+  if (!data?.client) return null;
+
+  const contacts = (Array.isArray(data.contacts) ? data.contacts : []).map(
+    (contact: Record<string, unknown>): ClientContact => ({
+      id: String(contact.id || ""),
+      name: String(contact.name || ""),
+      department: String(contact.department || ""),
+      email: String(contact.email || ""),
+      phone: String(contact.phone || ""),
+      mobile: String(contact.mobile || ""),
+      whatsapp: String(contact.whatsapp || ""),
+      active: contact.active !== false,
+    }),
+  );
+
+  const companies = (Array.isArray(data.companies) ? data.companies : []).map(
+    (company: Record<string, unknown>): ClientCompany => ({
+      id: String(company.id || ""),
+      companyNumber: typeof company.company_number === "number" ? company.company_number : null,
+      legalName: String(company.legal_name || ""),
+      tradeName: String(company.trade_name || ""),
+      document: formatCnpj(company.document),
+      stateRegistration: String(company.state_registration || ""),
+      cnae: String(company.cnae || ""),
+      industry: labelFromCode(company.industry, industryLabels),
+      size: labelFromCode(company.size, sizeLabels),
+      taxRegime: String(company.tax_regime || ""),
+      address: String(company.address || ""),
+      city: normalizeCityName(String(company.city || "")),
+      state: String(company.state || "").toUpperCase(),
+      postalCode: String(company.postal_code || ""),
+      responsibleName: String(company.responsible_name || ""),
+      responsibleDocument: String(company.responsible_document || ""),
+      accountantName: String(company.accountant_name || ""),
+      accountantPhone: String(company.accountant_phone || ""),
+      accountantEmail: String(company.accountant_email || ""),
+    }),
+  );
+
+  return { client: mapDatabaseClient(data.client), contacts, companies };
 }

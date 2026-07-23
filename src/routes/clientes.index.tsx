@@ -39,6 +39,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { listClients } from "@/lib/clients-api";
+import type { ClientCompany, ClientContact } from "@/lib/clients-api";
 import { normalizeCityUf } from "@/lib/br-city";
 import { supabase } from "@/lib/supabase";
 
@@ -1143,12 +1144,47 @@ function Field({ label, value }: { label: string; value: string }) {
   );
 }
 
-export function ClientTab() {
+function contactDescription(contact: ClientContact) {
+  return [contact.name, contact.department].filter(Boolean).join(" / ") || "Sem identificacao";
+}
+
+export function ClientTab({
+  client,
+  contacts,
+  companies,
+}: {
+  client: ClientRow;
+  contacts: ClientContact[];
+  companies: ClientCompany[];
+}) {
+  const company = companies[0];
+  const contactItems = contacts.flatMap((contact) => {
+    const description = contactDescription(contact);
+    const items: Array<{ id: string; label: string; value: string }> = [];
+    if (contact.phone) items.push({ id: `${contact.id}-phone`, label: "Telefone", value: `${contact.phone} - ${description}` });
+    if (contact.mobile) items.push({ id: `${contact.id}-mobile`, label: "Celular", value: `${contact.mobile} - ${description}` });
+    if (contact.whatsapp) items.push({ id: `${contact.id}-whatsapp`, label: "WhatsApp", value: `${contact.whatsapp} - ${description}` });
+    if (contact.email) items.push({ id: `${contact.id}-email`, label: "E-mail", value: `${contact.email} - ${description}` });
+    return items;
+  });
+  const companyCity = [company?.city || client.city, company?.state].filter(Boolean).join(" - ");
+  const companyProfile = [company?.industry || client.segment, company?.size || client.size, company?.taxRegime]
+    .filter(Boolean)
+    .join(" - ");
   return (
     <>
       <div className="grid gap-5 xl:grid-cols-2">
         <Section title="Contatos" icon={Phone}>
-          <div className="grid gap-4 sm:grid-cols-2">
+          {contactItems.length ? (
+            <div className="grid gap-4 sm:grid-cols-2">
+              {contactItems.map((item) => (
+                <Field key={item.id} label={item.label} value={item.value} />
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">Nenhum contato cadastrado para este cliente.</p>
+          )}
+          <div className="hidden">
             <Field label="Telefone principal" value="(16) 3116-5795 · Helden / Marketing" />
             <Field label="Loja Sao Carlos" value="Leticia · Atendimento" />
             <Field label="E-mail" value="contato@autovidrossaocarlos.com.br" />
@@ -1157,6 +1193,20 @@ export function ClientTab() {
         </Section>
         <Section title="Empresa principal" icon={Building2}>
           <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Nome fantasia" value={company?.tradeName || client.fantasia || "Nao informado"} />
+            <Field label="CNPJ" value={company?.document || client.cnpj || "Nao informado"} />
+            <Field
+              label="IE / CNAE"
+              value={[company?.stateRegistration, company?.cnae].filter(Boolean).join(" - ") || "Nao informado"}
+            />
+            <Field label="Regime" value={companyProfile || "Nao informado"} />
+            <Field label="Endereco" value={company?.address || "Nao informado"} />
+            <Field
+              label="Cidade"
+              value={[companyCity, company?.postalCode || client.cep].filter(Boolean).join(" - CEP ") || "Nao informado"}
+            />
+          </div>
+          <div className="hidden">
             <Field label="Nome fantasia" value="CENTER GLASS CATANDUVA" />
             <Field label="CNPJ" value="66.613.387/0001-60" />
             <Field label="IE / CNAE" value="260.382.987.118 · 45307-03" />
@@ -1169,6 +1219,13 @@ export function ClientTab() {
       <div className="grid gap-5 xl:grid-cols-2">
         <Section title="Responsavel e contabilidade" icon={CircleUserRound}>
           <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Responsavel" value={company?.responsibleName || "Nao informado"} />
+            <Field label="Documento" value={company?.responsibleDocument || "Nao informado"} />
+            <Field label="Contador" value={company?.accountantName || "Nao informado"} />
+            <Field label="Telefone" value={company?.accountantPhone || "Nao informado"} />
+            <Field label="E-mail" value={company?.accountantEmail || "Nao informado"} />
+          </div>
+          <div className="hidden">
             <Field label="Responsavel" value="MAURO APARECIDO SANCHES" />
             <Field label="CPF / RG" value="040.172.448-40 · 14.143.256-1" />
             <Field label="Escritorio" value="MARQUES E SANTOS" />
