@@ -253,7 +253,7 @@ function NewTicketPage() {
     setPhones([]);
     setCompanies([]);
     setClientUuid(null);
-    fetchClientContacts(client.acronym)
+    fetchClientGroupCompanies(client)
       .then((bundle) => {
         if (cancelled) return;
         setClientUuid(bundle.clientId);
@@ -266,7 +266,7 @@ function NewTicketPage() {
           companyId: bundle.companies.length === 1 ? bundle.companies[0].id : "",
         }));
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         if (cancelled) return;
         console.error("[chamados.novo] falha ao carregar contatos", err);
         toast.error("Não foi possível carregar os contatos deste cliente.");
