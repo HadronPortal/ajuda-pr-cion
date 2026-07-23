@@ -1,4 +1,6 @@
 import { supabase } from "@/lib/supabase";
+import { loadClients, getGroupMembers, resolveGroupCode } from "@/lib/clients-store";
+import type { ClientRow } from "@/routes/clientes.index";
 
 export type ClientContact = {
   id: string;
@@ -16,6 +18,8 @@ export type ClientCompanySummary = {
   city: string;
   state: string;
   isPrincipal: boolean;
+  clientId: string | null;    // id UUID do cliente ao qual a empresa pertence
+  clientAcronym: string;      // sigla do cliente ao qual a empresa pertence
 };
 
 export type ClientContactsBundle = {
