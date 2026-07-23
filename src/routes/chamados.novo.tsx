@@ -46,7 +46,7 @@ import type { ClosurePayload } from "@/lib/tickets-store";
 import { loadClients } from "@/lib/clients-store";
 import {
   addClientContact,
-  fetchClientContacts,
+  fetchClientGroupCompanies,
   formatPhoneDisplay,
   type ClientContact,
   type ClientCompanySummary,
