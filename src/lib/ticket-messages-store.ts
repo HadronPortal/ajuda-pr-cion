@@ -1,6 +1,7 @@
 import { useCallback, useSyncExternalStore } from "react";
 import { supportTickets } from "./support-tickets-data";
 import { currentUser } from "./mock-data";
+import { ticketsApi } from "./tickets-api";
 
 export type ChatAuthor = "cliente" | "suporte";
 
@@ -16,6 +17,7 @@ const messages: Record<string, TicketMessage[]> = {};
 const EMPTY: TicketMessage[] = [];
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((l) => l());
+let hydrationPromise: Promise<void> | null = null;
 
 let counter = 0;
 const nextId = () => `msg-${Date.now().toString(36)}-${++counter}`;
@@ -70,10 +72,44 @@ function ensureSeed(ticketId: string) {
   if (!messages[ticketId]) messages[ticketId] = seedFor(ticketId);
 }
 
+async function hydrateFromSupabase() {
+  try {
+    const snapshot = await ticketsApi.load();
+    const remoteMessages: Record<string, TicketMessage[]> = {};
+    snapshot.messages.forEach(({ ticketId, ...message }) => {
+      (remoteMessages[ticketId] ??= []).push(message);
+    });
+    for (const ticket of snapshot.tickets) {
+      if (remoteMessages[ticket.id]?.length) {
+        messages[ticket.id] = remoteMessages[ticket.id];
+      } else {
+        ensureSeed(ticket.id);
+        for (const message of messages[ticket.id] ?? []) {
+          await ticketsApi.addMessage(ticket.id, {
+            text: message.text,
+            internal: false,
+            senderCode: message.author === "suporte" ? message.name : undefined,
+            name: message.name,
+            author: message.author,
+          });
+        }
+      }
+    }
+    emit();
+  } catch (error) {
+    console.error("[ticket-messages-store] Não foi possível carregar o chat.", error);
+  }
+}
+
+function ensureHydrated() {
+  hydrationPromise ??= hydrateFromSupabase();
+}
+
 // Public API (ready to swap for API/WebSocket).
 export const ticketMessagesStore = {
   subscribe(l: () => void) {
     listeners.add(l);
+    ensureHydrated();
     return () => {
       listeners.delete(l);
     };
@@ -96,6 +132,17 @@ export const ticketMessagesStore = {
     };
     messages[ticketId] = [...(messages[ticketId] ?? []), msg];
     emit();
+    void ticketsApi
+      .addMessage(ticketId, {
+        text: trimmed,
+        internal: false,
+        senderCode: currentUser.operator,
+        name: msg.name,
+        author: "suporte",
+      })
+      .catch((error) => {
+        console.error(`[ticket-messages-store] Falha ao enviar mensagem do chamado ${ticketId}.`, error);
+      });
   },
 };
 

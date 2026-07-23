@@ -27,6 +27,7 @@ export type SupportTicket = {
   module: string;
   source: "Telefone" | "Portal do cliente" | "WhatsApp" | "Email";
   lockedBy?: string;
+  description?: string;
 };
 
 export const ticketStatuses: TicketStatus[] = [

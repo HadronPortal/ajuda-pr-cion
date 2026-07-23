@@ -1,6 +1,7 @@
 import { useCallback, useSyncExternalStore } from "react";
 import { supportTickets, type SupportTicket, type TicketStatus } from "./support-tickets-data";
 import { currentUser } from "./mock-data";
+import { ticketsApi } from "./tickets-api";
 
 export type TicketEventKind =
   | "created"
@@ -85,6 +86,40 @@ const EMPTY_NOTES: InternalNote[] = [];
 
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((l) => l());
+
+let hydrationPromise: Promise<void> | null = null;
+
+function groupSnapshot<T extends { ticketId: string }>(rows: T[]) {
+  return rows.reduce<Record<string, Omit<T, "ticketId">[]>>((result, row) => {
+    const { ticketId, ...value } = row;
+    (result[ticketId] ??= []).push(value);
+    return result;
+  }, {});
+}
+
+async function hydrateFromSupabase() {
+  try {
+    let snapshot = await ticketsApi.load();
+    if (!snapshot.tickets.length) {
+      await ticketsApi.seed(supportTickets);
+      snapshot = await ticketsApi.load();
+    }
+    if (!snapshot.tickets.length) return;
+
+    tickets = snapshot.tickets;
+    Object.assign(events, groupSnapshot(snapshot.events));
+    Object.assign(internalNotes, groupSnapshot(snapshot.notes));
+    tickets.forEach(ensureSeed);
+    emit();
+  } catch (error) {
+    console.error("[tickets-store] Não foi possível carregar os chamados do Supabase.", error);
+  }
+}
+
+function ensureHydrated() {
+  hydrationPromise ??= hydrateFromSupabase();
+  return hydrationPromise;
+}
 
 let eventCounter = 0;
 const nextEventId = () => `evt-${Date.now().toString(36)}-${++eventCounter}`;
@@ -225,9 +260,20 @@ function pushEvent(id: string, event: Omit<TicketEvent, "id">) {
 
 const operator = () => currentUser.operator ?? "PRC???";
 
+function persistUpdate(
+  id: string,
+  patch: Partial<SupportTicket>,
+  event?: Omit<TicketEvent, "id" | "when">,
+) {
+  void ticketsApi.update(id, patch, event).catch((error) => {
+    console.error(`[tickets-store] Falha ao persistir o chamado ${id}.`, error);
+  });
+}
+
 export const ticketsStore = {
   subscribe(l: () => void) {
     listeners.add(l);
+    void ensureHydrated();
     return () => {
       listeners.delete(l);
     };
@@ -255,6 +301,7 @@ export const ticketsStore = {
       subject: input.subject.trim(),
       module: input.module.trim(),
       source: input.source,
+      description: input.description.trim(),
     };
 
     tickets = [ticket, ...tickets];
@@ -270,6 +317,14 @@ export const ticketsStore = {
     ];
     history[ticket.id] = [];
     emit();
+    void ticketsApi
+      .create({
+        ...ticket,
+        eventDescription: events[ticket.id][0].description,
+      })
+      .catch((error) => {
+        console.error("[tickets-store] Falha ao criar o chamado no Supabase.", error);
+      });
     return ticket;
   },
 
@@ -284,6 +339,12 @@ export const ticketsStore = {
       description: `Chamado assumido por ${op}.`,
     });
     emit();
+    persistUpdate(id, { owner: op, lockedBy: undefined }, {
+      kind: "assumed",
+      actor: op,
+      actorType: "suporte",
+      description: `Chamado assumido por ${op}.`,
+    });
   },
 
   attendTicket(id: string) {
@@ -301,6 +362,12 @@ export const ticketsStore = {
       description: `${op} iniciou atendimento.`,
     });
     emit();
+    persistUpdate(id, { owner: op, status: "Ocupado", lockedBy: op }, {
+      kind: "attend",
+      actor: op,
+      actorType: "suporte",
+      description: `${op} iniciou atendimento.`,
+    });
   },
 
   updateTicketStatus(id: string, status: TicketStatus) {
@@ -314,6 +381,12 @@ export const ticketsStore = {
       description: `Status alterado para "${status}" por ${op}.`,
     });
     emit();
+    persistUpdate(id, { status }, {
+      kind: "status",
+      actor: op,
+      actorType: "suporte",
+      description: `Status alterado para "${status}" por ${op}.`,
+    });
   },
 
   closeTicket(id: string, payload: ClosurePayload) {
@@ -327,6 +400,12 @@ export const ticketsStore = {
       description: `Chamado finalizado por ${op} — ${payload.type}. ${payload.solution}`.trim(),
     });
     emit();
+    persistUpdate(id, { status: "Finalizado", lockedBy: undefined }, {
+      kind: "closed",
+      actor: op,
+      actorType: "suporte",
+      description: `Chamado finalizado por ${op} — ${payload.type}. ${payload.solution}`.trim(),
+    });
   },
 
   addInternalNote(id: string, note: string) {
@@ -341,6 +420,17 @@ export const ticketsStore = {
     internalNotes[id] = [entry, ...(internalNotes[id] ?? [])];
     updateTicket(id, {});
     emit();
+    void ticketsApi
+      .addMessage(id, {
+        text: note,
+        internal: true,
+        senderCode: op,
+        name: op,
+        author: "suporte",
+      })
+      .catch((error) => {
+        console.error(`[tickets-store] Falha ao salvar nota do chamado ${id}.`, error);
+      });
   },
 
   scheduleEvent(
@@ -375,6 +465,14 @@ export const ticketsStore = {
     });
     updateTicket(id, { status: "Agendamento", owner: input.responsible });
     emit();
+    persistUpdate(id, { status: "Agendamento", owner: input.responsible }, {
+      kind: "scheduled",
+      actor: op,
+      actorType: "suporte",
+      description:
+        `Evento agendado para ${input.date}, das ${input.startTime} às ${input.endTime} — ${input.type}. ` +
+        `Responsável: ${input.responsible}. Módulo: ${input.module} / ${input.submodule}.`,
+    });
   },
 
   forwardToSpecialist(
@@ -410,6 +508,16 @@ export const ticketsStore = {
         `Mensagem: ${input.reason}`,
     });
     emit();
+    persistUpdate(id, {
+      status: "Com especialista",
+      priority: input.priority,
+      lockedBy: undefined,
+    }, {
+      kind: "forwarded",
+      actor: op,
+      actorType: "suporte",
+      description: `Encaminhado para especialistas — ${input.waitingArea}. ${input.reason}`,
+    });
   },
 
   transferTicket(
@@ -449,6 +557,17 @@ export const ticketsStore = {
         ` Mensagem: ${input.message}`,
     });
     emit();
+    persistUpdate(id, {
+      owner: nextOwner,
+      status: nextStatus,
+      priority: input.priority,
+      lockedBy: undefined,
+    }, {
+      kind: "forwarded",
+      actor: from,
+      actorType: "suporte",
+      description: `${input.type} — de ${from} para ${nextOwner}. ${input.message}`,
+    });
   },
 
 
