@@ -373,10 +373,19 @@ function NewTicketPage() {
     }
 
     setSubmitting(true);
+    // Se a subempresa selecionada pertence a outro cliente do grupo, o chamado
+    // é criado para o cliente real da empresa (não o cliente pesquisado).
+    const effectiveClientCode = selectedCompany?.clientAcronym || client.acronym;
+    const effectiveClientName =
+      selectedCompany?.tradeName ||
+      selectedCompany?.legalName ||
+      client.fantasia ||
+      client.razaoSocial ||
+      client.name;
     const ticket = ticketsStore.createTicket({
       priority: form.priority,
-      clientCode: client.acronym,
-      clientName: client.fantasia || client.razaoSocial || client.name,
+      clientCode: effectiveClientCode,
+      clientName: effectiveClientName,
       contact: form.contactName,
       subject: form.subject,
       module: `${form.module} - ${form.submodule}`,
@@ -386,7 +395,7 @@ function NewTicketPage() {
         `Tipo: ${form.type}. Operador: ${form.operator}. ` +
         `Contato: ${form.emailValue} · ${form.phoneValue}.` +
         (selectedCompany
-          ? `\nEmpresa: ${selectedCompany.companyNumber ? String(selectedCompany.companyNumber).padStart(3, "0") + " · " : ""}${selectedCompany.tradeName || selectedCompany.legalName}${selectedCompany.document ? " · " + selectedCompany.document : ""}`
+          ? `\nEmpresa: ${selectedCompany.clientAcronym} · ${selectedCompany.companyNumber ? String(selectedCompany.companyNumber).padStart(3, "0") + " · " : ""}${selectedCompany.tradeName || selectedCompany.legalName}${selectedCompany.document ? " · " + selectedCompany.document : ""}`
           : ""),
       companyId: selectedCompany?.id ?? null,
       companyNumber: selectedCompany?.companyNumber ?? null,
