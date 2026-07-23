@@ -219,6 +219,7 @@ function NewTicketPage() {
   const [clientUuid, setClientUuid] = useState<string | null>(null);
   const [emails, setEmails] = useState<ClientContact[]>([]);
   const [phones, setPhones] = useState<ClientContact[]>([]);
+  const [companies, setCompanies] = useState<ClientCompanySummary[]>([]);
   const [contactsLoading, setContactsLoading] = useState(false);
   const [addContact, setAddContact] = useState<AddContactState>(initialAddContact);
 
@@ -229,6 +230,7 @@ function NewTicketPage() {
 
   const submodules = modulesMap[form.module] ?? [];
   const operatorObj = operators.find((o) => o.code === form.operator);
+  const selectedCompany = companies.find((c) => c.id === form.companyId) ?? null;
 
   useEffect(() => {
     if (!submodules.includes(form.submodule)) {
@@ -236,18 +238,20 @@ function NewTicketPage() {
     }
   }, [form.module, form.submodule, submodules]);
 
-  // Carrega contatos ao selecionar/alterar a empresa.
+  // Carrega contatos + empresas/subempresas ao selecionar/alterar o cliente.
   useEffect(() => {
     if (!client?.acronym) {
       setClientUuid(null);
       setEmails([]);
       setPhones([]);
+      setCompanies([]);
       return;
     }
     let cancelled = false;
     setContactsLoading(true);
     setEmails([]);
     setPhones([]);
+    setCompanies([]);
     setClientUuid(null);
     fetchClientContacts(client.acronym)
       .then((bundle) => {
@@ -255,6 +259,12 @@ function NewTicketPage() {
         setClientUuid(bundle.clientId);
         setEmails(bundle.emails);
         setPhones(bundle.phones);
+        setCompanies(bundle.companies);
+        // Se houver apenas uma empresa, seleciona automaticamente.
+        setForm((prev) => ({
+          ...prev,
+          companyId: bundle.companies.length === 1 ? bundle.companies[0].id : "",
+        }));
       })
       .catch((err) => {
         if (cancelled) return;
