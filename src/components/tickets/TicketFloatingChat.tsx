@@ -407,7 +407,7 @@ function ChatHeader({
     >
       <div className="min-w-0">
         <p className="truncate text-[13px] font-medium text-foreground">
-          {ticket.clientName}
+          {ticket.clientName || "Cliente não vinculado"}
         </p>
         <p className="flex items-center gap-1.5 truncate text-[11px] text-muted-foreground">
           <span className="font-mono">{ticket.protocol}</span>

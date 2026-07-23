@@ -78,9 +78,9 @@ export function TicketHistoryModal({
           }
           meta={
             <span className="inline-flex items-center gap-1">
-              <span className="font-semibold text-primary">{ticket.clientCode}</span>
+              <span className="font-semibold text-primary">{ticket.clientCode || "—"}</span>
               <span aria-hidden className="text-border">·</span>
-              <span className="truncate text-foreground">{ticket.clientName}</span>
+              <span className="truncate text-foreground">{ticket.clientName || "Cliente não vinculado"}</span>
             </span>
           }
         />

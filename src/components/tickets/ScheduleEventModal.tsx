@@ -141,7 +141,7 @@ export function ScheduleEventModal({
         endAt: windowEnd,
         ticketId: ticket.id,
         customerId: ticket.clientCode,
-        destination: `${ticket.clientCode} · ${ticket.clientName}`,
+        destination: `${ticket.clientCode || "—"} · ${ticket.clientName || "Cliente não vinculado"}`,
       });
       if ("error" in created) {
         toast.error("Conflito de agenda para o veículo escolhido.", {
@@ -182,9 +182,9 @@ export function ScheduleEventModal({
           onClose={() => onOpenChange(false)}
           meta={
             <span className="inline-flex items-center gap-1">
-              <span className="text-primary">{ticket.clientCode}</span>
+              <span className="text-primary">{ticket.clientCode || "—"}</span>
               <span className="text-border">·</span>
-              <span>{ticket.clientName}</span>
+              <span>{ticket.clientName || "Cliente não vinculado"}</span>
             </span>
           }
         />

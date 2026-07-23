@@ -108,7 +108,7 @@ export function TicketChatPanel({
         <div className="min-w-0">
           <h3 className="text-[13px] font-medium text-foreground">Chat</h3>
           <p className="truncate text-[11.5px] text-muted-foreground">
-            {ticket.contact} · {ticket.clientName}
+            {ticket.contact} · {ticket.clientName || "Cliente não vinculado"}
           </p>
         </div>
         {onClose && (
