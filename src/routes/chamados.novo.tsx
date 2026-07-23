@@ -440,28 +440,47 @@ function NewTicketPage() {
               </Field>
 
               <Field label="E-mail do contato" required>
-                <div className="relative">
-                  <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    type="email"
-                    value={form.emails[0] ?? ""}
-                    onChange={(e) => updateEmail(0, e.target.value)}
-                    placeholder="email@empresa.com"
-                    className="h-11 rounded-xl pl-9"
-                  />
-                </div>
+                <ContactSelectField
+                  icon={Mail}
+                  kind="email"
+                  disabled={!client}
+                  loading={contactsLoading}
+                  options={emails}
+                  value={form.emailContactId}
+                  placeholder={
+                    !client
+                      ? "Selecione uma empresa"
+                      : contactsLoading
+                        ? "Carregando contatos..."
+                        : emails.length === 0
+                          ? "Nenhum e-mail cadastrado"
+                          : "Selecione um e-mail"
+                  }
+                  onChange={handleSelectEmail}
+                  onAdd={() => openAddContact("email")}
+                />
               </Field>
 
               <Field label="Telefone" required>
-                <div className="relative">
-                  <Phone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    value={form.phones[0] ?? ""}
-                    onChange={(e) => updatePhone(0, e.target.value)}
-                    placeholder="(00) 00000-0000"
-                    className="h-11 rounded-xl pl-9"
-                  />
-                </div>
+                <ContactSelectField
+                  icon={Phone}
+                  kind="phone"
+                  disabled={!client}
+                  loading={contactsLoading}
+                  options={phones}
+                  value={form.phoneContactId}
+                  placeholder={
+                    !client
+                      ? "Selecione uma empresa"
+                      : contactsLoading
+                        ? "Carregando contatos..."
+                        : phones.length === 0
+                          ? "Nenhum telefone cadastrado"
+                          : "Selecione um telefone"
+                  }
+                  onChange={handleSelectPhone}
+                  onAdd={() => openAddContact("phone")}
+                />
               </Field>
             </div>
           </Card>
