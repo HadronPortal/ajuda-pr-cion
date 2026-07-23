@@ -420,12 +420,12 @@ function NewTicketPage() {
         className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_360px]"
       >
         <div className="space-y-5">
-          {/* 1. Empresa */}
+          {/* 1. Cliente */}
           <Card className="rounded-[16px] border border-border/70 bg-card p-5">
             <SectionTitle
               icon={Building2}
-              title="Empresa"
-              description="Selecione a empresa cadastrada no CRM."
+              title="Cliente"
+              description="Selecione o cliente cadastrado no CRM."
             />
             <div className="mt-4 space-y-3">
               <ClientPicker value={client} onSelect={handleClientSelect} required />
@@ -437,6 +437,63 @@ function NewTicketPage() {
                     {client.cnpj && ` · ${client.cnpj}`}
                   </p>
                   {client.city && <p className="truncate">{client.city}</p>}
+                </div>
+              )}
+
+              {/* Empresa / subempresa vinculada ao cliente selecionado */}
+              {client && (
+                <div>
+                  <Label className="mb-1.5 block text-[12px] font-medium text-foreground">
+                    Empresa / subempresa
+                    {companies.length > 0 && <span className="ml-1 text-destructive">*</span>}
+                  </Label>
+                  {contactsLoading ? (
+                    <div className="rounded-xl border border-dashed border-border/70 bg-muted/30 px-3 py-2.5 text-[12px] text-muted-foreground">
+                      Carregando empresas…
+                    </div>
+                  ) : companies.length === 0 ? (
+                    <div className="rounded-xl border border-dashed border-border/70 bg-muted/30 px-3 py-2.5 text-[12px] text-muted-foreground">
+                      Nenhuma empresa vinculada.
+                    </div>
+                  ) : (
+                    <Select
+                      value={form.companyId}
+                      onValueChange={(v) => setForm((prev) => ({ ...prev, companyId: v }))}
+                    >
+                      <SelectTrigger className="h-11 rounded-xl cursor-pointer">
+                        <SelectValue placeholder="Selecione a empresa ou filial" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {companies.map((co) => {
+                          const number = co.companyNumber
+                            ? String(co.companyNumber).padStart(3, "0")
+                            : "—";
+                          const name = co.tradeName || co.legalName || "Empresa";
+                          const location = [co.city, co.state].filter(Boolean).join(" / ");
+                          return (
+                            <SelectItem
+                              key={co.id}
+                              value={co.id}
+                              className="cursor-pointer"
+                            >
+                              <span className="inline-flex flex-col">
+                                <span className="text-[12.5px]">
+                                  <span className="font-semibold">{number}</span>
+                                  {" · "}
+                                  {name}
+                                  {co.document ? ` · ${co.document}` : ""}
+                                </span>
+                                <span className="text-[11px] text-muted-foreground">
+                                  {co.isPrincipal ? "Principal" : "Filial"}
+                                  {location ? ` · ${location}` : ""}
+                                </span>
+                              </span>
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
               )}
             </div>
