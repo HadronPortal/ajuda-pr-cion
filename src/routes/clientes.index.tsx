@@ -1212,15 +1212,6 @@ export function ClientTab({
   events: ClientEvent[];
 }) {
   const company = companies[0];
-  const contactItems = contacts.flatMap((contact) => {
-    const description = contactDescription(contact);
-    const items: Array<{ id: string; label: string; value: string }> = [];
-    if (contact.phone) items.push({ id: `${contact.id}-phone`, label: "Telefone", value: `${contact.phone} - ${description}` });
-    if (contact.mobile) items.push({ id: `${contact.id}-mobile`, label: "Celular", value: `${contact.mobile} - ${description}` });
-    if (contact.whatsapp) items.push({ id: `${contact.id}-whatsapp`, label: "WhatsApp", value: `${contact.whatsapp} - ${description}` });
-    if (contact.email) items.push({ id: `${contact.id}-email`, label: "E-mail", value: `${contact.email} - ${description}` });
-    return items;
-  });
   const companyCity = [company?.city || client.city, company?.state].filter(Boolean).join(" - ");
   const companyProfile = [company?.industry || client.segment, company?.size || client.size, company?.taxRegime]
     .filter(Boolean)
@@ -1228,23 +1219,7 @@ export function ClientTab({
   return (
     <>
       <div className="grid gap-5 xl:grid-cols-2">
-        <Section title="Contatos" icon={Phone}>
-          {contactItems.length ? (
-            <div className="grid gap-4 sm:grid-cols-2">
-              {contactItems.map((item) => (
-                <Field key={item.id} label={item.label} value={item.value} />
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">Nenhum contato cadastrado para este cliente.</p>
-          )}
-          <div className="hidden">
-            <Field label="Telefone principal" value="(16) 3116-5795 · Helden / Marketing" />
-            <Field label="Loja Sao Carlos" value="Leticia · Atendimento" />
-            <Field label="E-mail" value="contato@autovidrossaocarlos.com.br" />
-            <Field label="Financeiro" value="financeiro@autovidrossacarlos.com.br · Marina" />
-          </div>
-        </Section>
+        <ContactsCard contacts={contacts} />
         <Section title="Empresa principal" icon={Building2}>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Nome fantasia" value={company?.tradeName || client.fantasia || "Nao informado"} />
