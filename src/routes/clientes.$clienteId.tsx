@@ -73,11 +73,18 @@ function ClientDetailPage() {
   const navigate = useNavigate();
   const [historyOpen, setHistoryOpen] = useState(false);
   const showReturnToTicket = from === "chamado" && !!ticketId;
+  const { clients: allClients } = useClients({ onlyActive: false });
+
+  // Grupo: usa group_acronym do cliente. Se vazio, verifica se ele é raiz de
+  // um grupo (algum outro cliente aponta group_acronym para a sigla dele).
+  const groupCode = resolveGroupCode(client, allClients);
+  const groupMembersCount = groupCode ? getGroupMembers(groupCode, allClients).length : 0;
 
 
   const currentTab: TabValue = (tabs as readonly string[]).includes(tab)
     ? (tab as TabValue)
     : "cliente";
+
 
   const setTab = (value: string) => {
     navigate({
