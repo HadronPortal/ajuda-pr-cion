@@ -148,6 +148,20 @@ function ClientDetailPage() {
                   <Badge className="bg-emerald-500/12 text-emerald-600 dark:text-emerald-400">
                     {client.status}
                   </Badge>
+                  {client.group && (
+                    <Button
+                      asChild
+                      variant="outline"
+                      size="sm"
+                      title="Exibir empresas deste grupo"
+                      className="h-7 cursor-pointer gap-1.5 rounded-full border-primary/30 px-2.5 text-[11.5px] font-medium text-primary hover:bg-primary/10"
+                    >
+                      <Link to="/clientes" search={{ grupo: client.group }}>
+                        <Network className="h-3.5 w-3.5" />
+                        Ver empresas do grupo {client.group}
+                      </Link>
+                    </Button>
+                  )}
                 </div>
 
                 <h2 className="mt-1 truncate text-xl font-medium">
