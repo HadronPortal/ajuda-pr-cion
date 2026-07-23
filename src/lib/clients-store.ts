@@ -110,3 +110,39 @@ export function formatClientDisplay(
   if (!code && !name) return { code: "—", name: CLIENT_UNLINKED_LABEL, unlinked: true };
   return { code: code || "—", name: name || CLIENT_UNLINKED_LABEL, unlinked: !name };
 }
+
+// -----------------------------------------------------------------------------
+// Grupos de clientes
+// -----------------------------------------------------------------------------
+// Cada cliente pode ter `group_acronym` (mapeado para `group`) apontando para o
+// código do grupo. A empresa "raiz" do grupo geralmente possui o mesmo código
+// do grupo em `acronym` (ex.: cliente MCC é a raiz do grupo MCC) e pode vir com
+// `group` vazio. A detecção considera ambos os casos.
+
+const normalizeCode = (v: string | null | undefined) => (v ?? "").trim().toUpperCase();
+
+/** Código do grupo do cliente, ou null. Considera também clientes-raiz. */
+export function resolveGroupCode(
+  client: { acronym?: string | null; group?: string | null } | null | undefined,
+  allClients: readonly { acronym: string; group: string }[] = getCachedClients() ?? [],
+): string | null {
+  if (!client) return null;
+  const direct = normalizeCode(client.group);
+  if (direct) return direct;
+  const own = normalizeCode(client.acronym);
+  if (!own) return null;
+  const hasMembers = allClients.some((c) => normalizeCode(c.group) === own);
+  return hasMembers ? own : null;
+}
+
+/** Todos os clientes do grupo, incluindo a empresa raiz. */
+export function getGroupMembers(
+  groupCode: string,
+  allClients: readonly ClientRow[] = getCachedClients() ?? [],
+): ClientRow[] {
+  const code = normalizeCode(groupCode);
+  if (!code) return [];
+  return allClients.filter(
+    (c) => normalizeCode(c.group) === code || normalizeCode(c.acronym) === code,
+  );
+}

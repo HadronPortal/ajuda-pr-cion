@@ -1,4 +1,6 @@
 import { supabase } from "@/lib/supabase";
+import { loadClients, getGroupMembers, resolveGroupCode } from "@/lib/clients-store";
+import type { ClientRow } from "@/routes/clientes.index";
 
 export type ClientContact = {
   id: string;
@@ -16,6 +18,8 @@ export type ClientCompanySummary = {
   city: string;
   state: string;
   isPrincipal: boolean;
+  clientId: string | null;    // id UUID do cliente ao qual a empresa pertence
+  clientAcronym: string;      // sigla do cliente ao qual a empresa pertence
 };
 
 export type ClientContactsBundle = {
@@ -83,12 +87,15 @@ function formatCnpj(value: string): string {
   return digits.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
 }
 
-function mapCompanies(raw: RawCompany[]): ClientCompanySummary[] {
+function mapCompanies(
+  raw: RawCompany[],
+  ownerClientId: string | null,
+  ownerAcronym: string,
+): ClientCompanySummary[] {
   const list = raw
     .filter((c) => c && (c.id || c.document || c.legal_name || c.trade_name))
     .map<ClientCompanySummary>((c) => {
       const documentRaw = String(c.document ?? "").replace(/\D+/g, "");
-      // "Principal" quando company_number = 1 ou quando CNPJ termina em /0001-XX.
       const isPrincipalByCnpj = documentRaw.length === 14 && documentRaw.slice(8, 12) === "0001";
       const isPrincipalByNumber = c.company_number === 1;
       return {
@@ -101,10 +108,11 @@ function mapCompanies(raw: RawCompany[]): ClientCompanySummary[] {
         city: String(c.city ?? "").trim(),
         state: String(c.state ?? "").trim().toUpperCase(),
         isPrincipal: isPrincipalByCnpj || isPrincipalByNumber,
+        clientId: ownerClientId,
+        clientAcronym: ownerAcronym,
       };
     });
 
-  // Se nenhuma foi marcada como principal, marca a de menor company_number.
   if (list.length > 0 && !list.some((c) => c.isPrincipal)) {
     const min = list.reduce((acc, c) =>
       (c.companyNumber ?? Number.POSITIVE_INFINITY) < (acc.companyNumber ?? Number.POSITIVE_INFINITY) ? c : acc,
@@ -112,7 +120,6 @@ function mapCompanies(raw: RawCompany[]): ClientCompanySummary[] {
     min.isPrincipal = true;
   }
 
-  // Ordena: principal primeiro; depois por company_number asc; fallback pelo nome.
   return list.sort((a, b) => {
     if (a.isPrincipal !== b.isPrincipal) return a.isPrincipal ? -1 : 1;
     const an = a.companyNumber ?? Number.POSITIVE_INFINITY;
@@ -151,7 +158,83 @@ export async function fetchClientContacts(acronym: string): Promise<ClientContac
     clientId,
     emails: sortContacts(dedupe(emails)),
     phones: sortContacts(dedupe(phones)),
-    companies: mapCompanies(rawCompanies),
+    companies: mapCompanies(rawCompanies, clientId, acronym.trim().toUpperCase()),
+  };
+}
+
+/**
+ * Consolida todas as empresas/subempresas do GRUPO ao qual o cliente pertence.
+ * - Se o cliente possui grupo, busca todos os membros do grupo em paralelo.
+ * - Se o cliente é raiz de um grupo (outros clientes apontam para ele), idem.
+ * - Se o cliente não pertence a nenhum grupo, retorna apenas o próprio bundle.
+ * Deduplica por client_company_id ou por CNPJ+companyNumber.
+ */
+export async function fetchClientGroupCompanies(
+  client: ClientRow,
+): Promise<{
+  emails: ClientContact[];
+  phones: ClientContact[];
+  companies: ClientCompanySummary[];
+  clientId: string | null;
+  groupCode: string | null;
+}> {
+  // Garante cache de clientes carregado para resolver membros do grupo.
+  const allClients = await loadClients().catch(() => [] as ClientRow[]);
+  const groupCode = resolveGroupCode(client, allClients);
+
+  // Lista de siglas a consultar (sempre inclui o próprio cliente).
+  const acronyms = new Set<string>();
+  acronyms.add(client.acronym.trim().toUpperCase());
+  if (groupCode) {
+    for (const m of getGroupMembers(groupCode, allClients)) {
+      acronyms.add(m.acronym.trim().toUpperCase());
+    }
+  }
+
+  const bundles = await Promise.all(
+    Array.from(acronyms).map((a) =>
+      fetchClientContacts(a).catch((err) => {
+        console.warn(`[client-contacts] falha ao carregar ${a}`, err);
+        return { clientId: null, emails: [], phones: [], companies: [] } as ClientContactsBundle;
+      }),
+    ),
+  );
+
+  const selfBundle = bundles.find((b, i) =>
+    Array.from(acronyms)[i] === client.acronym.trim().toUpperCase(),
+  ) ?? bundles[0];
+
+  // Dedup companies por id (client_company_id) → fallback: CNPJ|companyNumber|acronym.
+  const seen = new Set<string>();
+  const companies: ClientCompanySummary[] = [];
+  for (const bundle of bundles) {
+    for (const co of bundle.companies) {
+      const key = co.id
+        ? `id:${co.id}`
+        : `cnpj:${co.documentRaw}|n:${co.companyNumber ?? ""}|a:${co.clientAcronym}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      companies.push(co);
+    }
+  }
+
+  // Ordena: principal primeiro, depois por sigla e company_number.
+  companies.sort((a, b) => {
+    if (a.isPrincipal !== b.isPrincipal) return a.isPrincipal ? -1 : 1;
+    const ac = collator.compare(a.clientAcronym, b.clientAcronym);
+    if (ac !== 0) return ac;
+    const an = a.companyNumber ?? Number.POSITIVE_INFINITY;
+    const bn = b.companyNumber ?? Number.POSITIVE_INFINITY;
+    if (an !== bn) return an - bn;
+    return collator.compare(a.tradeName || a.legalName, b.tradeName || b.legalName);
+  });
+
+  return {
+    emails: selfBundle?.emails ?? [],
+    phones: selfBundle?.phones ?? [],
+    companies,
+    clientId: selfBundle?.clientId ?? null,
+    groupCode,
   };
 }
 

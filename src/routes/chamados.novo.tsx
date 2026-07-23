@@ -46,7 +46,7 @@ import type { ClosurePayload } from "@/lib/tickets-store";
 import { loadClients } from "@/lib/clients-store";
 import {
   addClientContact,
-  fetchClientContacts,
+  fetchClientGroupCompanies,
   formatPhoneDisplay,
   type ClientContact,
   type ClientCompanySummary,
@@ -253,7 +253,7 @@ function NewTicketPage() {
     setPhones([]);
     setCompanies([]);
     setClientUuid(null);
-    fetchClientContacts(client.acronym)
+    fetchClientGroupCompanies(client)
       .then((bundle) => {
         if (cancelled) return;
         setClientUuid(bundle.clientId);
@@ -266,7 +266,7 @@ function NewTicketPage() {
           companyId: bundle.companies.length === 1 ? bundle.companies[0].id : "",
         }));
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         if (cancelled) return;
         console.error("[chamados.novo] falha ao carregar contatos", err);
         toast.error("Não foi possível carregar os contatos deste cliente.");
@@ -373,10 +373,19 @@ function NewTicketPage() {
     }
 
     setSubmitting(true);
+    // Se a subempresa selecionada pertence a outro cliente do grupo, o chamado
+    // é criado para o cliente real da empresa (não o cliente pesquisado).
+    const effectiveClientCode = selectedCompany?.clientAcronym || client.acronym;
+    const effectiveClientName =
+      selectedCompany?.tradeName ||
+      selectedCompany?.legalName ||
+      client.fantasia ||
+      client.razaoSocial ||
+      client.name;
     const ticket = ticketsStore.createTicket({
       priority: form.priority,
-      clientCode: client.acronym,
-      clientName: client.fantasia || client.razaoSocial || client.name,
+      clientCode: effectiveClientCode,
+      clientName: effectiveClientName,
       contact: form.contactName,
       subject: form.subject,
       module: `${form.module} - ${form.submodule}`,
@@ -386,7 +395,7 @@ function NewTicketPage() {
         `Tipo: ${form.type}. Operador: ${form.operator}. ` +
         `Contato: ${form.emailValue} · ${form.phoneValue}.` +
         (selectedCompany
-          ? `\nEmpresa: ${selectedCompany.companyNumber ? String(selectedCompany.companyNumber).padStart(3, "0") + " · " : ""}${selectedCompany.tradeName || selectedCompany.legalName}${selectedCompany.document ? " · " + selectedCompany.document : ""}`
+          ? `\nEmpresa: ${selectedCompany.clientAcronym} · ${selectedCompany.companyNumber ? String(selectedCompany.companyNumber).padStart(3, "0") + " · " : ""}${selectedCompany.tradeName || selectedCompany.legalName}${selectedCompany.document ? " · " + selectedCompany.document : ""}`
           : ""),
       companyId: selectedCompany?.id ?? null,
       companyNumber: selectedCompany?.companyNumber ?? null,
@@ -478,6 +487,8 @@ function NewTicketPage() {
                             >
                               <span className="inline-flex flex-col">
                                 <span className="text-[12.5px]">
+                                  <span className="font-semibold">{co.clientAcronym}</span>
+                                  {" · "}
                                   <span className="font-semibold">{number}</span>
                                   {" · "}
                                   {name}
