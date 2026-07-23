@@ -55,6 +55,16 @@ const clientIds = new Map();
 const clientsByAcronym = new Map(
   data.clients.map((row) => [(text(row.cli_sigla) || "").toUpperCase(), row]),
 );
+const clientRowsByLegacyId = new Map(
+  data.clients.map((row) => [String(row.cli_id), row]),
+);
+const groupMembers = new Map();
+for (const row of data.clients) {
+  const groupKey = (text(row.cli_sigla_grupo) || text(row.cli_sigla) || `CLI${row.cli_id}`).toUpperCase();
+  const members = groupMembers.get(groupKey) || [];
+  members.push(row);
+  groupMembers.set(groupKey, members);
+}
 if (contactsOnly) {
   const existing = await pool.query("select legacy_id, id from public.clients where legacy_id is not null");
   for (const row of existing.rows) clientIds.set(String(row.legacy_id), row.id);
@@ -150,17 +160,28 @@ const contactValues = [];
 for (const [type, records] of clientsOnly ? [] : [["phone", data.phones], ["email", data.emails]]) {
   const occurrences = new Map();
   for (const row of records) {
-    const clientId = clientIds.get(String(row.id));
-    if (!clientId) continue;
+    const sourceClient = clientRowsByLegacyId.get(String(row.id));
+    if (!sourceClient) continue;
+    const groupKey = (
+      text(sourceClient.cli_sigla_grupo)
+      || text(sourceClient.cli_sigla)
+      || `CLI${sourceClient.cli_id}`
+    ).toUpperCase();
+    const targetClientIds = (groupMembers.get(groupKey) || [sourceClient])
+      .map((client) => clientIds.get(String(client.cli_id)))
+      .filter(Boolean);
+    if (!targetClientIds.length) continue;
     const value = text(type === "phone" ? row.telefone : row.email);
     if (!value) continue;
     const base = `${type}:${row.id}:${type === "phone" ? row.tel_order : row.eml_order}:${value}`;
     const occurrence = occurrences.get(base) || 0;
     occurrences.set(base, occurrence + 1);
     const name = text(type === "phone" ? row.contato : row.eml_contato) || (type === "phone" ? "Telefone" : "Email");
-    contactValues.push([clientId, `json:${base}:${occurrence}`, name,
-      type === "email" ? value : null, type === "phone" ? value : null, JSON.stringify(row)]);
-    contacts++;
+    for (const clientId of targetClientIds) {
+      contactValues.push([clientId, `json:${base}:${occurrence}`, name,
+        type === "email" ? value : null, type === "phone" ? value : null, JSON.stringify(row)]);
+      contacts++;
+    }
   }
 }
 for (let offset = 0; offset < contactValues.length; offset += 500) {
