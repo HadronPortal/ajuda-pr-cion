@@ -788,8 +788,20 @@ function NewTicketPage() {
                       {client?.acronym ?? "COD"}
                     </span>
                     {" · "}
-                    {client?.fantasia || client?.name || "Empresa"}
+                    {client?.fantasia || client?.name || "Cliente"}
                   </p>
+                  {selectedCompany && (
+                    <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
+                      <span className="font-semibold text-foreground">
+                        {selectedCompany.companyNumber
+                          ? String(selectedCompany.companyNumber).padStart(3, "0")
+                          : "—"}
+                      </span>
+                      {" · "}
+                      {selectedCompany.tradeName || selectedCompany.legalName}
+                      {selectedCompany.document ? ` · ${selectedCompany.document}` : ""}
+                    </p>
+                  )}
                 </div>
               </div>
 
