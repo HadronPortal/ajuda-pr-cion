@@ -1255,10 +1255,17 @@ function buildContactLines(
   return out;
 }
 
-function ContactsCard({ contacts }: { contacts: ClientContact[] }) {
+function ContactsCard({
+  contacts,
+  client,
+}: {
+  contacts: ClientContact[];
+  client: ClientRow;
+}) {
   const phones = useMemo(() => buildContactLines(contacts, "phone"), [contacts]);
   const emails = useMemo(() => buildContactLines(contacts, "email"), [contacts]);
   const total = phones.length + emails.length;
+  const [open, setOpen] = useState(false);
   return (
     <Card className="bg-card p-5 dark:bg-card">
       <div className="mb-4 flex items-center justify-between gap-2">
@@ -1275,26 +1282,48 @@ function ContactsCard({ contacts }: { contacts: ClientContact[] }) {
       {total === 0 ? (
         <p className="text-sm text-muted-foreground">Nenhum contato cadastrado para este cliente.</p>
       ) : (
-        <div className="grid gap-5 lg:grid-cols-2">
-          <ContactList
-            title="Telefones"
-            icon={Phone}
-            items={phones}
-            emptyText="Nenhum telefone cadastrado."
+        <>
+          <div className="grid gap-5 lg:grid-cols-2">
+            <ContactPreviewList
+              title="Telefones"
+              icon={Phone}
+              items={phones.slice(0, 3)}
+              emptyText="Nenhum telefone cadastrado."
+            />
+            <ContactPreviewList
+              title="E-mails"
+              icon={Mail}
+              items={emails.slice(0, 3)}
+              emptyText="Nenhum e-mail cadastrado."
+            />
+          </div>
+          {total > 0 && (
+            <div className="mt-4 flex justify-center">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="cursor-pointer rounded-full px-4 text-xs font-medium"
+                onClick={() => setOpen(true)}
+              >
+                Ver todos os {total} contatos
+              </Button>
+            </div>
+          )}
+          <AllContactsDialog
+            open={open}
+            onOpenChange={setOpen}
+            client={client}
+            phones={phones}
+            emails={emails}
           />
-          <ContactList
-            title="E-mails"
-            icon={Mail}
-            items={emails}
-            emptyText="Nenhum e-mail cadastrado."
-          />
-        </div>
+        </>
       )}
     </Card>
   );
 }
 
-function ContactList({
+function ContactPreviewList({
   title,
   icon: Icon,
   items,
@@ -1305,55 +1334,192 @@ function ContactList({
   items: ContactLine[];
   emptyText: string;
 }) {
-  const [expanded, setExpanded] = useState(false);
-  const LIMIT = 6;
-  const visible = expanded ? items : items.slice(0, LIMIT);
   return (
     <div className="min-w-0">
-      <div className="mb-2 flex items-baseline justify-between">
-        <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-          {title}
-        </p>
-        <span className="text-[11px] text-muted-foreground">{items.length}</span>
-      </div>
+      <p className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+        {title}
+      </p>
       {items.length === 0 ? (
         <p className="text-xs text-muted-foreground">{emptyText}</p>
       ) : (
-        <>
-          <ul className="space-y-1.5">
-            {visible.map((item) => (
-              <li key={item.key}>
-                <a
-                  href={item.href}
-                  className="group flex min-w-0 cursor-pointer items-start gap-2 rounded-md px-2 py-1.5 transition hover:bg-accent/60"
-                >
-                  <Icon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground group-hover:text-foreground" />
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-[13px] font-normal text-foreground group-hover:underline">
-                      {item.display}
-                    </span>
-                    {item.description && (
-                      <span className="block truncate text-[11px] text-muted-foreground">
-                        {item.description}
-                      </span>
-                    )}
+        <ul className="space-y-1.5">
+          {items.map((item) => (
+            <li key={item.key}>
+              <a
+                href={item.href}
+                className="group flex min-w-0 cursor-pointer items-start gap-2 rounded-md px-2 py-1.5 transition hover:bg-accent/60"
+              >
+                <Icon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground group-hover:text-foreground" />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-[13px] font-normal text-foreground group-hover:underline">
+                    {item.display}
                   </span>
-                </a>
-              </li>
-            ))}
-          </ul>
-          {items.length > LIMIT && (
-            <button
-              type="button"
-              onClick={() => setExpanded((v) => !v)}
-              className="mt-2 cursor-pointer text-xs font-medium text-primary hover:underline"
-            >
-              {expanded ? "Recolher" : `Ver todos (${items.length})`}
-            </button>
-          )}
-        </>
+                  {item.description && (
+                    <span className="block truncate text-[11px] text-muted-foreground">
+                      {item.description}
+                    </span>
+                  )}
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
       )}
     </div>
+  );
+}
+
+type ContactTab = "all" | "phone" | "email";
+
+function AllContactsDialog({
+  open,
+  onOpenChange,
+  client,
+  phones,
+  emails,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  client: ClientRow;
+  phones: ContactLine[];
+  emails: ContactLine[];
+}) {
+  const [tab, setTab] = useState<ContactTab>("all");
+  const [query, setQuery] = useState("");
+
+  const sortItems = (list: ContactLine[]) =>
+    [...list].sort((a, b) => {
+      const ad = a.description.trim();
+      const bd = b.description.trim();
+      if (!ad && bd) return 1;
+      if (ad && !bd) return -1;
+      const cmp = ad.localeCompare(bd, "pt-BR", { sensitivity: "base" });
+      if (cmp !== 0) return cmp;
+      return a.display.localeCompare(b.display, "pt-BR", { sensitivity: "base" });
+    });
+
+  const filter = (list: ContactLine[]) => {
+    const q = query.trim().toLowerCase();
+    if (!q) return list;
+    return list.filter(
+      (it) =>
+        it.display.toLowerCase().includes(q) ||
+        it.value.toLowerCase().includes(q) ||
+        it.description.toLowerCase().includes(q),
+    );
+  };
+
+  const sortedPhones = useMemo(() => filter(sortItems(phones)), [phones, query]);
+  const sortedEmails = useMemo(() => filter(sortItems(emails)), [emails, query]);
+
+  const showPhones = tab === "all" || tab === "phone";
+  const showEmails = tab === "all" || tab === "email";
+  const total = phones.length + emails.length;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="flex max-h-[85vh] w-full max-w-3xl flex-col gap-0 overflow-hidden bg-card p-0">
+        <DialogHeader className="border-b border-border p-5 text-left">
+          <div className="flex items-center gap-3">
+            <span className="grid h-10 w-10 place-items-center rounded-md bg-primary/10 text-primary">
+              <UsersRound className="h-5 w-5" />
+            </span>
+            <div className="min-w-0">
+              <DialogTitle className="text-base font-medium">Contatos</DialogTitle>
+              <p className="truncate text-xs text-muted-foreground">
+                {client.acronym} · {client.fantasia || client.razaoSocial || client.name}
+              </p>
+            </div>
+          </div>
+        </DialogHeader>
+
+        <div className="flex flex-col gap-3 border-b border-border px-5 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="inline-flex rounded-lg border border-border bg-muted/40 p-0.5 text-xs">
+            {([
+              ["all", `Todos (${total})`],
+              ["phone", `Telefones (${phones.length})`],
+              ["email", `E-mails (${emails.length})`],
+            ] as [ContactTab, string][]).map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setTab(key)}
+                className={cn(
+                  "cursor-pointer rounded-md px-3 py-1.5 font-medium transition",
+                  tab === key
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <div className="relative sm:w-72">
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Buscar por telefone, e-mail ou nome..."
+              className="h-9 w-full rounded-lg border border-border bg-background px-3 text-xs outline-none focus:border-primary"
+            />
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-5">
+          {sortedPhones.length + sortedEmails.length === 0 ? (
+            <p className="py-6 text-center text-sm text-muted-foreground">
+              Nenhum contato encontrado.
+            </p>
+          ) : (
+            <div className="space-y-6">
+              {showPhones && sortedPhones.length > 0 && (
+                <div>
+                  <p className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                    Telefones ({sortedPhones.length})
+                  </p>
+                  <ContactGrid items={sortedPhones} icon={Phone} />
+                </div>
+              )}
+              {showEmails && sortedEmails.length > 0 && (
+                <div>
+                  <p className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                    E-mails ({sortedEmails.length})
+                  </p>
+                  <ContactGrid items={sortedEmails} icon={Mail} />
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function ContactGrid({ items, icon: Icon }: { items: ContactLine[]; icon: typeof Phone }) {
+  return (
+    <ul className="grid gap-2 md:grid-cols-2">
+      {items.map((item) => (
+        <li key={item.key}>
+          <a
+            href={item.href}
+            className="group flex min-w-0 cursor-pointer items-start gap-2 rounded-md border border-border/60 bg-background px-3 py-2 transition hover:border-primary/40 hover:bg-accent/40"
+          >
+            <Icon className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground group-hover:text-foreground" />
+            <span className="min-w-0 flex-1">
+              <span className="block truncate text-[13px] font-normal text-foreground group-hover:underline">
+                {item.display}
+              </span>
+              {item.description && (
+                <span className="block truncate text-[11px] text-muted-foreground">
+                  {item.description}
+                </span>
+              )}
+            </span>
+          </a>
+        </li>
+      ))}
+    </ul>
   );
 }
 
