@@ -141,12 +141,12 @@ function ClientDetailPage() {
               </div>
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
-                  {client.group ? (
+                  {groupCode ? (
                     <Link
                       to="/clientes"
-                      search={{ grupo: client.group }}
+                      search={{ grupo: groupCode }}
                       className="cursor-pointer text-sm font-medium text-primary hover:underline"
-                      title={`Ver empresas do grupo ${client.group}`}
+                      title={`Ver empresas do grupo ${groupCode}`}
                     >
                       {client.acronym}
                     </Link>
@@ -156,39 +156,49 @@ function ClientDetailPage() {
                   <Badge className="bg-emerald-500/12 text-emerald-600 dark:text-emerald-400">
                     {client.status}
                   </Badge>
-                  {client.group && (
-                    <Button
-                      asChild
-                      variant="outline"
-                      size="sm"
-                      title="Exibir empresas deste grupo"
-                      className="h-7 cursor-pointer gap-1.5 rounded-full border-primary/30 px-2.5 text-[11.5px] font-medium text-primary hover:bg-primary/10"
-                    >
-                      <Link to="/clientes" search={{ grupo: client.group }}>
-                        <Network className="h-3.5 w-3.5" />
-                        Ver empresas do grupo {client.group}
-                      </Link>
-                    </Button>
+                  {groupCode && (
+                    <>
+                      <Button
+                        asChild
+                        variant="outline"
+                        size="sm"
+                        title="Exibir empresas deste grupo"
+                        className="h-7 cursor-pointer gap-1.5 rounded-full border-primary/30 px-2.5 text-[11.5px] font-medium text-primary hover:bg-primary/10"
+                      >
+                        <Link to="/clientes" search={{ grupo: groupCode }}>
+                          <Network className="h-3.5 w-3.5" />
+                          Ver empresas do grupo {groupCode}
+                        </Link>
+                      </Button>
+                      {groupMembersCount > 0 && (
+                        <Badge
+                          variant="outline"
+                          className="h-6 rounded-full border-primary/30 px-2 text-[11px] font-medium text-primary"
+                        >
+                          {groupMembersCount} {groupMembersCount === 1 ? "empresa" : "empresas"}
+                        </Badge>
+                      )}
+                    </>
                   )}
                 </div>
 
                 <h2 className="mt-1 truncate text-xl font-medium">
-                  {client.group ? (
+                  {groupCode ? (
                     <>
                       <Link
                         to="/clientes"
-                        search={{ grupo: client.group }}
+                        search={{ grupo: groupCode }}
                         className="cursor-pointer hover:underline"
                       >
                         {client.razaoSocial}
                       </Link>{" "}
                       <Link
                         to="/clientes"
-                        search={{ grupo: client.group }}
+                        search={{ grupo: groupCode }}
                         className="cursor-pointer text-primary hover:underline"
-                        title={`Ver empresas do grupo ${client.group}`}
+                        title={`Ver empresas do grupo ${groupCode}`}
                       >
-                        ({client.group})
+                        ({groupCode})
                       </Link>
                     </>
                   ) : (
@@ -198,6 +208,8 @@ function ClientDetailPage() {
                 <p className="text-sm text-muted-foreground">{client.fantasia}</p>
               </div>
             </div>
+
+
 
             <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm lg:grid-cols-4">
               <Summary label="Atendimento" value={client.city || "Nao informado"} />
