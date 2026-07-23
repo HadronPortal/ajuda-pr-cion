@@ -762,6 +762,70 @@ function NewTicketPage() {
           </Card>
         </aside>
       </form>
+
+      <Dialog
+        open={addContact.open}
+        onOpenChange={(open) => {
+          if (!open && !addContact.saving) setAddContact(initialAddContact);
+        }}
+      >
+        <DialogContent className="sm:max-w-[420px]">
+          <DialogHeader>
+            <DialogTitle>
+              {addContact.kind === "email" ? "Novo e-mail" : "Novo telefone"}
+            </DialogTitle>
+            <DialogDescription>
+              O contato será vinculado a {client?.fantasia || client?.razaoSocial || "esta empresa"}.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid gap-3 py-2">
+            <div>
+              <Label className="mb-1.5 block text-[12px] font-medium">Nome do contato</Label>
+              <Input
+                value={addContact.name}
+                onChange={(e) => setAddContact((prev) => ({ ...prev, name: e.target.value }))}
+                placeholder="Nome ou descrição"
+                className="h-10 rounded-xl"
+              />
+            </div>
+            <div>
+              <Label className="mb-1.5 block text-[12px] font-medium">
+                {addContact.kind === "email" ? "E-mail" : "Telefone"}
+              </Label>
+              <Input
+                type={addContact.kind === "email" ? "email" : "tel"}
+                value={addContact.value}
+                onChange={(e) => setAddContact((prev) => ({ ...prev, value: e.target.value }))}
+                placeholder={
+                  addContact.kind === "email" ? "email@empresa.com" : "(00) 00000-0000"
+                }
+                className="h-10 rounded-xl"
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              className="rounded-xl cursor-pointer"
+              onClick={() => setAddContact(initialAddContact)}
+              disabled={addContact.saving}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              className="rounded-xl cursor-pointer"
+              onClick={handleSaveNewContact}
+              disabled={addContact.saving || !addContact.value.trim()}
+            >
+              {addContact.saving ? "Salvando..." : "Salvar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AppShell>
   );
 }
