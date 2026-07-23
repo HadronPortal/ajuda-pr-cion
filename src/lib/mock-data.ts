@@ -93,11 +93,14 @@ export const kanbanColumns = [
   },
 ];
 
-export const clients = [
-  { id: "c1", name: "Vega Distribuidora", segment: "Atacado", plan: "Enterprise", status: "Ativo", contact: "compras@vega.com.br", since: "2019" },
-  { id: "c2", name: "Alpha Comércio", segment: "Varejo", plan: "Business", status: "Ativo", contact: "ti@alpha.com.br", since: "2021" },
-  { id: "c3", name: "Órion Serviços", segment: "Serviços", plan: "Starter", status: "Trial", contact: "contato@orion.com.br", since: "2026" },
-  { id: "c4", name: "Nébula Indústria", segment: "Indústria", plan: "Enterprise", status: "Ativo", contact: "sistemas@nebula.com.br", since: "2017" },
-  { id: "c5", name: "Cetus Logística", segment: "Logística", plan: "Business", status: "Inativo", contact: "adm@cetus.com.br", since: "2020" },
-  { id: "c6", name: "Lyra Farmácias", segment: "Varejo", plan: "Business", status: "Ativo", contact: "ti@lyra.com.br", since: "2022" },
-];
+// Empresas foram removidas dos mocks. Use useClients() de src/lib/clients-store.ts
+// para consumir a lista real de clientes do Supabase.
+export const clients: Array<{
+  id: string;
+  name: string;
+  segment: string;
+  plan: string;
+  status: string;
+  contact: string;
+  since: string;
+}> = [];
