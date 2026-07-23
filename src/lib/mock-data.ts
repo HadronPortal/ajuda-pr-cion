@@ -32,7 +32,7 @@ export const latestVersions = [
 export const recentTasks = [
   { id: "t1", title: "Revisar manual do módulo Fiscal", project: "Base de Conhecimento", status: "Em andamento", due: "Hoje", assignee: "AR" },
   { id: "t2", title: "Publicar release notes 2026.3.1", project: "Versões", status: "Aguardando", due: "Amanhã", assignee: "BL" },
-  { id: "t3", title: "Atender chamado #4821 - Cliente Vega", project: "Suporte", status: "Em andamento", due: "Hoje", assignee: "MS" },
+  { id: "t3", title: "Atender chamados da fila de suporte", project: "Suporte", status: "Em andamento", due: "Hoje", assignee: "MS" },
   { id: "t4", title: "Atualizar artigo sobre NF-e 4.00", project: "Base de Conhecimento", status: "Concluído", due: "Ontem", assignee: "RT" },
 ];
 
