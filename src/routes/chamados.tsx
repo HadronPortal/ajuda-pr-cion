@@ -1028,9 +1028,9 @@ function TicketCard({
               {ticket.subject}
             </p>
             <p className="mt-0.5 truncate text-[11.5px] text-muted-foreground">
-              <span className="font-semibold text-foreground">{ticket.clientCode}</span>
+              <span className="font-semibold text-foreground">{ticket.clientCode || "—"}</span>
               {" · "}
-              {ticket.clientName}
+              {ticket.clientName || "Cliente não vinculado"}
             </p>
           </div>
         </div>
@@ -1534,10 +1534,10 @@ function TicketsListView({
 
                   <div className="min-w-0">
                     <div className="truncate text-[12.5px] text-foreground">
-                      {ticket.clientCode}
+                      {ticket.clientCode || "—"}
                     </div>
                     <div className="truncate text-[11.5px] text-muted-foreground">
-                      {ticket.clientName}
+                      {ticket.clientName || "Cliente não vinculado"}
                     </div>
                   </div>
 
@@ -1633,8 +1633,8 @@ function TicketsListView({
               {ticket.subject}
             </p>
             <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
-              <span className="font-semibold text-foreground">{ticket.clientCode}</span> ·{" "}
-              {ticket.clientName}
+              <span className="font-semibold text-foreground">{ticket.clientCode || "—"}</span> ·{" "}
+              {ticket.clientName || "Cliente não vinculado"}
             </p>
             <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
               <div className="truncate">

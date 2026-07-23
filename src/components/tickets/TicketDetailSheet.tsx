@@ -363,11 +363,11 @@ export function TicketDetailSheet({
               }
               meta={
                 <span className="inline-flex items-center gap-1">
-                  <span className="font-semibold text-primary">{ticket.clientCode}</span>
+                  <span className="font-semibold text-primary">{ticket.clientCode || "—"}</span>
                   <span aria-hidden className="text-border">
                     ·
                   </span>
-                  <span className="truncate text-foreground">{ticket.clientName}</span>
+                  <span className="truncate text-foreground">{ticket.clientName || "Cliente não vinculado"}</span>
                 </span>
               }
             />
@@ -570,7 +570,7 @@ export function TicketDetailSheet({
                       const clientExists = clientRows.some((c) => c.id === clientSlug);
                       const nameNode = (
                         <p className="text-[13.5px] font-semibold text-foreground truncate">
-                          {ticket.clientName}
+                          {ticket.clientName || "Cliente não vinculado"}
                         </p>
                       );
                       return clientExists ? (
@@ -581,7 +581,7 @@ export function TicketDetailSheet({
                           onClick={() => snapshotCurrentChamadosForTicket(ticket.id)}
                           className="block cursor-pointer rounded-sm transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                           title="Ver detalhes do cliente"
-                          aria-label={`Ver detalhes do cliente ${ticket.clientName}`}
+                          aria-label={`Ver detalhes do cliente ${ticket.clientName || "Cliente não vinculado"}`}
                         >
                           {nameNode}
                         </Link>
@@ -594,7 +594,7 @@ export function TicketDetailSheet({
                       {mock.city} - {mock.uf}
                     </p>
                     <p className="mt-0.5 text-[11px] text-muted-foreground">
-                      Código {ticket.clientCode}
+                      Código {ticket.clientCode || "—"}
                     </p>
                   </Section>
 
@@ -905,9 +905,9 @@ function CloseTicketDialog({
           }
           meta={
             <span className="inline-flex items-center gap-1">
-              <span className="font-semibold text-primary">{ticket.clientCode}</span>
+              <span className="font-semibold text-primary">{ticket.clientCode || "—"}</span>
               <span aria-hidden className="text-border">·</span>
-              <span className="truncate text-foreground">{ticket.clientName}</span>
+              <span className="truncate text-foreground">{ticket.clientName || "Cliente não vinculado"}</span>
             </span>
           }
         />
@@ -1325,7 +1325,7 @@ function TicketPastAttendancesSidePanel({
           <h3 className="text-[13px] font-medium text-foreground">Histórico</h3>
           <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1">
             <p className="min-w-0 truncate text-[11px] text-muted-foreground">
-              Cliente {ticket.clientCode}
+              Cliente {ticket.clientCode || "—"}
             </p>
             <Badge
               className={cn(
