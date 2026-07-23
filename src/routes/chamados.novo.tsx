@@ -281,6 +281,7 @@ function NewTicketPage() {
 
   const requiredMissing =
     !form.clientId ||
+    (companies.length > 0 && !form.companyId) ||
     !form.contactName.trim() ||
     !form.emailValue.trim() ||
     !form.phoneValue.trim() ||
@@ -292,6 +293,7 @@ function NewTicketPage() {
     setForm((prev) => ({
       ...prev,
       clientId: c.id,
+      companyId: "",
       emailContactId: "",
       emailValue: "",
       phoneContactId: "",
@@ -382,7 +384,14 @@ function NewTicketPage() {
       description:
         `${form.description}\n\n` +
         `Tipo: ${form.type}. Operador: ${form.operator}. ` +
-        `Contato: ${form.emailValue} · ${form.phoneValue}.`,
+        `Contato: ${form.emailValue} · ${form.phoneValue}.` +
+        (selectedCompany
+          ? `\nEmpresa: ${selectedCompany.companyNumber ? String(selectedCompany.companyNumber).padStart(3, "0") + " · " : ""}${selectedCompany.tradeName || selectedCompany.legalName}${selectedCompany.document ? " · " + selectedCompany.document : ""}`
+          : ""),
+      companyId: selectedCompany?.id ?? null,
+      companyNumber: selectedCompany?.companyNumber ?? null,
+      companyName: selectedCompany?.tradeName || selectedCompany?.legalName || undefined,
+      companyDocument: selectedCompany?.document || undefined,
     });
     toast.success("Chamado criado", {
       description: `${ticket.protocol} foi adicionado na fila de suporte.`,
