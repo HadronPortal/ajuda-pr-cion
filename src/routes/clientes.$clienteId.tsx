@@ -13,14 +13,14 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ClientTab,
-  HadronTab,
-  UsersTab,
-  TerminalsTab,
-  CompaniesTab,
+  ClientHadronTab,
+  ClientUsersTab,
+  ClientTerminalsTab,
+  ClientCompaniesTab,
   Summary,
 } from "./clientes.index";
 import { getClientDetail } from "@/lib/clients-api";
-import { normalizeCityUf, normalizeCityName } from "@/lib/br-city";
+import { normalizeCityUf } from "@/lib/br-city";
 
 const tabs = ["cliente", "hadron", "usuarios", "terminais", "empresas"] as const;
 type TabValue = (typeof tabs)[number];
@@ -67,10 +67,9 @@ export const Route = createFileRoute("/clientes/$clienteId")({
 });
 
 function ClientDetailPage() {
-  const { client, contacts, companies } = Route.useLoaderData();
+  const { client, contacts, companies, users, terminals, modules, tickets, events } = Route.useLoaderData();
   const { tab, from, ticketId } = Route.useSearch();
   const navigate = useNavigate();
-  const isAvc = client.id === "avc";
   const [historyOpen, setHistoryOpen] = useState(false);
   const showReturnToTicket = from === "chamado" && !!ticketId;
 
@@ -148,12 +147,9 @@ function ClientDetailPage() {
             </div>
 
             <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm lg:grid-cols-4">
-              <Summary label="Atendimento" value={normalizeCityName("Sao Carlos")} />
-              <Summary label="Versao Hadron" value={isAvc ? "02/07/2026" : client.version} />
-              <Summary
-                label="Atualizacao"
-                value={isAvc ? "09/07/2026 09:14" : client.updated}
-              />
+              <Summary label="Atendimento" value={client.city || "Nao informado"} />
+              <Summary label="Versao Hadron" value={client.version || "Nao informada"} />
+              <Summary label="Atualizacao" value={client.updated || "Nao informada"} />
               <Summary label="Cidade" value={normalizeCityUf(client.city)} />
             </div>
           </div>
@@ -203,19 +199,19 @@ function ClientDetailPage() {
 
           <div className="bg-muted/10 p-6">
             <TabsContent value="cliente" className="m-0 space-y-5">
-              <ClientTab client={client} contacts={contacts} companies={companies} />
+              <ClientTab client={client} contacts={contacts} companies={companies} tickets={tickets} events={events} />
             </TabsContent>
             <TabsContent value="hadron" className="m-0 space-y-5">
-              <HadronTab />
+              <ClientHadronTab client={client} modules={modules} terminals={terminals} />
             </TabsContent>
             <TabsContent value="usuarios" className="m-0">
-              <UsersTab />
+              <ClientUsersTab users={users} />
             </TabsContent>
             <TabsContent value="terminais" className="m-0">
-              <TerminalsTab />
+              <ClientTerminalsTab terminals={terminals} />
             </TabsContent>
             <TabsContent value="empresas" className="m-0">
-              <CompaniesTab />
+              <ClientCompaniesTab client={client} companies={companies} terminals={terminals} />
             </TabsContent>
           </div>
         </Tabs>

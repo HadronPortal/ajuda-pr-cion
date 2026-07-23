@@ -37,10 +37,76 @@ export type ClientCompany = {
   accountantEmail: string;
 };
 
+export type ClientHadronUser = {
+  id: string;
+  name: string;
+  email: string;
+  operator: string;
+  role: string;
+  active: boolean;
+  updatedAt: string;
+};
+
+export type ClientTerminal = {
+  id: string;
+  companyNumber: number | null;
+  terminalNumber: number | null;
+  ipAddress: string;
+  installPath: string;
+  version: string;
+  versionDate: string;
+  operatingSystem: string;
+  operatingSystemVersion: string;
+  emitsNfe: boolean | null;
+  notesIssued: number;
+  memoryUsed: string;
+  memoryTotal: string;
+  certificateType: string;
+  certificateExpiresAt: string;
+  environment: string;
+  drives: unknown[];
+  registeredAt: string;
+  updatedAt: string;
+};
+
+export type ClientModule = {
+  id: string;
+  name: string;
+  contracted: boolean;
+  version: string;
+};
+
+export type ClientTicket = {
+  id: string;
+  protocol: string;
+  subject: string;
+  module: string;
+  submodule: string;
+  operator: string;
+  priority: string;
+  status: string;
+  createdAt: string;
+};
+
+export type ClientEvent = {
+  id: string;
+  title: string;
+  startsAt: string;
+  endsAt: string;
+  operator: string;
+  status: string;
+  ticketProtocol: string;
+};
+
 export type ClientDetail = {
   client: ClientRow;
   contacts: ClientContact[];
   companies: ClientCompany[];
+  users: ClientHadronUser[];
+  terminals: ClientTerminal[];
+  modules: ClientModule[];
+  tickets: ClientTicket[];
+  events: ClientEvent[];
 };
 
 const industryLabels: Record<string, string> = {
@@ -158,5 +224,85 @@ export async function getClientDetail(acronym: string): Promise<ClientDetail | n
     }),
   );
 
-  return { client: mapDatabaseClient(data.client), contacts, companies };
+  const users = (Array.isArray(data.users) ? data.users : []).map(
+    (user: Record<string, unknown>): ClientHadronUser => ({
+      id: String(user.id || ""),
+      name: String(user.name || ""),
+      email: String(user.email || ""),
+      operator: String(user.operator || ""),
+      role: String(user.role || ""),
+      active: user.active !== false,
+      updatedAt: date(user.crm_updated_at || user.crm_created_at, true),
+    }),
+  );
+
+  const terminals = (Array.isArray(data.terminals) ? data.terminals : []).map(
+    (terminal: Record<string, unknown>): ClientTerminal => ({
+      id: String(terminal.id || ""),
+      companyNumber: typeof terminal.company_number === "number" ? terminal.company_number : null,
+      terminalNumber: typeof terminal.terminal_number === "number" ? terminal.terminal_number : null,
+      ipAddress: String(terminal.ip_address || ""),
+      installPath: String(terminal.install_path || ""),
+      version: String(terminal.hadron_version || ""),
+      versionDate: date(terminal.version_released_at),
+      operatingSystem: String(terminal.operating_system || ""),
+      operatingSystemVersion: String(terminal.operating_system_version || ""),
+      emitsNfe: typeof terminal.emits_nfe === "boolean" ? terminal.emits_nfe : null,
+      notesIssued: Number(terminal.notes_issued || 0),
+      memoryUsed: String(terminal.memory_used_mb ?? ""),
+      memoryTotal: String(terminal.memory_total_mb ?? ""),
+      certificateType: String(terminal.certificate_type || ""),
+      certificateExpiresAt: date(terminal.certificate_expires_at),
+      environment: String(terminal.environment || ""),
+      drives: Array.isArray(terminal.drives) ? terminal.drives : [],
+      registeredAt: date(terminal.registered_at, true),
+      updatedAt: date(terminal.updated_at, true),
+    }),
+  );
+
+  const modules = (Array.isArray(data.modules) ? data.modules : []).map(
+    (module: Record<string, unknown>): ClientModule => ({
+      id: String(module.id || ""),
+      name: String(module.name || ""),
+      contracted: module.contracted !== false,
+      version: String(module.version || ""),
+    }),
+  );
+
+  const tickets = (Array.isArray(data.tickets) ? data.tickets : []).map(
+    (ticket: Record<string, unknown>): ClientTicket => ({
+      id: String(ticket.id || ""),
+      protocol: String(ticket.protocol || ""),
+      subject: String(ticket.subject || ""),
+      module: String(ticket.module || ""),
+      submodule: String(ticket.submodule || ""),
+      operator: String(ticket.operator || ""),
+      priority: String(ticket.priority || ""),
+      status: String(ticket.status || ""),
+      createdAt: date(ticket.created_at, true),
+    }),
+  );
+
+  const events = (Array.isArray(data.events) ? data.events : []).map(
+    (event: Record<string, unknown>): ClientEvent => ({
+      id: String(event.id || ""),
+      title: String(event.title || ""),
+      startsAt: date(event.starts_at, true),
+      endsAt: date(event.ends_at, true),
+      operator: String(event.operator || ""),
+      status: String(event.status || ""),
+      ticketProtocol: String(event.ticket_protocol || ""),
+    }),
+  );
+
+  return {
+    client: mapDatabaseClient(data.client),
+    contacts,
+    companies,
+    users,
+    terminals,
+    modules,
+    tickets,
+    events,
+  };
 }

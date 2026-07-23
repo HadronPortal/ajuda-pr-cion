@@ -39,7 +39,15 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { listClients } from "@/lib/clients-api";
-import type { ClientCompany, ClientContact } from "@/lib/clients-api";
+import type {
+  ClientCompany,
+  ClientContact,
+  ClientEvent,
+  ClientHadronUser,
+  ClientModule,
+  ClientTerminal,
+  ClientTicket,
+} from "@/lib/clients-api";
 import { normalizeCityUf } from "@/lib/br-city";
 import { supabase } from "@/lib/supabase";
 
@@ -1148,14 +1156,22 @@ function contactDescription(contact: ClientContact) {
   return [contact.name, contact.department].filter(Boolean).join(" / ") || "Sem identificacao";
 }
 
+function EmptyState({ text }: { text: string }) {
+  return <p className="rounded-md border border-dashed border-border p-5 text-sm text-muted-foreground">{text}</p>;
+}
+
 export function ClientTab({
   client,
   contacts,
   companies,
+  tickets,
+  events,
 }: {
   client: ClientRow;
   contacts: ClientContact[];
   companies: ClientCompany[];
+  tickets: ClientTicket[];
+  events: ClientEvent[];
 }) {
   const company = companies[0];
   const contactItems = contacts.flatMap((contact) => {
@@ -1234,7 +1250,7 @@ export function ClientTab({
             <Field label="E-mail" value="FISCALMARQUESSANTOS2011@GMAIL.COM" />
           </div>
         </Section>
-        <Section title="Proximo evento" icon={CalendarDays}>
+        {false && <Section title="Proximo evento" icon={CalendarDays}>
           <div className="rounded-md border border-border p-4">
             <div className="flex items-center justify-between gap-3">
               <div>
@@ -1249,53 +1265,61 @@ export function ClientTab({
               Chamado relacionado: PRC-1778502127
             </p>
           </div>
-        </Section>
+        </Section>}
+        <ClientNextEvent events={events} />
       </div>
       <Section title="Historico de suporte" icon={HardDrive} titleClassName="text-[16px] font-normal">
-        <SupportRows />
+        <SupportRows tickets={tickets} />
       </Section>
     </>
   );
 }
 
-function SupportRows() {
+function ClientNextEvent({ events }: { events: ClientEvent[] }) {
+  const event = events[0];
+
+  return (
+    <Section title="Proximo evento" icon={CalendarDays}>
+      {event ? (
+        <div className="rounded-md border border-border p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="font-medium">{event.title}</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {[event.startsAt, event.operator].filter(Boolean).join(" - ")}
+              </p>
+            </div>
+            <Badge className="bg-emerald-500/12 text-emerald-600">
+              {event.status || "Agendado"}
+            </Badge>
+          </div>
+          {event.ticketProtocol && (
+            <p className="mt-3 text-xs text-muted-foreground">
+              Chamado relacionado: {event.ticketProtocol}
+            </p>
+          )}
+        </div>
+      ) : (
+        <EmptyState text="Nenhum evento encontrado para este cliente." />
+      )}
+    </Section>
+  );
+}
+
+function SupportRows({ tickets }: { tickets: ClientTicket[] }) {
+  if (!tickets.length) return <EmptyState text="Nenhum chamado encontrado para este cliente." />;
   return (
     <div className="divide-y divide-border rounded-md border border-border">
-      {[
-        [
-          "CONFIGURACAO DE IMPRESSORA",
-          "BASICO - TERCEIROS",
-          "PRCREN",
-          "Baixa",
-          "11/05/2026",
-          "PRC-1778502127",
-        ],
-        [
-          "NOTA FISCAL NAO AUTORIZADA",
-          "VENDAS - NFE",
-          "PRCSUZ",
-          "Media",
-          "28/05/2026",
-          "PRC-1779945138",
-        ],
-        [
-          "AJUSTE FINANCEIRO",
-          "FINANCEIRO - CONTAS A PAGAR",
-          "PRCMAR",
-          "Alta",
-          "02/07/2026",
-          "PRC-1782011845",
-        ],
-      ].map((row) => (
+      {tickets.map((ticket) => (
         <div
-          key={row[5]}
+          key={ticket.id}
           className="grid items-center gap-3 px-4 py-2 sm:grid-cols-[1.4fr_1.2fr_.6fr_.5fr_.7fr_auto]"
         >
-          <span className="text-[13px] font-normal">{row[0]}</span>
-          <span className="text-[12px] text-muted-foreground">{row[1]}</span>
-          <span className="text-[12px]">{row[2]}</span>
-          <span className="text-[12px]">{row[3]}</span>
-          <span className="text-[12px]">{row[4]}</span>
+          <span className="text-[13px] font-normal">{ticket.subject}</span>
+          <span className="text-[12px] text-muted-foreground">{[ticket.module, ticket.submodule].filter(Boolean).join(" - ")}</span>
+          <span className="text-[12px]">{ticket.operator || "-"}</span>
+          <span className="text-[12px]">{ticket.priority || "-"}</span>
+          <span className="text-[12px]">{ticket.createdAt}</span>
           <Button variant="ghost" size="sm" className="h-7 px-2 text-[12px] font-normal">
             Ver
           </Button>
@@ -1448,6 +1472,148 @@ export function CompaniesTab() {
     </Section>
   );
 }
+
+export function ClientHadronTab({
+  client,
+  modules,
+  terminals,
+}: {
+  client: ClientRow;
+  modules: ClientModule[];
+  terminals: ClientTerminal[];
+}) {
+  const contracted = modules.filter((item) => item.contracted);
+  const unavailable = modules.filter((item) => !item.contracted);
+  const terminal = terminals[0];
+  return (
+    <>
+      <Section title="Ambiente Hadron" icon={Database}>
+        <div className="grid gap-5 md:grid-cols-3">
+          <Field label="Cliente" value={client.acronym} />
+          <Field label="Versao" value={terminal?.version || client.version || "Nao informada"} />
+          <Field label="Terminais" value={String(terminals.length)} />
+          <Field label="Sistema operacional" value={terminal?.operatingSystem || "Nao informado"} />
+          <Field label="Emite NF-e" value={terminal?.emitsNfe == null ? "Nao informado" : terminal.emitsNfe ? "Sim" : "Nao"} />
+          <Field label="Ambiente" value={terminal?.environment || "Nao informado"} />
+        </div>
+      </Section>
+      <div className="grid gap-5 xl:grid-cols-2">
+        <Section title="Modulos adquiridos" icon={CheckCircle2}>
+          {contracted.length ? (
+            <div className="grid gap-1.5 sm:grid-cols-2">
+              {contracted.map((item) => (
+                <div key={item.id} className="flex items-center gap-2 px-1 py-1.5 text-sm">
+                  <Check className="h-4 w-4 text-emerald-500" />
+                  <span>{item.name}</span>
+                </div>
+              ))}
+            </div>
+          ) : <EmptyState text="Nenhum modulo contratado cadastrado." />}
+        </Section>
+        <Section title="Modulos nao contratados" icon={Database}>
+          {unavailable.length ? (
+            <div className="grid gap-1.5 sm:grid-cols-2">
+              {unavailable.map((item) => (
+                <div key={item.id} className="flex items-center gap-2 px-1 py-1.5 text-sm text-muted-foreground">
+                  <X className="h-4 w-4 text-red-500" />
+                  <span>{item.name}</span>
+                </div>
+              ))}
+            </div>
+          ) : <EmptyState text="Nenhum modulo nao contratado cadastrado." />}
+        </Section>
+      </div>
+    </>
+  );
+}
+
+export function ClientUsersTab({ users }: { users: ClientHadronUser[] }) {
+  return (
+    <Section title="Usuarios do portal" icon={UsersRound}>
+      {users.length ? (
+        <DataTable
+          headers={["Nome", "E-mail", "Operador", "Perfil", "Status", "Cadastro / atualizacao"]}
+          rows={users.map((user) => [
+            user.name,
+            user.email,
+            user.operator || "-",
+            user.role || "-",
+            user.active ? "Ativo" : "Inativo",
+            user.updatedAt || "-",
+          ])}
+        />
+      ) : <EmptyState text="Nenhum usuario vinculado a este cliente." />}
+    </Section>
+  );
+}
+
+export function ClientTerminalsTab({ terminals }: { terminals: ClientTerminal[] }) {
+  return (
+    <Section title="Terminais instalados" icon={Monitor}>
+      {terminals.length ? (
+        <DataTable
+          headers={["Terminal", "IP", "Pasta", "Versao", "Sistema", "Atualizacao"]}
+          rows={terminals.map((terminal) => [
+            terminal.terminalNumber == null ? "-" : String(terminal.terminalNumber),
+            terminal.ipAddress || "-",
+            terminal.installPath || "-",
+            terminal.version || "-",
+            [terminal.operatingSystem, terminal.operatingSystemVersion].filter(Boolean).join(" ") || "-",
+            terminal.updatedAt || "-",
+          ])}
+        />
+      ) : <EmptyState text="Nenhum terminal vinculado a este cliente." />}
+    </Section>
+  );
+}
+
+export function ClientCompaniesTab({
+  client,
+  companies,
+  terminals,
+}: {
+  client: ClientRow;
+  companies: ClientCompany[];
+  terminals: ClientTerminal[];
+}) {
+  if (!companies.length) return <Section title="Empresas vinculadas" icon={Server}><EmptyState text="Nenhuma empresa vinculada a este cliente." /></Section>;
+  return (
+    <Section title="Empresas vinculadas" icon={Server}>
+      <div className="space-y-5">
+        {companies.map((company) => {
+          const companyTerminals = terminals.filter((terminal) => terminal.companyNumber === company.companyNumber);
+          const terminal = companyTerminals[0];
+          const rows = [
+            ["Codigo / Empresa", `${String(company.companyNumber ?? "-").padStart(3, "0")} - ${company.tradeName || company.legalName}`],
+            ["CNPJ", company.document || "Nao informado"],
+            ["Terminais", String(companyTerminals.length)],
+            ["Versao", terminal?.version || client.version || "Nao informada"],
+            ["Sistema operacional", terminal?.operatingSystem || "Nao informado"],
+            ["Emite NF-e", terminal?.emitsNfe == null ? "Nao informado" : terminal.emitsNfe ? "Sim" : "Nao"],
+            ["Notas emitidas", terminal ? String(terminal.notesIssued) : "Nao informado"],
+            ["Memoria usada / total", terminal ? `${terminal.memoryUsed || "-"} / ${terminal.memoryTotal || "-"}` : "Nao informado"],
+            ["Tipo de certificado", terminal?.certificateType || "Nao informado"],
+            ["Validade do certificado", terminal?.certificateExpiresAt || "Nao informado"],
+            ["Ambiente", terminal?.environment || "Nao informado"],
+            ["Atualizado em", terminal?.updatedAt || client.updated || "Nao informado"],
+            ["Registrado em", terminal?.registeredAt || "Nao informado"],
+          ];
+          return (
+            <div key={company.id} className="grid divide-y divide-border border-y border-border sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-3">
+              {rows.map(([label, value]) => (
+                <div key={label} className="border-b border-r border-border px-4 py-3">
+                  <p className="text-sm text-foreground">{value}</p>
+                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</p>
+                </div>
+              ))}
+            </div>
+          );
+        })}
+      </div>
+    </Section>
+  );
+}
+
 function DataTable({ headers, rows }: { headers: string[]; rows: string[][] }) {
   return (
     <div className="overflow-x-auto rounded-md border border-border">
