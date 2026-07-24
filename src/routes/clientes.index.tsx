@@ -2130,19 +2130,42 @@ export function ClientDevicesTab({ internet }: { internet: ClientInternet }) {
   );
 }
 
+const HADRON_APP_CATALOG: { key: string; label: string; matches: (name: string, type: string) => boolean }[] = [
+  { key: "mobile", label: "Hádron Mobile", matches: (n, t) => /mobile/i.test(n) || /mobile/i.test(t) },
+  { key: "web", label: "Hádron Web", matches: (n, t) => /web/i.test(n) || /web/i.test(t) },
+  { key: "commerce", label: "Hádron Commerce", matches: (n, t) => /commerce|e-?commerce|loja/i.test(n) || /commerce/i.test(t) },
+  { key: "portal", label: "Hádron Portal B2B", matches: (n, t) => /portal|b2b/i.test(n) || /portal|b2b/i.test(t) },
+];
+
 export function ClientInternetTab({ internet }: { internet: ClientInternet }) {
-  const activeContracts = internet.contracts.filter((c) => c.active);
-  const activeApplications = internet.applications.filter((a) => a.active);
+  const contracts = internet.contracts;
+  const webContract = contracts.find((c) => c.active) ?? contracts[0];
+  const webUrl = webContract?.webUrl || contracts.map((c) => c.webUrl).find(Boolean) || "";
+
+  const catalog = HADRON_APP_CATALOG.map((item) => {
+    const match = internet.applications.find((app) => item.matches(app.name, app.appType));
+    return {
+      ...item,
+      contracted: !!(match && match.active),
+      version: match?.version || "",
+      updatedAt: match?.updatedAt || "",
+      status: match?.status || "",
+    };
+  });
+  const otherApps = internet.applications.filter(
+    (app) => !HADRON_APP_CATALOG.some((item) => item.matches(app.name, app.appType)),
+  );
 
   return (
     <div className="space-y-5">
-      <Section title={`Contrato Web (${activeContracts.length})`} icon={Server} accent="purple">
-        {activeContracts.length ? (
+      <Section title={`Contrato Web (${contracts.length})`} icon={Server}>
+        {contracts.length ? (
           <div className="space-y-3">
-            {activeContracts.map((contract) => {
+            {contracts.map((contract) => {
               const contractDevices = contract.devices.length
                 ? contract.devices
                 : internet.devices.filter((d) => d.contractLegacyId === contract.legacyId);
+              const isActive = contract.active;
               return (
                 <div
                   key={contract.id}
@@ -2161,60 +2184,65 @@ export function ClientInternetTab({ internet }: { internet: ClientInternet }) {
                     </div>
                     <Badge
                       variant="outline"
-                      className="border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                      className={
+                        isActive
+                          ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                          : "border-border bg-muted text-muted-foreground"
+                      }
                     >
-                      {contract.status || "Ativo"}
+                      {isActive ? "Ativo" : contract.status || "Inativo"}
                     </Badge>
                   </div>
                   <div className="grid gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
-                    <Field label="URL Web / Mobile" value={contract.webUrl || "Não informada"} />
-                    <Field label="Host" value={contract.serverHost || "Não informado"} />
-                    <Field label="Banco" value={contract.databaseName || "Não informado"} />
+                    <Field label="Identificação" value={contract.legacyId || contract.id || "—"} />
+                    <Field label="URL / Domínio" value={contract.webUrl || "Não informada"} />
+                    <Field label="Dispositivos vinculados" value={String(contractDevices.length)} />
                     <Field label="Início" value={contract.startsAt || "Não informado"} />
                     <Field label="Expira em" value={contract.expiresAt || "Não informado"} />
-                    <Field label="Dispositivos vinculados" value={String(contractDevices.length)} />
                   </div>
-                  {contractDevices.length > 0 && (
-                    <div className="mt-4 border-t border-border pt-3">
-                      <p className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-                        Dispositivos ({contractDevices.length})
-                      </p>
-                      <DataTable
-                        headers={["Utilizador", "Tipo", "Sistema", "Status", "UUID", "Ultima verificacao"]}
-                        rows={contractDevices.map((device) => [
-                          device.user || "-",
-                          deviceTypeLabel[device.type] || device.type || "-",
-                          device.system || "-",
-                          device.active ? "Ativo" : device.status || "Inativo",
-                          deviceUuidLabel(device.deviceUuid),
-                          device.lastCheckedAt || device.updatedAt || "-",
-                        ])}
-                      />
-                    </div>
-                  )}
                 </div>
               );
             })}
           </div>
         ) : (
-          <EmptyState text="Nenhum contrato web ativo." />
+          <EmptyState text="Nenhum contrato web encontrado." />
         )}
       </Section>
 
-      <Section title={`Hádron Web (${activeApplications.length})`} icon={Database} accent="purple">
-        {activeApplications.length ? (
-          <DataTable
-            headers={["Aplicativo", "Tipo", "Versão", "Status", "Atualização"]}
-            rows={activeApplications.map((app) => [
-              app.name || "-",
-              app.appType || "-",
-              app.version || "-",
-              app.active ? "Ativo" : app.status || "Inativo",
-              app.updatedAt || "-",
-            ])}
-          />
-        ) : (
-          <EmptyState text="Nenhum aplicativo habilitado neste contrato." />
+      <Section title="Hádron Web" icon={Database}>
+        {webUrl && (
+          <div className="mb-4 rounded-md border border-border bg-background px-4 py-3">
+            <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+              URL do Hádron Web
+            </p>
+            <p className="mt-0.5 truncate text-sm text-foreground">{webUrl}</p>
+          </div>
+        )}
+        <DataTable
+          headers={["Aplicação", "Situação", "Versão", "Atualização"]}
+          rows={catalog.map((app) => [
+            app.label,
+            app.contracted ? "Contratada" : "Não contratada",
+            app.version || "—",
+            app.updatedAt || "—",
+          ])}
+        />
+        {otherApps.length > 0 && (
+          <div className="mt-4">
+            <p className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+              Outras aplicações ({otherApps.length})
+            </p>
+            <DataTable
+              headers={["Aplicativo", "Tipo", "Versão", "Situação", "Atualização"]}
+              rows={otherApps.map((app) => [
+                app.name || "-",
+                app.appType || "-",
+                app.version || "-",
+                app.active ? "Contratada" : "Não contratada",
+                app.updatedAt || "-",
+              ])}
+            />
+          </div>
         )}
       </Section>
     </div>

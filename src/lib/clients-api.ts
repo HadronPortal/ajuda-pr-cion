@@ -387,8 +387,9 @@ export async function getClientDetail(acronym: string): Promise<ClientDetail | n
     }),
   );
 
+  const anyActiveContract = contracts.some((c) => c.active);
   const internet: ClientInternet = {
-    hasActiveContract: internetData.has_active_contract === true,
+    hasActiveContract: internetData.has_active_contract === true || anyActiveContract,
     hasDevices: internetData.has_devices === true || devices.length > 0,
     devices,
     contracts,
