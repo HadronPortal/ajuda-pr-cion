@@ -17,8 +17,16 @@ import {
   ClientUsersTab,
   ClientTerminalsTab,
   ClientCompaniesTab,
-  Summary,
 } from "./clientes.index";
+
+function MiniSummary({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-[#e6e9f8] bg-card px-3 py-2 shadow-sm dark:border-border">
+      <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
+      <p className="mt-0.5 truncate text-[13px] font-medium text-foreground" title={value}>{value}</p>
+    </div>
+  );
+}
 
 import { getClientDetail } from "@/lib/clients-api";
 import { normalizeCityUf } from "@/lib/br-city";
@@ -97,49 +105,67 @@ function ClientDetailPage() {
     });
   };
 
+  const breadcrumbGroupLabel = groupCode || client.acronym;
   return (
     <AppShell>
       <Breadcrumbs
         items={[
           { label: "Clientes", to: "/clientes" },
-          { label: client.acronym },
+          groupCode
+            ? { label: breadcrumbGroupLabel, to: `/clientes?grupo=${groupCode}` }
+            : { label: client.acronym, to: "/clientes" },
+          { label: "Detalhes do cliente" },
         ]}
       />
-      <div className="mb-4 flex items-center gap-2">
-        <Button
-          asChild
-          variant="ghost"
-          size="icon"
-          className="cursor-pointer"
-          aria-label="Voltar para lista de clientes"
-        >
-          <Link to="/clientes">
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
-        </Button>
-        <span className="text-sm text-muted-foreground">Voltar para Clientes</span>
-        {showReturnToTicket && (
+      <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
+        <div className="flex items-center gap-2">
           <Button
             asChild
-            variant="outline"
-            size="sm"
-            className="ml-auto h-8 cursor-pointer rounded-lg"
+            variant="ghost"
+            size="icon"
+            className="cursor-pointer"
+            aria-label="Voltar para lista de clientes"
           >
-            <Link to="/chamados" search={{ ticket: ticketId }}>
-              <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
-              Voltar ao chamado
+            <Link to="/clientes">
+              <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
-        )}
+          <Link
+            to="/clientes"
+            className="cursor-pointer text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            Voltar para Clientes
+          </Link>
+          {showReturnToTicket && (
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="ml-2 h-8 cursor-pointer rounded-lg"
+            >
+              <Link to="/chamados" search={{ ticket: ticketId }}>
+                <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
+                Voltar ao chamado
+              </Link>
+            </Button>
+          )}
+        </div>
+
+        <div className="grid w-full grid-cols-2 gap-2 sm:w-auto sm:grid-cols-4">
+          <MiniSummary label="Atendimento" value={client.city || "Não informado"} />
+          <MiniSummary label="Versão Hádron" value={client.version || "Não informada"} />
+          <MiniSummary label="Atualização" value={client.updated || "Não informada"} />
+          <MiniSummary label="Cidade" value={normalizeCityUf(client.city) || "Não informada"} />
+        </div>
       </div>
 
 
-      <Card className="overflow-hidden border-border bg-background p-0">
-        <header className="border-b border-border px-7 py-5">
+      <Card className="overflow-hidden border-[#e6e9f8] bg-card p-0 shadow-sm dark:border-border">
+        <header className="border-b border-[#e6e9f8] px-7 py-5 dark:border-border">
           <div className="flex flex-wrap items-start justify-between gap-5">
             <div className="flex min-w-0 gap-4">
-              <div className="grid h-12 w-12 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
-                <Building2 className="h-6 w-6" />
+              <div className="grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-[#6c4cff] text-base font-semibold text-white shadow-[0_6px_16px_-6px_rgba(108,76,255,0.55)]">
+                {client.acronym.slice(0, 4).toUpperCase()}
               </div>
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
@@ -147,68 +173,43 @@ function ClientDetailPage() {
                     <Link
                       to="/clientes"
                       search={{ grupo: groupCode }}
-                      className="cursor-pointer text-sm font-medium text-primary hover:underline"
+                      className="cursor-pointer text-sm font-medium text-[#6c4cff] hover:underline"
                       title={`Ver clientes do grupo ${groupCode}`}
                     >
                       {client.acronym}
                     </Link>
                   ) : (
-                    <span className="text-sm font-medium text-primary">{client.acronym}</span>
+                    <span className="text-sm font-medium text-[#6c4cff]">{client.acronym}</span>
                   )}
-                  <Badge className="bg-emerald-500/12 text-emerald-600 dark:text-emerald-400">
+                  <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
                     {client.status}
                   </Badge>
-                  {groupCode && (
-                    <Button
-                      asChild
-                      variant="outline"
-                      size="sm"
-                      title="Ver clientes deste grupo"
-                      className="h-7 cursor-pointer gap-1.5 rounded-full border-primary/30 px-2.5 text-[11.5px] font-medium text-primary hover:bg-primary/10"
-                    >
-                      <Link to="/clientes" search={{ grupo: groupCode }}>
-                        <Network className="h-3.5 w-3.5" />
-                        Ver clientes do grupo {groupCode} ({groupMembersCount})
-                      </Link>
-                    </Button>
-                  )}
                 </div>
 
-                <h2 className="mt-1 truncate text-xl font-medium">
-                  {groupCode ? (
-                    <>
-                      <Link
-                        to="/clientes"
-                        search={{ grupo: groupCode }}
-                        className="cursor-pointer hover:underline"
-                      >
-                        {client.razaoSocial}
-                      </Link>{" "}
-                      <Link
-                        to="/clientes"
-                        search={{ grupo: groupCode }}
-                        className="cursor-pointer text-primary hover:underline"
-                        title={`Ver clientes do grupo ${groupCode}`}
-                      >
-                        ({groupCode})
-                      </Link>
-                    </>
-                  ) : (
-                    client.razaoSocial
-                  )}
+                <h2 className="mt-1 truncate text-xl font-semibold text-foreground">
+                  {client.razaoSocial}
                 </h2>
-                <p className="text-sm text-muted-foreground">{client.fantasia}</p>
+                <p className="text-sm text-muted-foreground">
+                  {client.fantasia}
+                  {groupCode ? <span className="ml-1 text-muted-foreground/80">· Grupo {groupCode}</span> : null}
+                </p>
               </div>
             </div>
 
-
-
-            <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm lg:grid-cols-4">
-              <Summary label="Atendimento" value={client.city || "Nao informado"} />
-              <Summary label="Versao Hadron" value={client.version || "Nao informada"} />
-              <Summary label="Atualizacao" value={client.updated || "Nao informada"} />
-              <Summary label="Cidade" value={normalizeCityUf(client.city)} />
-            </div>
+            {groupCode && (
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+                title="Ver clientes deste grupo"
+                className="h-9 cursor-pointer gap-1.5 rounded-full border-[#6c4cff]/30 bg-[#6c4cff]/5 px-3.5 text-[12.5px] font-medium text-[#6c4cff] hover:bg-[#6c4cff]/10"
+              >
+                <Link to="/clientes" search={{ grupo: groupCode }}>
+                  <Network className="h-3.5 w-3.5" />
+                  Ver clientes do grupo {groupCode} ({groupMembersCount})
+                </Link>
+              </Button>
+            )}
           </div>
         </header>
 

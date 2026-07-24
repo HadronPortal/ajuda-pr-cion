@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import {
@@ -18,6 +18,7 @@ import {
   Filter,
   RefreshCw,
   HardDrive,
+  MessageCircle,
   Monitor,
   Mail,
   Phone,
@@ -1178,21 +1179,40 @@ function Section({
   children,
   className,
   titleClassName,
+  accent = "primary",
+  action,
 }: {
   title: string;
   icon: typeof Building2;
   children: React.ReactNode;
   className?: string;
   titleClassName?: string;
+  accent?: "primary" | "purple";
+  action?: React.ReactNode;
 }) {
+  const isPurple = accent === "purple";
   return (
-    <Card className={cn("p-5", className)}>
-      <h3 className={cn("mb-4 flex items-center gap-2 font-medium", titleClassName)}>
-        <span className="grid h-8 w-8 place-items-center rounded-md bg-primary/10 text-primary">
-          <Icon className="h-4 w-4" />
-        </span>
-        {title}
-      </h3>
+    <Card
+      className={cn(
+        "p-5",
+        isPurple && "border-[#e6e9f8] shadow-sm dark:border-border",
+        className,
+      )}
+    >
+      <div className="mb-4 flex items-center justify-between gap-2">
+        <h3 className={cn("flex items-center gap-2 font-medium", titleClassName)}>
+          <span
+            className={cn(
+              "grid h-8 w-8 place-items-center rounded-md",
+              isPurple ? "bg-[#6c4cff]/10 text-[#6c4cff]" : "bg-primary/10 text-primary",
+            )}
+          >
+            <Icon className="h-4 w-4" />
+          </span>
+          {title}
+        </h3>
+        {action}
+      </div>
       {children}
     </Card>
   );
@@ -1282,17 +1302,20 @@ function ContactsCard({
   const total = phones.length + emails.length;
   const [open, setOpen] = useState(false);
   return (
-    <Card className="bg-card p-5 dark:bg-card">
+    <Card className="border-[#e6e9f8] bg-card p-5 shadow-sm dark:border-border dark:bg-card">
       <div className="mb-4 flex items-center justify-between gap-2">
         <h3 className="flex items-center gap-2 font-medium">
-          <span className="grid h-8 w-8 place-items-center rounded-md bg-primary/10 text-primary">
+          <span className="grid h-8 w-8 place-items-center rounded-md bg-[#6c4cff]/10 text-[#6c4cff]">
             <Phone className="h-4 w-4" />
           </span>
           Contatos
         </h3>
-        <span className="text-xs text-muted-foreground">
+        <Badge
+          variant="outline"
+          className="h-6 rounded-full border-[#6c4cff]/25 bg-[#6c4cff]/10 px-2.5 text-[11px] font-medium text-[#6c4cff]"
+        >
           {total} {total === 1 ? "contato" : "contatos"}
-        </span>
+        </Badge>
       </div>
       {total === 0 ? (
         <p className="text-sm text-muted-foreground">Nenhum contato cadastrado para este cliente.</p>
@@ -1318,10 +1341,11 @@ function ContactsCard({
                 type="button"
                 variant="outline"
                 size="sm"
-                className="cursor-pointer rounded-full px-4 text-xs font-medium"
+                className="cursor-pointer gap-1.5 rounded-full border-[#6c4cff]/25 px-4 text-xs font-medium text-[#6c4cff] hover:bg-[#6c4cff]/10 hover:text-[#6c4cff]"
                 onClick={() => setOpen(true)}
               >
                 Ver todos os {total} contatos
+                <ChevronRight className="h-3.5 w-3.5" />
               </Button>
             </div>
           )}
@@ -1567,19 +1591,19 @@ export function ClientTab({
     <>
       <div className="grid gap-5 xl:grid-cols-2">
         <ContactsCard contacts={contacts} client={client} />
-        <Section title="Empresa principal" icon={Building2}>
+        <Section title="Empresa principal" icon={Building2} accent="purple">
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Nome fantasia" value={company?.tradeName || client.fantasia || "Nao informado"} />
-            <Field label="CNPJ" value={company?.document || client.cnpj || "Nao informado"} />
+            <Field label="Nome fantasia" value={company?.tradeName || client.fantasia || "Não informado"} />
+            <Field label="CNPJ" value={company?.document || client.cnpj || "Não informado"} />
             <Field
               label="IE / CNAE"
-              value={[company?.stateRegistration, company?.cnae].filter(Boolean).join(" - ") || "Nao informado"}
+              value={[company?.stateRegistration, company?.cnae].filter(Boolean).join(" · ") || "Não informado"}
             />
-            <Field label="Regime" value={companyProfile || "Nao informado"} />
-            <Field label="Endereco" value={company?.address || "Nao informado"} />
+            <Field label="Regime" value={companyProfile || "Não informado"} />
+            <Field label="Endereço" value={company?.address || "Não informado"} />
             <Field
               label="Cidade"
-              value={[companyCity, company?.postalCode || client.cep].filter(Boolean).join(" - CEP ") || "Nao informado"}
+              value={[companyCity, company?.postalCode || client.cep].filter(Boolean).join(" · CEP ") || "Não informado"}
             />
           </div>
         </Section>
@@ -1588,17 +1612,17 @@ export function ClientTab({
       <CompaniesSummaryCard companies={companies} onOpen={onOpenCompanies} />
 
       <div className="grid gap-5 xl:grid-cols-3">
-        <Section title="Responsavel e contabilidade" icon={CircleUserRound}>
+        <Section title="Responsável e contabilidade" icon={CircleUserRound} accent="purple">
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Responsavel" value={company?.responsibleName || "Nao informado"} />
-            <Field label="Documento" value={company?.responsibleDocument || "Nao informado"} />
-            <Field label="Contador" value={company?.accountantName || "Nao informado"} />
-            <Field label="Telefone" value={company?.accountantPhone || "Nao informado"} />
-            <Field label="E-mail" value={company?.accountantEmail || "Nao informado"} />
+            <Field label="Responsável" value={company?.responsibleName || "Não informado"} />
+            <Field label="Documento" value={company?.responsibleDocument || "Não informado"} />
+            <Field label="Contador" value={company?.accountantName || "Não informado"} />
+            <Field label="Telefone" value={company?.accountantPhone || "Não informado"} />
+            <Field label="E-mail" value={company?.accountantEmail || "Não informado"} />
           </div>
         </Section>
         <ClientNextEvent events={events} />
-        <Section title="Historico de suporte" icon={HardDrive}>
+        <Section title="Histórico de suporte" icon={HardDrive} accent="purple">
           <SupportRowsCompact tickets={tickets} />
         </Section>
       </div>
@@ -1619,7 +1643,7 @@ function CompaniesSummaryCard({
     return co.companyNumber === 1;
   };
   return (
-    <Section title={`Empresas vinculadas (${companies.length})`} icon={Server}>
+    <Section title={`Empresas vinculadas (${companies.length})`} icon={Server} accent="purple">
       {companies.length === 0 ? (
         <EmptyState text="Nenhuma empresa vinculada a este cliente." />
       ) : (
@@ -1633,28 +1657,25 @@ function CompaniesSummaryCard({
                 key={company.id}
                 type="button"
                 onClick={onOpen}
-                className="flex w-full cursor-pointer items-center gap-3 rounded-md border border-border bg-background px-4 py-2.5 text-left transition-colors hover:border-primary/40 hover:bg-muted/40"
+                className="flex w-full cursor-pointer items-center gap-3 rounded-lg border border-[#e6e9f8] bg-card px-4 py-3 text-left transition-colors hover:border-[#6c4cff]/40 hover:bg-[#6c4cff]/5 dark:border-border"
               >
-                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-[#6c4cff]/10 text-[#6c4cff]">
                   <Server className="h-4 w-4" />
                 </span>
-                <span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
+                <span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">
                   <span className="font-mono text-[11px] text-muted-foreground">{number}</span>
                   <span className="truncate text-sm font-medium text-foreground">{title}</span>
                   <span className="text-xs text-muted-foreground">
                     {company.document || "CNPJ não informado"}
                   </span>
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      "h-5 rounded-full px-2 text-[10.5px] font-medium",
-                      principal
-                        ? "border-primary/30 bg-primary/10 text-primary"
-                        : "border-border text-muted-foreground",
-                    )}
-                  >
-                    {principal ? "Principal" : "Filial"}
-                  </Badge>
+                  {principal && (
+                    <Badge
+                      variant="outline"
+                      className="h-5 rounded-full border-[#6c4cff]/30 bg-[#6c4cff]/10 px-2 text-[10.5px] font-medium text-[#6c4cff]"
+                    >
+                      Principal
+                    </Badge>
+                  )}
                 </span>
                 <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
               </button>
@@ -1667,7 +1688,7 @@ function CompaniesSummaryCard({
                 variant="outline"
                 size="sm"
                 onClick={onOpen}
-                className="cursor-pointer rounded-full text-xs"
+                className="cursor-pointer rounded-full border-[#6c4cff]/25 text-xs text-[#6c4cff] hover:bg-[#6c4cff]/10 hover:text-[#6c4cff]"
               >
                 Ver todas as {companies.length} empresas
               </Button>
@@ -1680,13 +1701,29 @@ function CompaniesSummaryCard({
 }
 
 function SupportRowsCompact({ tickets }: { tickets: ClientTicket[] }) {
-  if (!tickets.length) return <EmptyState text="Nenhum chamado encontrado para este cliente." />;
+  if (!tickets.length) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-[#e6e9f8] bg-[#6c4cff]/[0.03] px-4 py-6 text-center dark:border-border dark:bg-transparent">
+        <span className="grid h-10 w-10 place-items-center rounded-full bg-[#6c4cff]/10 text-[#6c4cff]">
+          <MessageCircle className="h-5 w-5" />
+        </span>
+        <p className="text-xs text-muted-foreground">Nenhum chamado registrado para este cliente.</p>
+        <Button
+          asChild
+          size="sm"
+          className="h-8 cursor-pointer rounded-full bg-[#6c4cff] px-4 text-xs font-medium text-white hover:bg-[#5a3fe0]"
+        >
+          <Link to="/chamados/novo">Novo chamado</Link>
+        </Button>
+      </div>
+    );
+  }
   return (
     <ul className="space-y-2">
       {tickets.slice(0, 5).map((ticket) => (
         <li
           key={ticket.id}
-          className="rounded-md border border-border bg-background px-3 py-2"
+          className="rounded-md border border-[#e6e9f8] bg-card px-3 py-2 dark:border-border"
         >
           <p className="truncate text-[13px] font-medium text-foreground" title={ticket.subject}>
             {ticket.subject}
@@ -1708,17 +1745,17 @@ function ClientNextEvent({ events }: { events: ClientEvent[] }) {
   const event = events[0];
 
   return (
-    <Section title="Proximo evento" icon={CalendarDays}>
+    <Section title="Próximo evento" icon={CalendarDays} accent="purple">
       {event ? (
-        <div className="rounded-md border border-border p-4">
+        <div className="rounded-md border border-[#e6e9f8] p-4 dark:border-border">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="font-medium">{event.title}</p>
               <p className="mt-1 text-sm text-muted-foreground">
-                {[event.startsAt, event.operator].filter(Boolean).join(" - ")}
+                {[event.startsAt, event.operator].filter(Boolean).join(" · ")}
               </p>
             </div>
-            <Badge className="bg-emerald-500/12 text-emerald-600">
+            <Badge className="bg-emerald-500/15 text-emerald-600">
               {event.status || "Agendado"}
             </Badge>
           </div>
@@ -1729,7 +1766,19 @@ function ClientNextEvent({ events }: { events: ClientEvent[] }) {
           )}
         </div>
       ) : (
-        <EmptyState text="Nenhum evento encontrado para este cliente." />
+        <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-[#e6e9f8] bg-[#6c4cff]/[0.03] px-4 py-6 text-center dark:border-border dark:bg-transparent">
+          <span className="grid h-10 w-10 place-items-center rounded-full bg-[#6c4cff]/10 text-[#6c4cff]">
+            <CalendarDays className="h-5 w-5" />
+          </span>
+          <p className="text-xs text-muted-foreground">Nenhum evento agendado para este cliente.</p>
+          <Button
+            asChild
+            size="sm"
+            className="h-8 cursor-pointer rounded-full bg-[#6c4cff] px-4 text-xs font-medium text-white hover:bg-[#5a3fe0]"
+          >
+            <Link to="/calendario">Novo evento</Link>
+          </Button>
+        </div>
       )}
     </Section>
   );
