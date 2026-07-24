@@ -1589,12 +1589,13 @@ export function ClientTab({
   const companyProfile = [company?.industry || client.segment, company?.size || client.size, company?.taxRegime]
     .filter(Boolean)
     .join(" - ");
+  void onOpenCompanies;
   return (
-    <>
+    <div className="space-y-5">
       <div className="grid gap-5 xl:grid-cols-2">
         <ContactsCard contacts={contacts} client={client} />
         <Section title="Empresa principal" icon={Building2} accent="purple">
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-x-5 gap-y-4 sm:grid-cols-2">
             <Field label="Nome fantasia" value={company?.tradeName || client.fantasia || "Não informado"} />
             <Field label="CNPJ" value={company?.document || client.cnpj || "Não informado"} />
             <Field
@@ -1611,8 +1612,6 @@ export function ClientTab({
         </Section>
       </div>
 
-      <CompaniesSummaryCard companies={companies} onOpen={onOpenCompanies} />
-
       <div className="grid gap-5 xl:grid-cols-3">
         <Section title="Responsável e contabilidade" icon={CircleUserRound} accent="purple">
           <div className="grid gap-4 sm:grid-cols-2">
@@ -1628,7 +1627,9 @@ export function ClientTab({
           <SupportRowsCompact tickets={tickets} />
         </Section>
       </div>
-    </>
+
+      <CompaniesSummaryCard companies={companies} />
+    </div>
   );
 }
 
