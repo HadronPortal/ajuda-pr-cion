@@ -12,6 +12,7 @@
     "import:crm-json": "node scripts/import-crm-json.mjs",
     "import:crm-internet": "node scripts/import-crm-internet.mjs",
     "import:crm-auth": "node scripts/import-crm-auth.mjs",
+    "import:crm-client-params": "node scripts/import-crm-client-params.mjs",
     "import:crm-modules": "node scripts/import-crm-modules.mjs",
     "import:trello": "node scripts/import-trello-board.mjs",
     "lint": "eslint .",
