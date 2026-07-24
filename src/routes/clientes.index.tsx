@@ -1590,19 +1590,19 @@ export function ClientTab({
     <>
       <div className="grid gap-5 xl:grid-cols-2">
         <ContactsCard contacts={contacts} client={client} />
-        <Section title="Empresa principal" icon={Building2}>
+        <Section title="Empresa principal" icon={Building2} accent="purple">
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Nome fantasia" value={company?.tradeName || client.fantasia || "Nao informado"} />
-            <Field label="CNPJ" value={company?.document || client.cnpj || "Nao informado"} />
+            <Field label="Nome fantasia" value={company?.tradeName || client.fantasia || "Não informado"} />
+            <Field label="CNPJ" value={company?.document || client.cnpj || "Não informado"} />
             <Field
               label="IE / CNAE"
-              value={[company?.stateRegistration, company?.cnae].filter(Boolean).join(" - ") || "Nao informado"}
+              value={[company?.stateRegistration, company?.cnae].filter(Boolean).join(" · ") || "Não informado"}
             />
-            <Field label="Regime" value={companyProfile || "Nao informado"} />
-            <Field label="Endereco" value={company?.address || "Nao informado"} />
+            <Field label="Regime" value={companyProfile || "Não informado"} />
+            <Field label="Endereço" value={company?.address || "Não informado"} />
             <Field
               label="Cidade"
-              value={[companyCity, company?.postalCode || client.cep].filter(Boolean).join(" - CEP ") || "Nao informado"}
+              value={[companyCity, company?.postalCode || client.cep].filter(Boolean).join(" · CEP ") || "Não informado"}
             />
           </div>
         </Section>
@@ -1611,17 +1611,17 @@ export function ClientTab({
       <CompaniesSummaryCard companies={companies} onOpen={onOpenCompanies} />
 
       <div className="grid gap-5 xl:grid-cols-3">
-        <Section title="Responsavel e contabilidade" icon={CircleUserRound}>
+        <Section title="Responsável e contabilidade" icon={CircleUserRound} accent="purple">
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Responsavel" value={company?.responsibleName || "Nao informado"} />
-            <Field label="Documento" value={company?.responsibleDocument || "Nao informado"} />
-            <Field label="Contador" value={company?.accountantName || "Nao informado"} />
-            <Field label="Telefone" value={company?.accountantPhone || "Nao informado"} />
-            <Field label="E-mail" value={company?.accountantEmail || "Nao informado"} />
+            <Field label="Responsável" value={company?.responsibleName || "Não informado"} />
+            <Field label="Documento" value={company?.responsibleDocument || "Não informado"} />
+            <Field label="Contador" value={company?.accountantName || "Não informado"} />
+            <Field label="Telefone" value={company?.accountantPhone || "Não informado"} />
+            <Field label="E-mail" value={company?.accountantEmail || "Não informado"} />
           </div>
         </Section>
         <ClientNextEvent events={events} />
-        <Section title="Historico de suporte" icon={HardDrive}>
+        <Section title="Histórico de suporte" icon={HardDrive} accent="purple">
           <SupportRowsCompact tickets={tickets} />
         </Section>
       </div>
