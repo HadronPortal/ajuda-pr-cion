@@ -17,8 +17,16 @@ import {
   ClientUsersTab,
   ClientTerminalsTab,
   ClientCompaniesTab,
-  Summary,
 } from "./clientes.index";
+
+function MiniSummary({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-[#e6e9f8] bg-card px-3 py-2 shadow-sm dark:border-border">
+      <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
+      <p className="mt-0.5 truncate text-[13px] font-medium text-foreground" title={value}>{value}</p>
+    </div>
+  );
+}
 
 import { getClientDetail } from "@/lib/clients-api";
 import { normalizeCityUf } from "@/lib/br-city";
