@@ -1301,17 +1301,20 @@ function ContactsCard({
   const total = phones.length + emails.length;
   const [open, setOpen] = useState(false);
   return (
-    <Card className="bg-card p-5 dark:bg-card">
+    <Card className="border-[#e6e9f8] bg-card p-5 shadow-sm dark:border-border dark:bg-card">
       <div className="mb-4 flex items-center justify-between gap-2">
         <h3 className="flex items-center gap-2 font-medium">
-          <span className="grid h-8 w-8 place-items-center rounded-md bg-primary/10 text-primary">
+          <span className="grid h-8 w-8 place-items-center rounded-md bg-[#6c4cff]/10 text-[#6c4cff]">
             <Phone className="h-4 w-4" />
           </span>
           Contatos
         </h3>
-        <span className="text-xs text-muted-foreground">
+        <Badge
+          variant="outline"
+          className="h-6 rounded-full border-[#6c4cff]/25 bg-[#6c4cff]/10 px-2.5 text-[11px] font-medium text-[#6c4cff]"
+        >
           {total} {total === 1 ? "contato" : "contatos"}
-        </span>
+        </Badge>
       </div>
       {total === 0 ? (
         <p className="text-sm text-muted-foreground">Nenhum contato cadastrado para este cliente.</p>
@@ -1337,10 +1340,11 @@ function ContactsCard({
                 type="button"
                 variant="outline"
                 size="sm"
-                className="cursor-pointer rounded-full px-4 text-xs font-medium"
+                className="cursor-pointer gap-1.5 rounded-full border-[#6c4cff]/25 px-4 text-xs font-medium text-[#6c4cff] hover:bg-[#6c4cff]/10 hover:text-[#6c4cff]"
                 onClick={() => setOpen(true)}
               >
                 Ver todos os {total} contatos
+                <ChevronRight className="h-3.5 w-3.5" />
               </Button>
             </div>
           )}
