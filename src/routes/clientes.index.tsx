@@ -1612,11 +1612,14 @@ export function ClientTab({
   const respAddressCityUf = normalizeCityUf(
     [company?.responsibleCity, company?.responsibleState].filter(Boolean).join(" - "),
   );
+  const respStreetAndNumber = [company?.responsibleAddress, company?.responsibleNumber]
+    .filter(Boolean)
+    .join(", ");
+  const respNeighborhoodOrComplement =
+    company?.responsibleNeighborhood || company?.responsibleComplement || "";
   const addressFields: Array<[string, string]> = [
-    ["Logradouro", company?.responsibleAddress || ""],
-    ["Número", company?.responsibleNumber || ""],
-    ["Complemento", company?.responsibleComplement || ""],
-    ["Bairro", company?.responsibleNeighborhood || ""],
+    ["Logradouro e número", respStreetAndNumber],
+    ["Bairro / complemento", respNeighborhoodOrComplement],
     ["Cidade / UF", respAddressCityUf || ""],
     ["CEP", company?.responsiblePostalCode || ""],
   ].filter(([, v]) => Boolean(v)) as Array<[string, string]>;
@@ -1630,7 +1633,8 @@ export function ClientTab({
 
   return (
     <div className="space-y-5">
-      <div className="grid gap-5 xl:grid-cols-2">
+      {/* Linha 1: Contatos + Dados da empresa + Resumo rápido */}
+      <div className="grid gap-5 lg:grid-cols-3">
         <ContactsCard contacts={contacts} client={client} />
         <Section title="Dados da empresa" icon={Building2}>
           <div className="grid gap-x-5 gap-y-4 sm:grid-cols-2">
@@ -1639,32 +1643,38 @@ export function ClientTab({
             ))}
           </div>
         </Section>
+        <QuickSummaryCard
+          contacts={contacts}
+          companies={companies}
+          tickets={tickets}
+          events={events}
+        />
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-5">
-        <div className="lg:col-span-2">
-          <CompaniesSummaryCard companies={companies} />
-        </div>
-        <div className="lg:col-span-3">
-          <Section title="Responsável e contabilidade" icon={CircleUserRound}>
-            <div className="grid gap-6 md:grid-cols-3 md:divide-x md:divide-border">
-              <ResponsibleGroup title="Responsável" fields={responsibleFields} />
-              <ResponsibleGroup title="Endereço do responsável" fields={addressFields} className="md:pl-6" />
-              <ResponsibleGroup title="Contabilidade" fields={accountingFields} className="md:pl-6" emailField="E-mail" />
-            </div>
-          </Section>
-        </div>
-      </div>
+      {/* Linha 2: Empresas vinculadas (100%) */}
+      <CompaniesSummaryCard companies={companies} />
 
-      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+      {/* Linha 3: Responsável e contabilidade (100%) */}
+      <Section title="Responsável e contabilidade" icon={CircleUserRound}>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 lg:divide-x lg:divide-border">
+          <ResponsibleGroup title="Responsável" fields={responsibleFields} />
+          <ResponsibleGroup title="Endereço do responsável" fields={addressFields} className="lg:pl-6" />
+          <ResponsibleGroup title="Contabilidade" fields={accountingFields} className="lg:pl-6" emailField="E-mail" />
+        </div>
+      </Section>
+
+      {/* Linha 4: Próximo evento + Histórico + Atividade recente */}
+      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
         <ClientNextEvent events={events} />
         <Section title="Histórico de suporte" icon={HardDrive}>
           <SupportRowsCompact tickets={tickets} />
         </Section>
+        <RecentActivityCard tickets={tickets} events={events} />
       </div>
     </div>
   );
 }
+
 
 function ResponsibleGroup({
   title,
