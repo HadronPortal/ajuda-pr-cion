@@ -23,8 +23,9 @@ import { getClientDetail } from "@/lib/clients-api";
 import { normalizeCityUf } from "@/lib/br-city";
 import { useClients, resolveGroupCode, getGroupMembers } from "@/lib/clients-store";
 
-const tabs = ["cliente", "hadron", "usuarios", "terminais", "empresas"] as const;
+const tabs = ["cliente", "hadron", "usuarios", "terminais"] as const;
 type TabValue = (typeof tabs)[number];
+
 
 const searchSchema = z.object({
   tab: fallback(z.string(), "cliente").default("cliente"),
