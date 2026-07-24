@@ -157,11 +157,16 @@ export type ClientTicket = {
 export type ClientEvent = {
   id: string;
   title: string;
+  description: string;
+  kind: string;
   startsAt: string;
+  startsAtIso: string;
   endsAt: string;
   operator: string;
+  origin: string;
   status: string;
   ticketProtocol: string;
+  legacyTicketId: string;
 };
 
 export type ClientTicketActivity = {
@@ -174,6 +179,7 @@ export type ClientTicketActivity = {
   description: string;
   actor: string;
   occurredAt: string;
+  occurredAtIso: string;
 };
 
 export type ClientParameter = {
@@ -323,14 +329,17 @@ export async function getClientDetail(acronym: string): Promise<ClientDetail | n
     { data, error },
     { data: activityData, error: activityError },
     { data: parameterData, error: parameterError },
+    { data: clientEventData, error: clientEventError },
   ] = await Promise.all([
     supabase.rpc("get_crm_client", { client_acronym: acronym }),
     supabase.rpc("get_crm_client_ticket_activity", { client_acronym: acronym }),
     supabase.rpc("get_crm_client_params", { client_acronym: acronym }),
+    supabase.rpc("get_crm_client_events", { client_acronym: acronym }),
   ]);
   if (error) throw error;
   if (activityError) throw activityError;
   if (parameterError) throw parameterError;
+  if (clientEventError) throw clientEventError;
   if (!data?.client) return null;
 
   const contacts = (Array.isArray(data.contacts) ? data.contacts : []).map(
@@ -521,15 +530,20 @@ export async function getClientDetail(acronym: string): Promise<ClientDetail | n
     }),
   );
 
-  const events = (Array.isArray(data.events) ? data.events : []).map(
+  const events = (Array.isArray(clientEventData) ? clientEventData : []).map(
     (event: Record<string, unknown>): ClientEvent => ({
       id: String(event.id || ""),
       title: String(event.title || ""),
+      description: String(event.description || ""),
+      kind: String(event.kind || ""),
       startsAt: date(event.starts_at, true),
+      startsAtIso: String(event.starts_at || ""),
       endsAt: date(event.ends_at, true),
       operator: String(event.operator || ""),
+      origin: String(event.origin || ""),
       status: String(event.status || ""),
       ticketProtocol: String(event.ticket_protocol || ""),
+      legacyTicketId: String(event.legacy_ticket_id || ""),
     }),
   );
 
@@ -544,6 +558,7 @@ export async function getClientDetail(acronym: string): Promise<ClientDetail | n
       description: String(activity.description || ""),
       actor: String(activity.actor || ""),
       occurredAt: date(activity.occurred_at, true),
+      occurredAtIso: String(activity.occurred_at || ""),
     }),
   );
 

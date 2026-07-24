@@ -1671,9 +1671,9 @@ export function ClientTab({
       <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
         <ClientNextEvent events={events} tickets={tickets} />
         <Section title="Histórico de suporte" icon={HardDrive}>
-          <SupportRowsCompact tickets={tickets} />
+          <SupportRowsCompact tickets={tickets} events={events} />
         </Section>
-        <RecentActivityCard activities={activities} />
+        <RecentActivityCard activities={activities} events={events} />
       </div>
     </div>
   );
@@ -1732,23 +1732,48 @@ function ResponsibleGroup({
 }
 
 
-function RecentActivityCard({ activities }: { activities: ClientTicketActivity[] }) {
+function RecentActivityCard({
+  activities,
+  events,
+}: {
+  activities: ClientTicketActivity[];
+  events: ClientEvent[];
+}) {
+  const items = [
+    ...activities.map((activity) => ({
+      id: `ticket-${activity.id}`,
+      title: activity.title || activity.subject,
+      detail: [activity.protocol, activity.actor, activity.occurredAt].filter(Boolean).join(" · "),
+      timestamp: activity.occurredAtIso,
+      ticketActivity: activity.eventType === "created",
+    })),
+    ...events.map((event) => ({
+      id: `event-${event.id}`,
+      title: event.title,
+      detail: [event.operator, event.startsAt].filter(Boolean).join(" · "),
+      timestamp: event.startsAtIso,
+      ticketActivity: false,
+    })),
+  ]
+    .sort((left, right) => String(right.timestamp).localeCompare(String(left.timestamp)))
+    .slice(0, 5);
+
   return (
     <Section title="Atividade recente" icon={Activity}>
-      {activities.length ? (
+      {items.length ? (
         <ul className="space-y-2.5">
-          {activities.slice(0, 5).map((activity) => (
-            <li key={activity.id} className="flex min-w-0 items-start gap-2">
+          {items.map((item) => (
+            <li key={item.id} className="flex min-w-0 items-start gap-2">
               <span
                 className={cn(
                   "mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full",
-                  activity.eventType === "created" ? "bg-primary" : "bg-muted-foreground",
+                  item.ticketActivity ? "bg-primary" : "bg-muted-foreground",
                 )}
               />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm text-foreground">{activity.title || activity.subject}</p>
+                <p className="truncate text-sm text-foreground">{item.title}</p>
                 <p className="text-[11px] text-muted-foreground">
-                  {[activity.protocol, activity.actor, activity.occurredAt].filter(Boolean).join(" · ")}
+                  {item.detail}
                 </p>
               </div>
             </li>
@@ -1871,8 +1896,9 @@ function CompaniesSummaryCard({
 }
 
 
-function SupportRowsCompact({ tickets }: { tickets: ClientTicket[] }) {
-  if (!tickets.length) {
+function SupportRowsCompact({ tickets, events }: { tickets: ClientTicket[]; events: ClientEvent[] }) {
+  const supportEvents = events.filter((event) => event.legacyTicketId);
+  if (!tickets.length && !supportEvents.length) {
     return (
       <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border bg-primary/5 px-4 py-6 text-center dark:border-border dark:bg-transparent">
         <span className="grid h-10 w-10 place-items-center rounded-full bg-primary/10 text-primary">
@@ -1889,22 +1915,39 @@ function SupportRowsCompact({ tickets }: { tickets: ClientTicket[] }) {
       </div>
     );
   }
+  const rows = [
+    ...tickets.map((ticket) => ({
+      id: `ticket-${ticket.id}`,
+      title: ticket.subject,
+      detail: [ticket.module, ticket.submodule].filter(Boolean).join(" · "),
+      operator: ticket.operator,
+      date: ticket.createdAt,
+    })),
+    ...supportEvents.map((event) => ({
+      id: `event-${event.id}`,
+      title: event.title,
+      detail: event.description,
+      operator: event.operator,
+      date: event.startsAt,
+    })),
+  ].slice(0, 5);
+
   return (
     <ul className="space-y-2">
-      {tickets.slice(0, 5).map((ticket) => (
+      {rows.map((row) => (
         <li
-          key={ticket.id}
+          key={row.id}
           className="rounded-md border border-border bg-card px-3 py-2 dark:border-border"
         >
-          <p className="truncate text-[13px] font-medium text-foreground" title={ticket.subject}>
-            {ticket.subject}
+          <p className="truncate text-[13px] font-medium text-foreground" title={row.title}>
+            {row.title}
           </p>
           <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
-            {[ticket.module, ticket.submodule].filter(Boolean).join(" · ") || "—"}
+            {row.detail || "—"}
           </p>
           <p className="mt-1 flex items-center justify-between text-[11px] text-muted-foreground">
-            <span>{ticket.operator || "—"}</span>
-            <span>{ticket.createdAt}</span>
+            <span>{row.operator || "—"}</span>
+            <span>{row.date}</span>
           </p>
         </li>
       ))}
@@ -1913,7 +1956,9 @@ function SupportRowsCompact({ tickets }: { tickets: ClientTicket[] }) {
 }
 
 function ClientNextEvent({ events, tickets }: { events: ClientEvent[]; tickets: ClientTicket[] }) {
-  const event = events[0];
+  const event = events
+    .filter((item) => item.status === "scheduled" && new Date(item.startsAtIso).getTime() >= Date.now())
+    .sort((left, right) => left.startsAtIso.localeCompare(right.startsAtIso))[0];
   const scheduledTicket = tickets.find((ticket) => ticket.status.toLowerCase() === "scheduled");
 
   return (
@@ -1928,7 +1973,7 @@ function ClientNextEvent({ events, tickets }: { events: ClientEvent[]; tickets: 
               </p>
             </div>
             <Badge className="bg-emerald-500/15 text-emerald-600">
-              {event.status || "Agendado"}
+              Agendado
             </Badge>
           </div>
           {event.ticketProtocol && (
