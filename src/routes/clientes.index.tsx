@@ -12,6 +12,7 @@ import {
   Check,
   ChevronRight,
   CheckCircle2,
+  CircleDollarSign,
   CircleUserRound,
   Cpu,
   Database,
@@ -23,6 +24,7 @@ import {
   MessageCircle,
   Monitor,
   Mail,
+  MapPin,
   Phone,
   ShieldCheck,
   Server,
@@ -1188,7 +1190,7 @@ function Section({
   action,
 }: {
   title: string;
-  icon: typeof Building2;
+  icon?: typeof Building2;
   children: React.ReactNode;
   className?: string;
   titleClassName?: string;
@@ -1206,14 +1208,16 @@ function Section({
     >
       <div className="mb-4 flex items-center justify-between gap-2">
         <h3 className={cn("flex items-center gap-2 font-medium", titleClassName)}>
-          <span
-            className={cn(
-              "grid h-8 w-8 place-items-center rounded-md",
-              isPurple ? "bg-primary/10 text-primary" : "bg-primary/10 text-primary",
-            )}
-          >
-            <Icon className="h-4 w-4" />
-          </span>
+          {Icon ? (
+            <span
+              className={cn(
+                "grid h-8 w-8 place-items-center rounded-md",
+                isPurple ? "bg-primary/10 text-primary" : "bg-primary/10 text-primary",
+              )}
+            >
+              <Icon className="h-4 w-4" />
+            </span>
+          ) : null}
           {title}
         </h3>
         {action}
@@ -1655,11 +1659,11 @@ export function ClientTab({
       <CompaniesSummaryCard companies={companies} />
 
       {/* Linha 3: Responsável e contabilidade (100%) */}
-      <Section title="Responsável e contabilidade" icon={CircleUserRound}>
+      <Section title="Responsável e contabilidade">
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 lg:divide-x lg:divide-border">
-          <ResponsibleGroup title="Responsável" fields={responsibleFields} />
-          <ResponsibleGroup title="Endereço do responsável" fields={addressFields} className="lg:pl-6" />
-          <ResponsibleGroup title="Contabilidade" fields={accountingFields} className="lg:pl-6" emailField="E-mail" />
+          <ResponsibleGroup title="Responsável" icon={CircleUserRound} fields={responsibleFields} />
+          <ResponsibleGroup title="Endereço do responsável" icon={MapPin} fields={addressFields} className="lg:pl-6" />
+          <ResponsibleGroup title="Contabilidade" icon={CircleDollarSign} fields={accountingFields} className="lg:pl-6" emailField="E-mail" />
         </div>
       </Section>
 
@@ -1678,11 +1682,13 @@ export function ClientTab({
 
 function ResponsibleGroup({
   title,
+  icon: Icon,
   fields,
   className,
   emailField,
 }: {
   title: string;
+  icon: typeof Building2;
   fields: Array<[string, string]>;
   className?: string;
   emailField?: string;
@@ -1690,7 +1696,12 @@ function ResponsibleGroup({
   const wrapFields = new Set(["Logradouro e número", "Bairro / complemento"]);
   return (
     <div className={cn("min-w-0 space-y-3", className)}>
-      <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{title}</p>
+      <div className="flex items-center gap-2">
+        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
+          <Icon className="h-4 w-4" />
+        </span>
+        <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{title}</p>
+      </div>
       {fields.length ? (
         <dl className="space-y-2.5">
           {fields.map(([label, value]) => {
