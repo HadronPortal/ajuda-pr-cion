@@ -173,20 +173,22 @@ export type ClientDetail = {
   events: ClientEvent[];
 };
 
-const industryLabels: Record<string, string> = {
-  "1": "Comércio",
-  "4": "Indústria",
-};
-
-const sizeLabels: Record<string, string> = {
-  P: "Pequeno",
-  M: "Médio",
-  G: "Grande",
+const taxRegimeLabels: Record<string, string> = {
+  "0": "Simples Nacional",
+  "1": "Lucro Presumido",
+  "2": "Lucro Real",
+  "3": "MEI",
 };
 
 const labelFromCode = (value: unknown, labels: Record<string, string>) => {
   const code = String(value || "").trim();
   return labels[code.toUpperCase()] || code || "Não informado";
+};
+
+const optionalLabel = (value: unknown, labels: Record<string, string>) => {
+  const code = String(value ?? "").trim();
+  if (!code) return "";
+  return labels[code.toUpperCase()] || "";
 };
 
 const date = (value: unknown, withTime = false) => {
@@ -203,6 +205,33 @@ const formatCnpj = (value: unknown) => {
     /^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,
     "$1.$2.$3/$4-$5",
   );
+};
+
+const formatCpf = (value: unknown) => {
+  const raw = String(value ?? "").trim();
+  if (!raw) return "";
+  const digits = raw.replace(/\D/g, "");
+  if (digits.length !== 11) return raw;
+  return digits.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, "$1.$2.$3-$4");
+};
+
+const formatCep = (value: unknown) => {
+  const raw = String(value ?? "").trim();
+  if (!raw) return "";
+  const digits = raw.replace(/\D/g, "");
+  if (digits.length !== 8) return raw;
+  return digits.replace(/^(\d{5})(\d{3})$/, "$1-$2");
+};
+
+const parseJsonField = (value: unknown): Record<string, unknown> => {
+  if (!value) return {};
+  if (typeof value === "object") return value as Record<string, unknown>;
+  try {
+    const parsed = JSON.parse(String(value));
+    return parsed && typeof parsed === "object" ? (parsed as Record<string, unknown>) : {};
+  } catch {
+    return {};
+  }
 };
 
 export function mapDatabaseClient(c: DatabaseClient): ClientRow {
