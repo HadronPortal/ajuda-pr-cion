@@ -2,14 +2,13 @@ import { useState } from "react";
 import { createFileRoute, Link, useNavigate, notFound } from "@tanstack/react-router";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
-import { ArrowLeft, Building2, Database, History, Monitor, Network, UsersRound, Wifi } from "lucide-react";
+import { ArrowLeft, Building2, CalendarDays, Database, History, MapPin, Monitor, Network, UsersRound, Wifi } from "lucide-react";
 import { ClientTicketsHistoryModal } from "@/components/tickets/ClientTicketsHistoryModal";
 
 import { AppShell } from "@/components/portal/AppShell";
 import { Breadcrumbs } from "@/components/portal/Breadcrumbs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ClientTab,
@@ -20,15 +19,6 @@ import {
   ClientTerminalsTab,
   ClientCompaniesTab,
 } from "./clientes.index";
-
-function MiniSummary({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl border border-border bg-card px-3 py-2 shadow-sm dark:border-border">
-      <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
-      <p className="mt-0.5 truncate text-[13px] font-medium text-foreground" title={value}>{value}</p>
-    </div>
-  );
-}
 
 import { getClientDetail } from "@/lib/clients-api";
 import { normalizeCityUf } from "@/lib/br-city";
@@ -56,7 +46,7 @@ export const Route = createFileRoute("/clientes/$clienteId")({
     return detail;
   },
   notFoundComponent: () => (
-    <AppShell>
+    <AppShell fullWidth>
       <div className="mx-auto max-w-md py-16 text-center">
         <h1 className="text-2xl font-medium">Cliente não encontrado</h1>
         <p className="mt-2 text-sm text-muted-foreground">
@@ -124,7 +114,7 @@ function ClientDetailPage() {
           { label: "Detalhes do cliente" },
         ]}
       />
-      <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
+      <div className="mb-4 flex items-center gap-2">
         <div className="flex items-center gap-2">
           <Button
             asChild
@@ -157,70 +147,56 @@ function ClientDetailPage() {
             </Button>
           )}
         </div>
-
-        <div className="grid w-full grid-cols-2 gap-2 sm:w-auto sm:grid-cols-4">
-          <MiniSummary label="Atendimento" value={client.city || "Não informado"} />
-          <MiniSummary label="Versão Hádron" value={client.version || "Não informada"} />
-          <MiniSummary label="Atualização" value={client.updated || "Não informada"} />
-          <MiniSummary label="Cidade" value={normalizeCityUf(client.city) || "Não informada"} />
-        </div>
       </div>
 
-
-      <Card className="overflow-hidden border-border bg-card p-0 shadow-sm dark:border-border">
-        <header className="border-b border-border px-7 py-5 dark:border-border">
-          <div className="flex flex-wrap items-start justify-between gap-5">
-            <div className="flex min-w-0 gap-4">
-              <div className="grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-primary text-base font-semibold text-primary-foreground shadow-sm">
-                {client.acronym.slice(0, 4).toUpperCase()}
+      <Tabs value={currentTab} onValueChange={setTab} className="flex flex-col gap-5">
+        <header className="overflow-hidden rounded-lg bg-primary px-5 py-5 text-primary-foreground shadow-md lg:px-7">
+          <div className="flex flex-wrap items-center justify-between gap-5">
+            <div className="flex min-w-0 items-center gap-4">
+              <div className="grid h-14 w-14 shrink-0 place-items-center rounded-lg bg-white text-primary shadow-sm">
+                <Building2 className="h-7 w-7" />
               </div>
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
-                  {groupCode ? (
-                    <Link
-                      to="/clientes"
-                      search={{ grupo: groupCode }}
-                      className="cursor-pointer text-sm font-medium text-primary hover:underline"
-                      title={`Ver clientes do grupo ${groupCode}`}
-                    >
-                      {client.acronym}
-                    </Link>
-                  ) : (
-                    <span className="text-sm font-medium text-primary">{client.acronym}</span>
-                  )}
-                  <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+                  <Badge className="border-0 bg-emerald-400/25 text-[10px] text-white shadow-none">
                     {client.status}
                   </Badge>
                 </div>
-
-                <h2 className="mt-1 truncate text-xl font-semibold text-foreground">
+                <h1 className="mt-1 truncate text-lg font-semibold text-white">
                   {client.razaoSocial}
-                </h2>
-                <p className="text-sm text-muted-foreground">
+                </h1>
+                <p className="mt-1 text-xs text-white/80">
                   {client.fantasia}
-                  {groupCode ? <span className="ml-1 text-muted-foreground/80">· Grupo {groupCode}</span> : null}
+                  {groupCode ? <span className="ml-2">· Grupo {groupCode}</span> : null}
                 </p>
               </div>
             </div>
 
-            {groupCode && (
-              <Button
-                asChild
-                variant="outline"
-                size="sm"
-                title="Ver clientes deste grupo"
-                className="h-9 cursor-pointer gap-1.5 rounded-full border-primary/30 bg-primary/5 px-3.5 text-[12.5px] font-medium text-primary hover:bg-primary/10"
-              >
-                <Link to="/clientes" search={{ grupo: groupCode }}>
-                  <Network className="h-3.5 w-3.5" />
-                  Ver clientes do grupo {groupCode} ({groupMembersCount})
-                </Link>
-              </Button>
-            )}
+            <div className="flex flex-1 flex-wrap items-center justify-end gap-4 lg:gap-6">
+              <div className="flex items-center gap-2">
+                <span className="grid h-8 w-8 place-items-center rounded-md bg-white/10"><UsersRound className="h-4 w-4" /></span>
+                <div><p className="text-[9px] uppercase text-white/65">Versão Hádron</p><p className="text-xs font-medium">{client.version || "Não informada"}</p></div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="grid h-8 w-8 place-items-center rounded-md bg-white/10"><CalendarDays className="h-4 w-4" /></span>
+                <div><p className="text-[9px] uppercase text-white/65">Atualização</p><p className="text-xs font-medium">{client.updated || "Não informada"}</p></div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="grid h-8 w-8 place-items-center rounded-md bg-white/10"><MapPin className="h-4 w-4" /></span>
+                <div><p className="text-[9px] uppercase text-white/65">Cidade</p><p className="text-xs font-medium">{normalizeCityUf(client.city) || "Não informada"}</p></div>
+              </div>
+              {groupCode && (
+                <Button asChild variant="outline" size="sm" className="h-9 border-white/60 bg-transparent text-xs text-white hover:bg-white/10 hover:text-white">
+                  <Link to="/clientes" search={{ grupo: groupCode }}>
+                    Ver clientes do grupo {groupCode} ({groupMembersCount})
+                  </Link>
+                </Button>
+              )}
+            </div>
           </div>
         </header>
 
-        <Tabs value={currentTab} onValueChange={setTab} className="flex flex-col">
+        {currentTab !== "cliente" && (
           <div className="flex flex-wrap items-center gap-2 border-b border-border px-7">
             <TabsList className="h-auto justify-start gap-1 rounded-none border-0 bg-transparent p-0">
               {[
@@ -263,10 +239,22 @@ function ClientDetailPage() {
               Histórico de chamados
             </Button>
           </div>
+        )}
 
-          <div className="bg-muted/10 p-6">
+          <div>
             <TabsContent value="cliente" className="m-0 space-y-5">
-              <ClientTab client={client} contacts={contacts} companies={companies} terminals={terminals} tickets={tickets} events={events} onOpenCompanies={() => setTab("empresas")} />
+              <ClientTab
+                client={client}
+                contacts={contacts}
+                companies={companies}
+                terminals={terminals}
+                tickets={tickets}
+                events={events}
+                onOpenCompanies={() => setTab("empresas")}
+                onNavigateTab={setTab}
+                showInternet={showInternet}
+                showDevices={showDevices}
+              />
             </TabsContent>
             <TabsContent value="hadron" className="m-0 space-y-5">
               <ClientHadronTab client={client} modules={modules} terminals={terminals} />
@@ -292,8 +280,7 @@ function ClientDetailPage() {
             </TabsContent>
           </div>
 
-        </Tabs>
-      </Card>
+      </Tabs>
 
       <ClientTicketsHistoryModal
         open={historyOpen}

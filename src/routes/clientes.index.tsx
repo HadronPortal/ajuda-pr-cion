@@ -4,6 +4,7 @@ import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import {
   ArrowDown,
+  Activity,
   ArrowUp,
   ArrowUpDown,
   Building2,
@@ -19,6 +20,7 @@ import {
   Globe2,
   RefreshCw,
   HardDrive,
+  History,
   MessageCircle,
   Monitor,
   Mail,
@@ -27,6 +29,7 @@ import {
   Server,
   SlidersHorizontal,
   UsersRound,
+  Zap,
   X,
 } from "lucide-react";
 import { format } from "date-fns";
@@ -1221,9 +1224,9 @@ function Section({
 }
 function Field({ label, value }: { label: string; value: string }) {
   return (
-    <div>
+    <div className="min-w-0">
       <p className="text-xs uppercase text-muted-foreground">{label}</p>
-      <p className="mt-1 text-sm">{value}</p>
+      <p className="mt-1 truncate text-sm" title={value}>{value}</p>
     </div>
   );
 }
@@ -1574,6 +1577,9 @@ export function ClientTab({
   tickets,
   events,
   onOpenCompanies,
+  onNavigateTab,
+  showInternet,
+  showDevices,
 }: {
   client: ClientRow;
   contacts: ClientContact[];
@@ -1582,6 +1588,9 @@ export function ClientTab({
   tickets: ClientTicket[];
   events: ClientEvent[];
   onOpenCompanies?: () => void;
+  onNavigateTab?: (tab: string) => void;
+  showInternet?: boolean;
+  showDevices?: boolean;
 }) {
 
   const company = companies[0];
@@ -1589,13 +1598,25 @@ export function ClientTab({
   const companyProfile = [company?.industry || client.segment, company?.size || client.size, company?.taxRegime]
     .filter(Boolean)
     .join(" - ");
-  void onOpenCompanies;
   return (
     <div className="space-y-5">
-      <div className="grid gap-5 xl:grid-cols-2">
-        <ContactsCard contacts={contacts} client={client} />
-        <Section title="Empresa principal" icon={Building2} accent="purple">
-          <div className="grid gap-x-5 gap-y-4 sm:grid-cols-2">
+      <div className="grid gap-5 xl:grid-cols-12">
+        <div className="xl:col-span-4">
+          <ContactsCard contacts={contacts} client={client} />
+        </div>
+        <Section
+          title="Dados da empresa"
+          icon={Building2}
+          className="xl:col-span-5"
+          action={
+            onOpenCompanies ? (
+              <Button variant="ghost" size="sm" onClick={onOpenCompanies} className="h-7 cursor-pointer gap-1 px-2 text-[11px] text-primary">
+                Ver detalhes <ChevronRight className="h-3.5 w-3.5" />
+              </Button>
+            ) : null
+          }
+        >
+          <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Nome fantasia" value={company?.tradeName || client.fantasia || "Não informado"} />
             <Field label="CNPJ" value={company?.document || client.cnpj || "Não informado"} />
             <Field
@@ -1610,11 +1631,49 @@ export function ClientTab({
             />
           </div>
         </Section>
+        <Section title="Resumo rápido" icon={Activity} className="xl:col-span-3">
+          <div className="grid grid-cols-2 overflow-hidden rounded-md border border-border">
+            {[
+              ["Cliente desde", client.registered || "Não informado", CalendarDays],
+              ["Último atendimento", tickets[0]?.createdAt || "Sem atendimento", History],
+              ["Status", client.status, CheckCircle2],
+              ["Empresas vinculadas", String(companies.length), Building2],
+            ].map(([label, value, Icon]) => {
+              const SummaryIcon = Icon as typeof CalendarDays;
+              return (
+                <div key={label as string} className="flex min-w-0 gap-2 border-b border-r border-border p-3 last:border-b-0">
+                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
+                    <SummaryIcon className="h-3.5 w-3.5" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-[10px] text-muted-foreground">{label as string}</p>
+                    <p className="truncate text-xs font-medium text-foreground">{value as string}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <details className="group relative mt-4">
+            <summary className="flex h-9 cursor-pointer list-none items-center justify-center gap-2 rounded-md bg-primary text-xs font-medium text-primary-foreground">
+              <Zap className="h-3.5 w-3.5" /> Ações rápidas <ArrowDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180" />
+            </summary>
+            <div className="absolute right-0 z-20 mt-1 grid w-full overflow-hidden rounded-md border border-border bg-popover p-1 shadow-lg">
+              <button type="button" onClick={() => onNavigateTab?.("hadron")} className="cursor-pointer rounded px-3 py-2 text-left text-xs hover:bg-muted">Hádron</button>
+              {showInternet && <button type="button" onClick={() => onNavigateTab?.("internet")} className="cursor-pointer rounded px-3 py-2 text-left text-xs hover:bg-muted">Internet</button>}
+              {showDevices && <button type="button" onClick={() => onNavigateTab?.("dispositivos")} className="cursor-pointer rounded px-3 py-2 text-left text-xs hover:bg-muted">Dispositivos</button>}
+              <button type="button" onClick={() => onNavigateTab?.("usuarios")} className="cursor-pointer rounded px-3 py-2 text-left text-xs hover:bg-muted">Usuários</button>
+              <button type="button" onClick={() => onNavigateTab?.("terminais")} className="cursor-pointer rounded px-3 py-2 text-left text-xs hover:bg-muted">Terminais</button>
+            </div>
+          </details>
+        </Section>
       </div>
 
-      <div className="grid gap-5 xl:grid-cols-3">
-        <Section title="Responsável e contabilidade" icon={CircleUserRound} accent="purple">
-          <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-5 xl:grid-cols-12">
+        <div className="xl:col-span-5">
+          <CompaniesSummaryCard companies={companies} onOpen={onOpenCompanies} />
+        </div>
+        <Section title="Responsável e contabilidade" icon={CircleUserRound} className="xl:col-span-7">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
             <Field label="Responsável" value={company?.responsibleName || "Não informado"} />
             <Field label="Documento" value={company?.responsibleDocument || "Não informado"} />
             <Field label="Contador" value={company?.accountantName || "Não informado"} />
@@ -1622,14 +1681,64 @@ export function ClientTab({
             <Field label="E-mail" value={company?.accountantEmail || "Não informado"} />
           </div>
         </Section>
-        <ClientNextEvent events={events} />
-        <Section title="Histórico de suporte" icon={HardDrive} accent="purple">
-          <SupportRowsCompact tickets={tickets} />
-        </Section>
       </div>
 
-      <CompaniesSummaryCard companies={companies} />
+      <div className="grid gap-5 xl:grid-cols-3">
+        <ClientNextEvent events={events} />
+        <Section title="Histórico de suporte" icon={HardDrive}>
+          <SupportRowsCompact tickets={tickets} />
+        </Section>
+        <Section title="Atividade recente" icon={Activity}>
+          <RecentClientActivity tickets={tickets} events={events} />
+        </Section>
+      </div>
     </div>
+  );
+}
+
+function RecentClientActivity({
+  tickets,
+  events,
+}: {
+  tickets: ClientTicket[];
+  events: ClientEvent[];
+}) {
+  const activities = [
+    ...tickets.slice(0, 2).map((ticket) => ({
+      id: `ticket-${ticket.id}`,
+      title: ticket.subject || "Atendimento realizado",
+      detail: [ticket.operator, ticket.createdAt].filter(Boolean).join(" · "),
+      label: "Suporte",
+    })),
+    ...events.slice(0, 2).map((event) => ({
+      id: `event-${event.id}`,
+      title: event.title || "Evento agendado",
+      detail: [event.operator, event.startsAt].filter(Boolean).join(" · "),
+      label: "Evento",
+    })),
+  ].slice(0, 3);
+
+  if (!activities.length) {
+    return <EmptyState text="Nenhuma atividade recente para este cliente." />;
+  }
+
+  return (
+    <ul className="space-y-3">
+      {activities.map((activity) => (
+        <li key={activity.id} className="flex items-start gap-3">
+          <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">
+            <Activity className="h-3.5 w-3.5" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-xs font-medium text-foreground">{activity.title}</p>
+            <p className="truncate text-[10px] text-muted-foreground">{activity.detail || "Sem detalhes"}</p>
+          </div>
+          <Badge variant="outline" className="h-5 px-2 text-[9px] text-primary">
+            {activity.label}
+          </Badge>
+        </li>
+      ))}
+    </ul>
   );
 }
 
