@@ -76,6 +76,57 @@ export type ClientModule = {
   version: string;
 };
 
+export type ClientInternetDevice = {
+  id: string;
+  legacyId: string;
+  contractLegacyId: string;
+  deviceUuid: string;
+  user: string;
+  representativeCode: string;
+  type: string;
+  system: string;
+  status: string;
+  active: boolean;
+  appType: string;
+  buildVersion: string;
+  dbVersion: string;
+  lastCheckedAt: string;
+  updatedAt: string;
+};
+
+export type ClientInternetContract = {
+  id: string;
+  legacyId: string;
+  name: string;
+  webUrl: string;
+  databaseName: string;
+  serverHost: string;
+  status: string;
+  active: boolean;
+  startsAt: string;
+  expiresAt: string;
+  updatedAt: string;
+  devices: ClientInternetDevice[];
+};
+
+export type ClientInternetApplication = {
+  id: string;
+  legacyId: string;
+  contractLegacyId: string;
+  name: string;
+  appType: string;
+  version: string;
+  status: string;
+  active: boolean;
+  updatedAt: string;
+};
+
+export type ClientInternet = {
+  hasActiveContract: boolean;
+  contracts: ClientInternetContract[];
+  applications: ClientInternetApplication[];
+};
+
 export type ClientTicket = {
   id: string;
   protocol: string;
@@ -105,6 +156,7 @@ export type ClientDetail = {
   users: ClientHadronUser[];
   terminals: ClientTerminal[];
   modules: ClientModule[];
+  internet: ClientInternet;
   tickets: ClientTicket[];
   events: ClientEvent[];
 };
@@ -269,6 +321,66 @@ export async function getClientDetail(acronym: string): Promise<ClientDetail | n
     }),
   );
 
+  const internetData = (data.internet || {}) as Record<string, unknown>;
+  const contracts = (Array.isArray(internetData.contracts) ? internetData.contracts : []).map(
+    (contract: Record<string, unknown>): ClientInternetContract => {
+      const devices = (Array.isArray(contract.devices) ? contract.devices : []).map(
+        (device: Record<string, unknown>): ClientInternetDevice => ({
+          id: String(device.id || ""),
+          legacyId: String(device.legacy_id || ""),
+          contractLegacyId: String(device.auth_contratos_id_con || contract.legacy_id || ""),
+          deviceUuid: String(device.device_uuid || ""),
+          user: String(device.utilizador || ""),
+          representativeCode: String(device.codrep || ""),
+          type: String(device.tipo || ""),
+          system: String(device.sistema || ""),
+          status: String(device.status || ""),
+          active: device.active !== false,
+          appType: String(device.app_type || ""),
+          buildVersion: String(device.build_version || ""),
+          dbVersion: String(device.db_version || ""),
+          lastCheckedAt: date(device.last_checked_at, true),
+          updatedAt: date(device.updated_at, true),
+        }),
+      );
+
+      return {
+        id: String(contract.id || ""),
+        legacyId: String(contract.legacy_id || ""),
+        name: String(contract.name || ""),
+        webUrl: String(contract.web_url || ""),
+        databaseName: String(contract.database_name || ""),
+        serverHost: String(contract.server_host || ""),
+        status: String(contract.status || ""),
+        active: contract.active !== false,
+        startsAt: date(contract.starts_at),
+        expiresAt: date(contract.expires_at),
+        updatedAt: date(contract.updated_at, true),
+        devices,
+      };
+    },
+  );
+
+  const applications = (Array.isArray(internetData.applications) ? internetData.applications : []).map(
+    (app: Record<string, unknown>): ClientInternetApplication => ({
+      id: String(app.id || ""),
+      legacyId: String(app.legacy_id || ""),
+      contractLegacyId: String(app.contract_legacy_id || ""),
+      name: String(app.name || ""),
+      appType: String(app.app_type || ""),
+      version: String(app.version || ""),
+      status: String(app.status || ""),
+      active: app.active !== false,
+      updatedAt: date(app.updated_at, true),
+    }),
+  );
+
+  const internet: ClientInternet = {
+    hasActiveContract: internetData.has_active_contract === true,
+    contracts,
+    applications,
+  };
+
   const tickets = (Array.isArray(data.tickets) ? data.tickets : []).map(
     (ticket: Record<string, unknown>): ClientTicket => ({
       id: String(ticket.id || ""),
@@ -302,6 +414,7 @@ export async function getClientDetail(acronym: string): Promise<ClientDetail | n
     users,
     terminals,
     modules,
+    internet,
     tickets,
     events,
   };

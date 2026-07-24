@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ClientTab,
   ClientHadronTab,
+  ClientInternetTab,
   ClientUsersTab,
   ClientTerminalsTab,
   ClientCompaniesTab,
@@ -32,7 +33,7 @@ import { getClientDetail } from "@/lib/clients-api";
 import { normalizeCityUf } from "@/lib/br-city";
 import { useClients, resolveGroupCode, getGroupMembers } from "@/lib/clients-store";
 
-const tabs = ["cliente", "hadron", "usuarios", "terminais", "empresas"] as const;
+const tabs = ["cliente", "hadron", "internet", "usuarios", "terminais", "empresas"] as const;
 type TabValue = (typeof tabs)[number];
 
 
@@ -78,12 +79,13 @@ export const Route = createFileRoute("/clientes/$clienteId")({
 });
 
 function ClientDetailPage() {
-  const { client, contacts, companies, users, terminals, modules, tickets, events } = Route.useLoaderData();
+  const { client, contacts, companies, users, terminals, modules, internet, tickets, events } = Route.useLoaderData();
   const { tab, from, ticketId } = Route.useSearch();
   const navigate = useNavigate();
   const [historyOpen, setHistoryOpen] = useState(false);
   const showReturnToTicket = from === "chamado" && !!ticketId;
   const { clients: allClients } = useClients({ onlyActive: false });
+  const showInternet = internet.hasActiveContract;
 
   // Grupo: usa group_acronym do cliente. Se vazio, verifica se ele é raiz de
   // um grupo (algum outro cliente aponta group_acronym para a sigla dele).
@@ -91,7 +93,7 @@ function ClientDetailPage() {
   const groupMembersCount = groupCode ? getGroupMembers(groupCode, allClients).length : 0;
 
 
-  const currentTab: TabValue = (tabs as readonly string[]).includes(tab)
+  const currentTab: TabValue = (tabs as readonly string[]).includes(tab) && (tab !== "internet" || showInternet)
     ? (tab as TabValue)
     : "cliente";
 
@@ -219,6 +221,7 @@ function ClientDetailPage() {
               {[
                 ["cliente", "Cliente", Building2],
                 ["hadron", "Hadron", Database],
+                ...(showInternet ? [["internet", "Internet", Network]] : []),
                 ["usuarios", "Usuarios", UsersRound],
                 ["terminais", "Terminais", Monitor],
                 ["empresas", "Empresas", Network],
@@ -262,6 +265,11 @@ function ClientDetailPage() {
             <TabsContent value="hadron" className="m-0 space-y-5">
               <ClientHadronTab client={client} modules={modules} terminals={terminals} />
             </TabsContent>
+            {showInternet && (
+              <TabsContent value="internet" className="m-0 space-y-5">
+                <ClientInternetTab internet={internet} />
+              </TabsContent>
+            )}
             <TabsContent value="usuarios" className="m-0">
               <ClientUsersTab users={users} />
             </TabsContent>

@@ -10,6 +10,7 @@
     "preview": "vite preview",
     "import:crm-clients": "node scripts/import-crm-clients.mjs",
     "import:crm-json": "node scripts/import-crm-json.mjs",
+    "import:crm-internet": "node scripts/import-crm-internet.mjs",
     "import:crm-modules": "node scripts/import-crm-modules.mjs",
     "import:trello": "node scripts/import-trello-board.mjs",
     "lint": "eslint .",

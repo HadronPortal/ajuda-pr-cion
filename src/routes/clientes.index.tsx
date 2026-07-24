@@ -21,6 +21,7 @@ import {
   MessageCircle,
   Monitor,
   Mail,
+  Network,
   Phone,
   ShieldCheck,
   Server,
@@ -50,6 +51,7 @@ import type {
   ClientContact,
   ClientEvent,
   ClientHadronUser,
+  ClientInternet,
   ClientModule,
   ClientTerminal,
   ClientTicket,
@@ -2086,6 +2088,96 @@ export function ClientTerminalsTab({ terminals }: { terminals: ClientTerminal[] 
         />
       ) : <EmptyState text="Nenhum terminal vinculado a este cliente." />}
     </Section>
+  );
+}
+
+const deviceUuidLabel = (value: string) => {
+  if (!value) return "-";
+  return value.length > 10 ? `...${value.slice(-8)}` : value;
+};
+
+const deviceTypeLabel: Record<string, string> = {
+  M: "Mobile",
+  S: "Servidor",
+  T: "Terminal",
+};
+
+export function ClientInternetTab({ internet }: { internet: ClientInternet }) {
+  const devices = internet.contracts.flatMap((contract) => contract.devices);
+
+  return (
+    <>
+      <div className="grid gap-5 xl:grid-cols-2">
+        <Section title="Contrato Web" icon={Network}>
+          {internet.contracts.length ? (
+            <div className="space-y-3">
+              {internet.contracts.map((contract) => (
+                <div key={contract.id} className="rounded-md border border-border p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-foreground">
+                        {contract.name || `Contrato ${contract.legacyId}`}
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {[contract.webUrl, contract.serverHost].filter(Boolean).join(" - ") || "Dados de acesso nao informados"}
+                      </p>
+                    </div>
+                    <Badge className="bg-emerald-500/12 text-emerald-600 dark:text-emerald-400">
+                      Ativo
+                    </Badge>
+                  </div>
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                    <Field label="Banco" value={contract.databaseName || "Nao informado"} />
+                    <Field label="Atualizado em" value={contract.updatedAt || "Nao informado"} />
+                    <Field label="Inicio" value={contract.startsAt || "Nao informado"} />
+                    <Field label="Validade" value={contract.expiresAt || "Nao informado"} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <EmptyState text="Nenhum contrato Web ativo cadastrado." />
+          )}
+        </Section>
+
+        <Section title="Hadron Web" icon={Database}>
+          {internet.applications.length ? (
+            <DataTable
+              headers={["Aplicativo", "Tipo", "Versao", "Status", "Atualizacao"]}
+              rows={internet.applications.map((app) => [
+                app.name || `Aplicativo ${app.legacyId}`,
+                app.appType || "-",
+                app.version || "-",
+                app.active ? "Ativo" : app.status || "Inativo",
+                app.updatedAt || "-",
+              ])}
+            />
+          ) : (
+            <EmptyState text="Nenhum aplicativo Hadron Web vinculado ao contrato ativo." />
+          )}
+        </Section>
+      </div>
+
+      <Section title={`Dispositivos (${devices.length})`} icon={Monitor}>
+        {devices.length ? (
+          <DataTable
+            headers={["Utilizador", "Tipo", "Sistema", "App", "Build", "Banco", "UUID", "Ultima verificacao"]}
+            rows={devices.map((device) => [
+              device.user || "-",
+              deviceTypeLabel[device.type] || device.type || "-",
+              device.system || "-",
+              device.appType || "-",
+              device.buildVersion || "-",
+              device.dbVersion || "-",
+              deviceUuidLabel(device.deviceUuid),
+              device.lastCheckedAt || device.updatedAt || "-",
+            ])}
+          />
+        ) : (
+          <EmptyState text="Nenhum dispositivo vinculado aos contratos ativos." />
+        )}
+      </Section>
+    </>
   );
 }
 

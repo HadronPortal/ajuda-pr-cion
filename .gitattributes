@@ -1,1 +1,2 @@
 scripts/import-crm-modules.mjs text eol=lf
+scripts/import-crm-internet.mjs text eol=lf
