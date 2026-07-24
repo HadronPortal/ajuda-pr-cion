@@ -21,7 +21,7 @@ import {
 
 function MiniSummary({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-[#e6e9f8] bg-card px-3 py-2 shadow-sm dark:border-border">
+    <div className="rounded-xl border border-border bg-card px-3 py-2 shadow-sm dark:border-border">
       <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
       <p className="mt-0.5 truncate text-[13px] font-medium text-foreground" title={value}>{value}</p>
     </div>
@@ -160,11 +160,11 @@ function ClientDetailPage() {
       </div>
 
 
-      <Card className="overflow-hidden border-[#e6e9f8] bg-card p-0 shadow-sm dark:border-border">
-        <header className="border-b border-[#e6e9f8] px-7 py-5 dark:border-border">
+      <Card className="overflow-hidden border-border bg-card p-0 shadow-sm dark:border-border">
+        <header className="border-b border-border px-7 py-5 dark:border-border">
           <div className="flex flex-wrap items-start justify-between gap-5">
             <div className="flex min-w-0 gap-4">
-              <div className="grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-[#6c4cff] text-base font-semibold text-white shadow-[0_6px_16px_-6px_rgba(108,76,255,0.55)]">
+              <div className="grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-primary text-base font-semibold text-primary-foreground shadow-sm">
                 {client.acronym.slice(0, 4).toUpperCase()}
               </div>
               <div className="min-w-0">
@@ -173,13 +173,13 @@ function ClientDetailPage() {
                     <Link
                       to="/clientes"
                       search={{ grupo: groupCode }}
-                      className="cursor-pointer text-sm font-medium text-[#6c4cff] hover:underline"
+                      className="cursor-pointer text-sm font-medium text-primary hover:underline"
                       title={`Ver clientes do grupo ${groupCode}`}
                     >
                       {client.acronym}
                     </Link>
                   ) : (
-                    <span className="text-sm font-medium text-[#6c4cff]">{client.acronym}</span>
+                    <span className="text-sm font-medium text-primary">{client.acronym}</span>
                   )}
                   <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
                     {client.status}
@@ -202,7 +202,7 @@ function ClientDetailPage() {
                 variant="outline"
                 size="sm"
                 title="Ver clientes deste grupo"
-                className="h-9 cursor-pointer gap-1.5 rounded-full border-[#6c4cff]/30 bg-[#6c4cff]/5 px-3.5 text-[12.5px] font-medium text-[#6c4cff] hover:bg-[#6c4cff]/10"
+                className="h-9 cursor-pointer gap-1.5 rounded-full border-primary/30 bg-primary/5 px-3.5 text-[12.5px] font-medium text-primary hover:bg-primary/10"
               >
                 <Link to="/clientes" search={{ grupo: groupCode }}>
                   <Network className="h-3.5 w-3.5" />
