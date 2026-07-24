@@ -2,7 +2,7 @@ import { useState } from "react";
 import { createFileRoute, Link, useNavigate, notFound } from "@tanstack/react-router";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
-import { ArrowLeft, Building2, Database, History, Monitor, Network, UsersRound } from "lucide-react";
+import { ArrowLeft, Building2, Database, History, Monitor, Network, UsersRound, Wifi } from "lucide-react";
 import { ClientTicketsHistoryModal } from "@/components/tickets/ClientTicketsHistoryModal";
 
 import { AppShell } from "@/components/portal/AppShell";
@@ -15,6 +15,7 @@ import {
   ClientTab,
   ClientHadronTab,
   ClientDevicesTab,
+  ClientInternetTab,
   ClientUsersTab,
   ClientTerminalsTab,
   ClientCompaniesTab,
