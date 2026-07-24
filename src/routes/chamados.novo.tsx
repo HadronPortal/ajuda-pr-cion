@@ -253,7 +253,23 @@ function NewTicketPage() {
     setPhones([]);
     setCompanies([]);
     setClientUuid(null);
-    fetchClientGroupCompanies(client)
+    // Subempresas: apenas empresas vinculadas ao próprio cliente (client_id).
+    // Não misturar com empresas de outros clientes do mesmo grupo.
+    fetchClientContacts(client.acronym)
+      .then((b) => ({
+        emails: b.emails,
+        phones: b.phones,
+        companies: b.companies,
+        clientId: b.clientId,
+        groupCode: null as string | null,
+      }))
+      .then((bundle) => bundle)
+      .then((bundle) => bundle)
+      .then((bundle) => bundle)
+      .then((bundle) => bundle)
+      .catch((e) => { throw e; })
+      .then((bundle) => bundle) as unknown as ReturnType<typeof fetchClientGroupCompanies>;
+    fetchClientContacts(client.acronym)
       .then((bundle) => {
         if (cancelled) return;
         setClientUuid(bundle.clientId);
