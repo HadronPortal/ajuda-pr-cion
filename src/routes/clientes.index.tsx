@@ -1716,45 +1716,6 @@ function ResponsibleGroup({
   );
 }
 
-function QuickSummaryCard({
-  contacts,
-  companies,
-  tickets,
-  events,
-}: {
-  contacts: ClientContact[];
-  companies: ClientCompany[];
-  tickets: ClientTicket[];
-  events: ClientEvent[];
-}) {
-  const openTickets = tickets.filter((t) => {
-    const s = (t.status || "").toLowerCase();
-    return s && !s.includes("final") && !s.includes("fech") && !s.includes("resolv") && !s.includes("cancel");
-  }).length;
-  const now = Date.now();
-  const upcomingEvents = events.filter((e) => {
-    const d = e.startsAt ? new Date(e.startsAt).getTime() : 0;
-    return d && d >= now;
-  }).length;
-  const stats: Array<[string, string | number]> = [
-    ["Contatos", contacts.length],
-    ["Empresas vinculadas", companies.length],
-    ["Chamados em aberto", openTickets],
-    ["Eventos futuros", upcomingEvents],
-  ];
-  return (
-    <Section title="Resumo rápido" icon={Activity}>
-      <dl className="grid grid-cols-2 gap-x-4 gap-y-3">
-        {stats.map(([label, value]) => (
-          <div key={label} className="min-w-0">
-            <dt className="text-[11px] uppercase text-muted-foreground">{label}</dt>
-            <dd className="mt-0.5 text-lg font-semibold text-foreground">{value}</dd>
-          </div>
-        ))}
-      </dl>
-    </Section>
-  );
-}
 
 function RecentActivityCard({
   tickets,
