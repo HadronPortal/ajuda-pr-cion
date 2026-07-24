@@ -3,6 +3,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import {
+  Activity,
   ArrowDown,
   ArrowUp,
   ArrowUpDown,
@@ -1612,11 +1613,14 @@ export function ClientTab({
   const respAddressCityUf = normalizeCityUf(
     [company?.responsibleCity, company?.responsibleState].filter(Boolean).join(" - "),
   );
+  const respStreetAndNumber = [company?.responsibleAddress, company?.responsibleNumber]
+    .filter(Boolean)
+    .join(", ");
+  const respNeighborhoodOrComplement =
+    company?.responsibleNeighborhood || company?.responsibleComplement || "";
   const addressFields: Array<[string, string]> = [
-    ["Logradouro", company?.responsibleAddress || ""],
-    ["Número", company?.responsibleNumber || ""],
-    ["Complemento", company?.responsibleComplement || ""],
-    ["Bairro", company?.responsibleNeighborhood || ""],
+    ["Logradouro e número", respStreetAndNumber],
+    ["Bairro / complemento", respNeighborhoodOrComplement],
     ["Cidade / UF", respAddressCityUf || ""],
     ["CEP", company?.responsiblePostalCode || ""],
   ].filter(([, v]) => Boolean(v)) as Array<[string, string]>;
@@ -1630,7 +1634,8 @@ export function ClientTab({
 
   return (
     <div className="space-y-5">
-      <div className="grid gap-5 xl:grid-cols-2">
+      {/* Linha 1: Contatos + Dados da empresa + Resumo rápido */}
+      <div className="grid gap-5 lg:grid-cols-3">
         <ContactsCard contacts={contacts} client={client} />
         <Section title="Dados da empresa" icon={Building2}>
           <div className="grid gap-x-5 gap-y-4 sm:grid-cols-2">
@@ -1639,32 +1644,38 @@ export function ClientTab({
             ))}
           </div>
         </Section>
+        <QuickSummaryCard
+          contacts={contacts}
+          companies={companies}
+          tickets={tickets}
+          events={events}
+        />
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-5">
-        <div className="lg:col-span-2">
-          <CompaniesSummaryCard companies={companies} />
-        </div>
-        <div className="lg:col-span-3">
-          <Section title="Responsável e contabilidade" icon={CircleUserRound}>
-            <div className="grid gap-6 md:grid-cols-3 md:divide-x md:divide-border">
-              <ResponsibleGroup title="Responsável" fields={responsibleFields} />
-              <ResponsibleGroup title="Endereço do responsável" fields={addressFields} className="md:pl-6" />
-              <ResponsibleGroup title="Contabilidade" fields={accountingFields} className="md:pl-6" emailField="E-mail" />
-            </div>
-          </Section>
-        </div>
-      </div>
+      {/* Linha 2: Empresas vinculadas (100%) */}
+      <CompaniesSummaryCard companies={companies} />
 
-      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+      {/* Linha 3: Responsável e contabilidade (100%) */}
+      <Section title="Responsável e contabilidade" icon={CircleUserRound}>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 lg:divide-x lg:divide-border">
+          <ResponsibleGroup title="Responsável" fields={responsibleFields} />
+          <ResponsibleGroup title="Endereço do responsável" fields={addressFields} className="lg:pl-6" />
+          <ResponsibleGroup title="Contabilidade" fields={accountingFields} className="lg:pl-6" emailField="E-mail" />
+        </div>
+      </Section>
+
+      {/* Linha 4: Próximo evento + Histórico + Atividade recente */}
+      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
         <ClientNextEvent events={events} />
         <Section title="Histórico de suporte" icon={HardDrive}>
           <SupportRowsCompact tickets={tickets} />
         </Section>
+        <RecentActivityCard tickets={tickets} events={events} />
       </div>
     </div>
   );
 }
+
 
 function ResponsibleGroup({
   title,
@@ -1677,6 +1688,7 @@ function ResponsibleGroup({
   className?: string;
   emailField?: string;
 }) {
+  const wrapFields = new Set(["Logradouro e número", "Bairro / complemento"]);
   return (
     <div className={cn("min-w-0 space-y-3", className)}>
       <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{title}</p>
@@ -1684,13 +1696,15 @@ function ResponsibleGroup({
         <dl className="space-y-2.5">
           {fields.map(([label, value]) => {
             const isEmail = emailField === label;
+            const shouldWrap = isEmail || wrapFields.has(label);
             return (
               <div key={label} className="min-w-0">
                 <dt className="text-[11px] uppercase text-muted-foreground">{label}</dt>
                 <dd
                   className={cn(
                     "mt-0.5 text-sm text-foreground",
-                    isEmail ? "break-all" : "truncate",
+                    shouldWrap ? "break-words [overflow-wrap:anywhere]" : "truncate",
+                    isEmail && "line-clamp-2",
                   )}
                   title={value}
                 >
@@ -1706,6 +1720,96 @@ function ResponsibleGroup({
     </div>
   );
 }
+
+function QuickSummaryCard({
+  contacts,
+  companies,
+  tickets,
+  events,
+}: {
+  contacts: ClientContact[];
+  companies: ClientCompany[];
+  tickets: ClientTicket[];
+  events: ClientEvent[];
+}) {
+  const openTickets = tickets.filter((t) => {
+    const s = (t.status || "").toLowerCase();
+    return s && !s.includes("final") && !s.includes("fech") && !s.includes("resolv") && !s.includes("cancel");
+  }).length;
+  const now = Date.now();
+  const upcomingEvents = events.filter((e) => {
+    const d = e.startsAt ? new Date(e.startsAt).getTime() : 0;
+    return d && d >= now;
+  }).length;
+  const stats: Array<[string, string | number]> = [
+    ["Contatos", contacts.length],
+    ["Empresas vinculadas", companies.length],
+    ["Chamados em aberto", openTickets],
+    ["Eventos futuros", upcomingEvents],
+  ];
+  return (
+    <Section title="Resumo rápido" icon={Activity}>
+      <dl className="grid grid-cols-2 gap-x-4 gap-y-3">
+        {stats.map(([label, value]) => (
+          <div key={label} className="min-w-0">
+            <dt className="text-[11px] uppercase text-muted-foreground">{label}</dt>
+            <dd className="mt-0.5 text-lg font-semibold text-foreground">{value}</dd>
+          </div>
+        ))}
+      </dl>
+    </Section>
+  );
+}
+
+function RecentActivityCard({
+  tickets,
+  events,
+}: {
+  tickets: ClientTicket[];
+  events: ClientEvent[];
+}) {
+  type Item = { when: number; label: string; kind: "ticket" | "event" };
+  const items: Item[] = [];
+  for (const t of tickets) {
+    const d = t.createdAt;
+    const ts = d ? new Date(d).getTime() : 0;
+    if (ts) items.push({ when: ts, label: t.subject || `Chamado ${t.protocol || t.id}`, kind: "ticket" });
+  }
+  for (const e of events) {
+    const d = e.startsAt;
+    const ts = d ? new Date(d).getTime() : 0;
+    if (ts) items.push({ when: ts, label: e.title || "Evento", kind: "event" });
+  }
+  items.sort((a, b) => b.when - a.when);
+  const top = items.slice(0, 5);
+  return (
+    <Section title="Atividade recente" icon={Activity}>
+      {top.length ? (
+        <ul className="space-y-2.5">
+          {top.map((it, i) => (
+            <li key={i} className="flex items-start gap-2 min-w-0">
+              <span
+                className={cn(
+                  "mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full",
+                  it.kind === "ticket" ? "bg-primary" : "bg-muted-foreground",
+                )}
+              />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm text-foreground">{it.label}</p>
+                <p className="text-[11px] text-muted-foreground">
+                  {new Date(it.when).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}
+                </p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-sm text-muted-foreground">Sem atividade recente.</p>
+      )}
+    </Section>
+  );
+}
+
 
 function CompaniesSummaryCard({
   companies,
