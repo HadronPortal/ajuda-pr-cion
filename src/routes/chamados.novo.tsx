@@ -397,7 +397,7 @@ function NewTicketPage() {
         `Tipo: ${form.type}. Operador: ${form.operator}. ` +
         `Contato: ${form.emailValue} · ${form.phoneValue}.` +
         (selectedCompany
-          ? `\nEmpresa: ${selectedCompany.clientAcronym} · ${selectedCompany.companyNumber ? String(selectedCompany.companyNumber).padStart(3, "0") + " · " : ""}${selectedCompany.tradeName || selectedCompany.legalName}${selectedCompany.document ? " · " + selectedCompany.document : ""}`
+          ? `\nEmpresa: ${selectedCompany.companyNumber ? String(selectedCompany.companyNumber).padStart(3, "0") + " · " : ""}${selectedCompany.tradeName || selectedCompany.legalName}${selectedCompany.document ? " · " + selectedCompany.document : ""}`
           : ""),
       companyId: selectedCompany?.id ?? null,
       companyNumber: selectedCompany?.companyNumber ?? null,
