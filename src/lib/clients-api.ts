@@ -22,6 +22,7 @@ export type ClientCompany = {
   tradeName: string;
   document: string;
   stateRegistration: string;
+  municipalRegistration: string;
   cnae: string;
   industry: string;
   size: string;
@@ -32,6 +33,15 @@ export type ClientCompany = {
   postalCode: string;
   responsibleName: string;
   responsibleDocument: string;
+  responsibleRg: string;
+  responsibleAddress: string;
+  responsibleNumber: string;
+  responsibleComplement: string;
+  responsibleNeighborhood: string;
+  responsibleCity: string;
+  responsibleState: string;
+  responsiblePostalCode: string;
+  accountantOffice: string;
   accountantName: string;
   accountantPhone: string;
   accountantEmail: string;
@@ -165,6 +175,8 @@ export type ClientDetail = {
 
 const industryLabels: Record<string, string> = {
   "1": "Comércio",
+  "2": "Serviços",
+  "3": "Serviços",
   "4": "Indústria",
 };
 
@@ -174,9 +186,22 @@ const sizeLabels: Record<string, string> = {
   G: "Grande",
 };
 
+const taxRegimeLabels: Record<string, string> = {
+  "0": "Simples Nacional",
+  "1": "Lucro Presumido",
+  "2": "Lucro Real",
+  "3": "MEI",
+};
+
 const labelFromCode = (value: unknown, labels: Record<string, string>) => {
   const code = String(value || "").trim();
   return labels[code.toUpperCase()] || code || "Não informado";
+};
+
+const optionalLabel = (value: unknown, labels: Record<string, string>) => {
+  const code = String(value ?? "").trim();
+  if (!code) return "";
+  return labels[code.toUpperCase()] || "";
 };
 
 const date = (value: unknown, withTime = false) => {
@@ -193,6 +218,33 @@ const formatCnpj = (value: unknown) => {
     /^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,
     "$1.$2.$3/$4-$5",
   );
+};
+
+const formatCpf = (value: unknown) => {
+  const raw = String(value ?? "").trim();
+  if (!raw) return "";
+  const digits = raw.replace(/\D/g, "");
+  if (digits.length !== 11) return raw;
+  return digits.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, "$1.$2.$3-$4");
+};
+
+const formatCep = (value: unknown) => {
+  const raw = String(value ?? "").trim();
+  if (!raw) return "";
+  const digits = raw.replace(/\D/g, "");
+  if (digits.length !== 8) return raw;
+  return digits.replace(/^(\d{5})(\d{3})$/, "$1-$2");
+};
+
+const parseJsonField = (value: unknown): Record<string, unknown> => {
+  if (!value) return {};
+  if (typeof value === "object") return value as Record<string, unknown>;
+  try {
+    const parsed = JSON.parse(String(value));
+    return parsed && typeof parsed === "object" ? (parsed as Record<string, unknown>) : {};
+  } catch {
+    return {};
+  }
 };
 
 export function mapDatabaseClient(c: DatabaseClient): ClientRow {
@@ -255,27 +307,43 @@ export async function getClientDetail(acronym: string): Promise<ClientDetail | n
   );
 
   const companies = (Array.isArray(data.companies) ? data.companies : []).map(
-    (company: Record<string, unknown>): ClientCompany => ({
-      id: String(company.id || ""),
-      companyNumber: typeof company.company_number === "number" ? company.company_number : null,
-      legalName: String(company.legal_name || ""),
-      tradeName: String(company.trade_name || ""),
-      document: formatCnpj(company.document),
-      stateRegistration: String(company.state_registration || ""),
-      cnae: String(company.cnae || ""),
-      industry: labelFromCode(company.industry, industryLabels),
-      size: labelFromCode(company.size, sizeLabels),
-      taxRegime: String(company.tax_regime || ""),
-      address: String(company.address || ""),
-      city: normalizeCityName(String(company.city || "")),
-      state: String(company.state || "").toUpperCase(),
-      postalCode: String(company.postal_code || ""),
-      responsibleName: String(company.responsible_name || ""),
-      responsibleDocument: String(company.responsible_document || ""),
-      accountantName: String(company.accountant_name || ""),
-      accountantPhone: String(company.accountant_phone || ""),
-      accountantEmail: String(company.accountant_email || ""),
-    }),
+    (company: Record<string, unknown>): ClientCompany => {
+      const payload = parseJsonField(company.source_payload);
+      const respRaw = parseJsonField(payload.tcl_responsavel);
+      const ctdRaw = parseJsonField(payload.tcl_contador);
+      const regimeCode = String(company.tax_regime ?? payload.tcl_regime ?? "").trim();
+      return {
+        id: String(company.id || ""),
+        companyNumber: typeof company.company_number === "number" ? company.company_number : null,
+        legalName: String(company.legal_name || ""),
+        tradeName: String(company.trade_name || ""),
+        document: formatCnpj(company.document),
+        stateRegistration: String(company.state_registration || payload.tcl_ie || ""),
+        municipalRegistration: String(payload.tcl_im || ""),
+        cnae: String(company.cnae || payload.tcl_cnae || ""),
+        industry: labelFromCode(company.industry ?? payload.tcl_setor, industryLabels),
+        size: labelFromCode(company.size ?? payload.tcl_porte, sizeLabels),
+        taxRegime: optionalLabel(regimeCode, taxRegimeLabels),
+        address: String(company.address || payload.tcl_endereco || ""),
+        city: normalizeCityName(String(company.city || payload.tcl_cidade || "")),
+        state: String(company.state || payload.tcl_uf || "").toUpperCase(),
+        postalCode: formatCep(company.postal_code || payload.tcl_cep || ""),
+        responsibleName: String(company.responsible_name || respRaw.cli_res_nome || respRaw.tcl_res_nome || ""),
+        responsibleDocument: formatCpf(company.responsible_document || respRaw.cli_res_cpf || respRaw.tcl_res_cpf || ""),
+        responsibleRg: String(respRaw.cli_res_rg || respRaw.tcl_res_rg || ""),
+        responsibleAddress: String(respRaw.cli_res_endereco || respRaw.tcl_res_endereco || ""),
+        responsibleNumber: String(respRaw.cli_res_numero || respRaw.tcl_res_numero || ""),
+        responsibleComplement: String(respRaw.cli_res_complemento || respRaw.tcl_res_complemento || ""),
+        responsibleNeighborhood: String(respRaw.cli_res_bairro || respRaw.tcl_res_bairro || ""),
+        responsibleCity: normalizeCityName(String(respRaw.cli_res_cidade || respRaw.tcl_res_cidade || "")),
+        responsibleState: String(respRaw.cli_res_uf || respRaw.tcl_res_uf || "").toUpperCase(),
+        responsiblePostalCode: formatCep(respRaw.cli_res_cep || respRaw.tcl_res_cep || ""),
+        accountantOffice: String(ctdRaw.cli_ctd_nome || ctdRaw.tcl_ctd_nome || company.accountant_name || ""),
+        accountantName: String(ctdRaw.cli_ctd_res || ctdRaw.tcl_ctd_res || ""),
+        accountantPhone: String(ctdRaw.cli_ctd_tel || ctdRaw.tcl_ctd_tel || company.accountant_phone || ""),
+        accountantEmail: String(ctdRaw.cli_ctd_email || ctdRaw.tcl_ctd_email || company.accountant_email || ""),
+      };
+    },
   );
 
   const users = (Array.isArray(data.users) ? data.users : []).map(
