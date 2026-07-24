@@ -1637,6 +1637,7 @@ function CompaniesSummaryCard({
   companies: ClientCompany[];
   onOpen?: () => void;
 }) {
+  const [openId, setOpenId] = useState<string | null>(null);
   const isPrincipal = (co: ClientCompany) => {
     const digits = (co.document || "").replace(/\D+/g, "");
     if (digits.length === 14 && digits.slice(8, 12) === "0001") return true;
@@ -1652,36 +1653,78 @@ function CompaniesSummaryCard({
             const principal = isPrincipal(company);
             const title = company.tradeName || company.legalName || "Empresa";
             const number = company.companyNumber != null ? String(company.companyNumber).padStart(3, "0") : "—";
+            const expanded = openId === company.id;
+            const details: Array<[string, string]> = [
+              ["Nome fantasia", company.tradeName || "Não informado"],
+              ["Razão social", company.legalName || "Não informada"],
+              ["CNPJ", company.document || "Não informado"],
+              ["Inscrição estadual", company.stateRegistration || "Não informada"],
+              ["CNAE", company.cnae || "Não informado"],
+              ["Regime tributário", company.taxRegime || "Não informado"],
+              ["Endereço", company.address || "Não informado"],
+              ["Cidade / UF", normalizeCityUf([company.city, company.state].filter(Boolean).join(" - ")) || "Não informada"],
+              ["CEP", company.postalCode || "Não informado"],
+              ["Responsável", company.responsibleName || "Não informado"],
+            ];
+            if (company.accountantName) details.push(["Contador", company.accountantName]);
+            if (company.accountantPhone) details.push(["Telefone do contador", company.accountantPhone]);
+            if (company.accountantEmail) details.push(["E-mail do contador", company.accountantEmail]);
             return (
-              <button
+              <div
                 key={company.id}
-                type="button"
-                onClick={onOpen}
-                className="flex w-full cursor-pointer items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 text-left transition-colors hover:border-primary/40 hover:bg-primary/5 dark:border-border"
+                className="overflow-hidden rounded-lg border border-border bg-card transition-colors hover:border-primary/40 dark:border-border"
               >
-                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
-                  <Server className="h-4 w-4" />
-                </span>
-                <span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">
-                  <span className="font-mono text-[11px] text-muted-foreground">{number}</span>
-                  <span className="truncate text-sm font-medium text-foreground">{title}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {company.document || "CNPJ não informado"}
+                <button
+                  type="button"
+                  onClick={() => setOpenId(expanded ? null : company.id)}
+                  aria-expanded={expanded}
+                  className="flex w-full cursor-pointer items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-primary/5"
+                >
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
+                    <Server className="h-4 w-4" />
                   </span>
-                  {principal && (
-                    <Badge
-                      variant="outline"
-                      className="h-5 rounded-full border-primary/30 bg-primary/10 px-2 text-[10.5px] font-medium text-primary"
-                    >
-                      Principal
-                    </Badge>
-                  )}
-                </span>
-                <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-              </button>
+                  <span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">
+                    <span className="font-mono text-[11px] text-muted-foreground">{number}</span>
+                    <span className="truncate text-sm font-medium text-foreground">{title}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {company.document || "CNPJ não informado"}
+                    </span>
+                    {principal && (
+                      <Badge
+                        variant="outline"
+                        className="h-5 rounded-full border-primary/30 bg-primary/10 px-2 text-[10.5px] font-medium text-primary"
+                      >
+                        Principal
+                      </Badge>
+                    )}
+                  </span>
+                  <ChevronRight
+                    className={cn(
+                      "h-4 w-4 shrink-0 text-muted-foreground transition-transform",
+                      expanded ? "rotate-90" : "rotate-0",
+                    )}
+                  />
+                </button>
+                {expanded && (
+                  <div className="border-t border-border bg-muted/10 px-4 py-4 dark:border-border">
+                    <div className="grid gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
+                      {details.map(([label, value]) => (
+                        <div key={label} className="min-w-0">
+                          <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                            {label}
+                          </p>
+                          <p className="truncate text-sm text-foreground" title={value}>
+                            {value}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             );
           })}
-          {companies.length > 5 && (
+          {companies.length > 5 && onOpen && (
             <div className="pt-1 text-center">
               <Button
                 type="button"
@@ -1699,6 +1742,7 @@ function CompaniesSummaryCard({
     </Section>
   );
 }
+
 
 function SupportRowsCompact({ tickets }: { tickets: ClientTicket[] }) {
   if (!tickets.length) {
