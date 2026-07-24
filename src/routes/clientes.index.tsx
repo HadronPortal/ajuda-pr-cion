@@ -54,6 +54,7 @@ import type {
   ClientHadronUser,
   ClientInternet,
   ClientModule,
+  ClientParameter,
   ClientTerminal,
   ClientTicket,
   ClientTicketActivity,
@@ -2216,6 +2217,25 @@ export function ClientTerminalsTab({ terminals }: { terminals: ClientTerminal[] 
           ])}
         />
       ) : <EmptyState text="Nenhum terminal vinculado a este cliente." />}
+    </Section>
+  );
+}
+
+export function ClientParametersTab({ parameters }: { parameters: ClientParameter[] }) {
+  return (
+    <Section title="Parâmetros" icon={SlidersHorizontal}>
+      {parameters.length ? (
+        <DataTable
+          headers={["Op.", "Assinado por", "Parâmetro", "Valor / descrição", "Atualização"]}
+          rows={parameters.map((parameter) => [
+            parameter.signature || "-",
+            parameter.signedBy || parameter.operator || "Não informado",
+            parameter.parameterLegacyId || "-",
+            parameter.optionData || "Não informado",
+            parameter.updatedAt || "-",
+          ])}
+        />
+      ) : <EmptyState text="Nenhum parâmetro encontrado para este cliente." />}
     </Section>
   );
 }

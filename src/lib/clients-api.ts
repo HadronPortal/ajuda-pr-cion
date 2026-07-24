@@ -174,6 +174,19 @@ export type ClientTicketActivity = {
   occurredAt: string;
 };
 
+export type ClientParameter = {
+  id: string;
+  legacyId: string;
+  parameterLegacyId: string;
+  optionLegacyId: string;
+  signature: string;
+  optionData: string;
+  authUserLegacyId: string;
+  signedBy: string;
+  operator: string;
+  updatedAt: string;
+};
+
 export type ClientDetail = {
   client: ClientRow;
   contacts: ClientContact[];
@@ -185,6 +198,7 @@ export type ClientDetail = {
   tickets: ClientTicket[];
   events: ClientEvent[];
   activities: ClientTicketActivity[];
+  parameters: ClientParameter[];
 };
 
 const industryLabels: Record<string, string> = {
@@ -303,12 +317,18 @@ export async function getClient(acronym: string): Promise<ClientRow | null> {
 }
 
 export async function getClientDetail(acronym: string): Promise<ClientDetail | null> {
-  const [{ data, error }, { data: activityData, error: activityError }] = await Promise.all([
+  const [
+    { data, error },
+    { data: activityData, error: activityError },
+    { data: parameterData, error: parameterError },
+  ] = await Promise.all([
     supabase.rpc("get_crm_client", { client_acronym: acronym }),
     supabase.rpc("get_crm_client_ticket_activity", { client_acronym: acronym }),
+    supabase.rpc("get_crm_client_params", { client_acronym: acronym }),
   ]);
   if (error) throw error;
   if (activityError) throw activityError;
+  if (parameterError) throw parameterError;
   if (!data?.client) return null;
 
   const contacts = (Array.isArray(data.contacts) ? data.contacts : []).map(
@@ -523,6 +543,24 @@ export async function getClientDetail(acronym: string): Promise<ClientDetail | n
     }),
   );
 
+  const parameters = (Array.isArray(parameterData) ? parameterData : []).map(
+    (parameter: Record<string, unknown>): ClientParameter => {
+      const optionData = parseJsonField(parameter.option_data);
+      return {
+        id: String(parameter.id || ""),
+        legacyId: String(parameter.legacy_id || ""),
+        parameterLegacyId: String(parameter.parameter_legacy_id || ""),
+        optionLegacyId: String(parameter.option_legacy_id || ""),
+        signature: String(parameter.signature || ""),
+        optionData: String(optionData.raw || parameter.option_data || ""),
+        authUserLegacyId: String(parameter.auth_user_legacy_id || ""),
+        signedBy: String(parameter.signed_by || ""),
+        operator: String(parameter.operator || ""),
+        updatedAt: date(parameter.updated_at, true),
+      };
+    },
+  );
+
   return {
     client: mapDatabaseClient(data.client),
     contacts,
@@ -534,5 +572,6 @@ export async function getClientDetail(acronym: string): Promise<ClientDetail | n
     tickets,
     events,
     activities,
+    parameters,
   };
 }
