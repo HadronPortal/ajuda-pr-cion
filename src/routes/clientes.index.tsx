@@ -1589,7 +1589,9 @@ export function ClientTab({
           </div>
         </Section>
       </div>
+      <ClientCompaniesTab client={client} companies={companies} terminals={terminals} />
       <div className="grid gap-5 xl:grid-cols-2">
+
         <Section title="Responsavel e contabilidade" icon={CircleUserRound}>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Responsavel" value={company?.responsibleName || "Nao informado"} />
