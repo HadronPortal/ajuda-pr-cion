@@ -1589,12 +1589,13 @@ export function ClientTab({
   const companyProfile = [company?.industry || client.segment, company?.size || client.size, company?.taxRegime]
     .filter(Boolean)
     .join(" - ");
+  void onOpenCompanies;
   return (
-    <>
+    <div className="space-y-5">
       <div className="grid gap-5 xl:grid-cols-2">
         <ContactsCard contacts={contacts} client={client} />
         <Section title="Empresa principal" icon={Building2} accent="purple">
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-x-5 gap-y-4 sm:grid-cols-2">
             <Field label="Nome fantasia" value={company?.tradeName || client.fantasia || "Não informado"} />
             <Field label="CNPJ" value={company?.document || client.cnpj || "Não informado"} />
             <Field
@@ -1611,8 +1612,6 @@ export function ClientTab({
         </Section>
       </div>
 
-      <CompaniesSummaryCard companies={companies} onOpen={onOpenCompanies} />
-
       <div className="grid gap-5 xl:grid-cols-3">
         <Section title="Responsável e contabilidade" icon={CircleUserRound} accent="purple">
           <div className="grid gap-4 sm:grid-cols-2">
@@ -1628,17 +1627,20 @@ export function ClientTab({
           <SupportRowsCompact tickets={tickets} />
         </Section>
       </div>
-    </>
+
+      <CompaniesSummaryCard companies={companies} />
+    </div>
   );
 }
 
 function CompaniesSummaryCard({
   companies,
-  onOpen,
+  onOpen: _onOpen,
 }: {
   companies: ClientCompany[];
   onOpen?: () => void;
 }) {
+  void _onOpen;
   const [openId, setOpenId] = useState<string | null>(null);
   const isPrincipal = (co: ClientCompany) => {
     const digits = (co.document || "").replace(/\D+/g, "");
@@ -1651,7 +1653,7 @@ function CompaniesSummaryCard({
         <EmptyState text="Nenhuma empresa vinculada a este cliente." />
       ) : (
         <div className="space-y-2">
-          {companies.slice(0, 5).map((company) => {
+          {companies.map((company) => {
             const principal = isPrincipal(company);
             const title = company.tradeName || company.legalName || "Empresa";
             const number = company.companyNumber != null ? String(company.companyNumber).padStart(3, "0") : "—";
@@ -1680,25 +1682,28 @@ function CompaniesSummaryCard({
                   type="button"
                   onClick={() => setOpenId(expanded ? null : company.id)}
                   aria-expanded={expanded}
-                  className="flex w-full cursor-pointer items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-primary/5"
+                  className="grid w-full cursor-pointer grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-primary/5"
                 >
                   <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
                     <Server className="h-4 w-4" />
                   </span>
-                  <span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">
+                  <span className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
                     <span className="font-mono text-[11px] text-muted-foreground">{number}</span>
                     <span className="truncate text-sm font-medium text-foreground">{title}</span>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="truncate text-xs text-muted-foreground">
                       {company.document || "CNPJ não informado"}
                     </span>
-                    {principal && (
-                      <Badge
-                        variant="outline"
-                        className="h-5 rounded-full border-primary/30 bg-primary/10 px-2 text-[10.5px] font-medium text-primary"
-                      >
-                        Principal
-                      </Badge>
-                    )}
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "h-5 rounded-full px-2 text-[10.5px] font-medium",
+                        principal
+                          ? "border-primary/30 bg-primary/10 text-primary"
+                          : "border-border bg-muted/40 text-muted-foreground",
+                      )}
+                    >
+                      {principal ? "Principal" : "Filial"}
+                    </Badge>
                   </span>
                   <ChevronRight
                     className={cn(
@@ -1726,19 +1731,6 @@ function CompaniesSummaryCard({
               </div>
             );
           })}
-          {companies.length > 5 && onOpen && (
-            <div className="pt-1 text-center">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={onOpen}
-                className="cursor-pointer rounded-full border-primary/25 text-xs text-primary hover:bg-primary/10 hover:text-primary"
-              >
-                Ver todas as {companies.length} empresas
-              </Button>
-            </div>
-          )}
         </div>
       )}
     </Section>
