@@ -9,6 +9,7 @@ import {
   Building2,
   CalendarDays,
   Check,
+  ChevronRight,
   CheckCircle2,
   CircleUserRound,
   Cpu,
