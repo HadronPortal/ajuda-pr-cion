@@ -1700,13 +1700,29 @@ function CompaniesSummaryCard({
 }
 
 function SupportRowsCompact({ tickets }: { tickets: ClientTicket[] }) {
-  if (!tickets.length) return <EmptyState text="Nenhum chamado encontrado para este cliente." />;
+  if (!tickets.length) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-[#e6e9f8] bg-[#6c4cff]/[0.03] px-4 py-6 text-center dark:border-border dark:bg-transparent">
+        <span className="grid h-10 w-10 place-items-center rounded-full bg-[#6c4cff]/10 text-[#6c4cff]">
+          <MessageCircle className="h-5 w-5" />
+        </span>
+        <p className="text-xs text-muted-foreground">Nenhum chamado registrado para este cliente.</p>
+        <Button
+          asChild
+          size="sm"
+          className="h-8 cursor-pointer rounded-full bg-[#6c4cff] px-4 text-xs font-medium text-white hover:bg-[#5a3fe0]"
+        >
+          <Link to="/chamados/novo">Novo chamado</Link>
+        </Button>
+      </div>
+    );
+  }
   return (
     <ul className="space-y-2">
       {tickets.slice(0, 5).map((ticket) => (
         <li
           key={ticket.id}
-          className="rounded-md border border-border bg-background px-3 py-2"
+          className="rounded-md border border-[#e6e9f8] bg-card px-3 py-2 dark:border-border"
         >
           <p className="truncate text-[13px] font-medium text-foreground" title={ticket.subject}>
             {ticket.subject}
@@ -1728,17 +1744,17 @@ function ClientNextEvent({ events }: { events: ClientEvent[] }) {
   const event = events[0];
 
   return (
-    <Section title="Proximo evento" icon={CalendarDays}>
+    <Section title="Próximo evento" icon={CalendarDays} accent="purple">
       {event ? (
-        <div className="rounded-md border border-border p-4">
+        <div className="rounded-md border border-[#e6e9f8] p-4 dark:border-border">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="font-medium">{event.title}</p>
               <p className="mt-1 text-sm text-muted-foreground">
-                {[event.startsAt, event.operator].filter(Boolean).join(" - ")}
+                {[event.startsAt, event.operator].filter(Boolean).join(" · ")}
               </p>
             </div>
-            <Badge className="bg-emerald-500/12 text-emerald-600">
+            <Badge className="bg-emerald-500/15 text-emerald-600">
               {event.status || "Agendado"}
             </Badge>
           </div>
@@ -1749,7 +1765,19 @@ function ClientNextEvent({ events }: { events: ClientEvent[] }) {
           )}
         </div>
       ) : (
-        <EmptyState text="Nenhum evento encontrado para este cliente." />
+        <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-[#e6e9f8] bg-[#6c4cff]/[0.03] px-4 py-6 text-center dark:border-border dark:bg-transparent">
+          <span className="grid h-10 w-10 place-items-center rounded-full bg-[#6c4cff]/10 text-[#6c4cff]">
+            <CalendarDays className="h-5 w-5" />
+          </span>
+          <p className="text-xs text-muted-foreground">Nenhum evento agendado para este cliente.</p>
+          <Button
+            asChild
+            size="sm"
+            className="h-8 cursor-pointer rounded-full bg-[#6c4cff] px-4 text-xs font-medium text-white hover:bg-[#5a3fe0]"
+          >
+            <Link to="/calendario">Novo evento</Link>
+          </Button>
+        </div>
       )}
     </Section>
   );
