@@ -173,6 +173,19 @@ export type ClientDetail = {
   events: ClientEvent[];
 };
 
+const industryLabels: Record<string, string> = {
+  "1": "Comércio",
+  "2": "Serviços",
+  "3": "Serviços",
+  "4": "Indústria",
+};
+
+const sizeLabels: Record<string, string> = {
+  P: "Pequeno",
+  M: "Médio",
+  G: "Grande",
+};
+
 const taxRegimeLabels: Record<string, string> = {
   "0": "Simples Nacional",
   "1": "Lucro Presumido",
