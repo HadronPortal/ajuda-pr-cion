@@ -1178,21 +1178,40 @@ function Section({
   children,
   className,
   titleClassName,
+  accent = "primary",
+  action,
 }: {
   title: string;
   icon: typeof Building2;
   children: React.ReactNode;
   className?: string;
   titleClassName?: string;
+  accent?: "primary" | "purple";
+  action?: React.ReactNode;
 }) {
+  const isPurple = accent === "purple";
   return (
-    <Card className={cn("p-5", className)}>
-      <h3 className={cn("mb-4 flex items-center gap-2 font-medium", titleClassName)}>
-        <span className="grid h-8 w-8 place-items-center rounded-md bg-primary/10 text-primary">
-          <Icon className="h-4 w-4" />
-        </span>
-        {title}
-      </h3>
+    <Card
+      className={cn(
+        "p-5",
+        isPurple && "border-[#e6e9f8] shadow-sm dark:border-border",
+        className,
+      )}
+    >
+      <div className="mb-4 flex items-center justify-between gap-2">
+        <h3 className={cn("flex items-center gap-2 font-medium", titleClassName)}>
+          <span
+            className={cn(
+              "grid h-8 w-8 place-items-center rounded-md",
+              isPurple ? "bg-[#6c4cff]/10 text-[#6c4cff]" : "bg-primary/10 text-primary",
+            )}
+          >
+            <Icon className="h-4 w-4" />
+          </span>
+          {title}
+        </h3>
+        {action}
+      </div>
       {children}
     </Card>
   );
