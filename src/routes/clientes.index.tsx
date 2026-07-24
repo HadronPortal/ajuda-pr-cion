@@ -1738,7 +1738,7 @@ function QuickSummaryCard({
   }).length;
   const now = Date.now();
   const upcomingEvents = events.filter((e) => {
-    const d = e.startDate ? new Date(e.startDate).getTime() : 0;
+    const d = e.startsAt ? new Date(e.startsAt).getTime() : 0;
     return d && d >= now;
   }).length;
   const stats: Array<[string, string | number]> = [
@@ -1771,12 +1771,12 @@ function RecentActivityCard({
   type Item = { when: number; label: string; kind: "ticket" | "event" };
   const items: Item[] = [];
   for (const t of tickets) {
-    const d = t.updatedAt || t.createdAt;
+    const d = t.createdAt;
     const ts = d ? new Date(d).getTime() : 0;
-    if (ts) items.push({ when: ts, label: t.subject || t.title || `Chamado ${t.id}`, kind: "ticket" });
+    if (ts) items.push({ when: ts, label: t.subject || `Chamado ${t.protocol || t.id}`, kind: "ticket" });
   }
   for (const e of events) {
-    const d = e.startDate;
+    const d = e.startsAt;
     const ts = d ? new Date(d).getTime() : 0;
     if (ts) items.push({ when: ts, label: e.title || "Evento", kind: "event" });
   }
