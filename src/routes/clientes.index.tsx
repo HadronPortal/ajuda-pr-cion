@@ -1719,20 +1719,24 @@ function CompaniesSummaryCard({
             const number = company.companyNumber != null ? String(company.companyNumber).padStart(3, "0") : "—";
             const expanded = openId === company.id;
             const details: Array<[string, string]> = [
-              ["Nome fantasia", company.tradeName || "Não informado"],
-              ["Razão social", company.legalName || "Não informada"],
-              ["CNPJ", company.document || "Não informado"],
-              ["Inscrição estadual", company.stateRegistration || "Não informada"],
-              ["CNAE", company.cnae || "Não informado"],
-              ["Regime tributário", company.taxRegime || "Não informado"],
-              ["Endereço", company.address || "Não informado"],
-              ["Cidade / UF", normalizeCityUf([company.city, company.state].filter(Boolean).join(" - ")) || "Não informada"],
-              ["CEP", company.postalCode || "Não informado"],
-              ["Responsável", company.responsibleName || "Não informado"],
-            ];
-            if (company.accountantName) details.push(["Contador", company.accountantName]);
-            if (company.accountantPhone) details.push(["Telefone do contador", company.accountantPhone]);
-            if (company.accountantEmail) details.push(["E-mail do contador", company.accountantEmail]);
+              ["Nome fantasia", company.tradeName || ""],
+              ["Razão social", company.legalName || ""],
+              ["CNPJ", company.document || ""],
+              ["Inscrição estadual", company.stateRegistration || ""],
+              ["CNAE", company.cnae || ""],
+              ["Setor", company.industry || ""],
+              ["Porte", company.size || ""],
+              ["Regime de apuração", company.taxRegime || ""],
+              ["Endereço", company.address || ""],
+              ["Cidade / UF", normalizeCityUf([company.city, company.state].filter(Boolean).join(" - ")) || ""],
+              ["CEP", company.postalCode || ""],
+              ["Responsável", company.responsibleName || ""],
+              ["CPF do responsável", company.responsibleDocument || ""],
+              ["Escritório de contabilidade", company.accountantOffice || ""],
+              ["Contador responsável", company.accountantName || ""],
+              ["Telefone do contador", company.accountantPhone ? formatPhoneBR(company.accountantPhone) : ""],
+              ["E-mail do contador", company.accountantEmail || ""],
+            ].filter(([, v]) => Boolean(v)) as Array<[string, string]>;
             return (
               <div
                 key={company.id}
