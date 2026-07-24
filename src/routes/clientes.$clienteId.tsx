@@ -2,7 +2,7 @@ import { useState } from "react";
 import { createFileRoute, Link, useNavigate, notFound } from "@tanstack/react-router";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
-import { ArrowLeft, Building2, Database, History, Monitor, Network, Server, UsersRound } from "lucide-react";
+import { ArrowLeft, Building2, Database, History, Monitor, Network, UsersRound } from "lucide-react";
 import { ClientTicketsHistoryModal } from "@/components/tickets/ClientTicketsHistoryModal";
 
 import { AppShell } from "@/components/portal/AppShell";
@@ -16,15 +16,16 @@ import {
   ClientHadronTab,
   ClientUsersTab,
   ClientTerminalsTab,
-  ClientCompaniesTab,
   Summary,
 } from "./clientes.index";
+
 import { getClientDetail } from "@/lib/clients-api";
 import { normalizeCityUf } from "@/lib/br-city";
 import { useClients, resolveGroupCode, getGroupMembers } from "@/lib/clients-store";
 
-const tabs = ["cliente", "hadron", "usuarios", "terminais", "empresas"] as const;
+const tabs = ["cliente", "hadron", "usuarios", "terminais"] as const;
 type TabValue = (typeof tabs)[number];
+
 
 const searchSchema = z.object({
   tab: fallback(z.string(), "cliente").default("cliente"),
@@ -218,7 +219,6 @@ function ClientDetailPage() {
                 ["hadron", "Hadron", Database],
                 ["usuarios", "Usuarios", UsersRound],
                 ["terminais", "Terminais", Monitor],
-                ["empresas", "Empresas", Server],
               ].map(([value, label, Icon]) => {
 
               const V = value as string;
@@ -254,7 +254,7 @@ function ClientDetailPage() {
 
           <div className="bg-muted/10 p-6">
             <TabsContent value="cliente" className="m-0 space-y-5">
-              <ClientTab client={client} contacts={contacts} companies={companies} tickets={tickets} events={events} />
+              <ClientTab client={client} contacts={contacts} companies={companies} terminals={terminals} tickets={tickets} events={events} />
             </TabsContent>
             <TabsContent value="hadron" className="m-0 space-y-5">
               <ClientHadronTab client={client} modules={modules} terminals={terminals} />
@@ -265,10 +265,8 @@ function ClientDetailPage() {
             <TabsContent value="terminais" className="m-0">
               <ClientTerminalsTab terminals={terminals} />
             </TabsContent>
-            <TabsContent value="empresas" className="m-0">
-              <ClientCompaniesTab client={client} companies={companies} terminals={terminals} />
-            </TabsContent>
           </div>
+
         </Tabs>
       </Card>
 

@@ -1543,15 +1543,18 @@ export function ClientTab({
   client,
   contacts,
   companies,
+  terminals,
   tickets,
   events,
 }: {
   client: ClientRow;
   contacts: ClientContact[];
   companies: ClientCompany[];
+  terminals: ClientTerminal[];
   tickets: ClientTicket[];
   events: ClientEvent[];
 }) {
+
   const company = companies[0];
   const companyCity = [company?.city || client.city, company?.state].filter(Boolean).join(" - ");
   const companyProfile = [company?.industry || client.segment, company?.size || client.size, company?.taxRegime]
@@ -1586,7 +1589,9 @@ export function ClientTab({
           </div>
         </Section>
       </div>
+      <ClientCompaniesTab client={client} companies={companies} terminals={terminals} />
       <div className="grid gap-5 xl:grid-cols-2">
+
         <Section title="Responsavel e contabilidade" icon={CircleUserRound}>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Responsavel" value={company?.responsibleName || "Nao informado"} />
@@ -1930,7 +1935,7 @@ export function ClientCompaniesTab({
   companies: ClientCompany[];
   terminals: ClientTerminal[];
 }) {
-  const [openId, setOpenId] = useState<string | null>(companies[0]?.id ?? null);
+  const [openId, setOpenId] = useState<string | null>(null);
 
   if (!companies.length)
     return (
