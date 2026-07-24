@@ -164,7 +164,7 @@ function ClientDetailPage() {
         <header className="border-b border-border px-7 py-5 dark:border-border">
           <div className="flex flex-wrap items-start justify-between gap-5">
             <div className="flex min-w-0 gap-4">
-              <div className="grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-primary text-base font-semibold text-white shadow-sm">
+              <div className="grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-primary text-base font-semibold text-primary-foreground shadow-sm">
                 {client.acronym.slice(0, 4).toUpperCase()}
               </div>
               <div className="min-w-0">

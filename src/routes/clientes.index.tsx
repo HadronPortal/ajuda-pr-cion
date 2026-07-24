@@ -649,7 +649,7 @@ function ClientsPage() {
         <Button
           type="button"
           onClick={() => setFiltersOpen(true)}
-          className="h-10 cursor-pointer gap-2 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white shadow-md hover:bg-blue-700"
+          className="h-10 cursor-pointer gap-2 rounded-lg bg-blue-600 px-4 text-sm font-medium text-primary-foreground shadow-md hover:bg-blue-700"
         >
           <Filter className="h-4 w-4" />
           Filtros
@@ -1031,7 +1031,7 @@ function FiltersPanel({
           <Button
             type="button"
             onClick={onApply}
-            className="h-10 cursor-pointer rounded-lg bg-blue-600 px-5 text-sm font-medium text-white hover:bg-blue-700"
+            className="h-10 cursor-pointer rounded-lg bg-blue-600 px-5 text-sm font-medium text-primary-foreground hover:bg-blue-700"
           >
             Aplicar filtros
           </Button>
@@ -1711,7 +1711,7 @@ function SupportRowsCompact({ tickets }: { tickets: ClientTicket[] }) {
         <Button
           asChild
           size="sm"
-          className="h-8 cursor-pointer rounded-full bg-primary px-4 text-xs font-medium text-white hover:bg-primary/90"
+          className="h-8 cursor-pointer rounded-full bg-primary px-4 text-xs font-medium text-primary-foreground hover:bg-primary/90"
         >
           <Link to="/chamados/novo">Novo chamado</Link>
         </Button>
@@ -1774,7 +1774,7 @@ function ClientNextEvent({ events }: { events: ClientEvent[] }) {
           <Button
             asChild
             size="sm"
-            className="h-8 cursor-pointer rounded-full bg-primary px-4 text-xs font-medium text-white hover:bg-primary/90"
+            className="h-8 cursor-pointer rounded-full bg-primary px-4 text-xs font-medium text-primary-foreground hover:bg-primary/90"
           >
             <Link to="/calendario">Novo evento</Link>
           </Button>
