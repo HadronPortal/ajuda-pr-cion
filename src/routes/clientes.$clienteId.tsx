@@ -86,6 +86,7 @@ function ClientDetailPage() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const showReturnToTicket = from === "chamado" && !!ticketId;
   const { clients: allClients } = useClients({ onlyActive: false });
+  const showInternet = internet.hasActiveContract && internet.contracts.some((c) => c.active);
   const showDevices = internet.hasActiveContract && internet.hasDevices;
 
   // Grupo: usa group_acronym do cliente. Se vazio, verifica se ele é raiz de
@@ -94,10 +95,12 @@ function ClientDetailPage() {
   const groupMembersCount = groupCode ? getGroupMembers(groupCode, allClients).length : 0;
 
 
-  const requestedTab = tab === "internet" ? "dispositivos" : tab;
-  const currentTab: TabValue = (tabs as readonly string[]).includes(requestedTab) && (requestedTab !== "dispositivos" || showDevices)
-    ? (requestedTab as TabValue)
-    : "cliente";
+  const requestedTab = tab;
+  const tabAllowed =
+    (tabs as readonly string[]).includes(requestedTab) &&
+    (requestedTab !== "dispositivos" || showDevices) &&
+    (requestedTab !== "internet" || showInternet);
+  const currentTab: TabValue = tabAllowed ? (requestedTab as TabValue) : "cliente";
 
 
   const setTab = (value: string) => {
