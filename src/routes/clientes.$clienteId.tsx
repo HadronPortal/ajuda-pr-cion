@@ -165,7 +165,7 @@ function ClientDetailPage() {
           <MiniSummary label="Atendimento" value={normalizeCityUf(client.city) || "Não informado"} />
           <MiniSummary label="Status" value={client.status || "Não informado"} />
           <MiniSummary label="Versão Hádron" value={client.versionDate || client.version || "Não informada"} />
-          <MiniSummary label="Data de atualização" value={client.updated || "Não informada"} />
+          <MiniSummary label="Data de atualização" value={client.versionUpdatedAt || client.updated || "Não informada"} />
           <MiniSummary label="Dispositivos" value={String(internet.devices.length)} />
         </div>
       </div>
