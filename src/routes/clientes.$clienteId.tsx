@@ -80,7 +80,7 @@ export const Route = createFileRoute("/clientes/$clienteId")({
 });
 
 function ClientDetailPage() {
-  const { client, contacts, companies, users, terminals, modules, internet, tickets, events } = Route.useLoaderData();
+  const { client, contacts, companies, users, terminals, modules, internet, tickets, events, activities } = Route.useLoaderData();
   const { tab, from, ticketId } = Route.useSearch();
   const navigate = useNavigate();
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -158,11 +158,12 @@ function ClientDetailPage() {
           )}
         </div>
 
-        <div className="grid w-full grid-cols-2 gap-2 sm:w-auto sm:grid-cols-4">
-          <MiniSummary label="Atendimento" value={client.city || "Não informado"} />
-          <MiniSummary label="Versão Hádron" value={client.version || "Não informada"} />
-          <MiniSummary label="Atualização" value={client.updated || "Não informada"} />
-          <MiniSummary label="Cidade" value={normalizeCityUf(client.city) || "Não informada"} />
+        <div className="grid w-full grid-cols-2 gap-2 sm:w-auto sm:grid-cols-3 xl:grid-cols-5">
+          <MiniSummary label="Atendimento" value={normalizeCityUf(client.city) || "Não informado"} />
+          <MiniSummary label="Status" value={client.status || "Não informado"} />
+          <MiniSummary label="Versão Hádron" value={client.versionDate || client.version || "Não informada"} />
+          <MiniSummary label="Data de atualização" value={client.updated || "Não informada"} />
+          <MiniSummary label="Dispositivos" value={String(internet.devices.length)} />
         </div>
       </div>
 
@@ -266,7 +267,7 @@ function ClientDetailPage() {
 
           <div className="bg-muted/10 p-6">
             <TabsContent value="cliente" className="m-0 space-y-5">
-              <ClientTab client={client} contacts={contacts} companies={companies} terminals={terminals} tickets={tickets} events={events} onOpenCompanies={() => setTab("empresas")} />
+              <ClientTab client={client} contacts={contacts} companies={companies} terminals={terminals} tickets={tickets} events={events} activities={activities} onOpenCompanies={() => setTab("empresas")} />
             </TabsContent>
             <TabsContent value="hadron" className="m-0 space-y-5">
               <ClientHadronTab client={client} modules={modules} terminals={terminals} />

@@ -149,6 +149,7 @@ export type ClientTicket = {
   priority: string;
   status: string;
   createdAt: string;
+  updatedAt: string;
 };
 
 export type ClientEvent = {
@@ -161,6 +162,18 @@ export type ClientEvent = {
   ticketProtocol: string;
 };
 
+export type ClientTicketActivity = {
+  id: string;
+  ticketId: string;
+  protocol: string;
+  subject: string;
+  eventType: string;
+  title: string;
+  description: string;
+  actor: string;
+  occurredAt: string;
+};
+
 export type ClientDetail = {
   client: ClientRow;
   contacts: ClientContact[];
@@ -171,6 +184,7 @@ export type ClientDetail = {
   internet: ClientInternet;
   tickets: ClientTicket[];
   events: ClientEvent[];
+  activities: ClientTicketActivity[];
 };
 
 const industryLabels: Record<string, string> = {
@@ -289,8 +303,12 @@ export async function getClient(acronym: string): Promise<ClientRow | null> {
 }
 
 export async function getClientDetail(acronym: string): Promise<ClientDetail | null> {
-  const { data, error } = await supabase.rpc("get_crm_client", { client_acronym: acronym });
+  const [{ data, error }, { data: activityData, error: activityError }] = await Promise.all([
+    supabase.rpc("get_crm_client", { client_acronym: acronym }),
+    supabase.rpc("get_crm_client_ticket_activity", { client_acronym: acronym }),
+  ]);
   if (error) throw error;
+  if (activityError) throw activityError;
   if (!data?.client) return null;
 
   const contacts = (Array.isArray(data.contacts) ? data.contacts : []).map(
@@ -475,6 +493,7 @@ export async function getClientDetail(acronym: string): Promise<ClientDetail | n
       priority: String(ticket.priority || ""),
       status: String(ticket.status || ""),
       createdAt: date(ticket.created_at, true),
+      updatedAt: date(ticket.updated_at || ticket.created_at, true),
     }),
   );
 
@@ -490,6 +509,20 @@ export async function getClientDetail(acronym: string): Promise<ClientDetail | n
     }),
   );
 
+  const activities = (Array.isArray(activityData) ? activityData : []).map(
+    (activity: Record<string, unknown>): ClientTicketActivity => ({
+      id: String(activity.id || ""),
+      ticketId: String(activity.ticket_id || ""),
+      protocol: String(activity.protocol || ""),
+      subject: String(activity.subject || ""),
+      eventType: String(activity.event_type || ""),
+      title: String(activity.title || ""),
+      description: String(activity.description || ""),
+      actor: String(activity.actor || ""),
+      occurredAt: date(activity.occurred_at, true),
+    }),
+  );
+
   return {
     client: mapDatabaseClient(data.client),
     contacts,
@@ -500,5 +533,6 @@ export async function getClientDetail(acronym: string): Promise<ClientDetail | n
     internet,
     tickets,
     events,
+    activities,
   };
 }

@@ -56,6 +56,7 @@ import type {
   ClientModule,
   ClientTerminal,
   ClientTicket,
+  ClientTicketActivity,
 } from "@/lib/clients-api";
 import { normalizeCityUf } from "@/lib/br-city";
 import { supabase } from "@/lib/supabase";
@@ -1574,6 +1575,7 @@ export function ClientTab({
   terminals: _terminals,
   tickets,
   events,
+  activities,
   onOpenCompanies,
 }: {
   client: ClientRow;
@@ -1582,6 +1584,7 @@ export function ClientTab({
   terminals: ClientTerminal[];
   tickets: ClientTicket[];
   events: ClientEvent[];
+  activities: ClientTicketActivity[];
   onOpenCompanies?: () => void;
 }) {
 
@@ -1661,11 +1664,11 @@ export function ClientTab({
 
       {/* Linha 4: Próximo evento + Histórico + Atividade recente */}
       <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-        <ClientNextEvent events={events} />
+        <ClientNextEvent events={events} tickets={tickets} />
         <Section title="Histórico de suporte" icon={HardDrive}>
           <SupportRowsCompact tickets={tickets} />
         </Section>
-        <RecentActivityCard tickets={tickets} events={events} />
+        <RecentActivityCard activities={activities} />
       </div>
     </div>
   );
@@ -1717,43 +1720,23 @@ function ResponsibleGroup({
 }
 
 
-function RecentActivityCard({
-  tickets,
-  events,
-}: {
-  tickets: ClientTicket[];
-  events: ClientEvent[];
-}) {
-  type Item = { when: number; label: string; kind: "ticket" | "event" };
-  const items: Item[] = [];
-  for (const t of tickets) {
-    const d = t.createdAt;
-    const ts = d ? new Date(d).getTime() : 0;
-    if (ts) items.push({ when: ts, label: t.subject || `Chamado ${t.protocol || t.id}`, kind: "ticket" });
-  }
-  for (const e of events) {
-    const d = e.startsAt;
-    const ts = d ? new Date(d).getTime() : 0;
-    if (ts) items.push({ when: ts, label: e.title || "Evento", kind: "event" });
-  }
-  items.sort((a, b) => b.when - a.when);
-  const top = items.slice(0, 5);
+function RecentActivityCard({ activities }: { activities: ClientTicketActivity[] }) {
   return (
     <Section title="Atividade recente" icon={Activity}>
-      {top.length ? (
+      {activities.length ? (
         <ul className="space-y-2.5">
-          {top.map((it, i) => (
-            <li key={i} className="flex items-start gap-2 min-w-0">
+          {activities.slice(0, 5).map((activity) => (
+            <li key={activity.id} className="flex min-w-0 items-start gap-2">
               <span
                 className={cn(
                   "mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full",
-                  it.kind === "ticket" ? "bg-primary" : "bg-muted-foreground",
+                  activity.eventType === "created" ? "bg-primary" : "bg-muted-foreground",
                 )}
               />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm text-foreground">{it.label}</p>
+                <p className="truncate text-sm text-foreground">{activity.title || activity.subject}</p>
                 <p className="text-[11px] text-muted-foreground">
-                  {new Date(it.when).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}
+                  {[activity.protocol, activity.actor, activity.occurredAt].filter(Boolean).join(" · ")}
                 </p>
               </div>
             </li>
@@ -1917,8 +1900,9 @@ function SupportRowsCompact({ tickets }: { tickets: ClientTicket[] }) {
   );
 }
 
-function ClientNextEvent({ events }: { events: ClientEvent[] }) {
+function ClientNextEvent({ events, tickets }: { events: ClientEvent[]; tickets: ClientTicket[] }) {
   const event = events[0];
+  const scheduledTicket = tickets.find((ticket) => ticket.status.toLowerCase() === "scheduled");
 
   return (
     <Section title="Próximo evento" icon={CalendarDays} accent="purple">
@@ -1940,6 +1924,21 @@ function ClientNextEvent({ events }: { events: ClientEvent[] }) {
               Chamado relacionado: {event.ticketProtocol}
             </p>
           )}
+        </div>
+      ) : scheduledTicket ? (
+        <div className="rounded-md border border-border p-4 dark:border-border">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="font-medium">{scheduledTicket.subject}</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {[scheduledTicket.protocol, scheduledTicket.operator].filter(Boolean).join(" · ")}
+              </p>
+            </div>
+            <Badge className="bg-emerald-500/15 text-emerald-600">Agendado</Badge>
+          </div>
+          <p className="mt-3 text-xs text-muted-foreground">
+            Atualizado em {scheduledTicket.updatedAt || scheduledTicket.createdAt}
+          </p>
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border bg-primary/5 px-4 py-6 text-center dark:border-border dark:bg-transparent">
