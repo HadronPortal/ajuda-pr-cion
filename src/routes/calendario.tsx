@@ -44,18 +44,20 @@ import {
   getUsageByAppointment,
 } from "@/lib/fleet-store";
 import { fleetActions } from "@/lib/fleet-action-store";
+import { listCrmCalendarEvents } from "@/lib/calendar-api";
 
 const preventOutsideClose = (event: Event) => event.preventDefault();
 
 export const Route = createFileRoute("/calendario")({
   head: () => ({ meta: [{ title: "Calendário - Portal Prócion" }] }),
+  loader: () => listCrmCalendarEvents(),
   component: CalendarPage,
 });
 
 type EventType = "Visita presencial" | "Reunião remota" | "Reunião na Prócion" | "Pessoal";
 type EventStatus = "Agendado" | "Concluído" | "Cancelado";
 type CalendarEvent = {
-  id: number;
+  id: string | number;
   date: string;
   time: string;
   end: string;
@@ -142,9 +144,12 @@ function dateKey(year: number, month: number, day: number) {
 }
 
 function CalendarPage() {
-  const [cursor, setCursor] = useState(new Date(2026, 6, 1));
-  const [selectedDate, setSelectedDate] = useState("2026-07-17");
-  const [events, setEvents] = useState(initialEvents);
+  const importedEvents = Route.useLoaderData();
+  const today = new Date();
+  const todayKey = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
+  const [cursor, setCursor] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
+  const [selectedDate, setSelectedDate] = useState(todayKey);
+  const [events, setEvents] = useState<CalendarEvent[]>(importedEvents);
   const [createOpen, setCreateOpen] = useState(false);
   const [agendaOpen, setAgendaOpen] = useState(false);
 
@@ -334,7 +339,7 @@ function CalendarPage() {
               .filter((event) => event.date === cell.key)
               .sort((a, b) => a.time.localeCompare(b.time));
             const selected = selectedDate === cell.key;
-            const today = cell.key === "2026-07-17";
+            const isToday = cell.key === todayKey;
             return (
               <button
                 type="button"
@@ -352,8 +357,8 @@ function CalendarPage() {
                 <span
                   className={cn(
                     "mb-1.5 grid h-7 w-7 place-items-center rounded-full text-xs",
-                    today && "bg-primary text-primary-foreground",
-                    selected && !today && "bg-primary/10 text-primary",
+                    isToday && "bg-primary text-primary-foreground",
+                    selected && !isToday && "bg-primary/10 text-primary",
                   )}
                 >
                   {cell.day}
