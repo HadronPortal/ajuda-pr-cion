@@ -16,6 +16,7 @@ import {
   Database,
   FileText,
   Filter,
+  Globe2,
   RefreshCw,
   HardDrive,
   MessageCircle,

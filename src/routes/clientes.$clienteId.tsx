@@ -14,8 +14,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ClientTab,
   ClientHadronTab,
-  ClientDevicesTab,
   ClientInternetTab,
+  ClientDevicesTab,
   ClientUsersTab,
   ClientTerminalsTab,
   ClientCompaniesTab,

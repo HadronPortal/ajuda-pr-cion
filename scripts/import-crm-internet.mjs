@@ -58,8 +58,8 @@ const boolStatus = (value, fallback = true) => {
 const legacyActiveStatus = (value, fallback = false) => {
   const clean = text(value).toLowerCase();
   if (!clean) return fallback;
-  if (clean === "0") return true;
-  if (["1", "9"].includes(clean)) return false;
+  if (clean === "1") return true;
+  if (["0", "9"].includes(clean)) return false;
   return boolStatus(clean, fallback);
 };
 const safePayload = (row) =>
