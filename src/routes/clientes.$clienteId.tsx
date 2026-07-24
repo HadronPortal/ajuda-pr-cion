@@ -16,6 +16,7 @@ import {
   ClientHadronTab,
   ClientUsersTab,
   ClientTerminalsTab,
+  ClientCompaniesTab,
   Summary,
 } from "./clientes.index";
 
@@ -23,7 +24,7 @@ import { getClientDetail } from "@/lib/clients-api";
 import { normalizeCityUf } from "@/lib/br-city";
 import { useClients, resolveGroupCode, getGroupMembers } from "@/lib/clients-store";
 
-const tabs = ["cliente", "hadron", "usuarios", "terminais"] as const;
+const tabs = ["cliente", "hadron", "usuarios", "terminais", "empresas"] as const;
 type TabValue = (typeof tabs)[number];
 
 
@@ -219,6 +220,7 @@ function ClientDetailPage() {
                 ["hadron", "Hadron", Database],
                 ["usuarios", "Usuarios", UsersRound],
                 ["terminais", "Terminais", Monitor],
+                ["empresas", "Empresas", Network],
               ].map(([value, label, Icon]) => {
 
               const V = value as string;
@@ -254,7 +256,7 @@ function ClientDetailPage() {
 
           <div className="bg-muted/10 p-6">
             <TabsContent value="cliente" className="m-0 space-y-5">
-              <ClientTab client={client} contacts={contacts} companies={companies} terminals={terminals} tickets={tickets} events={events} />
+              <ClientTab client={client} contacts={contacts} companies={companies} terminals={terminals} tickets={tickets} events={events} onOpenCompanies={() => setTab("empresas")} />
             </TabsContent>
             <TabsContent value="hadron" className="m-0 space-y-5">
               <ClientHadronTab client={client} modules={modules} terminals={terminals} />
@@ -264,6 +266,9 @@ function ClientDetailPage() {
             </TabsContent>
             <TabsContent value="terminais" className="m-0">
               <ClientTerminalsTab terminals={terminals} />
+            </TabsContent>
+            <TabsContent value="empresas" className="m-0">
+              <ClientCompaniesTab client={client} companies={companies} terminals={terminals} />
             </TabsContent>
           </div>
 

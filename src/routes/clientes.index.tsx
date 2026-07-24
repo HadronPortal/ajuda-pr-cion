@@ -9,6 +9,7 @@ import {
   Building2,
   CalendarDays,
   Check,
+  ChevronRight,
   CheckCircle2,
   CircleUserRound,
   Cpu,
@@ -1543,9 +1544,10 @@ export function ClientTab({
   client,
   contacts,
   companies,
-  terminals,
+  terminals: _terminals,
   tickets,
   events,
+  onOpenCompanies,
 }: {
   client: ClientRow;
   contacts: ClientContact[];
@@ -1553,6 +1555,7 @@ export function ClientTab({
   terminals: ClientTerminal[];
   tickets: ClientTicket[];
   events: ClientEvent[];
+  onOpenCompanies?: () => void;
 }) {
 
   const company = companies[0];
@@ -1579,19 +1582,12 @@ export function ClientTab({
               value={[companyCity, company?.postalCode || client.cep].filter(Boolean).join(" - CEP ") || "Nao informado"}
             />
           </div>
-          <div className="hidden">
-            <Field label="Nome fantasia" value="CENTER GLASS CATANDUVA" />
-            <Field label="CNPJ" value="66.613.387/0001-60" />
-            <Field label="IE / CNAE" value="260.382.987.118 · 45307-03" />
-            <Field label="Regime" value="Comercio · Pequeno · Simples" />
-            <Field label="Endereco" value="Rua Rosa Cruz, 2188 · Bosque das Laranjeiras" />
-            <Field label="Cidade" value="Catanduva - SP · CEP 15805-254" />
-          </div>
         </Section>
       </div>
-      <ClientCompaniesTab client={client} companies={companies} terminals={terminals} />
-      <div className="grid gap-5 xl:grid-cols-2">
 
+      <CompaniesSummaryCard companies={companies} onOpen={onOpenCompanies} />
+
+      <div className="grid gap-5 xl:grid-cols-3">
         <Section title="Responsavel e contabilidade" icon={CircleUserRound}>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Responsavel" value={company?.responsibleName || "Nao informado"} />
@@ -1600,37 +1596,111 @@ export function ClientTab({
             <Field label="Telefone" value={company?.accountantPhone || "Nao informado"} />
             <Field label="E-mail" value={company?.accountantEmail || "Nao informado"} />
           </div>
-          <div className="hidden">
-            <Field label="Responsavel" value="MAURO APARECIDO SANCHES" />
-            <Field label="CPF / RG" value="040.172.448-40 · 14.143.256-1" />
-            <Field label="Escritorio" value="MARQUES E SANTOS" />
-            <Field label="Contador" value="EDUARDO MARQUES DOS SANTOS" />
-            <Field label="Telefone" value="(16) 98130-0428" />
-            <Field label="E-mail" value="FISCALMARQUESSANTOS2011@GMAIL.COM" />
-          </div>
         </Section>
-        {false && <Section title="Proximo evento" icon={CalendarDays}>
-          <div className="rounded-md border border-border p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="font-medium">Acompanhamento CENTER GLASS CATANDUVA</p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  11/05/2026 · 14:00 as 15:00 · PRCREN
-                </p>
-              </div>
-              <Badge className="bg-emerald-500/12 text-emerald-600">Concluido</Badge>
-            </div>
-            <p className="mt-3 text-xs text-muted-foreground">
-              Chamado relacionado: PRC-1778502127
-            </p>
-          </div>
-        </Section>}
         <ClientNextEvent events={events} />
+        <Section title="Historico de suporte" icon={HardDrive}>
+          <SupportRowsCompact tickets={tickets} />
+        </Section>
       </div>
-      <Section title="Historico de suporte" icon={HardDrive} titleClassName="text-[16px] font-normal">
-        <SupportRows tickets={tickets} />
-      </Section>
     </>
+  );
+}
+
+function CompaniesSummaryCard({
+  companies,
+  onOpen,
+}: {
+  companies: ClientCompany[];
+  onOpen?: () => void;
+}) {
+  const isPrincipal = (co: ClientCompany) => {
+    const digits = (co.document || "").replace(/\D+/g, "");
+    if (digits.length === 14 && digits.slice(8, 12) === "0001") return true;
+    return co.companyNumber === 1;
+  };
+  return (
+    <Section title={`Empresas vinculadas (${companies.length})`} icon={Server}>
+      {companies.length === 0 ? (
+        <EmptyState text="Nenhuma empresa vinculada a este cliente." />
+      ) : (
+        <div className="space-y-2">
+          {companies.slice(0, 5).map((company) => {
+            const principal = isPrincipal(company);
+            const title = company.tradeName || company.legalName || "Empresa";
+            const number = company.companyNumber != null ? String(company.companyNumber).padStart(3, "0") : "—";
+            return (
+              <button
+                key={company.id}
+                type="button"
+                onClick={onOpen}
+                className="flex w-full cursor-pointer items-center gap-3 rounded-md border border-border bg-background px-4 py-2.5 text-left transition-colors hover:border-primary/40 hover:bg-muted/40"
+              >
+                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
+                  <Server className="h-4 w-4" />
+                </span>
+                <span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
+                  <span className="font-mono text-[11px] text-muted-foreground">{number}</span>
+                  <span className="truncate text-sm font-medium text-foreground">{title}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {company.document || "CNPJ não informado"}
+                  </span>
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      "h-5 rounded-full px-2 text-[10.5px] font-medium",
+                      principal
+                        ? "border-primary/30 bg-primary/10 text-primary"
+                        : "border-border text-muted-foreground",
+                    )}
+                  >
+                    {principal ? "Principal" : "Filial"}
+                  </Badge>
+                </span>
+                <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+              </button>
+            );
+          })}
+          {companies.length > 5 && (
+            <div className="pt-1 text-center">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={onOpen}
+                className="cursor-pointer rounded-full text-xs"
+              >
+                Ver todas as {companies.length} empresas
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
+    </Section>
+  );
+}
+
+function SupportRowsCompact({ tickets }: { tickets: ClientTicket[] }) {
+  if (!tickets.length) return <EmptyState text="Nenhum chamado encontrado para este cliente." />;
+  return (
+    <ul className="space-y-2">
+      {tickets.slice(0, 5).map((ticket) => (
+        <li
+          key={ticket.id}
+          className="rounded-md border border-border bg-background px-3 py-2"
+        >
+          <p className="truncate text-[13px] font-medium text-foreground" title={ticket.subject}>
+            {ticket.subject}
+          </p>
+          <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
+            {[ticket.module, ticket.submodule].filter(Boolean).join(" · ") || "—"}
+          </p>
+          <p className="mt-1 flex items-center justify-between text-[11px] text-muted-foreground">
+            <span>{ticket.operator || "—"}</span>
+            <span>{ticket.createdAt}</span>
+          </p>
+        </li>
+      ))}
+    </ul>
   );
 }
 
