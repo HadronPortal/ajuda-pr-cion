@@ -1641,54 +1641,68 @@ export function ClientTab({
         </Section>
       </div>
 
-      <div className="grid gap-5 xl:grid-cols-3">
-        <Section title="Responsável e contabilidade" icon={CircleUserRound}>
-          <div className="space-y-5">
-            <div>
-              <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Responsável</p>
-              {responsibleFields.length ? (
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {responsibleFields.map(([label, value]) => (
-                    <Field key={label} label={label} value={value} />
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">Não informado</p>
-              )}
+      <div className="grid gap-5 lg:grid-cols-5">
+        <div className="lg:col-span-2">
+          <CompaniesSummaryCard companies={companies} />
+        </div>
+        <div className="lg:col-span-3">
+          <Section title="Responsável e contabilidade" icon={CircleUserRound}>
+            <div className="grid gap-6 md:grid-cols-3 md:divide-x md:divide-border">
+              <ResponsibleGroup title="Responsável" fields={responsibleFields} />
+              <ResponsibleGroup title="Endereço do responsável" fields={addressFields} className="md:pl-6" />
+              <ResponsibleGroup title="Contabilidade" fields={accountingFields} className="md:pl-6" emailField="E-mail" />
             </div>
-            <div>
-              <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Endereço do responsável</p>
-              {addressFields.length ? (
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {addressFields.map(([label, value]) => (
-                    <Field key={label} label={label} value={value} />
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">Não informado</p>
-              )}
-            </div>
-            <div>
-              <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Contabilidade</p>
-              {accountingFields.length ? (
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {accountingFields.map(([label, value]) => (
-                    <Field key={label} label={label} value={value} />
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">Não informado</p>
-              )}
-            </div>
-          </div>
-        </Section>
+          </Section>
+        </div>
+      </div>
+
+      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
         <ClientNextEvent events={events} />
         <Section title="Histórico de suporte" icon={HardDrive}>
           <SupportRowsCompact tickets={tickets} />
         </Section>
       </div>
+    </div>
+  );
+}
 
-      <CompaniesSummaryCard companies={companies} />
+function ResponsibleGroup({
+  title,
+  fields,
+  className,
+  emailField,
+}: {
+  title: string;
+  fields: Array<[string, string]>;
+  className?: string;
+  emailField?: string;
+}) {
+  return (
+    <div className={cn("min-w-0 space-y-3", className)}>
+      <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{title}</p>
+      {fields.length ? (
+        <dl className="space-y-2.5">
+          {fields.map(([label, value]) => {
+            const isEmail = emailField === label;
+            return (
+              <div key={label} className="min-w-0">
+                <dt className="text-[11px] uppercase text-muted-foreground">{label}</dt>
+                <dd
+                  className={cn(
+                    "mt-0.5 text-sm text-foreground",
+                    isEmail ? "break-all" : "truncate",
+                  )}
+                  title={value}
+                >
+                  {value}
+                </dd>
+              </div>
+            );
+          })}
+        </dl>
+      ) : (
+        <p className="text-sm text-muted-foreground">Não informado</p>
+      )}
     </div>
   );
 }
