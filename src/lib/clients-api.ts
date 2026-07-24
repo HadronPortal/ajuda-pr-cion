@@ -22,6 +22,7 @@ export type ClientCompany = {
   tradeName: string;
   document: string;
   stateRegistration: string;
+  municipalRegistration: string;
   cnae: string;
   industry: string;
   size: string;
@@ -32,6 +33,15 @@ export type ClientCompany = {
   postalCode: string;
   responsibleName: string;
   responsibleDocument: string;
+  responsibleRg: string;
+  responsibleAddress: string;
+  responsibleNumber: string;
+  responsibleComplement: string;
+  responsibleNeighborhood: string;
+  responsibleCity: string;
+  responsibleState: string;
+  responsiblePostalCode: string;
+  accountantOffice: string;
   accountantName: string;
   accountantPhone: string;
   accountantEmail: string;
