@@ -1642,7 +1642,7 @@ function CompaniesSummaryCard({
     return co.companyNumber === 1;
   };
   return (
-    <Section title={`Empresas vinculadas (${companies.length})`} icon={Server}>
+    <Section title={`Empresas vinculadas (${companies.length})`} icon={Server} accent="purple">
       {companies.length === 0 ? (
         <EmptyState text="Nenhuma empresa vinculada a este cliente." />
       ) : (
@@ -1656,28 +1656,25 @@ function CompaniesSummaryCard({
                 key={company.id}
                 type="button"
                 onClick={onOpen}
-                className="flex w-full cursor-pointer items-center gap-3 rounded-md border border-border bg-background px-4 py-2.5 text-left transition-colors hover:border-primary/40 hover:bg-muted/40"
+                className="flex w-full cursor-pointer items-center gap-3 rounded-lg border border-[#e6e9f8] bg-card px-4 py-3 text-left transition-colors hover:border-[#6c4cff]/40 hover:bg-[#6c4cff]/5 dark:border-border"
               >
-                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-[#6c4cff]/10 text-[#6c4cff]">
                   <Server className="h-4 w-4" />
                 </span>
-                <span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
+                <span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">
                   <span className="font-mono text-[11px] text-muted-foreground">{number}</span>
                   <span className="truncate text-sm font-medium text-foreground">{title}</span>
                   <span className="text-xs text-muted-foreground">
                     {company.document || "CNPJ não informado"}
                   </span>
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      "h-5 rounded-full px-2 text-[10.5px] font-medium",
-                      principal
-                        ? "border-primary/30 bg-primary/10 text-primary"
-                        : "border-border text-muted-foreground",
-                    )}
-                  >
-                    {principal ? "Principal" : "Filial"}
-                  </Badge>
+                  {principal && (
+                    <Badge
+                      variant="outline"
+                      className="h-5 rounded-full border-[#6c4cff]/30 bg-[#6c4cff]/10 px-2 text-[10.5px] font-medium text-[#6c4cff]"
+                    >
+                      Principal
+                    </Badge>
+                  )}
                 </span>
                 <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
               </button>
@@ -1690,7 +1687,7 @@ function CompaniesSummaryCard({
                 variant="outline"
                 size="sm"
                 onClick={onOpen}
-                className="cursor-pointer rounded-full text-xs"
+                className="cursor-pointer rounded-full border-[#6c4cff]/25 text-xs text-[#6c4cff] hover:bg-[#6c4cff]/10 hover:text-[#6c4cff]"
               >
                 Ver todas as {companies.length} empresas
               </Button>
