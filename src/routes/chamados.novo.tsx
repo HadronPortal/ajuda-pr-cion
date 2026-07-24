@@ -46,7 +46,7 @@ import type { ClosurePayload } from "@/lib/tickets-store";
 import { loadClients } from "@/lib/clients-store";
 import {
   addClientContact,
-  fetchClientGroupCompanies,
+  fetchClientContacts,
   formatPhoneDisplay,
   type ClientContact,
   type ClientCompanySummary,
@@ -253,7 +253,9 @@ function NewTicketPage() {
     setPhones([]);
     setCompanies([]);
     setClientUuid(null);
-    fetchClientGroupCompanies(client)
+    // Subempresas: apenas empresas vinculadas ao próprio cliente (client_id).
+    // Não misturar com empresas de outros clientes do mesmo grupo.
+    fetchClientContacts(client.acronym)
       .then((bundle) => {
         if (cancelled) return;
         setClientUuid(bundle.clientId);
@@ -395,7 +397,7 @@ function NewTicketPage() {
         `Tipo: ${form.type}. Operador: ${form.operator}. ` +
         `Contato: ${form.emailValue} · ${form.phoneValue}.` +
         (selectedCompany
-          ? `\nEmpresa: ${selectedCompany.clientAcronym} · ${selectedCompany.companyNumber ? String(selectedCompany.companyNumber).padStart(3, "0") + " · " : ""}${selectedCompany.tradeName || selectedCompany.legalName}${selectedCompany.document ? " · " + selectedCompany.document : ""}`
+          ? `\nEmpresa: ${selectedCompany.companyNumber ? String(selectedCompany.companyNumber).padStart(3, "0") + " · " : ""}${selectedCompany.tradeName || selectedCompany.legalName}${selectedCompany.document ? " · " + selectedCompany.document : ""}`
           : ""),
       companyId: selectedCompany?.id ?? null,
       companyNumber: selectedCompany?.companyNumber ?? null,
@@ -487,8 +489,6 @@ function NewTicketPage() {
                             >
                               <span className="inline-flex flex-col">
                                 <span className="text-[12.5px]">
-                                  <span className="font-semibold">{co.clientAcronym}</span>
-                                  {" · "}
                                   <span className="font-semibold">{number}</span>
                                   {" · "}
                                   {name}

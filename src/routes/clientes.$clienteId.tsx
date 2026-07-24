@@ -146,7 +146,7 @@ function ClientDetailPage() {
                       to="/clientes"
                       search={{ grupo: groupCode }}
                       className="cursor-pointer text-sm font-medium text-primary hover:underline"
-                      title={`Ver empresas do grupo ${groupCode}`}
+                      title={`Ver clientes do grupo ${groupCode}`}
                     >
                       {client.acronym}
                     </Link>
@@ -157,28 +157,18 @@ function ClientDetailPage() {
                     {client.status}
                   </Badge>
                   {groupCode && (
-                    <>
-                      <Button
-                        asChild
-                        variant="outline"
-                        size="sm"
-                        title="Exibir empresas deste grupo"
-                        className="h-7 cursor-pointer gap-1.5 rounded-full border-primary/30 px-2.5 text-[11.5px] font-medium text-primary hover:bg-primary/10"
-                      >
-                        <Link to="/clientes" search={{ grupo: groupCode }}>
-                          <Network className="h-3.5 w-3.5" />
-                          Ver empresas do grupo {groupCode}
-                        </Link>
-                      </Button>
-                      {groupMembersCount > 0 && (
-                        <Badge
-                          variant="outline"
-                          className="h-6 rounded-full border-primary/30 px-2 text-[11px] font-medium text-primary"
-                        >
-                          {groupMembersCount} {groupMembersCount === 1 ? "empresa" : "empresas"}
-                        </Badge>
-                      )}
-                    </>
+                    <Button
+                      asChild
+                      variant="outline"
+                      size="sm"
+                      title="Ver clientes deste grupo"
+                      className="h-7 cursor-pointer gap-1.5 rounded-full border-primary/30 px-2.5 text-[11.5px] font-medium text-primary hover:bg-primary/10"
+                    >
+                      <Link to="/clientes" search={{ grupo: groupCode }}>
+                        <Network className="h-3.5 w-3.5" />
+                        Ver clientes do grupo {groupCode} ({groupMembersCount})
+                      </Link>
+                    </Button>
                   )}
                 </div>
 
@@ -196,7 +186,7 @@ function ClientDetailPage() {
                         to="/clientes"
                         search={{ grupo: groupCode }}
                         className="cursor-pointer text-primary hover:underline"
-                        title={`Ver empresas do grupo ${groupCode}`}
+                        title={`Ver clientes do grupo ${groupCode}`}
                       >
                         ({groupCode})
                       </Link>

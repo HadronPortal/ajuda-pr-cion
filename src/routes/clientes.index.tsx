@@ -689,9 +689,9 @@ function ClientsPage() {
 
       {grupoParam && (
         <div className="mb-3 flex items-baseline gap-2">
-          <h2 className="text-base font-medium">Empresas do grupo {grupoParam}</h2>
+          <h2 className="text-base font-medium">Clientes do grupo {grupoParam}</h2>
           <span className="text-sm text-muted-foreground">
-            {filtered.length} {filtered.length === 1 ? "empresa" : "empresas"}
+            {filtered.length} {filtered.length === 1 ? "cliente" : "clientes"}
           </span>
         </div>
       )}
@@ -1930,36 +1930,128 @@ export function ClientCompaniesTab({
   companies: ClientCompany[];
   terminals: ClientTerminal[];
 }) {
-  if (!companies.length) return <Section title="Empresas vinculadas" icon={Server}><EmptyState text="Nenhuma empresa vinculada a este cliente." /></Section>;
+  const [openId, setOpenId] = useState<string | null>(companies[0]?.id ?? null);
+
+  if (!companies.length)
+    return (
+      <Section title="Empresas vinculadas" icon={Server}>
+        <EmptyState text="Nenhuma empresa vinculada a este cliente." />
+      </Section>
+    );
+
+  const isPrincipal = (co: ClientCompany) => {
+    const digits = (co.document || "").replace(/\D+/g, "");
+    if (digits.length === 14 && digits.slice(8, 12) === "0001") return true;
+    return co.companyNumber === 1;
+  };
+
   return (
-    <Section title="Empresas vinculadas" icon={Server}>
-      <div className="space-y-5">
+    <Section title={`Empresas vinculadas (${companies.length})`} icon={Server}>
+      <div className="space-y-2">
         {companies.map((company) => {
-          const companyTerminals = terminals.filter((terminal) => terminal.companyNumber === company.companyNumber);
+          const companyTerminals = terminals.filter(
+            (terminal) => terminal.companyNumber === company.companyNumber,
+          );
           const terminal = companyTerminals[0];
-          const rows = [
-            ["Codigo / Empresa", `${String(company.companyNumber ?? "-").padStart(3, "0")} - ${company.tradeName || company.legalName}`],
-            ["CNPJ", company.document || "Nao informado"],
+          const principal = isPrincipal(company);
+          const expanded = openId === company.id;
+          const title = company.tradeName || company.legalName || "Empresa";
+          const number = company.companyNumber != null ? String(company.companyNumber).padStart(3, "0") : "—";
+          const addressLine = [
+            company.address,
+            [normalizeCityUf([company.city, company.state].filter(Boolean).join(" - "))]
+              .filter(Boolean)
+              .join(""),
+            company.postalCode,
+          ]
+            .filter(Boolean)
+            .join(" · ");
+
+          const rows: Array<[string, string]> = [
+            ["Código da empresa", number],
+            ["Razão social", company.legalName || "Não informada"],
+            ["Nome fantasia", company.tradeName || "Não informado"],
+            ["CNPJ", company.document || "Não informado"],
+            ["Inscrição estadual", company.stateRegistration || "Não informada"],
+            ["Endereço", company.address || "Não informado"],
+            ["Cidade / UF", normalizeCityUf([company.city, company.state].filter(Boolean).join(" - ")) || "Não informada"],
+            ["CEP", company.postalCode || "Não informado"],
+            ["CNAE", company.cnae || "Não informado"],
+            ["Ramo", company.industry || "Não informado"],
+            ["Porte", company.size || "Não informado"],
+            ["Regime tributário", company.taxRegime || "Não informado"],
+            ["Responsável", company.responsibleName || "Não informado"],
+            ["Contador", company.accountantName || "Não informado"],
             ["Terminais", String(companyTerminals.length)],
-            ["Versao", terminal?.version || client.version || "Nao informada"],
-            ["Sistema operacional", terminal?.operatingSystem || "Nao informado"],
-            ["Emite NF-e", terminal?.emitsNfe == null ? "Nao informado" : terminal.emitsNfe ? "Sim" : "Nao"],
-            ["Notas emitidas", terminal ? String(terminal.notesIssued) : "Nao informado"],
-            ["Memoria usada / total", terminal ? `${terminal.memoryUsed || "-"} / ${terminal.memoryTotal || "-"}` : "Nao informado"],
-            ["Tipo de certificado", terminal?.certificateType || "Nao informado"],
-            ["Validade do certificado", terminal?.certificateExpiresAt || "Nao informado"],
-            ["Ambiente", terminal?.environment || "Nao informado"],
-            ["Atualizado em", terminal?.updatedAt || client.updated || "Nao informado"],
-            ["Registrado em", terminal?.registeredAt || "Nao informado"],
+            ["Versão", terminal?.version || client.version || "Não informada"],
+            ["Sistema operacional", [terminal?.operatingSystem, terminal?.operatingSystemVersion].filter(Boolean).join(" ") || "Não informado"],
+            ["Emite NF-e", terminal?.emitsNfe == null ? "Não informado" : terminal.emitsNfe ? "Sim" : "Não"],
+            ["Notas emitidas", terminal ? String(terminal.notesIssued) : "Não informado"],
+            ["Certificado", terminal?.certificateType || "Não informado"],
+            ["Validade do certificado", terminal?.certificateExpiresAt || "Não informado"],
+            ["Ambiente", terminal?.environment || "Não informado"],
+            ["Atualizado em", terminal?.updatedAt || client.updated || "Não informado"],
           ];
+
           return (
-            <div key={company.id} className="grid divide-y divide-border border-y border-border sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-3">
-              {rows.map(([label, value]) => (
-                <div key={label} className="border-b border-r border-border px-4 py-3">
-                  <p className="text-sm text-foreground">{value}</p>
-                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</p>
+            <div
+              key={company.id}
+              className="overflow-hidden rounded-md border border-border bg-background"
+            >
+              <button
+                type="button"
+                onClick={() => setOpenId(expanded ? null : company.id)}
+                aria-expanded={expanded}
+                className="flex w-full cursor-pointer items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/40"
+              >
+                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
+                  <Server className="h-4 w-4" />
+                </span>
+                <span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
+                  <span className="text-xs font-mono text-muted-foreground">{number}</span>
+                  <span className="truncate text-sm font-medium text-foreground">{title}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {company.document || "CNPJ não informado"}
+                  </span>
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      "h-5 rounded-full px-2 text-[10.5px] font-medium",
+                      principal
+                        ? "border-primary/30 bg-primary/10 text-primary"
+                        : "border-border text-muted-foreground",
+                    )}
+                  >
+                    {principal ? "Principal" : "Filial"}
+                  </Badge>
+                </span>
+                <ArrowDown
+                  className={cn(
+                    "h-4 w-4 shrink-0 text-muted-foreground transition-transform",
+                    expanded ? "rotate-180" : "rotate-0",
+                  )}
+                />
+              </button>
+
+              {expanded && (
+                <div className="border-t border-border bg-muted/10 px-4 py-4">
+                  {addressLine && (
+                    <p className="mb-3 text-xs text-muted-foreground">{addressLine}</p>
+                  )}
+                  <div className="grid gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
+                    {rows.map(([label, value]) => (
+                      <div key={label} className="min-w-0">
+                        <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                          {label}
+                        </p>
+                        <p className="truncate text-sm text-foreground" title={value}>
+                          {value}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              ))}
+              )}
             </div>
           );
         })}
