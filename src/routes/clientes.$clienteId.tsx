@@ -34,7 +34,7 @@ import { getClientDetail } from "@/lib/clients-api";
 import { normalizeCityUf } from "@/lib/br-city";
 import { useClients, resolveGroupCode, getGroupMembers } from "@/lib/clients-store";
 
-const tabs = ["cliente", "hadron", "dispositivos", "usuarios", "terminais", "empresas"] as const;
+const tabs = ["cliente", "hadron", "internet", "dispositivos", "usuarios", "terminais", "empresas"] as const;
 type TabValue = (typeof tabs)[number];
 
 
