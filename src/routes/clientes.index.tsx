@@ -1634,8 +1634,8 @@ export function ClientTab({
 
   return (
     <div className="space-y-5">
-      {/* Linha 1: Contatos + Dados da empresa + Resumo rápido */}
-      <div className="grid gap-5 lg:grid-cols-3">
+      {/* Linha 1: Contatos + Dados da empresa */}
+      <div className="grid gap-5 items-stretch lg:grid-cols-2">
         <ContactsCard contacts={contacts} client={client} />
         <Section title="Dados da empresa" icon={Building2}>
           <div className="grid gap-x-5 gap-y-4 sm:grid-cols-2">
@@ -1644,13 +1644,8 @@ export function ClientTab({
             ))}
           </div>
         </Section>
-        <QuickSummaryCard
-          contacts={contacts}
-          companies={companies}
-          tickets={tickets}
-          events={events}
-        />
       </div>
+
 
       {/* Linha 2: Empresas vinculadas (100%) */}
       <CompaniesSummaryCard companies={companies} />
