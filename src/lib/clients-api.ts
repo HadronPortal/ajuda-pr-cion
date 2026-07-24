@@ -307,27 +307,43 @@ export async function getClientDetail(acronym: string): Promise<ClientDetail | n
   );
 
   const companies = (Array.isArray(data.companies) ? data.companies : []).map(
-    (company: Record<string, unknown>): ClientCompany => ({
-      id: String(company.id || ""),
-      companyNumber: typeof company.company_number === "number" ? company.company_number : null,
-      legalName: String(company.legal_name || ""),
-      tradeName: String(company.trade_name || ""),
-      document: formatCnpj(company.document),
-      stateRegistration: String(company.state_registration || ""),
-      cnae: String(company.cnae || ""),
-      industry: labelFromCode(company.industry, industryLabels),
-      size: labelFromCode(company.size, sizeLabels),
-      taxRegime: String(company.tax_regime || ""),
-      address: String(company.address || ""),
-      city: normalizeCityName(String(company.city || "")),
-      state: String(company.state || "").toUpperCase(),
-      postalCode: String(company.postal_code || ""),
-      responsibleName: String(company.responsible_name || ""),
-      responsibleDocument: String(company.responsible_document || ""),
-      accountantName: String(company.accountant_name || ""),
-      accountantPhone: String(company.accountant_phone || ""),
-      accountantEmail: String(company.accountant_email || ""),
-    }),
+    (company: Record<string, unknown>): ClientCompany => {
+      const payload = parseJsonField(company.source_payload);
+      const respRaw = parseJsonField(payload.tcl_responsavel);
+      const ctdRaw = parseJsonField(payload.tcl_contador);
+      const regimeCode = String(company.tax_regime ?? payload.tcl_regime ?? "").trim();
+      return {
+        id: String(company.id || ""),
+        companyNumber: typeof company.company_number === "number" ? company.company_number : null,
+        legalName: String(company.legal_name || ""),
+        tradeName: String(company.trade_name || ""),
+        document: formatCnpj(company.document),
+        stateRegistration: String(company.state_registration || payload.tcl_ie || ""),
+        municipalRegistration: String(payload.tcl_im || ""),
+        cnae: String(company.cnae || payload.tcl_cnae || ""),
+        industry: labelFromCode(company.industry ?? payload.tcl_setor, industryLabels),
+        size: labelFromCode(company.size ?? payload.tcl_porte, sizeLabels),
+        taxRegime: optionalLabel(regimeCode, taxRegimeLabels),
+        address: String(company.address || payload.tcl_endereco || ""),
+        city: normalizeCityName(String(company.city || payload.tcl_cidade || "")),
+        state: String(company.state || payload.tcl_uf || "").toUpperCase(),
+        postalCode: formatCep(company.postal_code || payload.tcl_cep || ""),
+        responsibleName: String(company.responsible_name || respRaw.tcl_res_nome || ""),
+        responsibleDocument: formatCpf(company.responsible_document || respRaw.tcl_res_cpf || ""),
+        responsibleRg: String(respRaw.tcl_res_rg || ""),
+        responsibleAddress: String(respRaw.tcl_res_endereco || ""),
+        responsibleNumber: String(respRaw.tcl_res_numero || ""),
+        responsibleComplement: String(respRaw.tcl_res_complemento || ""),
+        responsibleNeighborhood: String(respRaw.tcl_res_bairro || ""),
+        responsibleCity: normalizeCityName(String(respRaw.tcl_res_cidade || "")),
+        responsibleState: String(respRaw.tcl_res_uf || "").toUpperCase(),
+        responsiblePostalCode: formatCep(respRaw.tcl_res_cep || ""),
+        accountantOffice: String(company.accountant_office || ctdRaw.tcl_ctd_nome || ""),
+        accountantName: String(company.accountant_name || ctdRaw.tcl_ctd_res || ""),
+        accountantPhone: String(company.accountant_phone || ctdRaw.tcl_ctd_tel || ""),
+        accountantEmail: String(company.accountant_email || ctdRaw.tcl_ctd_email || ""),
+      };
+    },
   );
 
   const users = (Array.isArray(data.users) ? data.users : []).map(
