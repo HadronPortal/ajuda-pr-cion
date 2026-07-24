@@ -16,9 +16,9 @@ import {
   ClientHadronTab,
   ClientUsersTab,
   ClientTerminalsTab,
-  ClientCompaniesTab,
   Summary,
 } from "./clientes.index";
+
 import { getClientDetail } from "@/lib/clients-api";
 import { normalizeCityUf } from "@/lib/br-city";
 import { useClients, resolveGroupCode, getGroupMembers } from "@/lib/clients-store";
