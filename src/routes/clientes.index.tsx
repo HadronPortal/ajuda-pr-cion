@@ -1585,45 +1585,105 @@ export function ClientTab({
 }) {
 
   const company = companies[0];
-  const companyCity = [company?.city || client.city, company?.state].filter(Boolean).join(" - ");
-  const companyProfile = [company?.industry || client.segment, company?.size || client.size, company?.taxRegime]
-    .filter(Boolean)
-    .join(" - ");
+  const companyCityUf = normalizeCityUf(
+    [company?.city || client.city, company?.state].filter(Boolean).join(" - "),
+  );
+  const companyCep = company?.postalCode || client.cep || "";
+  const empresaFields: Array<[string, string]> = [
+    ["Nome fantasia", company?.tradeName || client.fantasia || ""],
+    ["CNPJ", company?.document || client.cnpj || ""],
+    ["Inscrição estadual", company?.stateRegistration || ""],
+    ["CNAE", company?.cnae || ""],
+    ["Setor", company?.industry || client.segment || ""],
+    ["Porte", company?.size || client.size || ""],
+    ["Regime de apuração", company?.taxRegime || ""],
+    ["Endereço", company?.address || ""],
+    ["Cidade / UF", companyCityUf || ""],
+    ["CEP", companyCep || ""],
+  ];
   void onOpenCompanies;
+
+  const responsibleFields: Array<[string, string]> = [
+    ["Nome", company?.responsibleName || ""],
+    ["CPF", company?.responsibleDocument || ""],
+    ["RG", company?.responsibleRg || ""],
+  ].filter(([, v]) => Boolean(v)) as Array<[string, string]>;
+
+  const respAddressCityUf = normalizeCityUf(
+    [company?.responsibleCity, company?.responsibleState].filter(Boolean).join(" - "),
+  );
+  const addressFields: Array<[string, string]> = [
+    ["Logradouro", company?.responsibleAddress || ""],
+    ["Número", company?.responsibleNumber || ""],
+    ["Complemento", company?.responsibleComplement || ""],
+    ["Bairro", company?.responsibleNeighborhood || ""],
+    ["Cidade / UF", respAddressCityUf || ""],
+    ["CEP", company?.responsiblePostalCode || ""],
+  ].filter(([, v]) => Boolean(v)) as Array<[string, string]>;
+
+  const accountingFields: Array<[string, string]> = [
+    ["Escritório", company?.accountantOffice || ""],
+    ["Contador responsável", company?.accountantName || ""],
+    ["Telefone", company?.accountantPhone ? formatPhoneBR(company.accountantPhone) : ""],
+    ["E-mail", company?.accountantEmail || ""],
+  ].filter(([, v]) => Boolean(v)) as Array<[string, string]>;
+
   return (
     <div className="space-y-5">
       <div className="grid gap-5 xl:grid-cols-2">
         <ContactsCard contacts={contacts} client={client} />
-        <Section title="Empresa principal" icon={Building2} accent="purple">
+        <Section title="Dados da empresa" icon={Building2}>
           <div className="grid gap-x-5 gap-y-4 sm:grid-cols-2">
-            <Field label="Nome fantasia" value={company?.tradeName || client.fantasia || "Não informado"} />
-            <Field label="CNPJ" value={company?.document || client.cnpj || "Não informado"} />
-            <Field
-              label="IE / CNAE"
-              value={[company?.stateRegistration, company?.cnae].filter(Boolean).join(" · ") || "Não informado"}
-            />
-            <Field label="Regime" value={companyProfile || "Não informado"} />
-            <Field label="Endereço" value={company?.address || "Não informado"} />
-            <Field
-              label="Cidade"
-              value={[companyCity, company?.postalCode || client.cep].filter(Boolean).join(" · CEP ") || "Não informado"}
-            />
+            {empresaFields.map(([label, value]) => (
+              <Field key={label} label={label} value={value || "Não informado"} />
+            ))}
           </div>
         </Section>
       </div>
 
       <div className="grid gap-5 xl:grid-cols-3">
-        <Section title="Responsável e contabilidade" icon={CircleUserRound} accent="purple">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Responsável" value={company?.responsibleName || "Não informado"} />
-            <Field label="Documento" value={company?.responsibleDocument || "Não informado"} />
-            <Field label="Contador" value={company?.accountantName || "Não informado"} />
-            <Field label="Telefone" value={company?.accountantPhone || "Não informado"} />
-            <Field label="E-mail" value={company?.accountantEmail || "Não informado"} />
+        <Section title="Responsável e contabilidade" icon={CircleUserRound}>
+          <div className="space-y-5">
+            <div>
+              <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Responsável</p>
+              {responsibleFields.length ? (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {responsibleFields.map(([label, value]) => (
+                    <Field key={label} label={label} value={value} />
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">Não informado</p>
+              )}
+            </div>
+            <div>
+              <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Endereço do responsável</p>
+              {addressFields.length ? (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {addressFields.map(([label, value]) => (
+                    <Field key={label} label={label} value={value} />
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">Não informado</p>
+              )}
+            </div>
+            <div>
+              <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">Contabilidade</p>
+              {accountingFields.length ? (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {accountingFields.map(([label, value]) => (
+                    <Field key={label} label={label} value={value} />
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">Não informado</p>
+              )}
+            </div>
           </div>
         </Section>
         <ClientNextEvent events={events} />
-        <Section title="Histórico de suporte" icon={HardDrive} accent="purple">
+        <Section title="Histórico de suporte" icon={HardDrive}>
           <SupportRowsCompact tickets={tickets} />
         </Section>
       </div>
