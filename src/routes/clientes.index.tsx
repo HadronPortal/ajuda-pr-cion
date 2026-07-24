@@ -1687,6 +1687,7 @@ function ResponsibleGroup({
   className?: string;
   emailField?: string;
 }) {
+  const wrapFields = new Set(["Logradouro e número", "Bairro / complemento"]);
   return (
     <div className={cn("min-w-0 space-y-3", className)}>
       <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{title}</p>
@@ -1694,13 +1695,15 @@ function ResponsibleGroup({
         <dl className="space-y-2.5">
           {fields.map(([label, value]) => {
             const isEmail = emailField === label;
+            const shouldWrap = isEmail || wrapFields.has(label);
             return (
               <div key={label} className="min-w-0">
                 <dt className="text-[11px] uppercase text-muted-foreground">{label}</dt>
                 <dd
                   className={cn(
                     "mt-0.5 text-sm text-foreground",
-                    isEmail ? "break-all" : "truncate",
+                    shouldWrap ? "break-words [overflow-wrap:anywhere]" : "truncate",
+                    isEmail && "line-clamp-2",
                   )}
                   title={value}
                 >
@@ -1716,6 +1719,96 @@ function ResponsibleGroup({
     </div>
   );
 }
+
+function QuickSummaryCard({
+  contacts,
+  companies,
+  tickets,
+  events,
+}: {
+  contacts: ClientContact[];
+  companies: ClientCompany[];
+  tickets: ClientTicket[];
+  events: ClientEvent[];
+}) {
+  const openTickets = tickets.filter((t) => {
+    const s = (t.status || "").toLowerCase();
+    return s && !s.includes("final") && !s.includes("fech") && !s.includes("resolv") && !s.includes("cancel");
+  }).length;
+  const now = Date.now();
+  const upcomingEvents = events.filter((e) => {
+    const d = e.startDate ? new Date(e.startDate).getTime() : 0;
+    return d && d >= now;
+  }).length;
+  const stats: Array<[string, string | number]> = [
+    ["Contatos", contacts.length],
+    ["Empresas vinculadas", companies.length],
+    ["Chamados em aberto", openTickets],
+    ["Eventos futuros", upcomingEvents],
+  ];
+  return (
+    <Section title="Resumo rápido" icon={Activity}>
+      <dl className="grid grid-cols-2 gap-x-4 gap-y-3">
+        {stats.map(([label, value]) => (
+          <div key={label} className="min-w-0">
+            <dt className="text-[11px] uppercase text-muted-foreground">{label}</dt>
+            <dd className="mt-0.5 text-lg font-semibold text-foreground">{value}</dd>
+          </div>
+        ))}
+      </dl>
+    </Section>
+  );
+}
+
+function RecentActivityCard({
+  tickets,
+  events,
+}: {
+  tickets: ClientTicket[];
+  events: ClientEvent[];
+}) {
+  type Item = { when: number; label: string; kind: "ticket" | "event" };
+  const items: Item[] = [];
+  for (const t of tickets) {
+    const d = t.updatedAt || t.createdAt;
+    const ts = d ? new Date(d).getTime() : 0;
+    if (ts) items.push({ when: ts, label: t.subject || t.title || `Chamado ${t.id}`, kind: "ticket" });
+  }
+  for (const e of events) {
+    const d = e.startDate;
+    const ts = d ? new Date(d).getTime() : 0;
+    if (ts) items.push({ when: ts, label: e.title || "Evento", kind: "event" });
+  }
+  items.sort((a, b) => b.when - a.when);
+  const top = items.slice(0, 5);
+  return (
+    <Section title="Atividade recente" icon={Activity}>
+      {top.length ? (
+        <ul className="space-y-2.5">
+          {top.map((it, i) => (
+            <li key={i} className="flex items-start gap-2 min-w-0">
+              <span
+                className={cn(
+                  "mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full",
+                  it.kind === "ticket" ? "bg-primary" : "bg-muted-foreground",
+                )}
+              />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm text-foreground">{it.label}</p>
+                <p className="text-[11px] text-muted-foreground">
+                  {new Date(it.when).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" })}
+                </p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-sm text-muted-foreground">Sem atividade recente.</p>
+      )}
+    </Section>
+  );
+}
+
 
 function CompaniesSummaryCard({
   companies,
