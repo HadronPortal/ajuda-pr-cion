@@ -1634,8 +1634,8 @@ export function ClientTab({
 
   return (
     <div className="space-y-5">
-      {/* Linha 1: Contatos + Dados da empresa + Resumo rápido */}
-      <div className="grid gap-5 lg:grid-cols-3">
+      {/* Linha 1: Contatos + Dados da empresa */}
+      <div className="grid gap-5 items-stretch lg:grid-cols-2">
         <ContactsCard contacts={contacts} client={client} />
         <Section title="Dados da empresa" icon={Building2}>
           <div className="grid gap-x-5 gap-y-4 sm:grid-cols-2">
@@ -1644,13 +1644,8 @@ export function ClientTab({
             ))}
           </div>
         </Section>
-        <QuickSummaryCard
-          contacts={contacts}
-          companies={companies}
-          tickets={tickets}
-          events={events}
-        />
       </div>
+
 
       {/* Linha 2: Empresas vinculadas (100%) */}
       <CompaniesSummaryCard companies={companies} />
@@ -1721,45 +1716,6 @@ function ResponsibleGroup({
   );
 }
 
-function QuickSummaryCard({
-  contacts,
-  companies,
-  tickets,
-  events,
-}: {
-  contacts: ClientContact[];
-  companies: ClientCompany[];
-  tickets: ClientTicket[];
-  events: ClientEvent[];
-}) {
-  const openTickets = tickets.filter((t) => {
-    const s = (t.status || "").toLowerCase();
-    return s && !s.includes("final") && !s.includes("fech") && !s.includes("resolv") && !s.includes("cancel");
-  }).length;
-  const now = Date.now();
-  const upcomingEvents = events.filter((e) => {
-    const d = e.startsAt ? new Date(e.startsAt).getTime() : 0;
-    return d && d >= now;
-  }).length;
-  const stats: Array<[string, string | number]> = [
-    ["Contatos", contacts.length],
-    ["Empresas vinculadas", companies.length],
-    ["Chamados em aberto", openTickets],
-    ["Eventos futuros", upcomingEvents],
-  ];
-  return (
-    <Section title="Resumo rápido" icon={Activity}>
-      <dl className="grid grid-cols-2 gap-x-4 gap-y-3">
-        {stats.map(([label, value]) => (
-          <div key={label} className="min-w-0">
-            <dt className="text-[11px] uppercase text-muted-foreground">{label}</dt>
-            <dd className="mt-0.5 text-lg font-semibold text-foreground">{value}</dd>
-          </div>
-        ))}
-      </dl>
-    </Section>
-  );
-}
 
 function RecentActivityCard({
   tickets,
