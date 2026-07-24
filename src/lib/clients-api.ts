@@ -65,6 +65,8 @@ export type ClientTerminal = {
   installPath: string;
   version: string;
   versionDate: string;
+  serialNumber: string;
+  flags: string;
   operatingSystem: string;
   operatingSystemVersion: string;
   emitsNfe: boolean | null;
@@ -405,6 +407,8 @@ export async function getClientDetail(acronym: string): Promise<ClientDetail | n
       installPath: String(terminal.install_path || ""),
       version: String(terminal.hadron_version || ""),
       versionDate: date(terminal.version_released_at),
+      serialNumber: String(terminal.serial_number || ""),
+      flags: String(terminal.legacy_flags || ""),
       operatingSystem: String(terminal.operating_system || ""),
       operatingSystemVersion: String(terminal.operating_system_version || ""),
       emitsNfe: typeof terminal.emits_nfe === "boolean" ? terminal.emits_nfe : null,

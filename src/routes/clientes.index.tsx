@@ -2206,14 +2206,15 @@ export function ClientTerminalsTab({ terminals }: { terminals: ClientTerminal[] 
     <Section title="Terminais instalados" icon={Monitor}>
       {terminals.length ? (
         <DataTable
-          headers={["Terminal", "IP", "Pasta", "Versao", "Sistema", "Atualizacao"]}
+          headers={["Terminal", "IP", "Pasta", "Data do setup", "Data da versão", "Nº de série", "Flags"]}
           rows={terminals.map((terminal) => [
             terminal.terminalNumber == null ? "-" : String(terminal.terminalNumber),
             terminal.ipAddress || "-",
             terminal.installPath || "-",
-            terminal.version || "-",
-            [terminal.operatingSystem, terminal.operatingSystemVersion].filter(Boolean).join(" ") || "-",
-            terminal.updatedAt || "-",
+            terminal.registeredAt || "-",
+            terminal.versionDate || "-",
+            terminal.serialNumber || "-",
+            terminal.flags || "-",
           ])}
         />
       ) : <EmptyState text="Nenhum terminal vinculado a este cliente." />}
