@@ -1543,15 +1543,18 @@ export function ClientTab({
   client,
   contacts,
   companies,
+  terminals,
   tickets,
   events,
 }: {
   client: ClientRow;
   contacts: ClientContact[];
   companies: ClientCompany[];
+  terminals: ClientTerminal[];
   tickets: ClientTicket[];
   events: ClientEvent[];
 }) {
+
   const company = companies[0];
   const companyCity = [company?.city || client.city, company?.state].filter(Boolean).join(" - ");
   const companyProfile = [company?.industry || client.segment, company?.size || client.size, company?.taxRegime]
