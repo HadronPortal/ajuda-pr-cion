@@ -489,8 +489,6 @@ function NewTicketPage() {
                             >
                               <span className="inline-flex flex-col">
                                 <span className="text-[12.5px]">
-                                  <span className="font-semibold">{co.clientAcronym}</span>
-                                  {" · "}
                                   <span className="font-semibold">{number}</span>
                                   {" · "}
                                   {name}
