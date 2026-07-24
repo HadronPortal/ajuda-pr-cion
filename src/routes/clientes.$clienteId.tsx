@@ -2,7 +2,7 @@ import { useState } from "react";
 import { createFileRoute, Link, useNavigate, notFound } from "@tanstack/react-router";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
-import { ArrowLeft, Building2, Database, History, Monitor, Network, UsersRound } from "lucide-react";
+import { ArrowLeft, Building2, Database, History, Monitor, Network, UsersRound, Wifi } from "lucide-react";
 import { ClientTicketsHistoryModal } from "@/components/tickets/ClientTicketsHistoryModal";
 
 import { AppShell } from "@/components/portal/AppShell";
@@ -15,6 +15,7 @@ import {
   ClientTab,
   ClientHadronTab,
   ClientDevicesTab,
+  ClientInternetTab,
   ClientUsersTab,
   ClientTerminalsTab,
   ClientCompaniesTab,
@@ -33,7 +34,7 @@ import { getClientDetail } from "@/lib/clients-api";
 import { normalizeCityUf } from "@/lib/br-city";
 import { useClients, resolveGroupCode, getGroupMembers } from "@/lib/clients-store";
 
-const tabs = ["cliente", "hadron", "dispositivos", "usuarios", "terminais", "empresas"] as const;
+const tabs = ["cliente", "hadron", "internet", "dispositivos", "usuarios", "terminais", "empresas"] as const;
 type TabValue = (typeof tabs)[number];
 
 
@@ -85,6 +86,7 @@ function ClientDetailPage() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const showReturnToTicket = from === "chamado" && !!ticketId;
   const { clients: allClients } = useClients({ onlyActive: false });
+  const showInternet = internet.hasActiveContract && internet.contracts.some((c: { active: boolean }) => c.active);
   const showDevices = internet.hasActiveContract && internet.hasDevices;
 
   // Grupo: usa group_acronym do cliente. Se vazio, verifica se ele é raiz de
@@ -93,10 +95,12 @@ function ClientDetailPage() {
   const groupMembersCount = groupCode ? getGroupMembers(groupCode, allClients).length : 0;
 
 
-  const requestedTab = tab === "internet" ? "dispositivos" : tab;
-  const currentTab: TabValue = (tabs as readonly string[]).includes(requestedTab) && (requestedTab !== "dispositivos" || showDevices)
-    ? (requestedTab as TabValue)
-    : "cliente";
+  const requestedTab = tab;
+  const tabAllowed =
+    (tabs as readonly string[]).includes(requestedTab) &&
+    (requestedTab !== "dispositivos" || showDevices) &&
+    (requestedTab !== "internet" || showInternet);
+  const currentTab: TabValue = tabAllowed ? (requestedTab as TabValue) : "cliente";
 
 
   const setTab = (value: string) => {
@@ -222,6 +226,7 @@ function ClientDetailPage() {
               {[
                 ["cliente", "Cliente", Building2],
                 ["hadron", "Hadron", Database],
+                ...(showInternet ? [["internet", "Internet", Wifi]] : []),
                 ...(showDevices ? [["dispositivos", "Dispositivos", Monitor]] : []),
                 ["usuarios", "Usuarios", UsersRound],
                 ["terminais", "Terminais", Monitor],
@@ -266,6 +271,11 @@ function ClientDetailPage() {
             <TabsContent value="hadron" className="m-0 space-y-5">
               <ClientHadronTab client={client} modules={modules} terminals={terminals} />
             </TabsContent>
+            {showInternet && (
+              <TabsContent value="internet" className="m-0 space-y-5">
+                <ClientInternetTab internet={internet} />
+              </TabsContent>
+            )}
             {showDevices && (
               <TabsContent value="dispositivos" className="m-0 space-y-5">
                 <ClientDevicesTab internet={internet} />

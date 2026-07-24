@@ -2130,6 +2130,97 @@ export function ClientDevicesTab({ internet }: { internet: ClientInternet }) {
   );
 }
 
+export function ClientInternetTab({ internet }: { internet: ClientInternet }) {
+  const activeContracts = internet.contracts.filter((c) => c.active);
+  const activeApplications = internet.applications.filter((a) => a.active);
+
+  return (
+    <div className="space-y-5">
+      <Section title={`Contrato Web (${activeContracts.length})`} icon={Server} accent="purple">
+        {activeContracts.length ? (
+          <div className="space-y-3">
+            {activeContracts.map((contract) => {
+              const contractDevices = contract.devices.length
+                ? contract.devices
+                : internet.devices.filter((d) => d.contractLegacyId === contract.legacyId);
+              return (
+                <div
+                  key={contract.id}
+                  className="rounded-md border border-border bg-background p-4"
+                >
+                  <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-foreground">
+                        {contract.name || "Contrato"}
+                      </p>
+                      {contract.updatedAt && (
+                        <p className="text-[11px] text-muted-foreground">
+                          Atualizado em {contract.updatedAt}
+                        </p>
+                      )}
+                    </div>
+                    <Badge
+                      variant="outline"
+                      className="border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                    >
+                      {contract.status || "Ativo"}
+                    </Badge>
+                  </div>
+                  <div className="grid gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
+                    <Field label="URL Web / Mobile" value={contract.webUrl || "Não informada"} />
+                    <Field label="Host" value={contract.serverHost || "Não informado"} />
+                    <Field label="Banco" value={contract.databaseName || "Não informado"} />
+                    <Field label="Início" value={contract.startsAt || "Não informado"} />
+                    <Field label="Expira em" value={contract.expiresAt || "Não informado"} />
+                    <Field label="Dispositivos vinculados" value={String(contractDevices.length)} />
+                  </div>
+                  {contractDevices.length > 0 && (
+                    <div className="mt-4 border-t border-border pt-3">
+                      <p className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                        Dispositivos ({contractDevices.length})
+                      </p>
+                      <DataTable
+                        headers={["Utilizador", "Tipo", "Sistema", "Status", "UUID", "Ultima verificacao"]}
+                        rows={contractDevices.map((device) => [
+                          device.user || "-",
+                          deviceTypeLabel[device.type] || device.type || "-",
+                          device.system || "-",
+                          device.active ? "Ativo" : device.status || "Inativo",
+                          deviceUuidLabel(device.deviceUuid),
+                          device.lastCheckedAt || device.updatedAt || "-",
+                        ])}
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <EmptyState text="Nenhum contrato web ativo." />
+        )}
+      </Section>
+
+      <Section title={`Hádron Web (${activeApplications.length})`} icon={Database} accent="purple">
+        {activeApplications.length ? (
+          <DataTable
+            headers={["Aplicativo", "Tipo", "Versão", "Status", "Atualização"]}
+            rows={activeApplications.map((app) => [
+              app.name || "-",
+              app.appType || "-",
+              app.version || "-",
+              app.active ? "Ativo" : app.status || "Inativo",
+              app.updatedAt || "-",
+            ])}
+          />
+        ) : (
+          <EmptyState text="Nenhum aplicativo habilitado neste contrato." />
+        )}
+      </Section>
+    </div>
+  );
+}
+
 export function ClientCompaniesTab({
   client,
   companies,
