@@ -86,7 +86,7 @@ function ClientDetailPage() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const showReturnToTicket = from === "chamado" && !!ticketId;
   const { clients: allClients } = useClients({ onlyActive: false });
-  const showInternet = internet.hasActiveContract && internet.contracts.some((c) => c.active);
+  const showInternet = internet.hasActiveContract && internet.contracts.some((c: { active: boolean }) => c.active);
   const showDevices = internet.hasActiveContract && internet.hasDevices;
 
   // Grupo: usa group_acronym do cliente. Se vazio, verifica se ele é raiz de
