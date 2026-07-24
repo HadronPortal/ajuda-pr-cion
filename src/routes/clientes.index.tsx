@@ -1195,7 +1195,7 @@ function Section({
     <Card
       className={cn(
         "p-5",
-        isPurple && "border-[#e6e9f8] shadow-sm dark:border-border",
+        isPurple && "border-border shadow-sm dark:border-border",
         className,
       )}
     >
@@ -1204,7 +1204,7 @@ function Section({
           <span
             className={cn(
               "grid h-8 w-8 place-items-center rounded-md",
-              isPurple ? "bg-[#6c4cff]/10 text-[#6c4cff]" : "bg-primary/10 text-primary",
+              isPurple ? "bg-primary/10 text-primary" : "bg-primary/10 text-primary",
             )}
           >
             <Icon className="h-4 w-4" />
@@ -1302,17 +1302,17 @@ function ContactsCard({
   const total = phones.length + emails.length;
   const [open, setOpen] = useState(false);
   return (
-    <Card className="border-[#e6e9f8] bg-card p-5 shadow-sm dark:border-border dark:bg-card">
+    <Card className="border-border bg-card p-5 shadow-sm dark:border-border dark:bg-card">
       <div className="mb-4 flex items-center justify-between gap-2">
         <h3 className="flex items-center gap-2 font-medium">
-          <span className="grid h-8 w-8 place-items-center rounded-md bg-[#6c4cff]/10 text-[#6c4cff]">
+          <span className="grid h-8 w-8 place-items-center rounded-md bg-primary/10 text-primary">
             <Phone className="h-4 w-4" />
           </span>
           Contatos
         </h3>
         <Badge
           variant="outline"
-          className="h-6 rounded-full border-[#6c4cff]/25 bg-[#6c4cff]/10 px-2.5 text-[11px] font-medium text-[#6c4cff]"
+          className="h-6 rounded-full border-primary/25 bg-primary/10 px-2.5 text-[11px] font-medium text-primary"
         >
           {total} {total === 1 ? "contato" : "contatos"}
         </Badge>
@@ -1341,7 +1341,7 @@ function ContactsCard({
                 type="button"
                 variant="outline"
                 size="sm"
-                className="cursor-pointer gap-1.5 rounded-full border-[#6c4cff]/25 px-4 text-xs font-medium text-[#6c4cff] hover:bg-[#6c4cff]/10 hover:text-[#6c4cff]"
+                className="cursor-pointer gap-1.5 rounded-full border-primary/25 px-4 text-xs font-medium text-primary hover:bg-primary/10 hover:text-primary"
                 onClick={() => setOpen(true)}
               >
                 Ver todos os {total} contatos
@@ -1657,9 +1657,9 @@ function CompaniesSummaryCard({
                 key={company.id}
                 type="button"
                 onClick={onOpen}
-                className="flex w-full cursor-pointer items-center gap-3 rounded-lg border border-[#e6e9f8] bg-card px-4 py-3 text-left transition-colors hover:border-[#6c4cff]/40 hover:bg-[#6c4cff]/5 dark:border-border"
+                className="flex w-full cursor-pointer items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 text-left transition-colors hover:border-primary/40 hover:bg-primary/5 dark:border-border"
               >
-                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-[#6c4cff]/10 text-[#6c4cff]">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
                   <Server className="h-4 w-4" />
                 </span>
                 <span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-1">
@@ -1671,7 +1671,7 @@ function CompaniesSummaryCard({
                   {principal && (
                     <Badge
                       variant="outline"
-                      className="h-5 rounded-full border-[#6c4cff]/30 bg-[#6c4cff]/10 px-2 text-[10.5px] font-medium text-[#6c4cff]"
+                      className="h-5 rounded-full border-primary/30 bg-primary/10 px-2 text-[10.5px] font-medium text-primary"
                     >
                       Principal
                     </Badge>
@@ -1688,7 +1688,7 @@ function CompaniesSummaryCard({
                 variant="outline"
                 size="sm"
                 onClick={onOpen}
-                className="cursor-pointer rounded-full border-[#6c4cff]/25 text-xs text-[#6c4cff] hover:bg-[#6c4cff]/10 hover:text-[#6c4cff]"
+                className="cursor-pointer rounded-full border-primary/25 text-xs text-primary hover:bg-primary/10 hover:text-primary"
               >
                 Ver todas as {companies.length} empresas
               </Button>
@@ -1703,15 +1703,15 @@ function CompaniesSummaryCard({
 function SupportRowsCompact({ tickets }: { tickets: ClientTicket[] }) {
   if (!tickets.length) {
     return (
-      <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-[#e6e9f8] bg-[#6c4cff]/[0.03] px-4 py-6 text-center dark:border-border dark:bg-transparent">
-        <span className="grid h-10 w-10 place-items-center rounded-full bg-[#6c4cff]/10 text-[#6c4cff]">
+      <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border bg-primary/5 px-4 py-6 text-center dark:border-border dark:bg-transparent">
+        <span className="grid h-10 w-10 place-items-center rounded-full bg-primary/10 text-primary">
           <MessageCircle className="h-5 w-5" />
         </span>
         <p className="text-xs text-muted-foreground">Nenhum chamado registrado para este cliente.</p>
         <Button
           asChild
           size="sm"
-          className="h-8 cursor-pointer rounded-full bg-[#6c4cff] px-4 text-xs font-medium text-white hover:bg-[#5a3fe0]"
+          className="h-8 cursor-pointer rounded-full bg-primary px-4 text-xs font-medium text-white hover:bg-primary/90"
         >
           <Link to="/chamados/novo">Novo chamado</Link>
         </Button>
@@ -1723,7 +1723,7 @@ function SupportRowsCompact({ tickets }: { tickets: ClientTicket[] }) {
       {tickets.slice(0, 5).map((ticket) => (
         <li
           key={ticket.id}
-          className="rounded-md border border-[#e6e9f8] bg-card px-3 py-2 dark:border-border"
+          className="rounded-md border border-border bg-card px-3 py-2 dark:border-border"
         >
           <p className="truncate text-[13px] font-medium text-foreground" title={ticket.subject}>
             {ticket.subject}
@@ -1747,7 +1747,7 @@ function ClientNextEvent({ events }: { events: ClientEvent[] }) {
   return (
     <Section title="Próximo evento" icon={CalendarDays} accent="purple">
       {event ? (
-        <div className="rounded-md border border-[#e6e9f8] p-4 dark:border-border">
+        <div className="rounded-md border border-border p-4 dark:border-border">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="font-medium">{event.title}</p>
@@ -1766,15 +1766,15 @@ function ClientNextEvent({ events }: { events: ClientEvent[] }) {
           )}
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-[#e6e9f8] bg-[#6c4cff]/[0.03] px-4 py-6 text-center dark:border-border dark:bg-transparent">
-          <span className="grid h-10 w-10 place-items-center rounded-full bg-[#6c4cff]/10 text-[#6c4cff]">
+        <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border bg-primary/5 px-4 py-6 text-center dark:border-border dark:bg-transparent">
+          <span className="grid h-10 w-10 place-items-center rounded-full bg-primary/10 text-primary">
             <CalendarDays className="h-5 w-5" />
           </span>
           <p className="text-xs text-muted-foreground">Nenhum evento agendado para este cliente.</p>
           <Button
             asChild
             size="sm"
-            className="h-8 cursor-pointer rounded-full bg-[#6c4cff] px-4 text-xs font-medium text-white hover:bg-[#5a3fe0]"
+            className="h-8 cursor-pointer rounded-full bg-primary px-4 text-xs font-medium text-white hover:bg-primary/90"
           >
             <Link to="/calendario">Novo evento</Link>
           </Button>
