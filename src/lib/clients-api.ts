@@ -338,10 +338,10 @@ export async function getClientDetail(acronym: string): Promise<ClientDetail | n
         responsibleCity: normalizeCityName(String(respRaw.cli_res_cidade || respRaw.tcl_res_cidade || "")),
         responsibleState: String(respRaw.cli_res_uf || respRaw.tcl_res_uf || "").toUpperCase(),
         responsiblePostalCode: formatCep(respRaw.cli_res_cep || respRaw.tcl_res_cep || ""),
-        accountantOffice: String(company.accountant_office || ctdRaw.cli_ctd_nome || ctdRaw.tcl_ctd_nome || ""),
-        accountantName: String(company.accountant_name || ctdRaw.cli_ctd_res || ctdRaw.tcl_ctd_res || ""),
-        accountantPhone: String(company.accountant_phone || ctdRaw.cli_ctd_tel || ctdRaw.tcl_ctd_tel || ""),
-        accountantEmail: String(company.accountant_email || ctdRaw.cli_ctd_email || ctdRaw.tcl_ctd_email || ""),
+        accountantOffice: String(ctdRaw.cli_ctd_nome || ctdRaw.tcl_ctd_nome || company.accountant_name || ""),
+        accountantName: String(ctdRaw.cli_ctd_res || ctdRaw.tcl_ctd_res || ""),
+        accountantPhone: String(ctdRaw.cli_ctd_tel || ctdRaw.tcl_ctd_tel || company.accountant_phone || ""),
+        accountantEmail: String(ctdRaw.cli_ctd_email || ctdRaw.tcl_ctd_email || company.accountant_email || ""),
       };
     },
   );
