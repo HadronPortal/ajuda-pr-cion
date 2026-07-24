@@ -226,6 +226,7 @@ function ClientDetailPage() {
               {[
                 ["cliente", "Cliente", Building2],
                 ["hadron", "Hadron", Database],
+                ...(showInternet ? [["internet", "Internet", Wifi]] : []),
                 ...(showDevices ? [["dispositivos", "Dispositivos", Monitor]] : []),
                 ["usuarios", "Usuarios", UsersRound],
                 ["terminais", "Terminais", Monitor],
