@@ -1935,7 +1935,7 @@ export function ClientCompaniesTab({
   companies: ClientCompany[];
   terminals: ClientTerminal[];
 }) {
-  const [openId, setOpenId] = useState<string | null>(companies[0]?.id ?? null);
+  const [openId, setOpenId] = useState<string | null>(null);
 
   if (!companies.length)
     return (
