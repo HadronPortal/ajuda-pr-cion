@@ -55,10 +55,17 @@ const boolStatus = (value, fallback = true) => {
   if (["0", "i", "inativo", "inactive", "cancelado", "false"].includes(clean)) return false;
   return fallback;
 };
+const legacyActiveStatus = (value, fallback = false) => {
+  const clean = text(value).toLowerCase();
+  if (!clean) return fallback;
+  if (clean === "0") return true;
+  if (["1", "9"].includes(clean)) return false;
+  return boolStatus(clean, fallback);
+};
 const safePayload = (row) =>
   Object.fromEntries(
     Object.entries(row).filter(
-      ([key]) => !/(senha|password|token|secret|chave|key|gcm)/i.test(key),
+      ([key]) => !/(senha|password|token|secret|chave|key|gcm|salt)/i.test(key),
     ),
   );
 
@@ -73,10 +80,10 @@ const pool = new pg.Pool({
   max: 4,
 });
 
-const migration = fs.readFileSync(
-  path.resolve("supabase/migrations/20260724143000_client_internet.sql"),
-  "utf8",
-);
+const migrationFiles = [
+  "20260724143000_client_internet.sql",
+  "20260724161000_client_devices_tab.sql",
+];
 
 let contractsImported = 0;
 let applicationsImported = 0;
@@ -84,7 +91,10 @@ let devicesImported = 0;
 let devicesLinked = 0;
 
 try {
-  await pool.query(migration);
+  for (const migrationFile of migrationFiles) {
+    const migrationPath = path.resolve("supabase/migrations", migrationFile);
+    if (fs.existsSync(migrationPath)) await pool.query(fs.readFileSync(migrationPath, "utf8"));
+  }
   await pool.query("begin");
 
   const clients = await pool.query("select id, legacy_id, acronym from public.clients");
@@ -103,7 +113,12 @@ try {
       "auth_clientes_id",
       "cliente_id",
     ]);
-    const acronym = firstText(row, ["cli_sigla", "sigla", "con_sigla"]).toUpperCase();
+    const acronym = firstText(row, [
+      "con_cliente_sigla",
+      "cli_sigla",
+      "sigla",
+      "con_sigla",
+    ]).toUpperCase();
     const clientId = clientIds.get(clientLegacyId) || clientIdsByAcronym.get(acronym) || null;
     await pool.query(
       `
@@ -132,11 +147,18 @@ try {
         clientId,
         clientLegacyId || null,
         firstText(row, ["con_nome", "con_descricao", "descricao", "nome"]),
-        firstText(row, ["con_url", "url", "web_url", "con_link"]),
-        firstText(row, ["con_database", "database", "db", "banco"]),
-        firstText(row, ["con_host", "host", "server", "servidor"]),
+        firstText(row, [
+          "con_mobile_url",
+          "con_dominio_url",
+          "con_url",
+          "url",
+          "web_url",
+          "con_link",
+        ]),
+        firstText(row, ["con_database_db", "con_database", "database", "db", "banco"]),
+        firstText(row, ["con_host_db", "con_host", "host", "server", "servidor"]),
         firstText(row, ["con_status", "status"]),
-        boolStatus(firstText(row, ["con_status", "status", "ativo"]), true),
+        legacyActiveStatus(firstText(row, ["con_status", "status", "ativo"]), false),
         iso(firstText(row, ["con_inicio", "data_inicio", "starts_at"])),
         iso(firstText(row, ["con_validade", "data_validade", "expires_at"])),
         iso(row.created),
@@ -182,9 +204,9 @@ try {
         contractLegacyId || null,
         contract?.id || null,
         contract?.client_id || null,
-        firstText(row, ["app_nome", "nome", "descricao"]),
+        firstText(row, ["app_description", "app_nome", "nome", "descricao"]),
         firstText(row, ["app_type", "tipo"]),
-        firstText(row, ["app_versao", "version", "versao"]),
+        firstText(row, ["app_build_version", "app_versao", "version", "versao"]),
         firstText(row, ["app_status", "status"]),
         boolStatus(firstText(row, ["app_status", "status", "ativo"]), true),
         iso(row.created),

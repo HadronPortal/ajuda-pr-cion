@@ -123,6 +123,8 @@ export type ClientInternetApplication = {
 
 export type ClientInternet = {
   hasActiveContract: boolean;
+  hasDevices: boolean;
+  devices: ClientInternetDevice[];
   contracts: ClientInternetContract[];
   applications: ClientInternetApplication[];
 };
@@ -322,26 +324,32 @@ export async function getClientDetail(acronym: string): Promise<ClientDetail | n
   );
 
   const internetData = (data.internet || {}) as Record<string, unknown>;
+  const mapInternetDevice = (
+    device: Record<string, unknown>,
+    contractLegacyId = "",
+  ): ClientInternetDevice => ({
+    id: String(device.id || ""),
+    legacyId: String(device.legacy_id || ""),
+    contractLegacyId: String(device.auth_contratos_id_con || contractLegacyId),
+    deviceUuid: String(device.device_uuid || ""),
+    user: String(device.utilizador || ""),
+    representativeCode: String(device.codrep || ""),
+    type: String(device.tipo || ""),
+    system: String(device.sistema || ""),
+    status: String(device.status || ""),
+    active: device.active !== false,
+    appType: String(device.app_type || ""),
+    buildVersion: String(device.build_version || ""),
+    dbVersion: String(device.db_version || ""),
+    lastCheckedAt: date(device.last_checked_at, true),
+    updatedAt: date(device.updated_at, true),
+  });
+
   const contracts = (Array.isArray(internetData.contracts) ? internetData.contracts : []).map(
     (contract: Record<string, unknown>): ClientInternetContract => {
       const devices = (Array.isArray(contract.devices) ? contract.devices : []).map(
-        (device: Record<string, unknown>): ClientInternetDevice => ({
-          id: String(device.id || ""),
-          legacyId: String(device.legacy_id || ""),
-          contractLegacyId: String(device.auth_contratos_id_con || contract.legacy_id || ""),
-          deviceUuid: String(device.device_uuid || ""),
-          user: String(device.utilizador || ""),
-          representativeCode: String(device.codrep || ""),
-          type: String(device.tipo || ""),
-          system: String(device.sistema || ""),
-          status: String(device.status || ""),
-          active: device.active !== false,
-          appType: String(device.app_type || ""),
-          buildVersion: String(device.build_version || ""),
-          dbVersion: String(device.db_version || ""),
-          lastCheckedAt: date(device.last_checked_at, true),
-          updatedAt: date(device.updated_at, true),
-        }),
+        (device: Record<string, unknown>): ClientInternetDevice =>
+          mapInternetDevice(device, String(contract.legacy_id || "")),
       );
 
       return {
@@ -360,6 +368,10 @@ export async function getClientDetail(acronym: string): Promise<ClientDetail | n
       };
     },
   );
+  const directDevices = (Array.isArray(internetData.devices) ? internetData.devices : []).map(
+    (device: Record<string, unknown>) => mapInternetDevice(device),
+  );
+  const devices = directDevices.length ? directDevices : contracts.flatMap((contract) => contract.devices);
 
   const applications = (Array.isArray(internetData.applications) ? internetData.applications : []).map(
     (app: Record<string, unknown>): ClientInternetApplication => ({
@@ -377,6 +389,8 @@ export async function getClientDetail(acronym: string): Promise<ClientDetail | n
 
   const internet: ClientInternet = {
     hasActiveContract: internetData.has_active_contract === true,
+    hasDevices: internetData.has_devices === true || devices.length > 0,
+    devices,
     contracts,
     applications,
   };
