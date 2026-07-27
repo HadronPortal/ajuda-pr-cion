@@ -723,7 +723,7 @@ function ClientsPage() {
       />
 
       <Card className="mb-4 p-3 shadow-sm">
-        <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-[200px_180px_minmax(240px,1fr)_170px_160px]">
+        <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-[200px_minmax(240px,1fr)_170px_160px]">>
           <label className="relative block min-w-0">
             <span className="sr-only">Pesquisar por sigla</span>
             <input
