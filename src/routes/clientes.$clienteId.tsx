@@ -22,12 +22,13 @@ import {
 
 function MiniSummary({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-border bg-card px-3 py-2 shadow-sm dark:border-border">
-      <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
-      <p className="mt-0.5 truncate text-[13px] font-medium text-foreground" title={value}>{value}</p>
+    <div className="flex min-w-0 items-baseline gap-1.5">
+      <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{label}</span>
+      <span className="truncate text-[12.5px] font-medium text-foreground" title={value}>{value}</span>
     </div>
   );
 }
+
 
 import { getClientDetail, type ClientDetail } from "@/lib/clients-api";
 import { normalizeCityUf } from "@/lib/br-city";
@@ -144,19 +145,18 @@ function ClientDetailPage() {
         )}
       </div>
 
-      <Breadcrumbs
-        items={[
-          { label: "Clientes", to: "/clientes" },
-          groupCode
-            ? { label: breadcrumbGroupLabel, to: `/clientes?grupo=${groupCode}` }
-            : { label: client.acronym, to: "/clientes" },
-          { label: "Detalhes do cliente" },
-        ]}
-      />
-      <div className="mb-4 flex flex-wrap items-start justify-end gap-4">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
+        <Breadcrumbs
+          items={[
+            { label: "Clientes", to: "/clientes" },
+            groupCode
+              ? { label: breadcrumbGroupLabel, to: `/clientes?grupo=${groupCode}` }
+              : { label: client.acronym, to: "/clientes" },
+            { label: "Detalhes do cliente" },
+          ]}
+        />
 
-
-        <div className="grid w-full grid-cols-2 gap-2 sm:w-auto sm:grid-cols-3 xl:grid-cols-5">
+        <div className="flex min-w-0 flex-wrap items-center gap-x-5 gap-y-1.5">
           <MiniSummary label="Atendimento" value={normalizeCityUf(client.city) || "Não informado"} />
           <MiniSummary label="Status" value={client.status || "Não informado"} />
           <MiniSummary label="Versão Hádron" value={client.versionDate || client.version || "Não informada"} />
@@ -164,6 +164,7 @@ function ClientDetailPage() {
           <MiniSummary label="Dispositivos" value={String(internet.devices.length)} />
         </div>
       </div>
+
 
 
       <Card className="overflow-hidden border-border bg-card p-0 shadow-sm dark:border-border">
