@@ -1257,7 +1257,36 @@ function formatPhoneBR(raw: string): string {
   return raw.trim();
 }
 
-type ContactLine = { key: string; value: string; display: string; description: string; href: string };
+type ContactLine = {
+  key: string;
+  value: string;
+  display: string;
+  description: string;
+  href: string;
+  kind: "phone" | "email";
+};
+
+async function copyContactValue(item: ContactLine) {
+  const text = item.value;
+  try {
+    if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      const el = document.createElement("textarea");
+      el.value = text;
+      el.setAttribute("readonly", "");
+      el.style.position = "fixed";
+      el.style.opacity = "0";
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand("copy");
+      document.body.removeChild(el);
+    }
+    toast.success(item.kind === "phone" ? "Telefone copiado" : "E-mail copiado");
+  } catch {
+    toast.error("Não foi possível copiar.");
+  }
+}
 
 function buildContactLines(
   contacts: ClientContact[],
@@ -1280,10 +1309,11 @@ function buildContactLines(
         const digits = trimmed.replace(/\D+/g, "");
         out.push({
           key: `${c.id}-${digits || trimmed}`,
-          value: trimmed,
+          value: formatPhoneBR(trimmed),
           display: formatPhoneBR(trimmed),
           description,
           href: `tel:${digits || trimmed}`,
+          kind,
         });
       } else {
         const lower = trimmed.toLowerCase();
@@ -1293,12 +1323,14 @@ function buildContactLines(
           display: lower,
           description,
           href: `mailto:${lower}`,
+          kind,
         });
       }
     }
   }
   return out;
 }
+
 
 function ContactsCard({
   contacts,
