@@ -130,13 +130,15 @@ function ClientDetailPage() {
           <Button
             asChild
             variant="outline"
-            className="h-10 cursor-pointer gap-2 rounded-lg border-border bg-muted/40 px-4 text-sm font-medium text-foreground shadow-sm hover:bg-muted"
+            size="sm"
+            className="h-8 cursor-pointer rounded-lg"
           >
             <Link to="/clientes" aria-label="Voltar para Clientes">
-              <ArrowLeft className="h-4 w-4" />
+              <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
               Voltar para Clientes
             </Link>
           </Button>
+
           {showReturnToTicket && (
             <Button
               asChild
