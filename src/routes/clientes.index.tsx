@@ -767,19 +767,15 @@ function ClientsPage() {
       />
 
       <Card className="mb-4 p-3 shadow-sm">
-        <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-[minmax(280px,1fr)_180px_190px_170px]">
+        <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-[200px_180px_minmax(240px,1fr)_170px_160px]">
           <label className="relative block min-w-0">
-            <span className="sr-only">Pesquisar clientes</span>
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <span className="sr-only">Pesquisar por sigla</span>
             <input
-              value={quickDraft}
-              onChange={(event) => {
-                setQuickDraft(event.target.value);
-                setQuickQuery(event.target.value);
-              }}
+              value={quickAcronym}
+              onChange={(event) => setQuickAcronym(event.target.value)}
               type="search"
-              placeholder="Digite para pesquisar..."
-              className="h-10 w-full rounded-md border border-input bg-background pl-9 pr-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/20"
+              placeholder="Sigla"
+              className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/20"
             />
           </label>
 
@@ -801,22 +797,23 @@ function ClientsPage() {
             </select>
           </label>
 
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setFiltersOpen(true)}
-            className="h-10 cursor-pointer justify-between gap-3 rounded-md px-3 text-sm font-normal"
-          >
-            <span>Pesquisa avançada</span>
-            <span className="flex shrink-0 items-center gap-2">
-              {activeCount > 0 && (
-                <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[11px] font-semibold text-primary-foreground">
-                  {activeCount}
-                </span>
-              )}
-              <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
-            </span>
-          </Button>
+          <label className="relative block min-w-0">
+            <span className="sr-only">Pesquisa geral</span>
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              value={quickDraft}
+              onChange={(event) => {
+                setQuickDraft(event.target.value);
+                setQuickQuery(event.target.value);
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") setQuickQuery(quickDraft);
+              }}
+              type="search"
+              placeholder="Pesquisa geral"
+              className="h-10 w-full rounded-md border border-input bg-background pl-9 pr-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/20"
+            />
+          </label>
 
           <label>
             <span className="sr-only">Status do cliente</span>
@@ -837,6 +834,20 @@ function ClientsPage() {
               ))}
             </select>
           </label>
+
+          <Button
+            type="button"
+            onClick={() => setFiltersOpen(true)}
+            className="relative h-10 w-full cursor-pointer justify-center gap-2 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white shadow-md hover:bg-blue-700"
+          >
+            <Filter className="h-4 w-4" />
+            Filtros
+            {activeCount > 0 && (
+              <span className="ml-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-white/95 px-1.5 text-[11px] font-semibold text-blue-700">
+                {activeCount}
+              </span>
+            )}
+          </Button>
         </div>
       </Card>
 
