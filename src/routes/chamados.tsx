@@ -1432,7 +1432,7 @@ function TicketsListView({
     dir: "desc",
   });
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(25);
 
   // Reset to page 1 when filters (i.e. ticket list) or page size change.
   useEffect(() => {
