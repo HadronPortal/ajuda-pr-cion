@@ -1426,9 +1426,12 @@ function ContactPreviewList({
         <ul className="space-y-1.5">
           {items.map((item) => (
             <li key={item.key}>
-              <a
-                href={item.href}
-                className="group flex min-w-0 cursor-pointer items-start gap-2 rounded-md px-2 py-1.5 transition hover:bg-accent/60"
+              <button
+                type="button"
+                onClick={() => void copyContactValue(item)}
+                title={`Copiar ${item.kind === "phone" ? "telefone" : "e-mail"}`}
+                aria-label={`Copiar ${item.kind === "phone" ? "telefone" : "e-mail"} ${item.display}`}
+                className="group flex w-full min-w-0 cursor-pointer items-start gap-2 rounded-md px-2 py-1.5 text-left transition hover:bg-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <Icon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground group-hover:text-foreground" />
                 <span className="min-w-0 flex-1">
@@ -1441,7 +1444,7 @@ function ContactPreviewList({
                     </span>
                   )}
                 </span>
-              </a>
+              </button>
             </li>
           ))}
         </ul>
