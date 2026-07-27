@@ -33,9 +33,11 @@ import {
   MapPin,
   Landmark,
   Eye,
+  History,
   Phone,
   Printer,
   ShieldCheck,
+  ScrollText,
   Server,
   Smartphone,
   SlidersHorizontal,
@@ -66,6 +68,7 @@ import type {
   ClientEvent,
   ClientHadronUser,
   ClientInternet,
+  ClientLogs,
   ClientModule,
   ClientParameter,
   ClientTerminal,
@@ -2767,6 +2770,76 @@ export function ClientTerminalsTab({ terminals }: { terminals: ClientTerminal[] 
           ])}
         />
       ) : <EmptyState text="Nenhum terminal vinculado a este cliente." />}
+    </Section>
+  );
+}
+
+export function ClientLogsTab({ logs }: { logs: ClientLogs["logs"] }) {
+  return (
+    <Section title={`Logs (${logs.length})`} icon={ScrollText}>
+      {logs.length ? (
+        <DataTable
+          headers={[
+            "Data",
+            "Terminal",
+            "Nível",
+            "Operação",
+            "Operador",
+            "Opção",
+            "Usuário",
+            "IP",
+          ]}
+          rows={logs.map((log) => [
+            log.occurredAt || "-",
+            log.terminalCode || "-",
+            log.level || "-",
+            log.operation || "-",
+            log.operatorCode || "-",
+            [log.parentOption, log.childOption].filter(Boolean).join(" / ") || "-",
+            log.userCode || "-",
+            log.ipAddress || "-",
+          ])}
+        />
+      ) : (
+        <EmptyState text="Nenhum log do Hádron encontrado para este cliente." />
+      )}
+    </Section>
+  );
+}
+
+export function ClientExternalLogsTab({
+  logs,
+}: {
+  logs: ClientLogs["externalLogs"];
+}) {
+  return (
+    <Section title={`Logs externos (${logs.length})`} icon={History}>
+      {logs.length ? (
+        <DataTable
+          headers={[
+            "Data",
+            "Ação",
+            "Controlador",
+            "Operador",
+            "Dispositivo",
+            "IP",
+            "Informação",
+          ]}
+          rows={logs.map((log) => [
+            log.occurredAt || "-",
+            log.action || "-",
+            log.controller || "-",
+            log.operator || "-",
+            [log.agent, log.device].filter(Boolean).join(" / ") || "-",
+            log.ipAddress || "-",
+            <span className="block max-w-md truncate" title={log.info || log.url}>
+              {log.info || log.url || "-"}
+            </span>,
+          ])}
+        />
+      ) : (
+        <EmptyState text="Nenhum log externo encontrado para este cliente." />
+      )}
     </Section>
   );
 }

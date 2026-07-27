@@ -201,6 +201,39 @@ export type ClientParameter = {
   updatedAt: string;
 };
 
+export type ClientHadronLog = {
+  id: string;
+  level: string;
+  terminalCode: string;
+  operation: string;
+  operatorCode: string;
+  parentOption: string;
+  childOption: string;
+  serialNumber: string;
+  userCode: string;
+  ipAddress: string;
+  occurredAt: string;
+};
+
+export type ClientExternalLog = {
+  id: string;
+  action: string;
+  controller: string;
+  operator: string;
+  agent: string;
+  device: string;
+  ipAddress: string;
+  url: string;
+  info: string;
+  occurredAt: string;
+};
+
+export type ClientLogs = {
+  authorized: boolean;
+  logs: ClientHadronLog[];
+  externalLogs: ClientExternalLog[];
+};
+
 export type ClientDetail = {
   client: ClientRow;
   contacts: ClientContact[];
@@ -213,6 +246,7 @@ export type ClientDetail = {
   events: ClientEvent[];
   activities: ClientTicketActivity[];
   parameters: ClientParameter[];
+  logs: ClientLogs;
 };
 
 const industryLabels: Record<string, string> = {
@@ -349,16 +383,19 @@ export async function getClientDetail(acronym: string): Promise<ClientDetail | n
     { data: activityData, error: activityError },
     { data: parameterData, error: parameterError },
     { data: clientEventData, error: clientEventError },
+    { data: logData, error: logError },
   ] = await Promise.all([
     supabase.rpc("get_crm_client", { client_acronym: acronym }),
     supabase.rpc("get_crm_client_ticket_activity", { client_acronym: acronym }),
     supabase.rpc("get_crm_client_params", { client_acronym: acronym }),
     supabase.rpc("get_crm_client_events", { client_acronym: acronym }),
+    supabase.rpc("get_crm_client_logs", { client_acronym: acronym }),
   ]);
   if (error) throw error;
   if (activityError) throw activityError;
   if (parameterError) throw parameterError;
   if (clientEventError) throw clientEventError;
+  if (logError && logError.code !== "PGRST202") throw logError;
   if (!data?.client) return null;
 
   const contacts = (Array.isArray(data.contacts) ? data.contacts : []).map(
@@ -605,6 +642,40 @@ export async function getClientDetail(acronym: string): Promise<ClientDetail | n
     },
   );
 
+  const rawLogs = (logData || {}) as Record<string, unknown>;
+  const logs: ClientLogs = {
+    authorized: rawLogs.authorized === true,
+    logs: (Array.isArray(rawLogs.logs) ? rawLogs.logs : []).map(
+      (log: Record<string, unknown>): ClientHadronLog => ({
+        id: String(log.id || log.legacy_id || ""),
+        level: String(log.level || ""),
+        terminalCode: String(log.terminal_code || ""),
+        operation: String(log.operation || ""),
+        operatorCode: String(log.new_operator_code || log.previous_operator_code || ""),
+        parentOption: String(log.parent_option || ""),
+        childOption: String(log.child_option || ""),
+        serialNumber: String(log.serial_number || ""),
+        userCode: String(log.user_code || ""),
+        ipAddress: String(log.ip_address || ""),
+        occurredAt: date(log.crm_created_at, true),
+      }),
+    ),
+    externalLogs: (Array.isArray(rawLogs.external_logs) ? rawLogs.external_logs : []).map(
+      (log: Record<string, unknown>): ClientExternalLog => ({
+        id: String(log.id || log.legacy_id || ""),
+        action: String(log.action || ""),
+        controller: String(log.controller || ""),
+        operator: String(log.operator || ""),
+        agent: String(log.agent || ""),
+        device: String(log.device || ""),
+        ipAddress: String(log.ip_address || ""),
+        url: String(log.url || ""),
+        info: String(log.info || ""),
+        occurredAt: date(log.crm_created_at, true),
+      }),
+    ),
+  };
+
   return {
     client: mapDatabaseClient(data.client),
     contacts,
@@ -617,5 +688,6 @@ export async function getClientDetail(acronym: string): Promise<ClientDetail | n
     events,
     activities,
     parameters,
+    logs,
   };
 }

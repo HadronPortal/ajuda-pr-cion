@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate, notFound } from "@tanstack/react-router";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
-import { ArrowLeft, Building2, Monitor, Network, SlidersHorizontal, UsersRound, Wifi } from "lucide-react";
+import { ArrowLeft, Building2, History, Monitor, Network, ScrollText, SlidersHorizontal, UsersRound, Wifi } from "lucide-react";
 
 import { AppShell } from "@/components/portal/AppShell";
 import { Breadcrumbs } from "@/components/portal/Breadcrumbs";
@@ -18,6 +18,8 @@ import {
   ClientUsersTab,
   ClientTerminalsTab,
   ClientCompaniesTab,
+  ClientExternalLogsTab,
+  ClientLogsTab,
   HadronMenuIcon,
 } from "./clientes.index";
 
@@ -35,7 +37,7 @@ import { getClientDetail, type ClientDetail } from "@/lib/clients-api";
 import { normalizeCityUf } from "@/lib/br-city";
 import { useClients, resolveGroupCode, getGroupMembers } from "@/lib/clients-store";
 
-const tabs = ["cliente", "hadron", "internet", "dispositivos", "parametros", "usuarios", "terminais", "empresas"] as const;
+const tabs = ["cliente", "hadron", "internet", "dispositivos", "parametros", "usuarios", "logs", "logs-externos", "terminais", "empresas"] as const;
 type TabValue = (typeof tabs)[number];
 
 
@@ -81,7 +83,7 @@ export const Route = createFileRoute("/clientes/$clienteId")({
 });
 
 function ClientDetailPage() {
-  const { client, contacts, companies, users, terminals, modules, internet, tickets, events, activities, parameters } =
+  const { client, contacts, companies, users, terminals, modules, internet, tickets, events, activities, parameters, logs } =
     Route.useLoaderData() as ClientDetail;
   const { tab, from, ticketId } = Route.useSearch();
   const navigate = useNavigate();
@@ -102,6 +104,7 @@ function ClientDetailPage() {
     (tabs as readonly string[]).includes(requestedTab) &&
     (requestedTab !== "dispositivos" || showDevices) &&
     (requestedTab !== "parametros" || showParameters) &&
+    (!["logs", "logs-externos"].includes(requestedTab) || logs.authorized) &&
     (requestedTab !== "internet" || showInternet);
   const currentTab: TabValue = tabAllowed ? (requestedTab as TabValue) : "cliente";
 
@@ -233,6 +236,8 @@ function ClientDetailPage() {
                 ...(showDevices ? [["dispositivos", "Dispositivos", Monitor]] : []),
                 ...(showParameters ? [["parametros", "Parâmetros", SlidersHorizontal]] : []),
                 ["usuarios", "Usuarios", UsersRound],
+                ...(logs.authorized ? [["logs", "Logs", ScrollText]] : []),
+                ...(logs.authorized ? [["logs-externos", "Logs externos", History]] : []),
                 ["terminais", "Terminais", Monitor],
                 ["empresas", "Empresas", Network],
               ].map(([value, label, Icon]) => {
@@ -279,6 +284,16 @@ function ClientDetailPage() {
             <TabsContent value="usuarios" className="m-0">
               <ClientUsersTab users={users} />
             </TabsContent>
+            {logs.authorized && (
+              <TabsContent value="logs" className="m-0">
+                <ClientLogsTab logs={logs.logs} />
+              </TabsContent>
+            )}
+            {logs.authorized && (
+              <TabsContent value="logs-externos" className="m-0">
+                <ClientExternalLogsTab logs={logs.externalLogs} />
+              </TabsContent>
+            )}
             <TabsContent value="terminais" className="m-0">
               <ClientTerminalsTab terminals={terminals} />
             </TabsContent>
