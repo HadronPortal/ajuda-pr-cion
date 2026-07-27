@@ -586,7 +586,42 @@ function ClientsPage() {
   }, [filtersOpen, filters]);
 
   const filtered = useMemo(() => {
+    const quick = quickQuery.trim();
+    const quickMatches = (c: ClientRow) => {
+      if (!quick) return true;
+      switch (quickField) {
+        case "sigla":
+          return normalize(c.acronym).includes(normalize(quick));
+        case "siglaGrupo":
+          return (
+            normalize(c.group).includes(normalize(quick)) ||
+            normalize(c.acronym) === normalize(quick)
+          );
+        case "nome":
+          return normalize(c.name).includes(normalize(quick));
+        case "razaoSocial":
+          return normalize(c.razaoSocial).includes(normalize(quick));
+        case "fantasia":
+          return normalize(c.fantasia).includes(normalize(quick));
+        case "porte":
+          return normalize(c.size).includes(normalize(quick));
+        case "ramo":
+          return normalize(c.segment).includes(normalize(quick));
+        case "cep":
+          return digits(c.cep).includes(digits(quick));
+        case "cidade":
+          return normalize(c.city).includes(normalize(quick));
+        case "uf":
+          return normalize(c.uf).includes(normalize(quick));
+        case "cnpj":
+          return digits(c.cnpj).includes(digits(quick));
+        default:
+          return true;
+      }
+    };
     return clients.filter((c) => {
+      if (!quickMatches(c)) return false;
+
       if (filters.sigla && !normalize(c.acronym).includes(normalize(filters.sigla))) return false;
       if (filters.siglaGrupo) {
         // Match tanto o group_acronym quanto a sigla do próprio cliente (raiz).
