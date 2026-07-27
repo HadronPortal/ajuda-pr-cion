@@ -243,32 +243,6 @@ const QUICK_STATUS_OPTIONS: StatusFilter[] = [
   "Todos",
 ];
 
-type QuickField =
-  | "sigla"
-  | "siglaGrupo"
-  | "nome"
-  | "razaoSocial"
-  | "fantasia"
-  | "porte"
-  | "ramo"
-  | "cep"
-  | "cidade"
-  | "uf"
-  | "cnpj";
-
-const QUICK_FIELD_OPTIONS: { value: QuickField; label: string }[] = [
-  { value: "sigla", label: "Sigla" },
-  { value: "siglaGrupo", label: "Sigla do grupo" },
-  { value: "nome", label: "Nome (apelido)" },
-  { value: "razaoSocial", label: "Razão social" },
-  { value: "fantasia", label: "Nome fantasia" },
-  { value: "porte", label: "Porte" },
-  { value: "ramo", label: "Ramo" },
-  { value: "cep", label: "CEP" },
-  { value: "cidade", label: "Cidade" },
-  { value: "uf", label: "UF" },
-  { value: "cnpj", label: "CNPJ" },
-];
 
 type Filters = {
   sigla: string;
@@ -515,7 +489,7 @@ function ClientVersionCell({ client }: { client: ClientRow }) {
 
 function ClientsPage() {
   const { clients } = Route.useLoaderData() as { clients: ClientRow[] };
-  const { grupo, q, campo, sigla: siglaParam, status: statusParam } = Route.useSearch();
+  const { grupo, q, sigla: siglaParam, status: statusParam } = Route.useSearch();
   const navigate = useNavigate();
   const grupoParam = (grupo ?? "").trim().toUpperCase();
   const initialStatus = (QUICK_STATUS_OPTIONS as string[]).includes(statusParam ?? "")
@@ -525,9 +499,6 @@ function ClientsPage() {
     grupoParam
       ? { ...emptyFilters, siglaGrupo: grupoParam, status: initialStatus }
       : { ...lastFilters, status: initialStatus },
-  );
-  const [quickField, setQuickField] = useState<QuickField>(() =>
-    QUICK_FIELD_OPTIONS.some((o) => o.value === campo) ? (campo as QuickField) : "sigla",
   );
   const [quickQuery, setQuickQuery] = useState(() => q ?? "");
   const [quickDraft, setQuickDraft] = useState(() => q ?? "");
@@ -544,7 +515,7 @@ function ClientsPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [quickQuery, quickField, quickAcronym]);
+  }, [quickQuery, quickAcronym]);
 
 
   // Sincroniza URL <-> filtro de grupo. Ao entrar via ?grupo=XXX, descarta qualquer
@@ -568,19 +539,17 @@ function ClientsPage() {
     const next: Record<string, string> = {};
     if (current) next.grupo = current;
     if (quickQuery.trim()) next.q = quickQuery.trim();
-    if (quickField !== "sigla") next.campo = quickField;
     if (quickAcronym.trim()) next.sigla = quickAcronym.trim();
     if (filters.status !== "Ativo") next.status = filters.status;
     const same =
       (next.grupo ?? "") === grupoParam &&
       (next.q ?? "") === (q ?? "") &&
-      (next.campo ?? "") === (campo ?? "") &&
       (next.sigla ?? "") === (siglaParam ?? "") &&
       (next.status ?? "") === (statusParam ?? "");
     if (!same) {
       navigate({ to: "/clientes", search: next, replace: true });
     }
-  }, [filters.siglaGrupo, filters.status, quickQuery, quickField, quickAcronym]);
+  }, [filters.siglaGrupo, filters.status, quickQuery, quickAcronym]);
 
 
   useEffect(() => {
@@ -593,37 +562,24 @@ function ClientsPage() {
 
   const filtered = useMemo(() => {
     const quick = quickQuery.trim();
+    const quickNorm = normalize(quick);
+    const quickDigits = digits(quick);
     const quickMatches = (c: ClientRow) => {
       if (!quick) return true;
-      switch (quickField) {
-        case "sigla":
-          return normalize(c.acronym).includes(normalize(quick));
-        case "siglaGrupo":
-          return (
-            normalize(c.group).includes(normalize(quick)) ||
-            normalize(c.acronym) === normalize(quick)
-          );
-        case "nome":
-          return normalize(c.name).includes(normalize(quick));
-        case "razaoSocial":
-          return normalize(c.razaoSocial).includes(normalize(quick));
-        case "fantasia":
-          return normalize(c.fantasia).includes(normalize(quick));
-        case "porte":
-          return normalize(c.size).includes(normalize(quick));
-        case "ramo":
-          return normalize(c.segment).includes(normalize(quick));
-        case "cep":
-          return digits(c.cep).includes(digits(quick));
-        case "cidade":
-          return normalize(c.city).includes(normalize(quick));
-        case "uf":
-          return normalize(c.uf).includes(normalize(quick));
-        case "cnpj":
-          return digits(c.cnpj).includes(digits(quick));
-        default:
-          return true;
-      }
+      const textHit = [
+        c.acronym,
+        c.group,
+        c.name,
+        c.razaoSocial,
+        c.fantasia,
+        c.size,
+        c.segment,
+        c.city,
+        c.uf,
+      ].some((value) => normalize(value ?? "").includes(quickNorm));
+      if (textHit) return true;
+      if (!quickDigits) return false;
+      return digits(c.cnpj).includes(quickDigits) || digits(c.cep).includes(quickDigits);
     };
     const acronymQuery = quickAcronym.trim();
     return clients.filter((c) => {
@@ -670,7 +626,7 @@ function ClientsPage() {
       }
       return true;
     });
-  }, [clients, filters, quickQuery, quickField, quickAcronym]);
+  }, [clients, filters, quickQuery, quickAcronym]);
 
   const sizes = useMemo(() => Array.from(new Set(clients.map((c) => c.size))).sort(), [clients]);
   const segments = useMemo(() => Array.from(new Set(clients.map((c) => c.segment))).sort(), [clients]);
@@ -767,7 +723,7 @@ function ClientsPage() {
       />
 
       <Card className="mb-4 p-3 shadow-sm">
-        <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-[200px_180px_minmax(240px,1fr)_170px_160px]">
+        <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-[200px_minmax(240px,1fr)_170px_160px]">
           <label className="relative block min-w-0">
             <span className="sr-only">Pesquisar por sigla</span>
             <input
@@ -779,23 +735,8 @@ function ClientsPage() {
             />
           </label>
 
-          <label>
-            <span className="sr-only">Campo da pesquisa</span>
-            <select
-              value={quickField}
-              onChange={(event) => {
-                setQuickField(event.target.value as QuickField);
-                setQuickQuery(quickDraft);
-              }}
-              className="h-10 w-full cursor-pointer rounded-md border border-input bg-background px-3 text-sm outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/20"
-            >
-              {QUICK_FIELD_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
+
+
 
           <label className="relative block min-w-0">
             <span className="sr-only">Pesquisa geral</span>
