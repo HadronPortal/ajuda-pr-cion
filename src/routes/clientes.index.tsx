@@ -243,32 +243,6 @@ const QUICK_STATUS_OPTIONS: StatusFilter[] = [
   "Todos",
 ];
 
-type QuickField =
-  | "sigla"
-  | "siglaGrupo"
-  | "nome"
-  | "razaoSocial"
-  | "fantasia"
-  | "porte"
-  | "ramo"
-  | "cep"
-  | "cidade"
-  | "uf"
-  | "cnpj";
-
-const QUICK_FIELD_OPTIONS: { value: QuickField; label: string }[] = [
-  { value: "sigla", label: "Sigla" },
-  { value: "siglaGrupo", label: "Sigla do grupo" },
-  { value: "nome", label: "Nome (apelido)" },
-  { value: "razaoSocial", label: "Razão social" },
-  { value: "fantasia", label: "Nome fantasia" },
-  { value: "porte", label: "Porte" },
-  { value: "ramo", label: "Ramo" },
-  { value: "cep", label: "CEP" },
-  { value: "cidade", label: "Cidade" },
-  { value: "uf", label: "UF" },
-  { value: "cnpj", label: "CNPJ" },
-];
 
 type Filters = {
   sigla: string;
@@ -779,23 +753,8 @@ function ClientsPage() {
             />
           </label>
 
-          <label>
-            <span className="sr-only">Campo da pesquisa</span>
-            <select
-              value={quickField}
-              onChange={(event) => {
-                setQuickField(event.target.value as QuickField);
-                setQuickQuery(quickDraft);
-              }}
-              className="h-10 w-full cursor-pointer rounded-md border border-input bg-background px-3 text-sm outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/20"
-            >
-              {QUICK_FIELD_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
+
+
 
           <label className="relative block min-w-0">
             <span className="sr-only">Pesquisa geral</span>
