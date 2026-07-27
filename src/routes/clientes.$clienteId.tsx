@@ -131,21 +131,14 @@ function ClientDetailPage() {
         <div className="flex items-center gap-2">
           <Button
             asChild
-            variant="ghost"
-            size="icon"
-            className="cursor-pointer"
-            aria-label="Voltar para lista de clientes"
+            variant="outline"
+            className="h-10 cursor-pointer gap-2 rounded-lg border-border bg-muted/40 px-4 text-sm font-medium text-foreground shadow-sm hover:bg-muted"
           >
-            <Link to="/clientes">
+            <Link to="/clientes" aria-label="Voltar para Clientes">
               <ArrowLeft className="h-4 w-4" />
+              Voltar para Clientes
             </Link>
           </Button>
-          <Link
-            to="/clientes"
-            className="cursor-pointer text-sm text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Voltar para Clientes
-          </Link>
           {showReturnToTicket && (
             <Button
               asChild
