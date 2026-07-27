@@ -88,7 +88,7 @@ function ClientDetailPage() {
   const showReturnToTicket = from === "chamado" && !!ticketId;
   const { clients: allClients } = useClients({ onlyActive: false });
   const showInternet = internet.hasActiveContract || internet.contracts.some((c: { active: boolean }) => c.active);
-  const showDevices = showInternet && internet.devices.length > 0;
+  const showDevices = showInternet;
   const showParameters = parameters.length > 0;
 
   // Grupo: usa group_acronym do cliente. Se vazio, verifica se ele é raiz de
