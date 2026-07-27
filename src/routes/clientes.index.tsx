@@ -17,6 +17,7 @@ import {
   Cpu,
   Database,
   FileText,
+  Filter,
   Globe2,
   RefreshCw,
   Search,
@@ -69,6 +70,7 @@ const clientesSearchSchema = z.object({
   grupo: fallback(z.string(), "").optional(),
   q: fallback(z.string(), "").optional(),
   campo: fallback(z.string(), "").optional(),
+  sigla: fallback(z.string(), "").optional(),
   status: fallback(z.string(), "").optional(),
 });
 
