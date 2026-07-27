@@ -63,6 +63,7 @@ import type {
 } from "@/lib/clients-api";
 import { normalizeCityUf } from "@/lib/br-city";
 import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
 
 const clientesSearchSchema = z.object({
   grupo: fallback(z.string(), "").optional(),
