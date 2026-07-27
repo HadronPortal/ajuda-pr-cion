@@ -48,6 +48,7 @@ import { AppShell, PageHeader } from "@/components/portal/AppShell";
 import {
   formatVersionDate,
   getClientErpVersionStatus,
+  isErpVersionOutdated,
   latestErpAlterationDate,
 } from "@/lib/erp-versions";
 import { Badge } from "@/components/ui/badge";
@@ -2737,19 +2738,32 @@ export function ClientUsersTab({ users }: { users: ClientHadronUser[] }) {
 }
 
 export function ClientTerminalsTab({ terminals }: { terminals: ClientTerminal[] }) {
+  const versionCell = (versionDate: string) => {
+    if (!versionDate) return "-";
+    if (!isErpVersionOutdated(versionDate)) return versionDate;
+
+    return (
+      <span
+        className="inline-flex rounded-sm bg-red-600 px-2 py-0.5 text-xs font-medium text-white dark:bg-red-500"
+        title={`Versão anterior à alteração mínima de ${formatVersionDate(latestErpAlterationDate)}`}
+      >
+        {versionDate}
+      </span>
+    );
+  };
+
   return (
     <Section title={`Terminais instalados (${terminals.length})`} icon={Monitor}>
       {terminals.length ? (
         <DataTable
-          headers={["Terminal", "IP", "Pasta", "Último setup", "Última versão", "Nº de série", "Flags"]}
+          headers={["Terminal", "IP", "Pasta", "Último setup", "Última versão", "Nº de série"]}
           rows={terminals.map((terminal) => [
             terminal.terminalNumber == null ? "-" : String(terminal.terminalNumber),
             terminal.ipAddress || "-",
             terminal.installPath || "-",
             terminal.registeredAt || "-",
-            terminal.versionDate || "-",
+            versionCell(terminal.versionDate),
             terminal.serialNumber || "-",
-            terminal.flags || "-",
           ])}
         />
       ) : <EmptyState text="Nenhum terminal vinculado a este cliente." />}
