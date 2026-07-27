@@ -2007,6 +2007,7 @@ function RecentActivityCard({
   activities: ClientTicketActivity[];
   events: ClientEvent[];
 }) {
+  const [showAll, setShowAll] = useState(false);
   const items = [
     ...activities.map((activity) => ({
       id: `ticket-${activity.id}`,
@@ -2023,14 +2024,15 @@ function RecentActivityCard({
       ticketActivity: false,
     })),
   ]
-    .sort((left, right) => String(right.timestamp).localeCompare(String(left.timestamp)))
-    .slice(0, 5);
+    .sort((left, right) => String(right.timestamp).localeCompare(String(left.timestamp)));
+  const visibleItems = showAll ? items : items.slice(0, 3);
 
   return (
     <Section title="Atividade recente" icon={Activity}>
       {items.length ? (
-        <ul className="space-y-2.5">
-          {items.map((item) => (
+        <>
+          <ul className="space-y-2.5">
+          {visibleItems.map((item) => (
             <li key={item.id} className="flex min-w-0 items-start gap-2">
               <span
                 className={cn(
@@ -2044,7 +2046,19 @@ function RecentActivityCard({
               </div>
             </li>
           ))}
-        </ul>
+          </ul>
+          {items.length > 3 && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowAll((current) => !current)}
+              className="mt-3 h-8 cursor-pointer px-3 text-xs text-primary"
+            >
+              {showAll ? "Mostrar menos" : "Mostrar tudo"}
+            </Button>
+          )}
+        </>
       ) : (
         <p className="text-sm text-muted-foreground">Sem atividade recente.</p>
       )}
@@ -2189,6 +2203,7 @@ function SupportRowsCompact({
   tickets: ClientTicket[];
   events: ClientEvent[];
 }) {
+  const [showAll, setShowAll] = useState(false);
   const pastEvents = events.filter(
     (event) => event.startsAtIso && new Date(event.startsAtIso).getTime() < Date.now(),
   );
@@ -2230,13 +2245,13 @@ function SupportRowsCompact({
       timestamp: event.startsAtIso,
       type: event.legacyTicketId ? "Atendimento agendado" : "Agendamento",
     })),
-  ]
-    .sort((left, right) => right.timestamp.localeCompare(left.timestamp))
-    .slice(0, 5);
+  ].sort((left, right) => right.timestamp.localeCompare(left.timestamp));
+  const visibleRows = showAll ? rows : rows.slice(0, 3);
 
   return (
-    <ul className="space-y-2">
-      {rows.map((row) => (
+    <>
+      <ul className="space-y-2">
+      {visibleRows.map((row) => (
         <li
           key={row.id}
           className="rounded-md border border-border bg-card px-3 py-2 dark:border-border"
@@ -2256,7 +2271,19 @@ function SupportRowsCompact({
           </p>
         </li>
       ))}
-    </ul>
+      </ul>
+      {rows.length > 3 && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => setShowAll((current) => !current)}
+          className="mt-3 h-8 cursor-pointer px-3 text-xs text-primary"
+        >
+          {showAll ? "Mostrar menos" : "Mostrar tudo"}
+        </Button>
+      )}
+    </>
   );
 }
 
