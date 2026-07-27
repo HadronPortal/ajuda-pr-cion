@@ -298,15 +298,6 @@ function ClientDetailPage() {
         </Tabs>
       </Card>
 
-      <ClientTicketsHistoryModal
-        open={historyOpen}
-        onOpenChange={setHistoryOpen}
-        client={{
-          acronym: client.acronym,
-          razaoSocial: client.razaoSocial,
-          status: client.status,
-        }}
-      />
     </AppShell>
   );
 
