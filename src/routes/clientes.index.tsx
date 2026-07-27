@@ -20,6 +20,7 @@ import {
   Filter,
   Globe2,
   RefreshCw,
+  Search,
   HardDrive,
   MessageCircle,
   Monitor,
