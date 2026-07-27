@@ -515,7 +515,7 @@ function ClientVersionCell({ client }: { client: ClientRow }) {
 
 function ClientsPage() {
   const { clients } = Route.useLoaderData() as { clients: ClientRow[] };
-  const { grupo, q, campo, status: statusParam } = Route.useSearch();
+  const { grupo, q, campo, sigla: siglaParam, status: statusParam } = Route.useSearch();
   const navigate = useNavigate();
   const grupoParam = (grupo ?? "").trim().toUpperCase();
   const initialStatus = (QUICK_STATUS_OPTIONS as string[]).includes(statusParam ?? "")
@@ -531,6 +531,7 @@ function ClientsPage() {
   );
   const [quickQuery, setQuickQuery] = useState(() => q ?? "");
   const [quickDraft, setQuickDraft] = useState(() => q ?? "");
+  const [quickAcronym, setQuickAcronym] = useState(() => siglaParam ?? "");
   const [draft, setDraft] = useState<Filters>(() => filters);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [page, setPage] = useState(1);
@@ -543,7 +544,8 @@ function ClientsPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [quickQuery, quickField]);
+  }, [quickQuery, quickField, quickAcronym]);
+
 
   // Sincroniza URL <-> filtro de grupo. Ao entrar via ?grupo=XXX, descarta qualquer
   // filtro anterior (sigla, busca etc.) para exibir todas as empresas do grupo.
