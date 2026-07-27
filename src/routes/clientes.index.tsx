@@ -67,6 +67,9 @@ import { toast } from "sonner";
 
 const clientesSearchSchema = z.object({
   grupo: fallback(z.string(), "").optional(),
+  q: fallback(z.string(), "").optional(),
+  campo: fallback(z.string(), "").optional(),
+  status: fallback(z.string(), "").optional(),
 });
 
 export const Route = createFileRoute("/clientes/")({
