@@ -17,6 +17,7 @@ import {
   Cpu,
   Database,
   FileText,
+  Filter,
   Globe2,
   RefreshCw,
   Search,
@@ -69,6 +70,7 @@ const clientesSearchSchema = z.object({
   grupo: fallback(z.string(), "").optional(),
   q: fallback(z.string(), "").optional(),
   campo: fallback(z.string(), "").optional(),
+  sigla: fallback(z.string(), "").optional(),
   status: fallback(z.string(), "").optional(),
 });
 
@@ -513,7 +515,7 @@ function ClientVersionCell({ client }: { client: ClientRow }) {
 
 function ClientsPage() {
   const { clients } = Route.useLoaderData() as { clients: ClientRow[] };
-  const { grupo, q, campo, status: statusParam } = Route.useSearch();
+  const { grupo, q, campo, sigla: siglaParam, status: statusParam } = Route.useSearch();
   const navigate = useNavigate();
   const grupoParam = (grupo ?? "").trim().toUpperCase();
   const initialStatus = (QUICK_STATUS_OPTIONS as string[]).includes(statusParam ?? "")
@@ -529,6 +531,7 @@ function ClientsPage() {
   );
   const [quickQuery, setQuickQuery] = useState(() => q ?? "");
   const [quickDraft, setQuickDraft] = useState(() => q ?? "");
+  const [quickAcronym, setQuickAcronym] = useState(() => siglaParam ?? "");
   const [draft, setDraft] = useState<Filters>(() => filters);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [page, setPage] = useState(1);
@@ -541,7 +544,8 @@ function ClientsPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [quickQuery, quickField]);
+  }, [quickQuery, quickField, quickAcronym]);
+
 
   // Sincroniza URL <-> filtro de grupo. Ao entrar via ?grupo=XXX, descarta qualquer
   // filtro anterior (sigla, busca etc.) para exibir todas as empresas do grupo.
@@ -565,16 +569,18 @@ function ClientsPage() {
     if (current) next.grupo = current;
     if (quickQuery.trim()) next.q = quickQuery.trim();
     if (quickField !== "sigla") next.campo = quickField;
+    if (quickAcronym.trim()) next.sigla = quickAcronym.trim();
     if (filters.status !== "Ativo") next.status = filters.status;
     const same =
       (next.grupo ?? "") === grupoParam &&
       (next.q ?? "") === (q ?? "") &&
       (next.campo ?? "") === (campo ?? "") &&
+      (next.sigla ?? "") === (siglaParam ?? "") &&
       (next.status ?? "") === (statusParam ?? "");
     if (!same) {
       navigate({ to: "/clientes", search: next, replace: true });
     }
-  }, [filters.siglaGrupo, filters.status, quickQuery, quickField]);
+  }, [filters.siglaGrupo, filters.status, quickQuery, quickField, quickAcronym]);
 
 
   useEffect(() => {
@@ -619,8 +625,11 @@ function ClientsPage() {
           return true;
       }
     };
+    const acronymQuery = quickAcronym.trim();
     return clients.filter((c) => {
+      if (acronymQuery && !normalize(c.acronym).includes(normalize(acronymQuery))) return false;
       if (!quickMatches(c)) return false;
+
 
       if (filters.sigla && !normalize(c.acronym).includes(normalize(filters.sigla))) return false;
       if (filters.siglaGrupo) {
@@ -661,7 +670,7 @@ function ClientsPage() {
       }
       return true;
     });
-  }, [clients, filters, quickQuery, quickField]);
+  }, [clients, filters, quickQuery, quickField, quickAcronym]);
 
   const sizes = useMemo(() => Array.from(new Set(clients.map((c) => c.size))).sort(), [clients]);
   const segments = useMemo(() => Array.from(new Set(clients.map((c) => c.segment))).sort(), [clients]);
@@ -758,19 +767,15 @@ function ClientsPage() {
       />
 
       <Card className="mb-4 p-3 shadow-sm">
-        <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-[minmax(280px,1fr)_180px_190px_170px]">
+        <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-[200px_180px_minmax(240px,1fr)_170px_160px]">
           <label className="relative block min-w-0">
-            <span className="sr-only">Pesquisar clientes</span>
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <span className="sr-only">Pesquisar por sigla</span>
             <input
-              value={quickDraft}
-              onChange={(event) => {
-                setQuickDraft(event.target.value);
-                setQuickQuery(event.target.value);
-              }}
+              value={quickAcronym}
+              onChange={(event) => setQuickAcronym(event.target.value)}
               type="search"
-              placeholder="Digite para pesquisar..."
-              className="h-10 w-full rounded-md border border-input bg-background pl-9 pr-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/20"
+              placeholder="Sigla"
+              className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/20"
             />
           </label>
 
@@ -792,22 +797,23 @@ function ClientsPage() {
             </select>
           </label>
 
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setFiltersOpen(true)}
-            className="h-10 cursor-pointer justify-between gap-3 rounded-md px-3 text-sm font-normal"
-          >
-            <span>Pesquisa avançada</span>
-            <span className="flex shrink-0 items-center gap-2">
-              {activeCount > 0 && (
-                <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[11px] font-semibold text-primary-foreground">
-                  {activeCount}
-                </span>
-              )}
-              <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
-            </span>
-          </Button>
+          <label className="relative block min-w-0">
+            <span className="sr-only">Pesquisa geral</span>
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              value={quickDraft}
+              onChange={(event) => {
+                setQuickDraft(event.target.value);
+                setQuickQuery(event.target.value);
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") setQuickQuery(quickDraft);
+              }}
+              type="search"
+              placeholder="Pesquisa geral"
+              className="h-10 w-full rounded-md border border-input bg-background pl-9 pr-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/20"
+            />
+          </label>
 
           <label>
             <span className="sr-only">Status do cliente</span>
@@ -828,6 +834,20 @@ function ClientsPage() {
               ))}
             </select>
           </label>
+
+          <Button
+            type="button"
+            onClick={() => setFiltersOpen(true)}
+            className="relative h-10 w-full cursor-pointer justify-center gap-2 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white shadow-md hover:bg-blue-700"
+          >
+            <Filter className="h-4 w-4" />
+            Filtros
+            {activeCount > 0 && (
+              <span className="ml-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-white/95 px-1.5 text-[11px] font-semibold text-blue-700">
+                {activeCount}
+              </span>
+            )}
+          </Button>
         </div>
       </Card>
 
