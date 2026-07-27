@@ -722,15 +722,17 @@ function ClientsPage() {
       {grupoParam && (
         <div className="mb-3">
           <Button
-            asChild
             variant="outline"
             size="sm"
+            onClick={() => {
+              setFilters((previous) => ({ ...previous, siglaGrupo: "" }));
+              navigate({ to: "/clientes", search: {}, replace: true });
+            }}
             className="h-8 cursor-pointer rounded-lg"
+            aria-label="Voltar para Clientes"
           >
-            <Link to="/clientes" search={{}} aria-label="Voltar para Clientes">
-              <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
-              Voltar para Clientes
-            </Link>
+            <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
+            Voltar para Clientes
           </Button>
         </div>
       )}
