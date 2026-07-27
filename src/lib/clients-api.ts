@@ -151,6 +151,7 @@ export type ClientTicket = {
   priority: string;
   status: string;
   createdAt: string;
+  createdAtIso: string;
   updatedAt: string;
 };
 
@@ -526,6 +527,7 @@ export async function getClientDetail(acronym: string): Promise<ClientDetail | n
       priority: String(ticket.priority || ""),
       status: String(ticket.status || ""),
       createdAt: date(ticket.created_at, true),
+      createdAtIso: String(ticket.created_at || ""),
       updatedAt: date(ticket.updated_at || ticket.created_at, true),
     }),
   );

@@ -1670,7 +1670,7 @@ export function ClientTab({
       {/* Linha 4: Próximo evento + Histórico + Atividade recente */}
       <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
         <ClientNextEvent events={events} tickets={tickets} />
-        <Section title="Histórico de suporte" icon={HardDrive}>
+        <Section title="Agendamentos e atendimentos" icon={HardDrive}>
           <SupportRowsCompact tickets={tickets} events={events} />
         </Section>
         <RecentActivityCard activities={activities} events={events} />
@@ -1896,15 +1896,28 @@ function CompaniesSummaryCard({
 }
 
 
+function plainText(value: string) {
+  return value
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function SupportRowsCompact({ tickets, events }: { tickets: ClientTicket[]; events: ClientEvent[] }) {
-  const supportEvents = events.filter((event) => event.legacyTicketId);
-  if (!tickets.length && !supportEvents.length) {
+  const pastEvents = events.filter(
+    (event) => event.startsAtIso && new Date(event.startsAtIso).getTime() < Date.now(),
+  );
+  if (!tickets.length && !pastEvents.length) {
     return (
       <div className="flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed border-border bg-primary/5 px-4 py-6 text-center dark:border-border dark:bg-transparent">
         <span className="grid h-10 w-10 place-items-center rounded-full bg-primary/10 text-primary">
           <MessageCircle className="h-5 w-5" />
         </span>
-        <p className="text-xs text-muted-foreground">Nenhum chamado registrado para este cliente.</p>
+        <p className="text-xs text-muted-foreground">Nenhum agendamento ou atendimento registrado para este cliente.</p>
         <Button
           asChild
           size="sm"
@@ -1922,15 +1935,21 @@ function SupportRowsCompact({ tickets, events }: { tickets: ClientTicket[]; even
       detail: [ticket.module, ticket.submodule].filter(Boolean).join(" · "),
       operator: ticket.operator,
       date: ticket.createdAt,
+      timestamp: ticket.createdAtIso,
+      type: "Atendimento",
     })),
-    ...supportEvents.map((event) => ({
+    ...pastEvents.map((event) => ({
       id: `event-${event.id}`,
       title: event.title,
-      detail: event.description,
+      detail: plainText(event.description),
       operator: event.operator,
       date: event.startsAt,
+      timestamp: event.startsAtIso,
+      type: event.legacyTicketId ? "Atendimento agendado" : "Agendamento",
     })),
-  ].slice(0, 5);
+  ]
+    .sort((left, right) => right.timestamp.localeCompare(left.timestamp))
+    .slice(0, 5);
 
   return (
     <ul className="space-y-2">
@@ -1939,9 +1958,14 @@ function SupportRowsCompact({ tickets, events }: { tickets: ClientTicket[]; even
           key={row.id}
           className="rounded-md border border-border bg-card px-3 py-2 dark:border-border"
         >
-          <p className="truncate text-[13px] font-medium text-foreground" title={row.title}>
-            {row.title}
-          </p>
+          <div className="flex items-start justify-between gap-2">
+            <p className="truncate text-[13px] font-medium text-foreground" title={row.title}>
+              {row.title}
+            </p>
+            <Badge variant="secondary" className="shrink-0 text-[10px] font-medium">
+              {row.type}
+            </Badge>
+          </div>
           <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
             {row.detail || "—"}
           </p>
