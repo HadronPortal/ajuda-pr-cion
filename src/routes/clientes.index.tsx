@@ -489,7 +489,7 @@ function ClientVersionCell({ client }: { client: ClientRow }) {
 
 function ClientsPage() {
   const { clients } = Route.useLoaderData() as { clients: ClientRow[] };
-  const { grupo, q, campo, sigla: siglaParam, status: statusParam } = Route.useSearch();
+  const { grupo, q, sigla: siglaParam, status: statusParam } = Route.useSearch();
   const navigate = useNavigate();
   const grupoParam = (grupo ?? "").trim().toUpperCase();
   const initialStatus = (QUICK_STATUS_OPTIONS as string[]).includes(statusParam ?? "")
@@ -499,9 +499,6 @@ function ClientsPage() {
     grupoParam
       ? { ...emptyFilters, siglaGrupo: grupoParam, status: initialStatus }
       : { ...lastFilters, status: initialStatus },
-  );
-  const [quickField, setQuickField] = useState<QuickField>(() =>
-    QUICK_FIELD_OPTIONS.some((o) => o.value === campo) ? (campo as QuickField) : "sigla",
   );
   const [quickQuery, setQuickQuery] = useState(() => q ?? "");
   const [quickDraft, setQuickDraft] = useState(() => q ?? "");
