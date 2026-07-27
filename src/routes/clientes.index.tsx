@@ -1585,9 +1585,12 @@ function ContactGrid({ items, icon: Icon }: { items: ContactLine[]; icon: typeof
     <ul className="grid gap-2 md:grid-cols-2">
       {items.map((item) => (
         <li key={item.key}>
-          <a
-            href={item.href}
-            className="group flex min-w-0 cursor-pointer items-start gap-2 rounded-md border border-border/60 bg-background px-3 py-2 transition hover:border-primary/40 hover:bg-accent/40"
+          <button
+            type="button"
+            onClick={() => void copyContactValue(item)}
+            title={`Copiar ${item.kind === "phone" ? "telefone" : "e-mail"}`}
+            aria-label={`Copiar ${item.kind === "phone" ? "telefone" : "e-mail"} ${item.display}`}
+            className="group flex w-full min-w-0 cursor-pointer items-start gap-2 rounded-md border border-border/60 bg-background px-3 py-2 text-left transition hover:border-primary/40 hover:bg-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <Icon className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground group-hover:text-foreground" />
             <span className="min-w-0 flex-1">
@@ -1600,7 +1603,7 @@ function ContactGrid({ items, icon: Icon }: { items: ContactLine[]; icon: typeof
                 </span>
               )}
             </span>
-          </a>
+          </button>
         </li>
       ))}
     </ul>
