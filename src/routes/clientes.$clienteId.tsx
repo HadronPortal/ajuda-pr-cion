@@ -1,9 +1,7 @@
-import { useState } from "react";
 import { createFileRoute, Link, useNavigate, notFound } from "@tanstack/react-router";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
-import { ArrowLeft, Building2, Database, History, Monitor, Network, SlidersHorizontal, UsersRound, Wifi } from "lucide-react";
-import { ClientTicketsHistoryModal } from "@/components/tickets/ClientTicketsHistoryModal";
+import { ArrowLeft, Building2, Database, Monitor, Network, SlidersHorizontal, UsersRound, Wifi } from "lucide-react";
 
 import { AppShell } from "@/components/portal/AppShell";
 import { Breadcrumbs } from "@/components/portal/Breadcrumbs";
@@ -84,7 +82,6 @@ function ClientDetailPage() {
   const { client, contacts, companies, users, terminals, modules, internet, tickets, events, activities, parameters } = Route.useLoaderData();
   const { tab, from, ticketId } = Route.useSearch();
   const navigate = useNavigate();
-  const [historyOpen, setHistoryOpen] = useState(false);
   const showReturnToTicket = from === "chamado" && !!ticketId;
   const { clients: allClients } = useClients({ onlyActive: false });
   const showInternet = internet.hasActiveContract || internet.contracts.some((c: { active: boolean }) => c.active);
