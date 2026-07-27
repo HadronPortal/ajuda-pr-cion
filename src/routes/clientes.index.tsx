@@ -5,6 +5,7 @@ import { z } from "zod";
 import {
   Activity,
   ArrowDown,
+  ArrowLeft,
   ArrowUp,
   ArrowUpDown,
   Building2,
@@ -718,6 +719,22 @@ function ClientsPage() {
 
   return (
     <AppShell>
+      {grupoParam && (
+        <div className="mb-3">
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="h-8 cursor-pointer rounded-lg"
+          >
+            <Link to="/clientes" search={{}} aria-label="Voltar para Clientes">
+              <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
+              Voltar para Clientes
+            </Link>
+          </Button>
+        </div>
+      )}
+
       <PageHeader
         title="Clientes"
         description="Cadastro, ambiente e relacionamento dos clientes."
@@ -1805,9 +1822,8 @@ export function ClientTab({
 
   return (
     <div className="space-y-5">
-      {/* Linha 1: Contatos + Dados da empresa */}
+      {/* Linha 1: Dados da empresa + Contatos */}
       <div className="grid gap-5 items-stretch lg:grid-cols-2">
-        <ContactsCard contacts={contacts} client={client} />
         <Section title="Dados da empresa" icon={Building2}>
           <div className="grid gap-x-5 gap-y-4 sm:grid-cols-2">
             {empresaFields.map(([label, value]) => (
@@ -1815,6 +1831,7 @@ export function ClientTab({
             ))}
           </div>
         </Section>
+        <ContactsCard contacts={contacts} client={client} />
       </div>
 
 
