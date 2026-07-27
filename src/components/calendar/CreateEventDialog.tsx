@@ -270,11 +270,22 @@ export function CreateEventDialog({
             </div>
           </NewField>
 
+          {lockedClient && (
+            <NewField label="Cliente">
+              <div className="flex h-9 items-center gap-2 rounded-md border border-input bg-muted/40 px-3 text-[13px] text-foreground">
+                <Building2 className="h-4 w-4 shrink-0 text-muted-foreground" />
+                <span className="truncate">{lockedClient.label}</span>
+              </div>
+            </NewField>
+          )}
+
           {type === "Visita presencial" && (
             <div className="grid gap-3 sm:grid-cols-2">
-              <NewField label="Cliente">
-                <Input value={client} onChange={(e) => setClient(e.target.value)} placeholder="Sigla ou razão social" />
-              </NewField>
+              {!lockedClient && (
+                <NewField label="Cliente">
+                  <Input value={client} onChange={(e) => setClient(e.target.value)} placeholder="Sigla ou razão social" />
+                </NewField>
+              )}
               <NewField label="Responsável">
                 <SelectNative value={responsible} onChange={setResponsible} options={PRC_OPERATORS} />
               </NewField>
