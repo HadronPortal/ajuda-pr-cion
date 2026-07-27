@@ -22,12 +22,13 @@ import {
 
 function MiniSummary({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-border bg-card px-3 py-2 shadow-sm dark:border-border">
-      <p className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
-      <p className="mt-0.5 truncate text-[13px] font-medium text-foreground" title={value}>{value}</p>
+    <div className="flex min-w-0 items-baseline gap-1.5">
+      <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{label}</span>
+      <span className="truncate text-[12.5px] font-medium text-foreground" title={value}>{value}</span>
     </div>
   );
 }
+
 
 import { getClientDetail, type ClientDetail } from "@/lib/clients-api";
 import { normalizeCityUf } from "@/lib/br-city";
