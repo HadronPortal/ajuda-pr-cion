@@ -723,8 +723,26 @@ function ClientsPage() {
       />
 
       <div className="mb-3">
-        <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-[200px_minmax(240px,1fr)_170px_160px]">
-          <label className="relative block min-w-0">
+        <div className="mb-2 flex justify-end">
+          <Button
+            type="button"
+            onClick={() => setFiltersOpen(true)}
+            className="h-9 w-full cursor-pointer justify-center gap-2 rounded-md bg-blue-600 px-4 text-sm font-medium text-white shadow-sm hover:bg-blue-700 sm:w-40"
+          >
+            <Filter className="h-4 w-4" />
+            Filtros
+            {activeCount > 0 && (
+              <span className="ml-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-white/95 px-1.5 text-[11px] font-semibold text-blue-700">
+                {activeCount}
+              </span>
+            )}
+          </Button>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="shrink-0 text-xs font-medium text-muted-foreground">Filtros:</span>
+
+          <label className="relative block w-full min-w-0 sm:w-[200px]">
             <span className="sr-only">Pesquisar por sigla</span>
             <input
               value={quickAcronym}
@@ -738,7 +756,7 @@ function ClientsPage() {
 
 
 
-          <label className="relative block min-w-0">
+          <label className="relative block min-w-[240px] flex-1">
             <span className="sr-only">Pesquisa geral</span>
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <input
@@ -756,7 +774,7 @@ function ClientsPage() {
             />
           </label>
 
-          <label>
+          <label className="w-full sm:w-[170px]">
             <span className="sr-only">Status do cliente</span>
             <select
               value={filters.status}
@@ -776,26 +794,6 @@ function ClientsPage() {
             </select>
           </label>
 
-          <Button
-            type="button"
-            onClick={() => setFiltersOpen(true)}
-            className="relative h-9 w-full cursor-pointer justify-center gap-2 rounded-md bg-blue-600 px-4 text-sm font-medium text-white shadow-sm hover:bg-blue-700"
-          >
-            <Filter className="h-4 w-4" />
-            Filtros
-            {activeCount > 0 && (
-              <span className="ml-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-white/95 px-1.5 text-[11px] font-semibold text-blue-700">
-                {activeCount}
-              </span>
-            )}
-          </Button>
-        </div>
-      </div>
-
-
-      {chips.length > 0 && (
-        <div className="mb-3 flex flex-wrap items-center gap-2">
-          <span className="text-xs font-medium text-muted-foreground">Filtros:</span>
           {chips.map((chip) => (
             <span
               key={chip.key}
@@ -813,7 +811,7 @@ function ClientsPage() {
             </span>
           ))}
         </div>
-      )}
+      </div>
 
       {grupoParam && (
         <div className="mb-3 flex items-baseline gap-2">
