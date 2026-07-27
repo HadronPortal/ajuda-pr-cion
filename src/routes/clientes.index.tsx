@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ComponentType } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
@@ -66,6 +66,20 @@ import type {
 import { normalizeCityUf } from "@/lib/br-city";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import hadronIconUrl from "@/assets/menu-hadron-solid.png";
+
+function HadronMenuIcon({ className }: { className?: string }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={cn("block bg-current", className)}
+      style={{
+        WebkitMask: `url(${hadronIconUrl}) center / contain no-repeat`,
+        mask: `url(${hadronIconUrl}) center / contain no-repeat`,
+      }}
+    />
+  );
+}
 import { CreateEventDialog } from "@/components/calendar/CreateEventDialog";
 import { addLocalEvent, useLocalEventsForClient } from "@/lib/local-events-store";
 
@@ -1340,7 +1354,7 @@ function Section({
   action,
 }: {
   title: string;
-  icon?: typeof Building2;
+  icon?: ComponentType<{ className?: string }>;
   children: React.ReactNode;
   className?: string;
   titleClassName?: string;
@@ -2456,45 +2470,70 @@ export function ClientHadronTab({
   const contracted = modules.filter((item) => item.contracted);
   const unavailable = modules.filter((item) => !item.contracted);
   const terminal = terminals[0];
+  const serial = terminal?.serialNumber
+    ? `${client.acronym} - ${terminal.serialNumber}`
+    : client.acronym;
+  const environmentFields: Array<[string, string]> = [
+    ["Serial", serial],
+    ["Versão", terminal?.version || client.version || "Não informada"],
+    ["Terminais", String(terminals.length)],
+    ["Última instalação", terminal?.registeredAt || "Não informada"],
+    ["Última atualização", terminal?.updatedAt || client.versionUpdatedAt || "Não informada"],
+    ["IP", terminal?.ipAddress || "Não informado"],
+    ["Pasta de instalação", terminal?.installPath || "Não informada"],
+    [
+      "Sistema operacional",
+      [terminal?.operatingSystem, terminal?.operatingSystemVersion].filter(Boolean).join(" ") ||
+        "Não informado",
+    ],
+    [
+      "Emite NF-e",
+      terminal?.emitsNfe == null ? "Não informado" : terminal.emitsNfe ? "Sim" : "Não",
+    ],
+    ["Ambiente", terminal?.environment || "Não informado"],
+  ];
+
   return (
-    <>
-      <Section title="Ambiente Hadron" icon={Database}>
-        <div className="grid gap-5 md:grid-cols-3">
-          <Field label="Cliente" value={client.acronym} />
-          <Field label="Versao" value={terminal?.version || client.version || "Nao informada"} />
-          <Field label="Terminais" value={String(terminals.length)} />
-          <Field label="Sistema operacional" value={terminal?.operatingSystem || "Nao informado"} />
-          <Field label="Emite NF-e" value={terminal?.emitsNfe == null ? "Nao informado" : terminal.emitsNfe ? "Sim" : "Nao"} />
-          <Field label="Ambiente" value={terminal?.environment || "Nao informado"} />
-        </div>
-      </Section>
-      <div className="grid gap-5 xl:grid-cols-2">
-        <Section title="Modulos adquiridos" icon={CheckCircle2}>
-          {contracted.length ? (
-            <div className="grid gap-1.5 sm:grid-cols-2">
-              {contracted.map((item) => (
-                <div key={item.id} className="flex items-center gap-2 px-1 py-1.5 text-sm">
-                  <Check className="h-4 w-4 text-emerald-500" />
-                  <span>{item.name}</span>
-                </div>
-              ))}
-            </div>
-          ) : <EmptyState text="Nenhum modulo contratado cadastrado." />}
-        </Section>
-        <Section title="Modulos nao contratados" icon={Database}>
-          {unavailable.length ? (
-            <div className="grid gap-1.5 sm:grid-cols-2">
-              {unavailable.map((item) => (
-                <div key={item.id} className="flex items-center gap-2 px-1 py-1.5 text-sm text-muted-foreground">
-                  <X className="h-4 w-4 text-red-500" />
-                  <span>{item.name}</span>
-                </div>
-              ))}
-            </div>
-          ) : <EmptyState text="Nenhum modulo nao contratado cadastrado." />}
-        </Section>
+    <Section title="Hádron" icon={HadronMenuIcon}>
+      <div className="grid gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+        {environmentFields.map(([label, value]) => (
+          <Field key={label} label={label} value={value} />
+        ))}
       </div>
-    </>
+
+      <div className="my-5 border-t border-border" />
+
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <h4 className="text-sm font-medium">Módulos</h4>
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          <span>{contracted.length} contratados</span>
+          <span>{unavailable.length} não contratados</span>
+        </div>
+      </div>
+
+      {modules.length ? (
+        <div className="grid gap-x-8 gap-y-1 sm:grid-cols-2 lg:grid-cols-3">
+          {[...contracted, ...unavailable].map((item) => (
+            <div
+              key={item.id}
+              className={cn(
+                "flex min-h-8 items-center gap-2 border-b border-border/60 py-1.5 text-sm",
+                !item.contracted && "text-muted-foreground",
+              )}
+            >
+              {item.contracted ? (
+                <Check className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+              ) : (
+                <X className="h-4 w-4 shrink-0 text-muted-foreground" />
+              )}
+              <span className={cn(item.contracted && "font-medium")}>{item.name}</span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <EmptyState text="Nenhum módulo cadastrado para este cliente." />
+      )}
+    </Section>
   );
 }
 
