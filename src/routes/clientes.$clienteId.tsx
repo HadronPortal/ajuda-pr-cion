@@ -144,19 +144,18 @@ function ClientDetailPage() {
         )}
       </div>
 
-      <Breadcrumbs
-        items={[
-          { label: "Clientes", to: "/clientes" },
-          groupCode
-            ? { label: breadcrumbGroupLabel, to: `/clientes?grupo=${groupCode}` }
-            : { label: client.acronym, to: "/clientes" },
-          { label: "Detalhes do cliente" },
-        ]}
-      />
-      <div className="mb-4 flex flex-wrap items-start justify-end gap-4">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
+        <Breadcrumbs
+          items={[
+            { label: "Clientes", to: "/clientes" },
+            groupCode
+              ? { label: breadcrumbGroupLabel, to: `/clientes?grupo=${groupCode}` }
+              : { label: client.acronym, to: "/clientes" },
+            { label: "Detalhes do cliente" },
+          ]}
+        />
 
-
-        <div className="grid w-full grid-cols-2 gap-2 sm:w-auto sm:grid-cols-3 xl:grid-cols-5">
+        <div className="flex min-w-0 flex-wrap items-center gap-x-5 gap-y-1.5">
           <MiniSummary label="Atendimento" value={normalizeCityUf(client.city) || "Não informado"} />
           <MiniSummary label="Status" value={client.status || "Não informado"} />
           <MiniSummary label="Versão Hádron" value={client.versionDate || client.version || "Não informada"} />
@@ -164,6 +163,7 @@ function ClientDetailPage() {
           <MiniSummary label="Dispositivos" value={String(internet.devices.length)} />
         </div>
       </div>
+
 
 
       <Card className="overflow-hidden border-border bg-card p-0 shadow-sm dark:border-border">
