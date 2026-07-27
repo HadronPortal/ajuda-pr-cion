@@ -2246,7 +2246,7 @@ function SupportRowsCompact({
       type: event.legacyTicketId ? "Atendimento agendado" : "Agendamento",
     })),
   ].sort((left, right) => right.timestamp.localeCompare(left.timestamp));
-  const visibleRows = showAll ? rows : rows.slice(0, 3);
+  const visibleRows = showAll ? rows : rows.slice(0, 2);
 
   return (
     <>
@@ -2272,7 +2272,7 @@ function SupportRowsCompact({
         </li>
       ))}
       </ul>
-      {rows.length > 3 && (
+      {rows.length > 2 && (
         <Button
           type="button"
           variant="ghost"
