@@ -29,7 +29,7 @@ function MiniSummary({ label, value }: { label: string; value: string }) {
   );
 }
 
-import { getClientDetail } from "@/lib/clients-api";
+import { getClientDetail, type ClientDetail } from "@/lib/clients-api";
 import { normalizeCityUf } from "@/lib/br-city";
 import { useClients, resolveGroupCode, getGroupMembers } from "@/lib/clients-store";
 
@@ -79,7 +79,8 @@ export const Route = createFileRoute("/clientes/$clienteId")({
 });
 
 function ClientDetailPage() {
-  const { client, contacts, companies, users, terminals, modules, internet, tickets, events, activities, parameters } = Route.useLoaderData();
+  const { client, contacts, companies, users, terminals, modules, internet, tickets, events, activities, parameters } =
+    Route.useLoaderData() as ClientDetail;
   const { tab, from, ticketId } = Route.useSearch();
   const navigate = useNavigate();
   const showReturnToTicket = from === "chamado" && !!ticketId;
