@@ -222,7 +222,51 @@ const terminals = [
   ["01", "177.21.58.91", "P:/PROGEST/", "11/05/2026", "26/05/2026 11:29"],
 ];
 
-type StatusFilter = "Todos" | "Ativo" | "Inativo";
+type StatusFilter =
+  | "Todos"
+  | "Ativo"
+  | "Inativo"
+  | "Pendente"
+  | "Bloqueado"
+  | "Aviso do Cliente"
+  | "Mensagem no Hádron";
+
+const QUICK_STATUS_OPTIONS: StatusFilter[] = [
+  "Inativo",
+  "Ativo",
+  "Pendente",
+  "Bloqueado",
+  "Aviso do Cliente",
+  "Mensagem no Hádron",
+  "Todos",
+];
+
+type QuickField =
+  | "sigla"
+  | "siglaGrupo"
+  | "nome"
+  | "razaoSocial"
+  | "fantasia"
+  | "porte"
+  | "ramo"
+  | "cep"
+  | "cidade"
+  | "uf"
+  | "cnpj";
+
+const QUICK_FIELD_OPTIONS: { value: QuickField; label: string }[] = [
+  { value: "sigla", label: "Sigla" },
+  { value: "siglaGrupo", label: "Sigla do grupo" },
+  { value: "nome", label: "Nome (apelido)" },
+  { value: "razaoSocial", label: "Razão social" },
+  { value: "fantasia", label: "Nome fantasia" },
+  { value: "porte", label: "Porte" },
+  { value: "ramo", label: "Ramo" },
+  { value: "cep", label: "CEP" },
+  { value: "cidade", label: "Cidade" },
+  { value: "uf", label: "UF" },
+  { value: "cnpj", label: "CNPJ" },
+];
 
 type Filters = {
   sigla: string;
