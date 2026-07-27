@@ -790,7 +790,7 @@ function ClientsPage() {
             )}
           </Button>
         </div>
-      </Card>
+      </div>
 
 
       {chips.length > 0 && (
