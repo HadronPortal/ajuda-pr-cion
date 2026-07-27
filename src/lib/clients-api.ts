@@ -17,6 +17,8 @@ export type ClientContact = {
 
 export type ClientCompany = {
   id: string;
+  clientAcronym: string;
+  groupPosition: string;
   companyNumber: number | null;
   legalName: string;
   tradeName: string;
@@ -284,7 +286,10 @@ const date = (value: unknown, withTime = false) => {
   if (!value) return "";
   const parsed = new Date(String(value));
   if (Number.isNaN(parsed.getTime())) return "";
-  return new Intl.DateTimeFormat("pt-BR", withTime ? { dateStyle: "short", timeStyle: "short" } : { dateStyle: "short" }).format(parsed);
+  return new Intl.DateTimeFormat(
+    "pt-BR",
+    withTime ? { dateStyle: "short", timeStyle: "short" } : { dateStyle: "short" },
+  ).format(parsed);
 };
 
 const legacyDate = (value: unknown, withTime = false) => {
@@ -302,10 +307,7 @@ const legacyDate = (value: unknown, withTime = false) => {
 const formatCnpj = (value: unknown) => {
   const digits = String(value || "").replace(/\D/g, "");
   if (digits.length !== 14) return String(value || "");
-  return digits.replace(
-    /^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,
-    "$1.$2.$3/$4-$5",
-  );
+  return digits.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
 };
 
 const formatCpf = (value: unknown) => {
@@ -351,7 +353,9 @@ export function mapDatabaseClient(c: DatabaseClient): ClientRow {
     versionUpdatedAt: date(c.setup_at, true),
     updated: date(c.crm_updated_at, true),
     updatedAt: date(c.crm_updated_at, true),
-    city: [normalizeCityName(String(c.city || "")), c.state ? String(c.state).toUpperCase() : ""].filter(Boolean).join(" - "),
+    city: [normalizeCityName(String(c.city || "")), c.state ? String(c.state).toUpperCase() : ""]
+      .filter(Boolean)
+      .join(" - "),
     uf: String(c.state || ""),
     cep: String(c.postal_code || ""),
     cnpj: formatCnpj(c.document),
@@ -363,7 +367,10 @@ export function mapDatabaseClient(c: DatabaseClient): ClientRow {
 export async function listClients(): Promise<ClientRow[]> {
   const rows: DatabaseClient[] = [];
   for (let offset = 0; ; offset += 500) {
-    const { data, error } = await supabase.rpc("list_crm_clients", { p_limit: 500, p_offset: offset });
+    const { data, error } = await supabase.rpc("list_crm_clients", {
+      p_limit: 500,
+      p_offset: offset,
+    });
     if (error) throw error;
     rows.push(...((data || []) as DatabaseClient[]));
     if (!data || data.length < 500) break;
@@ -384,18 +391,21 @@ export async function getClientDetail(acronym: string): Promise<ClientDetail | n
     { data: parameterData, error: parameterError },
     { data: clientEventData, error: clientEventError },
     { data: logData, error: logError },
+    { data: groupCompanyData, error: groupCompanyError },
   ] = await Promise.all([
     supabase.rpc("get_crm_client", { client_acronym: acronym }),
     supabase.rpc("get_crm_client_ticket_activity", { client_acronym: acronym }),
     supabase.rpc("get_crm_client_params", { client_acronym: acronym }),
     supabase.rpc("get_crm_client_events", { client_acronym: acronym }),
     supabase.rpc("get_crm_client_logs", { client_acronym: acronym }),
+    supabase.rpc("get_crm_client_group_companies", { client_acronym: acronym }),
   ]);
   if (error) throw error;
   if (activityError) throw activityError;
   if (parameterError) throw parameterError;
   if (clientEventError) throw clientEventError;
   if (logError && logError.code !== "PGRST202") throw logError;
+  if (groupCompanyError && groupCompanyError.code !== "PGRST202") throw groupCompanyError;
   if (!data?.client) return null;
 
   const contacts = (Array.isArray(data.contacts) ? data.contacts : []).map(
@@ -411,45 +421,65 @@ export async function getClientDetail(acronym: string): Promise<ClientDetail | n
     }),
   );
 
-  const companies = (Array.isArray(data.companies) ? data.companies : []).map(
-    (company: Record<string, unknown>): ClientCompany => {
-      const payload = parseJsonField(company.source_payload);
-      const respRaw = parseJsonField(payload.tcl_responsavel);
-      const ctdRaw = parseJsonField(payload.tcl_contador);
-      const regimeCode = String(company.tax_regime ?? payload.tcl_regime ?? "").trim();
-      return {
-        id: String(company.id || ""),
-        companyNumber: typeof company.company_number === "number" ? company.company_number : null,
-        legalName: String(company.legal_name || ""),
-        tradeName: String(company.trade_name || ""),
-        document: formatCnpj(company.document),
-        stateRegistration: String(company.state_registration || payload.tcl_ie || ""),
-        municipalRegistration: String(payload.tcl_im || ""),
-        cnae: String(company.cnae || payload.tcl_cnae || ""),
-        industry: labelFromCode(company.industry ?? payload.tcl_setor, industryLabels),
-        size: labelFromCode(company.size ?? payload.tcl_porte, sizeLabels),
-        taxRegime: optionalLabel(regimeCode, taxRegimeLabels),
-        address: String(company.address || payload.tcl_endereco || ""),
-        city: normalizeCityName(String(company.city || payload.tcl_cidade || "")),
-        state: String(company.state || payload.tcl_uf || "").toUpperCase(),
-        postalCode: formatCep(company.postal_code || payload.tcl_cep || ""),
-        responsibleName: String(company.responsible_name || respRaw.cli_res_nome || respRaw.tcl_res_nome || ""),
-        responsibleDocument: formatCpf(company.responsible_document || respRaw.cli_res_cpf || respRaw.tcl_res_cpf || ""),
-        responsibleRg: String(respRaw.cli_res_rg || respRaw.tcl_res_rg || ""),
-        responsibleAddress: String(respRaw.cli_res_endereco || respRaw.tcl_res_endereco || ""),
-        responsibleNumber: String(respRaw.cli_res_numero || respRaw.tcl_res_numero || ""),
-        responsibleComplement: String(respRaw.cli_res_complemento || respRaw.tcl_res_complemento || ""),
-        responsibleNeighborhood: String(respRaw.cli_res_bairro || respRaw.tcl_res_bairro || ""),
-        responsibleCity: normalizeCityName(String(respRaw.cli_res_cidade || respRaw.tcl_res_cidade || "")),
-        responsibleState: String(respRaw.cli_res_uf || respRaw.tcl_res_uf || "").toUpperCase(),
-        responsiblePostalCode: formatCep(respRaw.cli_res_cep || respRaw.tcl_res_cep || ""),
-        accountantOffice: String(ctdRaw.cli_ctd_nome || ctdRaw.tcl_ctd_nome || company.accountant_name || ""),
-        accountantName: String(ctdRaw.cli_ctd_res || ctdRaw.tcl_ctd_res || ""),
-        accountantPhone: String(ctdRaw.cli_ctd_tel || ctdRaw.tcl_ctd_tel || company.accountant_phone || ""),
-        accountantEmail: String(ctdRaw.cli_ctd_email || ctdRaw.tcl_ctd_email || company.accountant_email || ""),
-      };
-    },
-  );
+  const rawCompanies =
+    Array.isArray(groupCompanyData) && groupCompanyData.length
+      ? groupCompanyData
+      : Array.isArray(data.companies)
+        ? data.companies
+        : [];
+  const companies = rawCompanies.map((company: Record<string, unknown>): ClientCompany => {
+    const payload = parseJsonField(company.source_payload);
+    const respRaw = parseJsonField(payload.tcl_responsavel || payload.cli_responsavel);
+    const ctdRaw = parseJsonField(payload.tcl_contador || payload.cli_contador);
+    const regimeCode = String(company.tax_regime ?? payload.tcl_regime ?? "").trim();
+    return {
+      id: String(company.id || ""),
+      clientAcronym: String(company.client_acronym || ""),
+      groupPosition: String(company.group_position || ""),
+      companyNumber: typeof company.company_number === "number" ? company.company_number : null,
+      legalName: String(company.legal_name || ""),
+      tradeName: String(company.trade_name || ""),
+      document: formatCnpj(company.document),
+      stateRegistration: String(company.state_registration || payload.tcl_ie || ""),
+      municipalRegistration: String(payload.tcl_im || ""),
+      cnae: String(company.cnae || payload.tcl_cnae || ""),
+      industry: labelFromCode(company.industry ?? payload.tcl_setor, industryLabels),
+      size: labelFromCode(company.size ?? payload.tcl_porte, sizeLabels),
+      taxRegime: optionalLabel(regimeCode, taxRegimeLabels),
+      address: String(company.address || payload.tcl_endereco || ""),
+      city: normalizeCityName(String(company.city || payload.tcl_cidade || "")),
+      state: String(company.state || payload.tcl_uf || "").toUpperCase(),
+      postalCode: formatCep(company.postal_code || payload.tcl_cep || ""),
+      responsibleName: String(
+        company.responsible_name || respRaw.cli_res_nome || respRaw.tcl_res_nome || "",
+      ),
+      responsibleDocument: formatCpf(
+        company.responsible_document || respRaw.cli_res_cpf || respRaw.tcl_res_cpf || "",
+      ),
+      responsibleRg: String(respRaw.cli_res_rg || respRaw.tcl_res_rg || ""),
+      responsibleAddress: String(respRaw.cli_res_endereco || respRaw.tcl_res_endereco || ""),
+      responsibleNumber: String(respRaw.cli_res_numero || respRaw.tcl_res_numero || ""),
+      responsibleComplement: String(
+        respRaw.cli_res_complemento || respRaw.tcl_res_complemento || "",
+      ),
+      responsibleNeighborhood: String(respRaw.cli_res_bairro || respRaw.tcl_res_bairro || ""),
+      responsibleCity: normalizeCityName(
+        String(respRaw.cli_res_cidade || respRaw.tcl_res_cidade || ""),
+      ),
+      responsibleState: String(respRaw.cli_res_uf || respRaw.tcl_res_uf || "").toUpperCase(),
+      responsiblePostalCode: formatCep(respRaw.cli_res_cep || respRaw.tcl_res_cep || ""),
+      accountantOffice: String(
+        ctdRaw.cli_ctd_nome || ctdRaw.tcl_ctd_nome || company.accountant_name || "",
+      ),
+      accountantName: String(ctdRaw.cli_ctd_res || ctdRaw.tcl_ctd_res || ""),
+      accountantPhone: String(
+        ctdRaw.cli_ctd_tel || ctdRaw.tcl_ctd_tel || company.accountant_phone || "",
+      ),
+      accountantEmail: String(
+        ctdRaw.cli_ctd_email || ctdRaw.tcl_ctd_email || company.accountant_email || "",
+      ),
+    };
+  });
 
   const users = (Array.isArray(data.users) ? data.users : []).map(
     (user: Record<string, unknown>): ClientHadronUser => ({
@@ -469,7 +499,8 @@ export async function getClientDetail(acronym: string): Promise<ClientDetail | n
     (terminal: Record<string, unknown>): ClientTerminal => ({
       id: String(terminal.id || ""),
       companyNumber: typeof terminal.company_number === "number" ? terminal.company_number : null,
-      terminalNumber: typeof terminal.terminal_number === "number" ? terminal.terminal_number : null,
+      terminalNumber:
+        typeof terminal.terminal_number === "number" ? terminal.terminal_number : null,
       ipAddress: String(terminal.ip_address || ""),
       installPath: String(terminal.install_path || ""),
       version: String(terminal.hadron_version || ""),
@@ -550,21 +581,23 @@ export async function getClientDetail(acronym: string): Promise<ClientDetail | n
   const directDevices = (Array.isArray(internetData.devices) ? internetData.devices : []).map(
     (device: Record<string, unknown>) => mapInternetDevice(device),
   );
-  const devices = directDevices.length ? directDevices : contracts.flatMap((contract) => contract.devices);
+  const devices = directDevices.length
+    ? directDevices
+    : contracts.flatMap((contract) => contract.devices);
 
-  const applications = (Array.isArray(internetData.applications) ? internetData.applications : []).map(
-    (app: Record<string, unknown>): ClientInternetApplication => ({
-      id: String(app.id || ""),
-      legacyId: String(app.legacy_id || ""),
-      contractLegacyId: String(app.contract_legacy_id || ""),
-      name: String(app.name || ""),
-      appType: String(app.app_type || ""),
-      version: String(app.version || ""),
-      status: String(app.status || ""),
-      active: app.active !== false,
-      updatedAt: date(app.updated_at, true),
-    }),
-  );
+  const applications = (
+    Array.isArray(internetData.applications) ? internetData.applications : []
+  ).map((app: Record<string, unknown>): ClientInternetApplication => ({
+    id: String(app.id || ""),
+    legacyId: String(app.legacy_id || ""),
+    contractLegacyId: String(app.contract_legacy_id || ""),
+    name: String(app.name || ""),
+    appType: String(app.app_type || ""),
+    version: String(app.version || ""),
+    status: String(app.status || ""),
+    active: app.active !== false,
+    updatedAt: date(app.updated_at, true),
+  }));
 
   const anyActiveContract = contracts.some((c) => c.active);
   const internet: ClientInternet = {

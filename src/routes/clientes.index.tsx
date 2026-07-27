@@ -291,7 +291,6 @@ const QUICK_STATUS_OPTIONS: StatusFilter[] = [
   "Todos",
 ];
 
-
 type Filters = {
   sigla: string;
   siglaGrupo: string;
@@ -402,17 +401,24 @@ async function resolveClientCnpj(client: ClientRow, initial: CnpjInfo): Promise<
   if (pending) return pending;
   const promise = (async () => {
     try {
-      const { data, error } = await supabase.rpc("get_crm_client", { client_acronym: client.acronym });
+      const { data, error } = await supabase.rpc("get_crm_client", {
+        client_acronym: client.acronym,
+      });
       if (error) throw error;
       const candidates: unknown[] = [];
       const clientDoc = (data as { client?: { document?: unknown } } | null)?.client?.document;
       if (clientDoc) candidates.push(clientDoc);
-      const companies = (data as { companies?: Array<{ document?: unknown }> } | null)?.companies || [];
+      const companies =
+        (data as { companies?: Array<{ document?: unknown }> } | null)?.companies || [];
       for (const co of companies) if (co?.document) candidates.push(co.document);
       for (const raw of candidates) {
         const d = String(raw ?? "").replace(/\D+/g, "");
         if (d.length === 14) {
-          const result: CnpjInfo = { text: formatCnpjDigits(d), incomplete: false, raw: String(raw) };
+          const result: CnpjInfo = {
+            text: formatCnpjDigits(d),
+            incomplete: false,
+            raw: String(raw),
+          };
           cnpjResolveCache.set(key, result);
           return result;
         }
@@ -420,7 +426,12 @@ async function resolveClientCnpj(client: ClientRow, initial: CnpjInfo): Promise<
     } catch {
       /* silencioso; mostraremos "CNPJ não informado" */
     }
-    const result: CnpjInfo = { text: "CNPJ não informado", incomplete: true, missing: true, raw: initial.raw };
+    const result: CnpjInfo = {
+      text: "CNPJ não informado",
+      incomplete: true,
+      missing: true,
+      raw: initial.raw,
+    };
     cnpjResolveCache.set(key, result);
     return result;
   })();
@@ -435,7 +446,7 @@ async function resolveClientCnpj(client: ClientRow, initial: CnpjInfo): Promise<
 function ClientCnpjCell({ client }: { client: ClientRow }) {
   const initial = useMemo(() => formatCnpjDisplay(client.cnpj), [client.cnpj]);
   const [info, setInfo] = useState<CnpjInfo>(() =>
-    initial.incomplete ? cnpjResolveCache.get(client.acronym || client.id) ?? initial : initial,
+    initial.incomplete ? (cnpjResolveCache.get(client.acronym || client.id) ?? initial) : initial,
   );
 
   useEffect(() => {
@@ -469,7 +480,6 @@ function ClientCnpjCell({ client }: { client: ClientRow }) {
   }
   return <span title={info.raw}>{info.text}</span>;
 }
-
 
 type SortKey = "registered" | "acronym" | "name" | "version" | "city" | "cnpj" | "status";
 
@@ -554,7 +564,10 @@ function ClientsPage() {
   const [draft, setDraft] = useState<Filters>(() => filters);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [page, setPage] = useState(1);
-  const [sort, setSort] = useState<{ key: SortKey; dir: "asc" | "desc" } | null>({ key: "registered", dir: "desc" });
+  const [sort, setSort] = useState<{ key: SortKey; dir: "asc" | "desc" } | null>({
+    key: "registered",
+    dir: "desc",
+  });
 
   useEffect(() => {
     lastFilters = filters;
@@ -565,16 +578,24 @@ function ClientsPage() {
     setPage(1);
   }, [quickQuery, quickAcronym]);
 
-
   // Sincroniza URL <-> filtro de grupo. Ao entrar via ?grupo=XXX, descarta qualquer
   // filtro anterior (sigla, busca etc.) para exibir todas as empresas do grupo.
   useEffect(() => {
     if (grupoParam) {
       setFilters((p) =>
         p.siglaGrupo.toUpperCase() === grupoParam &&
-        !p.sigla && !p.nome && !p.razaoSocial && !p.fantasia &&
-        !p.porte && !p.ramo && !p.cep && !p.cidade && !p.uf && !p.cnpj &&
-        !p.dateStart && !p.dateEnd
+        !p.sigla &&
+        !p.nome &&
+        !p.razaoSocial &&
+        !p.fantasia &&
+        !p.porte &&
+        !p.ramo &&
+        !p.cep &&
+        !p.cidade &&
+        !p.uf &&
+        !p.cnpj &&
+        !p.dateStart &&
+        !p.dateEnd
           ? p
           : { ...emptyFilters, siglaGrupo: grupoParam, status: p.status },
       );
@@ -600,7 +621,6 @@ function ClientsPage() {
       navigate({ to: "/clientes", search: next, replace: true });
     }
   }, [filters.siglaGrupo, filters.status, quickQuery, quickAcronym]);
-
 
   useEffect(() => {
     setPage(1);
@@ -636,7 +656,6 @@ function ClientsPage() {
       if (acronymQuery && !normalize(c.acronym).includes(normalize(acronymQuery))) return false;
       if (!quickMatches(c)) return false;
 
-
       if (filters.sigla && !normalize(c.acronym).includes(normalize(filters.sigla))) return false;
       if (filters.siglaGrupo) {
         // Match tanto o group_acronym quanto a sigla do próprio cliente (raiz).
@@ -646,10 +665,7 @@ function ClientsPage() {
         if (!matchesGroup && !matchesRoot) return false;
       }
       if (filters.nome && !normalize(c.name).includes(normalize(filters.nome))) return false;
-      if (
-        filters.razaoSocial &&
-        !normalize(c.razaoSocial).includes(normalize(filters.razaoSocial))
-      )
+      if (filters.razaoSocial && !normalize(c.razaoSocial).includes(normalize(filters.razaoSocial)))
         return false;
       if (filters.fantasia && !normalize(c.fantasia).includes(normalize(filters.fantasia)))
         return false;
@@ -679,8 +695,17 @@ function ClientsPage() {
   }, [clients, filters, quickQuery, quickAcronym]);
 
   const sizes = useMemo(() => Array.from(new Set(clients.map((c) => c.size))).sort(), [clients]);
-  const segments = useMemo(() => Array.from(new Set(clients.map((c) => c.segment))).sort(), [clients]);
-  const ufs = useMemo(() => Array.from(new Set(clients.map((c) => c.uf))).filter(Boolean).sort(), [clients]);
+  const segments = useMemo(
+    () => Array.from(new Set(clients.map((c) => c.segment))).sort(),
+    [clients],
+  );
+  const ufs = useMemo(
+    () =>
+      Array.from(new Set(clients.map((c) => c.uf)))
+        .filter(Boolean)
+        .sort(),
+    [clients],
+  );
 
   const activeCount = countActive(filters);
 
@@ -702,21 +727,22 @@ function ClientsPage() {
   const endIndex = Math.min(startIndex + PAGE_SIZE, totalItems);
   const pageRows = sorted.slice(startIndex, endIndex);
 
-
   const removeChip = (key: keyof Filters) => {
     setFilters((p) => ({
       ...p,
-      [key]:
-        key === "status" ? "Todos" : key === "dateStart" || key === "dateEnd" ? undefined : "",
+      [key]: key === "status" ? "Todos" : key === "dateStart" || key === "dateEnd" ? undefined : "",
     }));
   };
 
-  const clearDates = () =>
-    setFilters((p) => ({ ...p, dateStart: undefined, dateEnd: undefined }));
+  const clearDates = () => setFilters((p) => ({ ...p, dateStart: undefined, dateEnd: undefined }));
 
   const chips: Array<{ key: string; label: string; onRemove: () => void }> = [];
   if (filters.sigla)
-    chips.push({ key: "sigla", label: `Sigla: ${filters.sigla}`, onRemove: () => removeChip("sigla") });
+    chips.push({
+      key: "sigla",
+      label: `Sigla: ${filters.sigla}`,
+      onRemove: () => removeChip("sigla"),
+    });
   if (filters.siglaGrupo)
     chips.push({
       key: "siglaGrupo",
@@ -738,7 +764,11 @@ function ClientsPage() {
       onRemove: () => removeChip("fantasia"),
     });
   if (filters.porte)
-    chips.push({ key: "porte", label: `Porte: ${filters.porte}`, onRemove: () => removeChip("porte") });
+    chips.push({
+      key: "porte",
+      label: `Porte: ${filters.porte}`,
+      onRemove: () => removeChip("porte"),
+    });
   if (filters.ramo)
     chips.push({ key: "ramo", label: `Ramo: ${filters.ramo}`, onRemove: () => removeChip("ramo") });
   if (filters.cep)
@@ -749,7 +779,8 @@ function ClientsPage() {
       label: `Cidade: ${filters.cidade}`,
       onRemove: () => removeChip("cidade"),
     });
-  if (filters.uf) chips.push({ key: "uf", label: `UF: ${filters.uf}`, onRemove: () => removeChip("uf") });
+  if (filters.uf)
+    chips.push({ key: "uf", label: `UF: ${filters.uf}`, onRemove: () => removeChip("uf") });
   if (filters.cnpj)
     chips.push({ key: "cnpj", label: `CNPJ: ${filters.cnpj}`, onRemove: () => removeChip("cnpj") });
   if (filters.status !== "Todos")
@@ -846,9 +877,6 @@ function ClientsPage() {
             />
           </label>
 
-
-
-
           <label className="relative block min-w-[240px] flex-1">
             <span className="sr-only">Pesquisa geral</span>
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -886,7 +914,6 @@ function ClientsPage() {
               ))}
             </select>
           </label>
-
         </div>
       </div>
 
@@ -904,17 +931,15 @@ function ClientsPage() {
           <table className="w-full text-sm">
             <thead className="bg-muted/35 text-xs uppercase text-muted-foreground">
               <tr>
-                {(
-                  [
-                    { label: "Cadastro", key: "registered" as SortKey },
-                    { label: "Sigla", key: "acronym" as SortKey },
-                    { label: "Nome / perfil", key: "name" as SortKey },
-                    { label: "Versao / setup", key: "version" as SortKey },
-                    { label: "Cidade / UF", key: "city" as SortKey },
-                    { label: "CNPJ", key: "cnpj" as SortKey },
-                    { label: "Status", key: "status" as SortKey },
-                  ]
-                ).map(({ label, key }) => {
+                {[
+                  { label: "Cadastro", key: "registered" as SortKey },
+                  { label: "Sigla", key: "acronym" as SortKey },
+                  { label: "Nome / perfil", key: "name" as SortKey },
+                  { label: "Versao / setup", key: "version" as SortKey },
+                  { label: "Cidade / UF", key: "city" as SortKey },
+                  { label: "CNPJ", key: "cnpj" as SortKey },
+                  { label: "Status", key: "status" as SortKey },
+                ].map(({ label, key }) => {
                   const active = sort?.key === key;
                   const dir = active ? sort!.dir : null;
                   return (
@@ -928,11 +953,7 @@ function ClientsPage() {
                         })
                       }
                       aria-sort={
-                        dir === "asc"
-                          ? "ascending"
-                          : dir === "desc"
-                            ? "descending"
-                            : "none"
+                        dir === "asc" ? "ascending" : dir === "desc" ? "descending" : "none"
                       }
                       className="cursor-pointer whitespace-nowrap px-2.5 py-3 text-left font-medium select-none hover:text-foreground transition-colors"
                     >
@@ -949,7 +970,6 @@ function ClientsPage() {
                     </th>
                   );
                 })}
-                
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -989,7 +1009,9 @@ function ClientsPage() {
                     <div className="flex flex-col items-start">
                       <span>{normalizeCityUf(client.city)}</span>
                       {client.cep && client.cep.replace(/\D+/g, "").length > 0 && (
-                        <span className="text-[11px] text-muted-foreground">{formatCep(client.cep)}</span>
+                        <span className="text-[11px] text-muted-foreground">
+                          {formatCep(client.cep)}
+                        </span>
                       )}
                     </div>
                   </td>
@@ -1037,7 +1059,6 @@ function ClientsPage() {
           />
         )}
       </Card>
-
 
       <FiltersPanel
         open={filtersOpen}
@@ -1130,13 +1151,19 @@ function FiltersPanel({
                 label="Porte"
                 value={draft.porte}
                 onChange={(v) => update("porte", v)}
-                options={[{ value: "", label: "Todos" }, ...sizes.map((s) => ({ value: s, label: s }))]}
+                options={[
+                  { value: "", label: "Todos" },
+                  ...sizes.map((s) => ({ value: s, label: s })),
+                ]}
               />
               <FieldSelect
                 label="Ramo"
                 value={draft.ramo}
                 onChange={(v) => update("ramo", v)}
-                options={[{ value: "", label: "Todos" }, ...segments.map((s) => ({ value: s, label: s }))]}
+                options={[
+                  { value: "", label: "Todos" },
+                  ...segments.map((s) => ({ value: s, label: s })),
+                ]}
               />
             </div>
 
@@ -1151,7 +1178,10 @@ function FiltersPanel({
                 label="UF"
                 value={draft.uf}
                 onChange={(v) => update("uf", v)}
-                options={[{ value: "", label: "Todas" }, ...ufs.map((u) => ({ value: u, label: u }))]}
+                options={[
+                  { value: "", label: "Todas" },
+                  ...ufs.map((u) => ({ value: u, label: u })),
+                ]}
               />
             </div>
 
@@ -1365,7 +1395,6 @@ function DateField({
   );
 }
 
-
 export function Summary({ label, value }: { label: string; value: string }) {
   return (
     <div>
@@ -1394,11 +1423,7 @@ function Section({
   const isPurple = accent === "purple";
   return (
     <Card
-      className={cn(
-        "p-5",
-        isPurple && "border-border shadow-sm dark:border-border",
-        className,
-      )}
+      className={cn("p-5", isPurple && "border-border shadow-sm dark:border-border", className)}
     >
       <div className="mb-4 flex items-center justify-between gap-2">
         <h3 className={cn("flex items-center gap-2 font-medium", titleClassName)}>
@@ -1434,7 +1459,11 @@ function contactDescription(contact: ClientContact) {
 }
 
 function EmptyState({ text }: { text: string }) {
-  return <p className="rounded-md border border-dashed border-border p-5 text-sm text-muted-foreground">{text}</p>;
+  return (
+    <p className="rounded-md border border-dashed border-border p-5 text-sm text-muted-foreground">
+      {text}
+    </p>
+  );
 }
 
 function formatPhoneBR(raw: string): string {
@@ -1481,10 +1510,7 @@ async function copyContactValue(item: ContactLine) {
   }
 }
 
-function buildContactLines(
-  contacts: ClientContact[],
-  kind: "phone" | "email",
-): ContactLine[] {
+function buildContactLines(contacts: ClientContact[], kind: "phone" | "email"): ContactLine[] {
   const seen = new Set<string>();
   const out: ContactLine[] = [];
   for (const c of contacts) {
@@ -1524,14 +1550,7 @@ function buildContactLines(
   return out;
 }
 
-
-function ContactsCard({
-  contacts,
-  client,
-}: {
-  contacts: ClientContact[];
-  client: ClientRow;
-}) {
+function ContactsCard({ contacts, client }: { contacts: ClientContact[]; client: ClientRow }) {
   const phones = useMemo(() => buildContactLines(contacts, "phone"), [contacts]);
   const emails = useMemo(() => buildContactLines(contacts, "email"), [contacts]);
   const total = phones.length + emails.length;
@@ -1553,7 +1572,9 @@ function ContactsCard({
         </Badge>
       </div>
       {total === 0 ? (
-        <p className="text-sm text-muted-foreground">Nenhum contato cadastrado para este cliente.</p>
+        <p className="text-sm text-muted-foreground">
+          Nenhum contato cadastrado para este cliente.
+        </p>
       ) : (
         <>
           <div className="grid gap-5 lg:grid-cols-2">
@@ -1712,11 +1733,13 @@ function AllContactsDialog({
 
         <div className="flex flex-col gap-3 border-b border-border px-5 py-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="inline-flex rounded-lg border border-border bg-muted/40 p-0.5 text-xs">
-            {([
-              ["all", `Todos (${total})`],
-              ["phone", `Telefones (${phones.length})`],
-              ["email", `E-mails (${emails.length})`],
-            ] as [ContactTab, string][]).map(([key, label]) => (
+            {(
+              [
+                ["all", `Todos (${total})`],
+                ["phone", `Telefones (${phones.length})`],
+                ["email", `E-mails (${emails.length})`],
+              ] as [ContactTab, string][]
+            ).map(([key, label]) => (
               <button
                 key={key}
                 type="button"
@@ -1802,8 +1825,6 @@ function ContactGrid({ items, icon: Icon }: { items: ContactLine[]; icon: typeof
     </ul>
   );
 }
-
-
 
 export function ClientTab({
   client,
@@ -1891,7 +1912,6 @@ export function ClientTab({
         <ContactsCard contacts={contacts} client={client} />
       </div>
 
-
       {/* Linha 2: Empresas vinculadas (100%) */}
       <CompaniesSummaryCard companies={companies} />
 
@@ -1899,8 +1919,19 @@ export function ClientTab({
       <Section title="Responsável e contabilidade">
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 lg:divide-x lg:divide-border">
           <ResponsibleGroup title="Responsável" icon={CircleUserRound} fields={responsibleFields} />
-          <ResponsibleGroup title="Endereço do responsável" icon={MapPin} fields={addressFields} className="lg:pl-6" />
-          <ResponsibleGroup title="Contabilidade" icon={CircleDollarSign} fields={accountingFields} className="lg:pl-6" emailField="E-mail" />
+          <ResponsibleGroup
+            title="Endereço do responsável"
+            icon={MapPin}
+            fields={addressFields}
+            className="lg:pl-6"
+          />
+          <ResponsibleGroup
+            title="Contabilidade"
+            icon={CircleDollarSign}
+            fields={accountingFields}
+            className="lg:pl-6"
+            emailField="E-mail"
+          />
         </div>
       </Section>
 
@@ -1915,7 +1946,6 @@ export function ClientTab({
     </div>
   );
 }
-
 
 function ResponsibleGroup({
   title,
@@ -1937,7 +1967,9 @@ function ResponsibleGroup({
         <span className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
           <Icon className="h-4 w-4" />
         </span>
-        <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{title}</p>
+        <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+          {title}
+        </p>
       </div>
       {fields.length ? (
         <dl className="space-y-2.5">
@@ -1967,7 +1999,6 @@ function ResponsibleGroup({
     </div>
   );
 }
-
 
 function RecentActivityCard({
   activities,
@@ -2009,9 +2040,7 @@ function RecentActivityCard({
               />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm text-foreground">{item.title}</p>
-                <p className="text-[11px] text-muted-foreground">
-                  {item.detail}
-                </p>
+                <p className="text-[11px] text-muted-foreground">{item.detail}</p>
               </div>
             </li>
           ))}
@@ -2023,7 +2052,6 @@ function RecentActivityCard({
   );
 }
 
-
 function CompaniesSummaryCard({
   companies,
   onOpen: _onOpen,
@@ -2034,6 +2062,7 @@ function CompaniesSummaryCard({
   void _onOpen;
   const [openId, setOpenId] = useState<string | null>(null);
   const isPrincipal = (co: ClientCompany) => {
+    if (co.groupPosition === "001") return true;
     const digits = (co.document || "").replace(/\D+/g, "");
     if (digits.length === 14 && digits.slice(8, 12) === "0001") return true;
     return co.companyNumber === 1;
@@ -2046,8 +2075,12 @@ function CompaniesSummaryCard({
         <div className="space-y-2">
           {companies.map((company) => {
             const principal = isPrincipal(company);
-            const title = company.tradeName || company.legalName || "Empresa";
-            const number = company.companyNumber != null ? String(company.companyNumber).padStart(3, "0") : "—";
+            const title = company.legalName || company.tradeName || "Empresa";
+            const number =
+              company.groupPosition ||
+              (company.companyNumber != null
+                ? String(company.companyNumber).padStart(3, "0")
+                : company.clientAcronym || "—");
             const expanded = openId === company.id;
             const details: Array<[string, string]> = [
               ["Nome fantasia", company.tradeName || ""],
@@ -2059,13 +2092,19 @@ function CompaniesSummaryCard({
               ["Porte", company.size || ""],
               ["Regime de apuração", company.taxRegime || ""],
               ["Endereço", company.address || ""],
-              ["Cidade / UF", normalizeCityUf([company.city, company.state].filter(Boolean).join(" - ")) || ""],
+              [
+                "Cidade / UF",
+                normalizeCityUf([company.city, company.state].filter(Boolean).join(" - ")) || "",
+              ],
               ["CEP", company.postalCode || ""],
               ["Responsável", company.responsibleName || ""],
               ["CPF do responsável", company.responsibleDocument || ""],
               ["Escritório de contabilidade", company.accountantOffice || ""],
               ["Contador responsável", company.accountantName || ""],
-              ["Telefone do contador", company.accountantPhone ? formatPhoneBR(company.accountantPhone) : ""],
+              [
+                "Telefone do contador",
+                company.accountantPhone ? formatPhoneBR(company.accountantPhone) : "",
+              ],
               ["E-mail do contador", company.accountantEmail || ""],
             ].filter(([, v]) => Boolean(v)) as Array<[string, string]>;
             return (
@@ -2132,7 +2171,6 @@ function CompaniesSummaryCard({
   );
 }
 
-
 function plainText(value: string) {
   return value
     .replace(/<[^>]*>/g, " ")
@@ -2144,7 +2182,13 @@ function plainText(value: string) {
     .trim();
 }
 
-function SupportRowsCompact({ tickets, events }: { tickets: ClientTicket[]; events: ClientEvent[] }) {
+function SupportRowsCompact({
+  tickets,
+  events,
+}: {
+  tickets: ClientTicket[];
+  events: ClientEvent[];
+}) {
   const pastEvents = events.filter(
     (event) => event.startsAtIso && new Date(event.startsAtIso).getTime() < Date.now(),
   );
@@ -2154,7 +2198,9 @@ function SupportRowsCompact({ tickets, events }: { tickets: ClientTicket[]; even
         <span className="grid h-10 w-10 place-items-center rounded-full bg-primary/10 text-primary">
           <MessageCircle className="h-5 w-5" />
         </span>
-        <p className="text-xs text-muted-foreground">Nenhum agendamento ou atendimento registrado para este cliente.</p>
+        <p className="text-xs text-muted-foreground">
+          Nenhum agendamento ou atendimento registrado para este cliente.
+        </p>
         <Button
           asChild
           size="sm"
@@ -2203,9 +2249,7 @@ function SupportRowsCompact({ tickets, events }: { tickets: ClientTicket[]; even
               {row.type}
             </Badge>
           </div>
-          <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
-            {row.detail || "—"}
-          </p>
+          <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{row.detail || "—"}</p>
           <p className="mt-1 flex items-center justify-between text-[11px] text-muted-foreground">
             <span>{row.operator || "—"}</span>
             <span>{row.date}</span>
@@ -2216,7 +2260,9 @@ function SupportRowsCompact({ tickets, events }: { tickets: ClientTicket[]; even
   );
 }
 
-function localToClientEvents(localEvents: ReturnType<typeof useLocalEventsForClient>): ClientEvent[] {
+function localToClientEvents(
+  localEvents: ReturnType<typeof useLocalEventsForClient>,
+): ClientEvent[] {
   return localEvents.map((item) => ({
     id: String(item.id),
     title: item.title,
@@ -2245,11 +2291,15 @@ function ClientNextEvent({
   const [createOpen, setCreateOpen] = useState(false);
   const localEvents = useLocalEventsForClient(client.id);
   const event = events
-    .filter((item) => item.status === "scheduled" && new Date(item.startsAtIso).getTime() >= Date.now())
+    .filter(
+      (item) => item.status === "scheduled" && new Date(item.startsAtIso).getTime() >= Date.now(),
+    )
     .sort((left, right) => left.startsAtIso.localeCompare(right.startsAtIso))[0];
   const scheduledTicket = tickets.find((ticket) => ticket.status.toLowerCase() === "scheduled");
   const todayKey = new Date().toISOString().slice(0, 10);
-  const clientLabel = [client.acronym, client.razaoSocial || client.name].filter(Boolean).join(" · ");
+  const clientLabel = [client.acronym, client.razaoSocial || client.name]
+    .filter(Boolean)
+    .join(" · ");
 
   const eventDialog = (
     <CreateEventDialog
@@ -2276,9 +2326,7 @@ function ClientNextEvent({
                 {[event.startsAt, event.operator].filter(Boolean).join(" · ")}
               </p>
             </div>
-            <Badge className="bg-emerald-500/15 text-emerald-600">
-              Agendado
-            </Badge>
+            <Badge className="bg-emerald-500/15 text-emerald-600">Agendado</Badge>
           </div>
           {event.ticketProtocol && (
             <p className="mt-3 text-xs text-muted-foreground">
@@ -2331,7 +2379,9 @@ function SupportRows({ tickets }: { tickets: ClientTicket[] }) {
           className="grid items-center gap-3 px-4 py-2 sm:grid-cols-[1.4fr_1.2fr_.6fr_.5fr_.7fr_auto]"
         >
           <span className="text-[13px] font-normal">{ticket.subject}</span>
-          <span className="text-[12px] text-muted-foreground">{[ticket.module, ticket.submodule].filter(Boolean).join(" - ")}</span>
+          <span className="text-[12px] text-muted-foreground">
+            {[ticket.module, ticket.submodule].filter(Boolean).join(" - ")}
+          </span>
           <span className="text-[12px]">{ticket.operator || "-"}</span>
           <span className="text-[12px]">{ticket.priority || "-"}</span>
           <span className="text-[12px]">{ticket.createdAt}</span>
@@ -2470,7 +2520,10 @@ export function CompaniesTab() {
         {rows.map((r) => {
           const Icon = r.icon;
           return (
-            <div key={r.label} className="flex items-start gap-3 px-4 py-3 sm:border-r sm:border-border">
+            <div
+              key={r.label}
+              className="flex items-start gap-3 px-4 py-3 sm:border-r sm:border-border"
+            >
               <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-md bg-muted text-muted-foreground">
                 <Icon className="h-4 w-4" />
               </span>
@@ -2554,10 +2607,15 @@ export function ClientHadronTab({
   ] as const;
   const yesNo = (value: string) => (value === "1" ? "SIM" : "NÃO");
   const networkLabel =
-    ({ cabo: "Cabo", wireless: "Wireless", wifi: "Wi-Fi", "wi-fi": "Wi-Fi", "0": "Não informada" } as Record<
-      string,
-      string
-    >)[text("cli_config_rede").toLowerCase()] ||
+    (
+      {
+        cabo: "Cabo",
+        wireless: "Wireless",
+        wifi: "Wi-Fi",
+        "wi-fi": "Wi-Fi",
+        "0": "Não informada",
+      } as Record<string, string>
+    )[text("cli_config_rede").toLowerCase()] ||
     text("cli_config_rede") ||
     "Não informada";
   const terminalCount = text("cli_nterminais") || String(terminals.length);
@@ -2735,7 +2793,9 @@ export function ClientUsersTab({ users }: { users: ClientHadronUser[] }) {
             </span>,
           ])}
         />
-      ) : <EmptyState text="Nenhum usuário vinculado a este cliente." />}
+      ) : (
+        <EmptyState text="Nenhum usuário vinculado a este cliente." />
+      )}
     </Section>
   );
 }
@@ -2769,7 +2829,9 @@ export function ClientTerminalsTab({ terminals }: { terminals: ClientTerminal[] 
             terminal.serialNumber || "-",
           ])}
         />
-      ) : <EmptyState text="Nenhum terminal vinculado a este cliente." />}
+      ) : (
+        <EmptyState text="Nenhum terminal vinculado a este cliente." />
+      )}
     </Section>
   );
 }
@@ -2779,16 +2841,7 @@ export function ClientLogsTab({ logs }: { logs: ClientLogs["logs"] }) {
     <Section title={`Logs (${logs.length})`} icon={ScrollText}>
       {logs.length ? (
         <DataTable
-          headers={[
-            "Data",
-            "Terminal",
-            "Nível",
-            "Operação",
-            "Operador",
-            "Opção",
-            "Usuário",
-            "IP",
-          ]}
+          headers={["Data", "Terminal", "Nível", "Operação", "Operador", "Opção", "Usuário", "IP"]}
           rows={logs.map((log) => [
             log.occurredAt || "-",
             log.terminalCode || "-",
@@ -2807,24 +2860,12 @@ export function ClientLogsTab({ logs }: { logs: ClientLogs["logs"] }) {
   );
 }
 
-export function ClientExternalLogsTab({
-  logs,
-}: {
-  logs: ClientLogs["externalLogs"];
-}) {
+export function ClientExternalLogsTab({ logs }: { logs: ClientLogs["externalLogs"] }) {
   return (
     <Section title={`Logs externos (${logs.length})`} icon={History}>
       {logs.length ? (
         <DataTable
-          headers={[
-            "Data",
-            "Ação",
-            "Controlador",
-            "Operador",
-            "Dispositivo",
-            "IP",
-            "Informação",
-          ]}
+          headers={["Data", "Ação", "Controlador", "Operador", "Dispositivo", "IP", "Informação"]}
           rows={logs.map((log) => [
             log.occurredAt || "-",
             log.action || "-",
@@ -2878,7 +2919,9 @@ export function ClientParametersTab({ parameters }: { parameters: ClientParamete
               </Button>,
             ])}
           />
-        ) : <EmptyState text="Nenhum parâmetro encontrado para este cliente." />}
+        ) : (
+          <EmptyState text="Nenhum parâmetro encontrado para este cliente." />
+        )}
       </Section>
 
       <Dialog
@@ -2953,7 +2996,17 @@ export function ClientDevicesTab({ internet }: { internet: ClientInternet }) {
     <Section title={`Dispositivos (${devices.length})`} icon={Monitor}>
       {devices.length ? (
         <DataTable
-          headers={["Utilizador", "Tipo", "Sistema", "App", "Build", "Banco", "Status", "UUID", "Ultima verificacao"]}
+          headers={[
+            "Utilizador",
+            "Tipo",
+            "Sistema",
+            "App",
+            "Build",
+            "Banco",
+            "Status",
+            "UUID",
+            "Ultima verificacao",
+          ]}
           rows={devices.map((device) => [
             device.user || "-",
             deviceTypeLabel[device.type] || device.type || "-",
@@ -2979,10 +3032,30 @@ const HADRON_APP_CATALOG: {
   contractTypes: string[];
   matches: (name: string, type: string) => boolean;
 }[] = [
-  { key: "mobile", label: "Hádron Mobile", contractTypes: ["MOB", "MOBILE"], matches: (n, t) => /mobile/i.test(n) || /mobile/i.test(t) },
-  { key: "web", label: "Hádron Web", contractTypes: ["WEB"], matches: (n, t) => /web/i.test(n) || /web/i.test(t) },
-  { key: "commerce", label: "Hádron Commerce", contractTypes: ["B2C", "COMMERCE"], matches: (n, t) => /commerce|e-?commerce|loja/i.test(n) || /commerce|b2c/i.test(t) },
-  { key: "portal", label: "Hádron Portal B2B", contractTypes: ["B2B", "PORTAL"], matches: (n, t) => /portal|b2b/i.test(n) || /portal|b2b/i.test(t) },
+  {
+    key: "mobile",
+    label: "Hádron Mobile",
+    contractTypes: ["MOB", "MOBILE"],
+    matches: (n, t) => /mobile/i.test(n) || /mobile/i.test(t),
+  },
+  {
+    key: "web",
+    label: "Hádron Web",
+    contractTypes: ["WEB"],
+    matches: (n, t) => /web/i.test(n) || /web/i.test(t),
+  },
+  {
+    key: "commerce",
+    label: "Hádron Commerce",
+    contractTypes: ["B2C", "COMMERCE"],
+    matches: (n, t) => /commerce|e-?commerce|loja/i.test(n) || /commerce|b2c/i.test(t),
+  },
+  {
+    key: "portal",
+    label: "Hádron Portal B2B",
+    contractTypes: ["B2B", "PORTAL"],
+    matches: (n, t) => /portal|b2b/i.test(n) || /portal|b2b/i.test(t),
+  },
 ];
 
 export function ClientInternetTab({ internet }: { internet: ClientInternet }) {
@@ -3009,9 +3082,7 @@ export function ClientInternetTab({ internet }: { internet: ClientInternet }) {
 
   const catalog = HADRON_APP_CATALOG.map((item) => {
     const match = internet.applications.find((app) => item.matches(app.name, app.appType));
-    const selectedByContract = selectedApps.some((appType) =>
-      item.contractTypes.includes(appType),
-    );
+    const selectedByContract = selectedApps.some((appType) => item.contractTypes.includes(appType));
     return {
       ...item,
       contracted: selectedByContract || !!(match && match.active),
@@ -3068,7 +3139,10 @@ export function ClientInternetTab({ internet }: { internet: ClientInternet }) {
                   </div>
                   <div className="grid gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
                     <HadronDetail icon={ShieldCheck}>
-                      <Field label="Status" value={isActive ? "Ativo" : contract.status || "Inativo"} />
+                      <Field
+                        label="Status"
+                        value={isActive ? "Ativo" : contract.status || "Inativo"}
+                      />
                     </HadronDetail>
                     <HadronDetail icon={KeyRound}>
                       <Field
@@ -3188,6 +3262,7 @@ export function ClientCompaniesTab({
     );
 
   const isPrincipal = (co: ClientCompany) => {
+    if (co.groupPosition === "001") return true;
     const digits = (co.document || "").replace(/\D+/g, "");
     if (digits.length === 14 && digits.slice(8, 12) === "0001") return true;
     return co.companyNumber === 1;
@@ -3203,8 +3278,12 @@ export function ClientCompaniesTab({
           const terminal = companyTerminals[0];
           const principal = isPrincipal(company);
           const expanded = openId === company.id;
-          const title = company.tradeName || company.legalName || "Empresa";
-          const number = company.companyNumber != null ? String(company.companyNumber).padStart(3, "0") : "—";
+          const title = company.legalName || company.tradeName || "Empresa";
+          const number =
+            company.groupPosition ||
+            (company.companyNumber != null
+              ? String(company.companyNumber).padStart(3, "0")
+              : company.clientAcronym || "—");
           const addressLine = [
             company.address,
             [normalizeCityUf([company.city, company.state].filter(Boolean).join(" - "))]
@@ -3222,7 +3301,11 @@ export function ClientCompaniesTab({
             ["CNPJ", company.document || "Não informado"],
             ["Inscrição estadual", company.stateRegistration || "Não informada"],
             ["Endereço", company.address || "Não informado"],
-            ["Cidade / UF", normalizeCityUf([company.city, company.state].filter(Boolean).join(" - ")) || "Não informada"],
+            [
+              "Cidade / UF",
+              normalizeCityUf([company.city, company.state].filter(Boolean).join(" - ")) ||
+                "Não informada",
+            ],
             ["CEP", company.postalCode || "Não informado"],
             ["CNAE", company.cnae || "Não informado"],
             ["Setor", company.industry || "Não informado"],
@@ -3234,8 +3317,16 @@ export function ClientCompaniesTab({
             ["Contador responsável", company.accountantName || "Não informado"],
             ["Terminais", String(companyTerminals.length)],
             ["Versão", terminal?.version || client.version || "Não informada"],
-            ["Sistema operacional", [terminal?.operatingSystem, terminal?.operatingSystemVersion].filter(Boolean).join(" ") || "Não informado"],
-            ["Emite NF-e", terminal?.emitsNfe == null ? "Não informado" : terminal.emitsNfe ? "Sim" : "Não"],
+            [
+              "Sistema operacional",
+              [terminal?.operatingSystem, terminal?.operatingSystemVersion]
+                .filter(Boolean)
+                .join(" ") || "Não informado",
+            ],
+            [
+              "Emite NF-e",
+              terminal?.emitsNfe == null ? "Não informado" : terminal.emitsNfe ? "Sim" : "Não",
+            ],
             ["Notas emitidas", terminal ? String(terminal.notesIssued) : "Não informado"],
             ["Certificado", terminal?.certificateType || "Não informado"],
             ["Validade do certificado", terminal?.certificateExpiresAt || "Não informado"],
@@ -3375,11 +3466,23 @@ function Pagination({
       </p>
       <div className="flex flex-wrap items-center gap-1">
         {showEdges && (
-          <button type="button" className={btnBase} onClick={() => go(1)} disabled={page === 1} aria-label="Primeira página">
+          <button
+            type="button"
+            className={btnBase}
+            onClick={() => go(1)}
+            disabled={page === 1}
+            aria-label="Primeira página"
+          >
             «
           </button>
         )}
-        <button type="button" className={btnBase} onClick={() => go(page - 1)} disabled={page === 1} aria-label="Página anterior">
+        <button
+          type="button"
+          className={btnBase}
+          onClick={() => go(page - 1)}
+          disabled={page === 1}
+          aria-label="Página anterior"
+        >
           ‹
         </button>
         {pages.map((p) => (
@@ -3396,11 +3499,23 @@ function Pagination({
             {p}
           </button>
         ))}
-        <button type="button" className={btnBase} onClick={() => go(page + 1)} disabled={page === totalPages} aria-label="Próxima página">
+        <button
+          type="button"
+          className={btnBase}
+          onClick={() => go(page + 1)}
+          disabled={page === totalPages}
+          aria-label="Próxima página"
+        >
           ›
         </button>
         {showEdges && (
-          <button type="button" className={btnBase} onClick={() => go(totalPages)} disabled={page === totalPages} aria-label="Última página">
+          <button
+            type="button"
+            className={btnBase}
+            onClick={() => go(totalPages)}
+            disabled={page === totalPages}
+            aria-label="Última página"
+          >
             »
           </button>
         )}
@@ -3408,4 +3523,3 @@ function Pagination({
     </div>
   );
 }
-
