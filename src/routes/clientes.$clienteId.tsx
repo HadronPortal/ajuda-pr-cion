@@ -268,7 +268,7 @@ function ClientDetailPage() {
             </TabsContent>
             {showInternet && (
               <TabsContent value="internet" className="m-0 space-y-5">
-                <ClientInternetTab internet={internet} />
+                <ClientInternetTab client={client} internet={internet} />
               </TabsContent>
             )}
             {showDevices && (

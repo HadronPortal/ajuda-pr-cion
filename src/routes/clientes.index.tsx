@@ -32,6 +32,7 @@ import {
   Mail,
   MapPin,
   Landmark,
+  LockKeyhole,
   Eye,
   History,
   Phone,
@@ -3138,7 +3139,14 @@ const HADRON_APP_CATALOG: {
   },
 ];
 
-export function ClientInternetTab({ internet }: { internet: ClientInternet }) {
+export function ClientInternetTab({
+  client,
+  internet,
+}: {
+  client: ClientRow;
+  internet: ClientInternet;
+}) {
+  const [configOpen, setConfigOpen] = useState(false);
   const contracts = internet.contracts;
   const webContract = contracts.find((c) => c.active) ?? contracts[0];
   const contractText = (contract: ClientInternet["contracts"][number], key: string) =>
@@ -3154,6 +3162,11 @@ export function ClientInternetTab({ internet }: { internet: ClientInternet }) {
     }
   };
   const selectedApps = contracts.flatMap(contractApps);
+  const databaseUser = webContract
+    ? contractText(webContract, "con_username_db") ||
+      contractText(webContract, "con_database_user")
+    : "";
+  const deviceLimit = webContract ? contractText(webContract, "con_qtd_dispositivos") : "";
   const webUrl =
     webContract?.webUrl ||
     (webContract && contractText(webContract, "con_mobile_url")) ||
@@ -3293,10 +3306,12 @@ export function ClientInternetTab({ internet }: { internet: ClientInternet }) {
             <HadronMenuIcon className="h-5 w-5 shrink-0 text-primary" />
             <div>
               <p className="mb-2 text-sm font-medium">Hádron Web</p>
-              <Button asChild size="sm" className="h-8 cursor-pointer">
-                <a href={webUrl} target="_blank" rel="noreferrer">
-                  Configurar
-                </a>
+              <Button
+                size="sm"
+                className="h-8 cursor-pointer"
+                onClick={() => setConfigOpen(true)}
+              >
+                Configurar
               </Button>
             </div>
           </div>
@@ -3319,6 +3334,86 @@ export function ClientInternetTab({ internet }: { internet: ClientInternet }) {
           </div>
         )}
       </Section>
+
+      <Dialog open={configOpen} onOpenChange={setConfigOpen}>
+        <DialogContent className="max-h-[90vh] max-w-5xl overflow-y-auto p-0">
+          <DialogHeader className="border-b border-border px-6 py-5">
+            <DialogTitle className="flex items-center gap-3 text-lg">
+              <HadronMenuIcon className="h-6 w-6 text-primary" />
+              {client.acronym} - {client.razaoSocial || client.name}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-6 px-6 pb-6">
+            <div className="grid gap-5 border-b border-border pb-5 sm:grid-cols-2">
+              <Field
+                label="Descrição"
+                value={client.fantasia || client.razaoSocial || client.name}
+              />
+              <Field label="Sigla" value={client.acronym} />
+              <Field
+                label="Contrato"
+                value={webContract?.contractKey || "Não informado"}
+              />
+            </div>
+
+            <div>
+              <h3 className="mb-3 border-b border-border bg-muted/60 px-4 py-3 text-sm font-medium">
+                Módulos contratados
+              </h3>
+              <div className="grid gap-2 px-2 sm:grid-cols-2 lg:grid-cols-4">
+                {catalog.map((app) => (
+                  <div key={app.key} className="flex items-center gap-2 py-2 text-sm">
+                    {app.contracted ? (
+                      <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                    ) : (
+                      <X className="h-4 w-4 text-muted-foreground" />
+                    )}
+                    <span className={!app.contracted ? "text-muted-foreground" : undefined}>
+                      {app.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <h3 className="mb-5 border-b border-border bg-muted/60 px-4 py-3 text-sm font-medium">
+                Configurações
+              </h3>
+              <div className="grid gap-x-10 gap-y-6 sm:grid-cols-2">
+                <HadronDetail icon={Smartphone}>
+                  <Field
+                    label="Quant. dispositivos"
+                    value={deviceLimit || String(webContract?.devices.length ?? 0)}
+                  />
+                </HadronDetail>
+                <HadronDetail icon={Globe2}>
+                  <Field label="URL RGBW" value={webUrl || "Não informada"} />
+                </HadronDetail>
+                <HadronDetail icon={Server}>
+                  <Field
+                    label="Host/server BD"
+                    value={webContract?.serverHost || "Não informado"}
+                  />
+                </HadronDetail>
+                <HadronDetail icon={Database}>
+                  <Field
+                    label="Base de dados"
+                    value={webContract?.databaseName || "Não informada"}
+                  />
+                </HadronDetail>
+                <HadronDetail icon={CircleUserRound}>
+                  <Field label="Usuário BD" value={databaseUser || "Não informado"} />
+                </HadronDetail>
+                <HadronDetail icon={LockKeyhole}>
+                  <Field label="Senha BD" value="Não importada" />
+                </HadronDetail>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
