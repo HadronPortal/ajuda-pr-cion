@@ -145,8 +145,9 @@ function ClientDetailPage() {
         )}
       </div>
 
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
+      <div className="mb-4 flex w-full min-w-0 flex-wrap items-center justify-between gap-x-6 gap-y-2">
         <Breadcrumbs
+          className="mb-0 min-w-0 shrink flex-wrap"
           items={[
             { label: "Clientes", to: "/clientes" },
             groupCode
@@ -156,7 +157,7 @@ function ClientDetailPage() {
           ]}
         />
 
-        <div className="flex min-w-0 flex-wrap items-center gap-x-5 gap-y-1.5">
+        <div className="flex min-w-0 flex-wrap items-center justify-end gap-x-5 gap-y-1.5">
           <MiniSummary label="Atendimento" value={normalizeCityUf(client.city) || "Não informado"} />
           <MiniSummary label="Status" value={client.status || "Não informado"} />
           <MiniSummary label="Versão Hádron" value={client.versionDate || client.version || "Não informada"} />
@@ -164,6 +165,7 @@ function ClientDetailPage() {
           <MiniSummary label="Dispositivos" value={String(internet.devices.length)} />
         </div>
       </div>
+
 
 
 
