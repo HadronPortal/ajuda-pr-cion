@@ -79,7 +79,8 @@ export const Route = createFileRoute("/clientes/$clienteId")({
 });
 
 function ClientDetailPage() {
-  const { client, contacts, companies, users, terminals, modules, internet, tickets, events, activities, parameters } = Route.useLoaderData();
+  const { client, contacts, companies, users, terminals, modules, internet, tickets, events, activities, parameters } =
+    Route.useLoaderData() as ClientDetail;
   const { tab, from, ticketId } = Route.useSearch();
   const navigate = useNavigate();
   const showReturnToTicket = from === "chamado" && !!ticketId;
