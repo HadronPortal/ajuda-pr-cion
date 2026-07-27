@@ -661,7 +661,7 @@ function ClientsPage() {
       }
       return true;
     });
-  }, [clients, filters]);
+  }, [clients, filters, quickQuery, quickField]);
 
   const sizes = useMemo(() => Array.from(new Set(clients.map((c) => c.size))).sort(), [clients]);
   const segments = useMemo(() => Array.from(new Set(clients.map((c) => c.segment))).sort(), [clients]);
