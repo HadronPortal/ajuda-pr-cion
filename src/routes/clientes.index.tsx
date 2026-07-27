@@ -65,6 +65,8 @@ import type {
 import { normalizeCityUf } from "@/lib/br-city";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
+import { CreateEventDialog } from "@/components/calendar/CreateEventDialog";
+import { addLocalEvent, useLocalEventsForClient } from "@/lib/local-events-store";
 
 const clientesSearchSchema = z.object({
   grupo: fallback(z.string(), "").optional(),
