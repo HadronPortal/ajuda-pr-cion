@@ -569,16 +569,18 @@ function ClientsPage() {
     if (current) next.grupo = current;
     if (quickQuery.trim()) next.q = quickQuery.trim();
     if (quickField !== "sigla") next.campo = quickField;
+    if (quickAcronym.trim()) next.sigla = quickAcronym.trim();
     if (filters.status !== "Ativo") next.status = filters.status;
     const same =
       (next.grupo ?? "") === grupoParam &&
       (next.q ?? "") === (q ?? "") &&
       (next.campo ?? "") === (campo ?? "") &&
+      (next.sigla ?? "") === (siglaParam ?? "") &&
       (next.status ?? "") === (statusParam ?? "");
     if (!same) {
       navigate({ to: "/clientes", search: next, replace: true });
     }
-  }, [filters.siglaGrupo, filters.status, quickQuery, quickField]);
+  }, [filters.siglaGrupo, filters.status, quickQuery, quickField, quickAcronym]);
 
 
   useEffect(() => {
