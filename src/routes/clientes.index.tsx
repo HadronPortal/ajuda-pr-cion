@@ -1825,7 +1825,7 @@ export function ClientTab({
 
       {/* Linha 4: Próximo evento + Histórico + Atividade recente */}
       <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-        <ClientNextEvent events={events} tickets={tickets} />
+        <ClientNextEvent client={client} events={events} tickets={tickets} />
         <Section title="Agendamentos e atendimentos" icon={HardDrive}>
           <SupportRowsCompact tickets={tickets} events={events} />
         </Section>
@@ -2135,11 +2135,52 @@ function SupportRowsCompact({ tickets, events }: { tickets: ClientTicket[]; even
   );
 }
 
-function ClientNextEvent({ events, tickets }: { events: ClientEvent[]; tickets: ClientTicket[] }) {
-  const event = events
+function ClientNextEvent({
+  client,
+  events,
+  tickets,
+}: {
+  client: ClientRow;
+  events: ClientEvent[];
+  tickets: ClientTicket[];
+}) {
+  const [createOpen, setCreateOpen] = useState(false);
+  const localEvents = useLocalEventsForClient(client.id);
+  const localAsClientEvents: ClientEvent[] = localEvents.map((item) => ({
+    id: String(item.id),
+    title: item.title,
+    description: item.description || "",
+    kind: item.type,
+    startsAt: `${item.date.split("-").reverse().join("/")} ${item.time}`,
+    startsAtIso: `${item.date}T${item.time}:00`,
+    endsAt: item.end,
+    operator: item.operator || item.responsible || "",
+    origin: item.origin,
+    status: "scheduled",
+    ticketProtocol: "",
+    legacyTicketId: "",
+  }));
+  const allEvents = [...events, ...localAsClientEvents];
+  const event = allEvents
     .filter((item) => item.status === "scheduled" && new Date(item.startsAtIso).getTime() >= Date.now())
     .sort((left, right) => left.startsAtIso.localeCompare(right.startsAtIso))[0];
   const scheduledTicket = tickets.find((ticket) => ticket.status.toLowerCase() === "scheduled");
+  const todayKey = new Date().toISOString().slice(0, 10);
+  const clientLabel = [client.acronym, client.razaoSocial || client.name].filter(Boolean).join(" · ");
+
+  const eventDialog = (
+    <CreateEventDialog
+      open={createOpen}
+      onOpenChange={setCreateOpen}
+      initialDate={todayKey}
+      existingEvents={localEvents}
+      lockedClient={{ id: client.id, label: clientLabel }}
+      onCreate={(created) => {
+        addLocalEvent(created);
+        toast.success("Evento adicionado ao calendário");
+      }}
+    />
+  );
 
   return (
     <Section title="Próximo evento" icon={CalendarDays} accent="purple">
@@ -2184,14 +2225,15 @@ function ClientNextEvent({ events, tickets }: { events: ClientEvent[]; tickets: 
           </span>
           <p className="text-xs text-muted-foreground">Nenhum evento agendado para este cliente.</p>
           <Button
-            asChild
             size="sm"
+            onClick={() => setCreateOpen(true)}
             className="h-8 cursor-pointer rounded-full bg-primary px-4 text-xs font-medium text-primary-foreground hover:bg-primary/90"
           >
-            <Link to="/calendario">Novo evento</Link>
+            Novo evento
           </Button>
         </div>
       )}
+      {eventDialog}
     </Section>
   );
 }
