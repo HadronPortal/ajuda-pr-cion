@@ -109,6 +109,7 @@ export type ClientInternetDevice = {
 export type ClientInternetContract = {
   id: string;
   legacyId: string;
+  contractKey: string;
   name: string;
   webUrl: string;
   databaseName: string;
@@ -187,7 +188,6 @@ export type ClientTicketActivity = {
 export type ClientParameter = {
   id: string;
   legacyId: string;
-  contractKey: string;
   parameterLegacyId: string;
   optionLegacyId: string;
   signature: string;
@@ -195,6 +195,7 @@ export type ClientParameter = {
   authUserLegacyId: string;
   signedBy: string;
   operator: string;
+  createdAt: string;
   updatedAt: string;
 };
 
@@ -582,6 +583,7 @@ export async function getClientDetail(acronym: string): Promise<ClientDetail | n
         authUserLegacyId: String(parameter.auth_user_legacy_id || ""),
         signedBy: String(parameter.signed_by || ""),
         operator: String(parameter.operator || ""),
+        createdAt: date(parameter.created_at, true),
         updatedAt: date(parameter.updated_at, true),
       };
     },

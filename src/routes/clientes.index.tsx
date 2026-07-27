@@ -32,6 +32,7 @@ import {
   Mail,
   MapPin,
   Landmark,
+  Eye,
   Phone,
   Printer,
   ShieldCheck,
@@ -2753,21 +2754,91 @@ export function ClientTerminalsTab({ terminals }: { terminals: ClientTerminal[] 
 }
 
 export function ClientParametersTab({ parameters }: { parameters: ClientParameter[] }) {
+  const [selectedParameter, setSelectedParameter] = useState<ClientParameter | null>(null);
+  const parameterTitle = (parameter: ClientParameter) =>
+    parameter.parameterLegacyId === "2"
+      ? "Automatização B2C de procedimento de Cadastro de Clientes (e-commerce)"
+      : `Parâmetro ${parameter.parameterLegacyId || parameter.signature}`;
+
   return (
-    <Section title="Parâmetros" icon={SlidersHorizontal}>
-      {parameters.length ? (
-        <DataTable
-          headers={["Op.", "Assinado por", "Parâmetro", "Valor / descrição", "Atualização"]}
-          rows={parameters.map((parameter) => [
-            parameter.signature || "-",
-            parameter.signedBy || parameter.operator || "Não informado",
-            parameter.parameterLegacyId || "-",
-            parameter.optionData || "Não informado",
-            parameter.updatedAt || "-",
-          ])}
-        />
-      ) : <EmptyState text="Nenhum parâmetro encontrado para este cliente." />}
-    </Section>
+    <>
+      <Section title="Parâmetros" icon={SlidersHorizontal}>
+        {parameters.length ? (
+          <DataTable
+            headers={["Op.", "Assinado por", "Título/Descrição", "Datas", "Ações"]}
+            rows={parameters.map((parameter) => [
+              parameter.signature || "-",
+              parameter.signedBy || parameter.operator || "Não informado",
+              parameterTitle(parameter),
+              <span className="space-y-0.5 text-xs">
+                <span className="block">{parameter.createdAt || "-"}</span>
+                <span className="block">{parameter.updatedAt || "-"}</span>
+              </span>,
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 cursor-pointer"
+                title="Visualizar parâmetro"
+                aria-label={`Visualizar ${parameterTitle(parameter)}`}
+                onClick={() => setSelectedParameter(parameter)}
+              >
+                <Eye className="h-4 w-4" />
+              </Button>,
+            ])}
+          />
+        ) : <EmptyState text="Nenhum parâmetro encontrado para este cliente." />}
+      </Section>
+
+      <Dialog
+        open={selectedParameter !== null}
+        onOpenChange={(open) => !open && setSelectedParameter(null)}
+      >
+        <DialogContent className="max-h-[85vh] max-w-4xl overflow-y-auto">
+          {selectedParameter && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  Parâmetro
+                  <SlidersHorizontal className="h-5 w-5 text-muted-foreground" />
+                </DialogTitle>
+              </DialogHeader>
+              <div className="space-y-6">
+                <div className="border-b border-border pb-4">
+                  <p className="text-sm font-medium">{selectedParameter.signature || "-"}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {selectedParameter.optionData || "Descrição não informada."}
+                  </p>
+                  <p className="mt-4 text-xs text-muted-foreground">Web</p>
+                </div>
+
+                <div>
+                  <h4 className="mb-2 text-sm font-medium">Texto</h4>
+                  {selectedParameter.parameterLegacyId === "2" ? (
+                    <div className="space-y-4 text-sm leading-6 text-muted-foreground">
+                      <p>
+                        Este parâmetro tem a função de estabelecer a forma de automatização na
+                        operação do Cadastro de Clientes quando estes são manipulados externamente
+                        através dos sites de e-commerce.
+                      </p>
+                      <p>
+                        A definição da forma de automatização é de responsabilidade exclusiva da
+                        empresa que utiliza o ERP Hádron, eximindo a Prócion por eventuais erros de
+                        cadastro oriundos de digitação incorreta por parte do usuário do e-commerce.
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-sm leading-6 text-muted-foreground">
+                      {selectedParameter.optionData || "Texto não informado."}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
@@ -3148,7 +3219,7 @@ export function ClientCompaniesTab({
   );
 }
 
-function DataTable({ headers, rows }: { headers: string[]; rows: string[][] }) {
+function DataTable({ headers, rows }: { headers: string[]; rows: ReactNode[][] }) {
   return (
     <div className="overflow-x-auto rounded-md border border-border">
       <table className="w-full min-w-[760px] text-sm">
