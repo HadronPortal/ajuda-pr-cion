@@ -539,19 +539,17 @@ function ClientsPage() {
     const next: Record<string, string> = {};
     if (current) next.grupo = current;
     if (quickQuery.trim()) next.q = quickQuery.trim();
-    if (quickField !== "sigla") next.campo = quickField;
     if (quickAcronym.trim()) next.sigla = quickAcronym.trim();
     if (filters.status !== "Ativo") next.status = filters.status;
     const same =
       (next.grupo ?? "") === grupoParam &&
       (next.q ?? "") === (q ?? "") &&
-      (next.campo ?? "") === (campo ?? "") &&
       (next.sigla ?? "") === (siglaParam ?? "") &&
       (next.status ?? "") === (statusParam ?? "");
     if (!same) {
       navigate({ to: "/clientes", search: next, replace: true });
     }
-  }, [filters.siglaGrupo, filters.status, quickQuery, quickField, quickAcronym]);
+  }, [filters.siglaGrupo, filters.status, quickQuery, quickAcronym]);
 
 
   useEffect(() => {
@@ -564,37 +562,24 @@ function ClientsPage() {
 
   const filtered = useMemo(() => {
     const quick = quickQuery.trim();
+    const quickNorm = normalize(quick);
+    const quickDigits = digits(quick);
     const quickMatches = (c: ClientRow) => {
       if (!quick) return true;
-      switch (quickField) {
-        case "sigla":
-          return normalize(c.acronym).includes(normalize(quick));
-        case "siglaGrupo":
-          return (
-            normalize(c.group).includes(normalize(quick)) ||
-            normalize(c.acronym) === normalize(quick)
-          );
-        case "nome":
-          return normalize(c.name).includes(normalize(quick));
-        case "razaoSocial":
-          return normalize(c.razaoSocial).includes(normalize(quick));
-        case "fantasia":
-          return normalize(c.fantasia).includes(normalize(quick));
-        case "porte":
-          return normalize(c.size).includes(normalize(quick));
-        case "ramo":
-          return normalize(c.segment).includes(normalize(quick));
-        case "cep":
-          return digits(c.cep).includes(digits(quick));
-        case "cidade":
-          return normalize(c.city).includes(normalize(quick));
-        case "uf":
-          return normalize(c.uf).includes(normalize(quick));
-        case "cnpj":
-          return digits(c.cnpj).includes(digits(quick));
-        default:
-          return true;
-      }
+      const textHit = [
+        c.acronym,
+        c.group,
+        c.name,
+        c.razaoSocial,
+        c.fantasia,
+        c.size,
+        c.segment,
+        c.city,
+        c.uf,
+      ].some((value) => normalize(value ?? "").includes(quickNorm));
+      if (textHit) return true;
+      if (!quickDigits) return false;
+      return digits(c.cnpj).includes(quickDigits) || digits(c.cep).includes(quickDigits);
     };
     const acronymQuery = quickAcronym.trim();
     return clients.filter((c) => {
@@ -641,7 +626,7 @@ function ClientsPage() {
       }
       return true;
     });
-  }, [clients, filters, quickQuery, quickField, quickAcronym]);
+  }, [clients, filters, quickQuery, quickAcronym]);
 
   const sizes = useMemo(() => Array.from(new Set(clients.map((c) => c.size))).sort(), [clients]);
   const segments = useMemo(() => Array.from(new Set(clients.map((c) => c.segment))).sort(), [clients]);
