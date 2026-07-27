@@ -253,6 +253,18 @@ const date = (value: unknown, withTime = false) => {
   return new Intl.DateTimeFormat("pt-BR", withTime ? { dateStyle: "short", timeStyle: "short" } : { dateStyle: "short" }).format(parsed);
 };
 
+const legacyDate = (value: unknown, withTime = false) => {
+  if (!value) return "";
+  const parsed = new Date(String(value));
+  if (Number.isNaN(parsed.getTime())) return "";
+  return new Intl.DateTimeFormat(
+    "pt-BR",
+    withTime
+      ? { dateStyle: "short", timeStyle: "short", timeZone: "UTC" }
+      : { dateStyle: "short", timeZone: "UTC" },
+  ).format(parsed);
+};
+
 const formatCnpj = (value: unknown) => {
   const digits = String(value || "").replace(/\D/g, "");
   if (digits.length !== 14) return String(value || "");
@@ -424,7 +436,7 @@ export async function getClientDetail(acronym: string): Promise<ClientDetail | n
       ipAddress: String(terminal.ip_address || ""),
       installPath: String(terminal.install_path || ""),
       version: String(terminal.hadron_version || ""),
-      versionDate: date(terminal.version_released_at),
+      versionDate: legacyDate(terminal.version_released_at),
       serialNumber: String(terminal.serial_number || ""),
       flags: String(terminal.legacy_flags || ""),
       operatingSystem: String(terminal.operating_system || ""),
@@ -437,7 +449,7 @@ export async function getClientDetail(acronym: string): Promise<ClientDetail | n
       certificateExpiresAt: date(terminal.certificate_expires_at),
       environment: String(terminal.environment || ""),
       drives: Array.isArray(terminal.drives) ? terminal.drives : [],
-      registeredAt: date(terminal.registered_at, true),
+      registeredAt: legacyDate(terminal.registered_at, true),
       updatedAt: date(terminal.updated_at, true),
     }),
   );

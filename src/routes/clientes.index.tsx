@@ -2738,10 +2738,10 @@ export function ClientUsersTab({ users }: { users: ClientHadronUser[] }) {
 
 export function ClientTerminalsTab({ terminals }: { terminals: ClientTerminal[] }) {
   return (
-    <Section title="Terminais instalados" icon={Monitor}>
+    <Section title={`Terminais instalados (${terminals.length})`} icon={Monitor}>
       {terminals.length ? (
         <DataTable
-          headers={["Terminal", "IP", "Pasta", "Data do setup", "Data da versão", "Nº de série", "Flags"]}
+          headers={["Terminal", "IP", "Pasta", "Último setup", "Última versão", "Nº de série", "Flags"]}
           rows={terminals.map((terminal) => [
             terminal.terminalNumber == null ? "-" : String(terminal.terminalNumber),
             terminal.ipAddress || "-",
