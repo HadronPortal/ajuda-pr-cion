@@ -45,6 +45,15 @@ import {
 } from "@/lib/fleet-store";
 import { fleetActions } from "@/lib/fleet-action-store";
 import { listCrmCalendarEvents } from "@/lib/calendar-api";
+import { CreateEventDialog } from "@/components/calendar/CreateEventDialog";
+import { useLocalEvents, addLocalEvent } from "@/lib/local-events-store";
+import {
+  PRC_OPERATORS,
+  TYPE_ICON,
+  type CalendarEvent,
+  type EventStatus,
+  type EventType,
+} from "@/lib/calendar-events";
 
 const preventOutsideClose = (event: Event) => event.preventDefault();
 
@@ -53,30 +62,6 @@ export const Route = createFileRoute("/calendario")({
   loader: () => listCrmCalendarEvents(),
   component: CalendarPage,
 });
-
-type EventType = "Visita presencial" | "Reunião remota" | "Reunião na Prócion" | "Pessoal";
-type EventStatus = "Agendado" | "Concluído" | "Cancelado";
-type CalendarEvent = {
-  id: string | number;
-  date: string;
-  time: string;
-  end: string;
-  type: EventType;
-  origin: "Administração" | "Suporte" | "Comercial";
-  operator: string;
-  title: string;
-  client?: string;
-  status?: EventStatus;
-  description?: string;
-  guests?: string[];
-  needsDisplacement?: boolean;
-  address?: string;
-  responsible?: string;
-  meetingLink?: string;
-  platform?: string;
-  room?: string;
-  isPrivate?: boolean;
-};
 
 const initialEvents: CalendarEvent[] = [
   { id: 1, date: "2026-07-02", time: "08:00", end: "09:30", type: "Visita presencial", origin: "Comercial", operator: "PRCGIN", title: "Visita técnica", client: "ICF · INCOFAP", needsDisplacement: true, address: "Av. Central, 720, Campinas/SP" },
@@ -127,16 +112,7 @@ const typeStyles: Record<EventType, { dot: string; soft: string; text: string; i
   Pessoal: { dot: "bg-amber-500", soft: "bg-amber-500/12", text: "text-amber-700 dark:text-amber-300", icon: UserRound },
 };
 
-const TYPE_ICON: Record<EventType, typeof Car> = {
-  "Visita presencial": Car,
-  "Reunião remota": Laptop,
-  "Reunião na Prócion": UsersRound,
-  Pessoal: CalendarDays,
-};
 
-const PRC_OPERATORS = ["PRCGGC", "PRCGIN", "PRCJAC", "PRCREN", "PRCROG", "PRCSUZ", "PRCMAR", "PRCLCZ", "PRCPED"];
-const PLATFORM_OPTIONS = ["Google Meet", "Microsoft Teams", "Zoom", "AnyDesk"];
-const ROOM_OPTIONS = ["Sala Diretoria", "Sala Reuniões 1", "Sala Reuniões 2", "Auditório"];
 
 function dateKey(year: number, month: number, day: number) {
   const value = new Date(year, month, day);
@@ -149,7 +125,9 @@ function CalendarPage() {
   const todayKey = dateKey(today.getFullYear(), today.getMonth(), today.getDate());
   const [cursor, setCursor] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
   const [selectedDate, setSelectedDate] = useState(todayKey);
+  const localEvents = useLocalEvents();
   const [events, setEvents] = useState<CalendarEvent[]>(importedEvents);
+  const allEvents = useMemo(() => [...events, ...localEvents], [events, localEvents]);
   const [createOpen, setCreateOpen] = useState(false);
   const [agendaOpen, setAgendaOpen] = useState(false);
 
@@ -162,7 +140,7 @@ function CalendarPage() {
   }, [filtersOpen, filters]);
 
   const filtered = useMemo(() => {
-    return events.filter((event) => {
+    return allEvents.filter((event) => {
       const status = event.status ?? "Agendado";
       if (filters.type !== "Todos" && event.type !== filters.type) return false;
       if (filters.origin !== "Todas" && event.origin !== filters.origin) return false;
@@ -190,7 +168,7 @@ function CalendarPage() {
       }
       return true;
     });
-  }, [events, filters]);
+  }, [allEvents, filters]);
 
   const activeCount = useMemo(() => {
     let n = 0;
@@ -426,9 +404,9 @@ function CalendarPage() {
         open={createOpen}
         onOpenChange={setCreateOpen}
         initialDate={selectedDate}
-        existingEvents={events}
+        existingEvents={allEvents}
         onCreate={(event) => {
-          setEvents((current) => [...current, { ...event, id: Date.now() }]);
+          addLocalEvent(event);
           setSelectedDate(event.date);
           toast.success("Evento adicionado ao calendário");
         }}
