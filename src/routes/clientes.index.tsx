@@ -625,8 +625,11 @@ function ClientsPage() {
           return true;
       }
     };
+    const acronymQuery = quickAcronym.trim();
     return clients.filter((c) => {
+      if (acronymQuery && !normalize(c.acronym).includes(normalize(acronymQuery))) return false;
       if (!quickMatches(c)) return false;
+
 
       if (filters.sigla && !normalize(c.acronym).includes(normalize(filters.sigla))) return false;
       if (filters.siglaGrupo) {
@@ -667,7 +670,7 @@ function ClientsPage() {
       }
       return true;
     });
-  }, [clients, filters, quickQuery, quickField]);
+  }, [clients, filters, quickQuery, quickField, quickAcronym]);
 
   const sizes = useMemo(() => Array.from(new Set(clients.map((c) => c.size))).sort(), [clients]);
   const segments = useMemo(() => Array.from(new Set(clients.map((c) => c.segment))).sort(), [clients]);
