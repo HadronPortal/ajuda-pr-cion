@@ -757,11 +757,86 @@ function ClientsPage() {
         breadcrumbs={[{ label: "Clientes" }]}
       />
 
-      <div className="mb-4 flex justify-end">
+      <div className="mb-4 flex w-full min-w-0 flex-wrap items-center gap-2 lg:flex-nowrap">
+        {/* Campo de pesquisa rápida */}
+        <div className="relative min-w-[200px] flex-[2]">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <input
+            value={quickDraft}
+            onChange={(e) => setQuickDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                setQuickQuery(quickDraft);
+              }
+            }}
+            type="search"
+            placeholder="Digite para pesquisar..."
+            aria-label="Pesquisa rápida de clientes"
+            className="h-10 w-full rounded-lg border border-border bg-background pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+          />
+        </div>
+
+        {/* Tipo de filtro */}
+        <select
+          value={quickField}
+          onChange={(e) => {
+            setQuickField(e.target.value as QuickField);
+            setQuickQuery(quickDraft);
+          }}
+          aria-label="Filtro"
+          className="h-10 min-w-[150px] flex-1 cursor-pointer rounded-lg border border-border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+        >
+          {QUICK_FIELD_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+
+        {/* Pesquisa avançada (abre o painel existente) */}
+        <button
+          type="button"
+          onClick={() => setFiltersOpen(true)}
+          aria-label="Abrir pesquisa avançada"
+          className="flex h-10 min-w-[170px] flex-1 cursor-pointer items-center justify-between gap-2 rounded-lg border border-border bg-background px-3 text-sm text-foreground outline-none hover:bg-muted/50 focus:ring-2 focus:ring-ring"
+        >
+          <span className="truncate">Pesquisa avançada</span>
+          <SlidersHorizontal className="h-4 w-4 shrink-0 text-muted-foreground" />
+        </button>
+
+        {/* Status */}
+        <select
+          value={filters.status}
+          onChange={(e) => setFilters((p) => ({ ...p, status: e.target.value as StatusFilter }))}
+          aria-label="Status"
+          className="h-10 min-w-[150px] flex-1 cursor-pointer rounded-lg border border-border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+        >
+          {QUICK_STATUS_OPTIONS.map((s) => (
+            <option key={s} value={s}>
+              {s}
+            </option>
+          ))}
+        </select>
+
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => {
+            setQuickDraft("");
+            setQuickQuery("");
+            setQuickField("sigla");
+            setFilters({ ...emptyFilters, status: "Ativo" });
+          }}
+          className="h-10 shrink-0 cursor-pointer rounded-lg px-4 text-sm font-medium"
+        >
+          Limpar
+        </Button>
+
         <Button
           type="button"
           onClick={() => setFiltersOpen(true)}
-          className="h-10 cursor-pointer gap-2 rounded-lg bg-blue-600 px-4 text-sm font-medium text-primary-foreground shadow-md hover:bg-blue-700"
+          className="h-10 shrink-0 cursor-pointer gap-2 rounded-lg bg-blue-600 px-4 text-sm font-medium text-primary-foreground shadow-md hover:bg-blue-700"
         >
           <Filter className="h-4 w-4" />
           Filtros
@@ -772,6 +847,7 @@ function ClientsPage() {
           )}
         </Button>
       </div>
+
 
       {chips.length > 0 && (
         <div className="mb-3 flex flex-wrap items-center gap-2">
