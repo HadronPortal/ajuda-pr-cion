@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ComponentType } from "react";
+import { useEffect, useMemo, useState, type ComponentType, type ReactNode } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
@@ -9,12 +9,15 @@ import {
   ArrowUp,
   ArrowUpDown,
   Building2,
+  Cable,
   CalendarDays,
   Check,
   ChevronRight,
   CheckCircle2,
   CircleDollarSign,
   CircleUserRound,
+  ClipboardCheck,
+  Clock3,
   Cpu,
   Database,
   FileText,
@@ -27,7 +30,9 @@ import {
   Monitor,
   Mail,
   MapPin,
+  Landmark,
   Phone,
+  Printer,
   ShieldCheck,
   Server,
   SlidersHorizontal,
@@ -68,7 +73,7 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import hadronIconUrl from "@/assets/menu-hadron-solid.png";
 
-function HadronMenuIcon({ className }: { className?: string }) {
+export function HadronMenuIcon({ className }: { className?: string }) {
   return (
     <span
       aria-hidden="true"
@@ -78,6 +83,23 @@ function HadronMenuIcon({ className }: { className?: string }) {
         mask: `url(${hadronIconUrl}) center / contain no-repeat`,
       }}
     />
+  );
+}
+
+function HadronDetail({
+  icon: Icon,
+  children,
+}: {
+  icon: ComponentType<{ className?: string }>;
+  children: ReactNode;
+}) {
+  return (
+    <div className="flex min-w-0 items-start gap-3">
+      <span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
+        <Icon className="h-4 w-4" />
+      </span>
+      <div className="min-w-0 flex-1">{children}</div>
+    </div>
   );
 }
 import { CreateEventDialog } from "@/components/calendar/CreateEventDialog";
@@ -2576,52 +2598,60 @@ export function ClientHadronTab({
         <div>
           <h4 className="mb-3 text-sm font-medium">Responsáveis</h4>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Responsáveis" value={responsibles || "Não informado"} />
-            <Field label="Tempo de instalação" value={text("cli_tmp_mod") || "Não informado"} />
+            <HadronDetail icon={UsersRound}>
+              <Field label="Responsáveis" value={responsibles || "Não informado"} />
+            </HadronDetail>
+            <HadronDetail icon={Clock3}>
+              <Field label="Tempo de instalação" value={text("cli_tmp_mod") || "Não informado"} />
+            </HadronDetail>
           </div>
         </div>
 
         <div>
           <h4 className="mb-3 text-sm font-medium">Documentos fiscais</h4>
-          <div className="flex flex-wrap gap-x-5 gap-y-2">
-            {fiscalOptions.map(([key, label]) => {
-              const active = hasLegacySelection(fiscalDocuments, key);
-              return (
-                <span
-                  key={key}
-                  className={cn(
-                    "flex items-center gap-1.5 text-sm",
-                    !active && "text-muted-foreground",
-                  )}
-                >
-                  {active ? (
-                    <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                  ) : (
-                    <X className="h-4 w-4" />
-                  )}
-                  {label}
-                </span>
-              );
-            })}
-            <span
-              className={cn(
-                "flex items-center gap-1.5 text-sm",
-                !usesNoFiscalDocument && "text-muted-foreground",
-              )}
-            >
-              {usesNoFiscalDocument ? (
-                <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-              ) : (
-                <X className="h-4 w-4" />
-              )}
-              Não utiliza
-            </span>
-          </div>
+          <HadronDetail icon={Printer}>
+            <div className="flex flex-wrap gap-x-5 gap-y-2 pt-1">
+              {fiscalOptions.map(([key, label]) => {
+                const active = hasLegacySelection(fiscalDocuments, key);
+                return (
+                  <span
+                    key={key}
+                    className={cn(
+                      "flex items-center gap-1.5 text-sm",
+                      !active && "text-muted-foreground",
+                    )}
+                  >
+                    {active ? (
+                      <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                    ) : (
+                      <X className="h-4 w-4" />
+                    )}
+                    {label}
+                  </span>
+                );
+              })}
+              <span
+                className={cn(
+                  "flex items-center gap-1.5 text-sm",
+                  !usesNoFiscalDocument && "text-muted-foreground",
+                )}
+              >
+                {usesNoFiscalDocument ? (
+                  <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                ) : (
+                  <X className="h-4 w-4" />
+                )}
+                Não utiliza
+              </span>
+            </div>
+          </HadronDetail>
           <div className="mt-4">
-            <Field
-              label="Homologação das NF-e em conjunto com o cliente e contador?"
-              value={yesNo(text("cli_homo_nfes"))}
-            />
+            <HadronDetail icon={ClipboardCheck}>
+              <Field
+                label="Homologação das NF-e em conjunto com o cliente e contador?"
+                value={yesNo(text("cli_homo_nfes"))}
+              />
+            </HadronDetail>
           </div>
         </div>
 
@@ -2629,42 +2659,50 @@ export function ClientHadronTab({
           <h4 className="mb-3 text-sm font-medium">Configurações da rede</h4>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-4">
-              <Field label="Terminais" value={terminalCount || "Não informado"} />
-              <Field label="Configuração de rede" value={networkLabel} />
+              <HadronDetail icon={Monitor}>
+                <Field label="Terminais" value={terminalCount || "Não informado"} />
+              </HadronDetail>
+              <HadronDetail icon={Cable}>
+                <Field label="Configuração de rede" value={networkLabel} />
+              </HadronDetail>
             </div>
-            <div>
-              <p className="mb-2 text-xs uppercase text-muted-foreground">Importação de dados</p>
-              <div className="flex flex-wrap gap-x-5 gap-y-2">
-                {importedDataOptions.map(([key, label]) => {
-                  const active = hasLegacySelection(importedData, key);
-                  return (
-                    <span
-                      key={key}
-                      className={cn(
-                        "flex items-center gap-1.5 text-sm",
-                        !active && "text-muted-foreground",
-                      )}
-                    >
-                      {active ? (
-                        <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                      ) : (
-                        <X className="h-4 w-4" />
-                      )}
-                      {label}
-                    </span>
-                  );
-                })}
+            <HadronDetail icon={Database}>
+              <div>
+                <p className="mb-2 text-xs uppercase text-muted-foreground">Importação de dados</p>
+                <div className="flex flex-wrap gap-x-5 gap-y-2">
+                  {importedDataOptions.map(([key, label]) => {
+                    const active = hasLegacySelection(importedData, key);
+                    return (
+                      <span
+                        key={key}
+                        className={cn(
+                          "flex items-center gap-1.5 text-sm",
+                          !active && "text-muted-foreground",
+                        )}
+                      >
+                        {active ? (
+                          <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                        ) : (
+                          <X className="h-4 w-4" />
+                        )}
+                        {label}
+                      </span>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
+            </HadronDetail>
           </div>
         </div>
 
         <div>
           <h4 className="mb-3 text-sm font-medium">Cobrança</h4>
-          <Field
-            label="Boleto bancário"
-            value={hasAnyLegacySelection(parseLegacyValue("cli_boleto_dados")) ? "SIM" : "NÃO"}
-          />
+          <HadronDetail icon={Landmark}>
+            <Field
+              label="Boleto bancário"
+              value={hasAnyLegacySelection(parseLegacyValue("cli_boleto_dados")) ? "SIM" : "NÃO"}
+            />
+          </HadronDetail>
         </div>
       </div>
     </Section>

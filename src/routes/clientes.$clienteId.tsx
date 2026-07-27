@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate, notFound } from "@tanstack/react-router";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
-import { ArrowLeft, Building2, Database, Monitor, Network, SlidersHorizontal, UsersRound, Wifi } from "lucide-react";
+import { ArrowLeft, Building2, Monitor, Network, SlidersHorizontal, UsersRound, Wifi } from "lucide-react";
 
 import { AppShell } from "@/components/portal/AppShell";
 import { Breadcrumbs } from "@/components/portal/Breadcrumbs";
@@ -18,6 +18,7 @@ import {
   ClientUsersTab,
   ClientTerminalsTab,
   ClientCompaniesTab,
+  HadronMenuIcon,
 } from "./clientes.index";
 
 function MiniSummary({ label, value }: { label: string; value: string }) {
@@ -227,7 +228,7 @@ function ClientDetailPage() {
             <TabsList className="h-auto justify-start gap-1 rounded-none border-0 bg-transparent p-0">
               {[
                 ["cliente", "Cliente", Building2],
-                ["hadron", "Hadron", Database],
+                ["hadron", "Hádron", HadronMenuIcon],
                 ...(showInternet ? [["internet", "Internet", Wifi]] : []),
                 ...(showDevices ? [["dispositivos", "Dispositivos", Monitor]] : []),
                 ...(showParameters ? [["parametros", "Parâmetros", SlidersHorizontal]] : []),
