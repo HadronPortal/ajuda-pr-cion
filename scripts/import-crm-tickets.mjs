@@ -160,12 +160,12 @@ const pool = new pg.Pool({
 });
 
 try {
-  await pool.query(
-    fs.readFileSync(
-      path.resolve("supabase/migrations/20260727150000_crm_ticket_import.sql"),
-      "utf8",
-    ),
-  );
+  for (const migration of [
+    "supabase/migrations/20260727150000_crm_ticket_import.sql",
+    "supabase/migrations/20260727153000_ticket_legacy_dates.sql",
+  ]) {
+    await pool.query(fs.readFileSync(path.resolve(migration), "utf8"));
+  }
   await pool.query("begin");
 
   const [clients, modules, submodules, profiles] = await Promise.all([
@@ -213,6 +213,8 @@ try {
         attendant_code: text(row.sac_operador).toUpperCase(),
         owner_code: operator,
         finished_at: ticketStatus(row.sac_status) === "finished" ? timestamp(row.modified) : null,
+        legacy_created_at: timestamp(row.created),
+        legacy_updated_at: timestamp(row.modified || row.created),
         created_at: timestamp(row.created),
         updated_at: timestamp(row.modified || row.created),
         source_payload: row,
@@ -228,21 +230,23 @@ try {
          legacy_id, protocol, client_id, module_id, submodule_id, subject, description,
          status, priority, channel, attendant_id, owner_id, client_code, client_name,
          contact_name, module_label, attendant_code, owner_code, finished_at,
-         created_at, updated_at, source_payload
+         legacy_created_at, legacy_updated_at, created_at, updated_at, source_payload
        )
        select x.legacy_id, x.protocol, x.client_id::uuid, x.module_id::uuid,
          x.submodule_id::uuid, x.subject, x.description, x.status::public.ticket_status,
          x.priority::public.priority_level, 'phone'::public.ticket_channel,
          x.attendant_id::uuid, x.owner_id::uuid, x.client_code, x.client_name,
          x.contact_name, x.module_label, x.attendant_code, x.owner_code,
-         x.finished_at::timestamptz, x.created_at::timestamptz,
+         x.finished_at::timestamptz, x.legacy_created_at::timestamptz,
+         x.legacy_updated_at::timestamptz, x.created_at::timestamptz,
          x.updated_at::timestamptz, x.source_payload
        from jsonb_to_recordset($1::jsonb) as x(
          legacy_id text, protocol text, client_id text, module_id text, submodule_id text,
          subject text, description text, status text, priority text, attendant_id text,
          owner_id text, client_code text, client_name text, contact_name text,
          module_label text, attendant_code text, owner_code text, finished_at text,
-         created_at text, updated_at text, source_payload jsonb
+         legacy_created_at text, legacy_updated_at text, created_at text,
+         updated_at text, source_payload jsonb
        )
        on conflict (protocol) do update set
          legacy_id=excluded.legacy_id, client_id=excluded.client_id, module_id=excluded.module_id,
@@ -252,7 +256,9 @@ try {
          client_code=excluded.client_code, client_name=excluded.client_name,
          contact_name=excluded.contact_name, module_label=excluded.module_label,
          attendant_code=excluded.attendant_code, owner_code=excluded.owner_code,
-         finished_at=excluded.finished_at, created_at=excluded.created_at,
+         finished_at=excluded.finished_at,
+         legacy_created_at=excluded.legacy_created_at,
+         legacy_updated_at=excluded.legacy_updated_at, created_at=excluded.created_at,
          updated_at=excluded.updated_at, source_payload=excluded.source_payload`,
       [JSON.stringify(batch)],
     );

@@ -2007,7 +2007,7 @@ function RecentActivityCard({
   activities: ClientTicketActivity[];
   events: ClientEvent[];
 }) {
-  const [showAll, setShowAll] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const items = [
     ...activities.map((activity) => ({
       id: `ticket-${activity.id}`,
@@ -2025,7 +2025,7 @@ function RecentActivityCard({
     })),
   ]
     .sort((left, right) => String(right.timestamp).localeCompare(String(left.timestamp)));
-  const visibleItems = showAll ? items : items.slice(0, 3);
+  const visibleItems = items.slice(0, 3);
 
   return (
     <Section title="Atividade recente" icon={Activity}>
@@ -2052,12 +2052,38 @@ function RecentActivityCard({
               type="button"
               variant="ghost"
               size="sm"
-              onClick={() => setShowAll((current) => !current)}
+              onClick={() => setDialogOpen(true)}
               className="mt-3 h-8 cursor-pointer px-3 text-xs text-primary"
             >
-              {showAll ? "Mostrar menos" : "Mostrar tudo"}
+              Ver todos
             </Button>
           )}
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogContent className="max-h-[80vh] max-w-2xl overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Atividade recente</DialogTitle>
+              </DialogHeader>
+              <ul className="space-y-3">
+                {items.map((item) => (
+                  <li
+                    key={item.id}
+                    className="flex min-w-0 items-start gap-3 rounded-md border border-border p-3"
+                  >
+                    <span
+                      className={cn(
+                        "mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full",
+                        item.ticketActivity ? "bg-primary" : "bg-muted-foreground",
+                      )}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm text-foreground">{item.title}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">{item.detail}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </DialogContent>
+          </Dialog>
         </>
       ) : (
         <p className="text-sm text-muted-foreground">Sem atividade recente.</p>
@@ -2203,7 +2229,7 @@ function SupportRowsCompact({
   tickets: ClientTicket[];
   events: ClientEvent[];
 }) {
-  const [showAll, setShowAll] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const pastEvents = events.filter(
     (event) => event.startsAtIso && new Date(event.startsAtIso).getTime() < Date.now(),
   );
@@ -2246,7 +2272,7 @@ function SupportRowsCompact({
       type: event.legacyTicketId ? "Atendimento agendado" : "Agendamento",
     })),
   ].sort((left, right) => right.timestamp.localeCompare(left.timestamp));
-  const visibleRows = showAll ? rows : rows.slice(0, 2);
+  const visibleRows = rows.slice(0, 2);
 
   return (
     <>
@@ -2277,12 +2303,39 @@ function SupportRowsCompact({
           type="button"
           variant="ghost"
           size="sm"
-          onClick={() => setShowAll((current) => !current)}
+          onClick={() => setDialogOpen(true)}
           className="mt-3 h-8 cursor-pointer px-3 text-xs text-primary"
         >
-          {showAll ? "Mostrar menos" : "Mostrar tudo"}
+          Ver todos
         </Button>
       )}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-h-[80vh] max-w-3xl overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Agendamentos e atendimentos</DialogTitle>
+          </DialogHeader>
+          <ul className="space-y-2">
+            {rows.map((row) => (
+              <li
+                key={row.id}
+                className="rounded-md border border-border bg-card px-4 py-3"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <p className="text-sm font-medium text-foreground">{row.title}</p>
+                  <Badge variant="secondary" className="shrink-0 text-[10px] font-medium">
+                    {row.type}
+                  </Badge>
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">{row.detail || "—"}</p>
+                <p className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
+                  <span>{row.operator || "—"}</span>
+                  <span>{row.date}</span>
+                </p>
+              </li>
+            ))}
+          </ul>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
