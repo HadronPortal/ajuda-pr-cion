@@ -115,7 +115,12 @@ export function CreateEventDialog({
       origin: type === "Pessoal" ? "Administração" : "Suporte",
       operator: responsible,
       title: title.trim(),
-      client: type === "Visita presencial" ? (client.trim() || undefined) : undefined,
+      client: lockedClient
+        ? lockedClient.label
+        : type === "Visita presencial"
+          ? (client.trim() || undefined)
+          : undefined,
+      clientId: lockedClient?.id,
       description: description.trim() || undefined,
       guests: guests.length ? guests : undefined,
       needsDisplacement: type === "Visita presencial" ? needsDisplacement : undefined,
