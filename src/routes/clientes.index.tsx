@@ -515,7 +515,7 @@ function ClientsPage() {
 
   useEffect(() => {
     setPage(1);
-  }, [quickQuery, quickField, quickAcronym]);
+  }, [quickQuery, quickAcronym]);
 
 
   // Sincroniza URL <-> filtro de grupo. Ao entrar via ?grupo=XXX, descarta qualquer
