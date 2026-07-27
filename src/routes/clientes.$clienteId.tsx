@@ -116,6 +116,34 @@ function ClientDetailPage() {
   const breadcrumbGroupLabel = groupCode || client.acronym;
   return (
     <AppShell>
+      <div className="mb-3 flex items-center gap-2">
+        <Button
+          asChild
+          variant="outline"
+          size="sm"
+          className="h-8 cursor-pointer rounded-lg"
+        >
+          <Link to="/clientes" aria-label="Voltar para Clientes">
+            <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
+            Voltar para Clientes
+          </Link>
+        </Button>
+
+        {showReturnToTicket && (
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="ml-2 h-8 cursor-pointer rounded-lg"
+          >
+            <Link to="/chamados" search={{ ticket: ticketId }}>
+              <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
+              Voltar ao chamado
+            </Link>
+          </Button>
+        )}
+      </div>
+
       <Breadcrumbs
         items={[
           { label: "Clientes", to: "/clientes" },
@@ -125,34 +153,8 @@ function ClientDetailPage() {
           { label: "Detalhes do cliente" },
         ]}
       />
-      <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
-        <div className="flex items-center gap-2">
-          <Button
-            asChild
-            variant="outline"
-            size="sm"
-            className="h-8 cursor-pointer rounded-lg"
-          >
-            <Link to="/clientes" aria-label="Voltar para Clientes">
-              <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
-              Voltar para Clientes
-            </Link>
-          </Button>
+      <div className="mb-4 flex flex-wrap items-start justify-end gap-4">
 
-          {showReturnToTicket && (
-            <Button
-              asChild
-              variant="outline"
-              size="sm"
-              className="ml-2 h-8 cursor-pointer rounded-lg"
-            >
-              <Link to="/chamados" search={{ ticket: ticketId }}>
-                <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
-                Voltar ao chamado
-              </Link>
-            </Button>
-          )}
-        </div>
 
         <div className="grid w-full grid-cols-2 gap-2 sm:w-auto sm:grid-cols-3 xl:grid-cols-5">
           <MiniSummary label="Atendimento" value={normalizeCityUf(client.city) || "Não informado"} />
