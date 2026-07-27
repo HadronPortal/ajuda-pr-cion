@@ -26,6 +26,7 @@ import {
   RefreshCw,
   Search,
   HardDrive,
+  KeyRound,
   MessageCircle,
   Monitor,
   Mail,
@@ -35,6 +36,7 @@ import {
   Printer,
   ShieldCheck,
   Server,
+  Smartphone,
   SlidersHorizontal,
   UsersRound,
   X,
@@ -2809,23 +2811,48 @@ export function ClientDevicesTab({ internet }: { internet: ClientInternet }) {
   );
 }
 
-const HADRON_APP_CATALOG: { key: string; label: string; matches: (name: string, type: string) => boolean }[] = [
-  { key: "mobile", label: "Hádron Mobile", matches: (n, t) => /mobile/i.test(n) || /mobile/i.test(t) },
-  { key: "web", label: "Hádron Web", matches: (n, t) => /web/i.test(n) || /web/i.test(t) },
-  { key: "commerce", label: "Hádron Commerce", matches: (n, t) => /commerce|e-?commerce|loja/i.test(n) || /commerce/i.test(t) },
-  { key: "portal", label: "Hádron Portal B2B", matches: (n, t) => /portal|b2b/i.test(n) || /portal|b2b/i.test(t) },
+const HADRON_APP_CATALOG: {
+  key: string;
+  label: string;
+  contractTypes: string[];
+  matches: (name: string, type: string) => boolean;
+}[] = [
+  { key: "mobile", label: "Hádron Mobile", contractTypes: ["MOB", "MOBILE"], matches: (n, t) => /mobile/i.test(n) || /mobile/i.test(t) },
+  { key: "web", label: "Hádron Web", contractTypes: ["WEB"], matches: (n, t) => /web/i.test(n) || /web/i.test(t) },
+  { key: "commerce", label: "Hádron Commerce", contractTypes: ["B2C", "COMMERCE"], matches: (n, t) => /commerce|e-?commerce|loja/i.test(n) || /commerce|b2c/i.test(t) },
+  { key: "portal", label: "Hádron Portal B2B", contractTypes: ["B2B", "PORTAL"], matches: (n, t) => /portal|b2b/i.test(n) || /portal|b2b/i.test(t) },
 ];
 
 export function ClientInternetTab({ internet }: { internet: ClientInternet }) {
   const contracts = internet.contracts;
   const webContract = contracts.find((c) => c.active) ?? contracts[0];
-  const webUrl = webContract?.webUrl || contracts.map((c) => c.webUrl).find(Boolean) || "";
+  const contractText = (contract: ClientInternet["contracts"][number], key: string) =>
+    String(contract.sourcePayload[key] ?? "").trim();
+  const contractApps = (contract: ClientInternet["contracts"][number]) => {
+    const raw = contract.sourcePayload.con_web_apps;
+    if (Array.isArray(raw)) return raw.map((item) => String(item).toUpperCase());
+    try {
+      const parsed = JSON.parse(String(raw || "[]"));
+      return Array.isArray(parsed) ? parsed.map((item) => String(item).toUpperCase()) : [];
+    } catch {
+      return [];
+    }
+  };
+  const selectedApps = contracts.flatMap(contractApps);
+  const webUrl =
+    webContract?.webUrl ||
+    (webContract && contractText(webContract, "con_mobile_url")) ||
+    contracts.map((c) => c.webUrl || contractText(c, "con_mobile_url")).find(Boolean) ||
+    "";
 
   const catalog = HADRON_APP_CATALOG.map((item) => {
     const match = internet.applications.find((app) => item.matches(app.name, app.appType));
+    const selectedByContract = selectedApps.some((appType) =>
+      item.contractTypes.includes(appType),
+    );
     return {
       ...item,
-      contracted: !!(match && match.active),
+      contracted: selectedByContract || !!(match && match.active),
       version: match?.version || "",
       updatedAt: match?.updatedAt || "",
       status: match?.status || "",
@@ -2845,6 +2872,11 @@ export function ClientInternetTab({ internet }: { internet: ClientInternet }) {
                 ? contract.devices
                 : internet.devices.filter((d) => d.contractLegacyId === contract.legacyId);
               const isActive = contract.active;
+              const deviceLimit = contractText(contract, "con_qtd_dispositivos");
+              const contractUrl =
+                contract.webUrl ||
+                contractText(contract, "con_mobile_url") ||
+                contractText(contract, "con_dominio_url");
               return (
                 <div
                   key={contract.id}
@@ -2872,12 +2904,31 @@ export function ClientInternetTab({ internet }: { internet: ClientInternet }) {
                       {isActive ? "Ativo" : contract.status || "Inativo"}
                     </Badge>
                   </div>
-                  <div className="grid gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
-                    <Field label="Identificação" value={contract.legacyId || contract.id || "—"} />
-                    <Field label="URL / Domínio" value={contract.webUrl || "Não informada"} />
-                    <Field label="Dispositivos vinculados" value={String(contractDevices.length)} />
-                    <Field label="Início" value={contract.startsAt || "Não informado"} />
-                    <Field label="Expira em" value={contract.expiresAt || "Não informado"} />
+                  <div className="grid gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
+                    <HadronDetail icon={ShieldCheck}>
+                      <Field label="Status" value={isActive ? "Ativo" : contract.status || "Inativo"} />
+                    </HadronDetail>
+                    <HadronDetail icon={KeyRound}>
+                      <Field
+                        label="Código do contrato"
+                        value={contract.legacyId || contract.id || "Não informado"}
+                      />
+                    </HadronDetail>
+                    <HadronDetail icon={Smartphone}>
+                      <Field
+                        label="Dispositivos"
+                        value={`${contractDevices.length}/${deviceLimit}`}
+                      />
+                    </HadronDetail>
+                    <HadronDetail icon={Globe2}>
+                      <Field label="URL / Domínio" value={contractUrl || "Não informada"} />
+                    </HadronDetail>
+                    <HadronDetail icon={CalendarDays}>
+                      <Field label="Início" value={contract.startsAt || "Não informado"} />
+                    </HadronDetail>
+                    <HadronDetail icon={Clock3}>
+                      <Field label="Expira em" value={contract.expiresAt || "Não informado"} />
+                    </HadronDetail>
                   </div>
                 </div>
               );
@@ -2888,24 +2939,39 @@ export function ClientInternetTab({ internet }: { internet: ClientInternet }) {
         )}
       </Section>
 
-      <Section title="Hádron Web" icon={Database}>
+      <Section title="Hádron Web" icon={HadronMenuIcon}>
         {webUrl && (
-          <div className="mb-4 rounded-md border border-border bg-background px-4 py-3">
-            <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
-              URL do Hádron Web
-            </p>
-            <p className="mt-0.5 truncate text-sm text-foreground">{webUrl}</p>
+          <div className="mb-4">
+            <HadronDetail icon={Globe2}>
+              <Field label="URL do Hádron Web" value={webUrl} />
+            </HadronDetail>
           </div>
         )}
-        <DataTable
-          headers={["Aplicação", "Situação", "Versão", "Atualização"]}
-          rows={catalog.map((app) => [
-            app.label,
-            app.contracted ? "Contratada" : "Não contratada",
-            app.version || "—",
-            app.updatedAt || "—",
-          ])}
-        />
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+          {catalog.map((app) => (
+            <div
+              key={app.key}
+              className={cn(
+                "flex min-h-11 items-center gap-2 border-b border-border/70 py-2 text-sm",
+                !app.contracted && "text-muted-foreground",
+              )}
+            >
+              {app.contracted ? (
+                <Check className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+              ) : (
+                <X className="h-4 w-4 shrink-0" />
+              )}
+              <div className="min-w-0">
+                <p className={cn("truncate", app.contracted && "font-medium")}>{app.label}</p>
+                {(app.version || app.updatedAt) && (
+                  <p className="truncate text-[11px] text-muted-foreground">
+                    {[app.version, app.updatedAt].filter(Boolean).join(" · ")}
+                  </p>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
         {otherApps.length > 0 && (
           <div className="mt-4">
             <p className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">

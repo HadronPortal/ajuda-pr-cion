@@ -118,6 +118,7 @@ export type ClientInternetContract = {
   startsAt: string;
   expiresAt: string;
   updatedAt: string;
+  sourcePayload: Record<string, unknown>;
   devices: ClientInternetDevice[];
 };
 
@@ -485,6 +486,7 @@ export async function getClientDetail(acronym: string): Promise<ClientDetail | n
         startsAt: date(contract.starts_at),
         expiresAt: date(contract.expires_at),
         updatedAt: date(contract.updated_at, true),
+        sourcePayload: parseJsonField(contract.source_payload),
         devices,
       };
     },
