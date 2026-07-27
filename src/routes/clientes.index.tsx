@@ -20,6 +20,7 @@ import {
   Filter,
   Globe2,
   RefreshCw,
+  Search,
   HardDrive,
   MessageCircle,
   Monitor,
@@ -67,6 +68,9 @@ import { toast } from "sonner";
 
 const clientesSearchSchema = z.object({
   grupo: fallback(z.string(), "").optional(),
+  q: fallback(z.string(), "").optional(),
+  campo: fallback(z.string(), "").optional(),
+  status: fallback(z.string(), "").optional(),
 });
 
 export const Route = createFileRoute("/clientes/")({
@@ -219,7 +223,51 @@ const terminals = [
   ["01", "177.21.58.91", "P:/PROGEST/", "11/05/2026", "26/05/2026 11:29"],
 ];
 
-type StatusFilter = "Todos" | "Ativo" | "Inativo";
+type StatusFilter =
+  | "Todos"
+  | "Ativo"
+  | "Inativo"
+  | "Pendente"
+  | "Bloqueado"
+  | "Aviso do Cliente"
+  | "Mensagem no Hádron";
+
+const QUICK_STATUS_OPTIONS: StatusFilter[] = [
+  "Inativo",
+  "Ativo",
+  "Pendente",
+  "Bloqueado",
+  "Aviso do Cliente",
+  "Mensagem no Hádron",
+  "Todos",
+];
+
+type QuickField =
+  | "sigla"
+  | "siglaGrupo"
+  | "nome"
+  | "razaoSocial"
+  | "fantasia"
+  | "porte"
+  | "ramo"
+  | "cep"
+  | "cidade"
+  | "uf"
+  | "cnpj";
+
+const QUICK_FIELD_OPTIONS: { value: QuickField; label: string }[] = [
+  { value: "sigla", label: "Sigla" },
+  { value: "siglaGrupo", label: "Sigla do grupo" },
+  { value: "nome", label: "Nome (apelido)" },
+  { value: "razaoSocial", label: "Razão social" },
+  { value: "fantasia", label: "Nome fantasia" },
+  { value: "porte", label: "Porte" },
+  { value: "ramo", label: "Ramo" },
+  { value: "cep", label: "CEP" },
+  { value: "cidade", label: "Cidade" },
+  { value: "uf", label: "UF" },
+  { value: "cnpj", label: "CNPJ" },
+];
 
 type Filters = {
   sigla: string;
@@ -285,7 +333,7 @@ function countActive(f: Filters): number {
   if (f.cidade.trim()) n++;
   if (f.uf) n++;
   if (f.cnpj.trim()) n++;
-  if (f.status !== "Todos") n++;
+  // Status é controlado na barra rápida; não conta como filtro avançado.
   if (f.dateStart || f.dateEnd) n++;
   return n;
 }
@@ -466,12 +514,22 @@ function ClientVersionCell({ client }: { client: ClientRow }) {
 
 function ClientsPage() {
   const { clients } = Route.useLoaderData() as { clients: ClientRow[] };
-  const { grupo } = Route.useSearch();
+  const { grupo, q, campo, status: statusParam } = Route.useSearch();
   const navigate = useNavigate();
   const grupoParam = (grupo ?? "").trim().toUpperCase();
+  const initialStatus = (QUICK_STATUS_OPTIONS as string[]).includes(statusParam ?? "")
+    ? (statusParam as StatusFilter)
+    : "Ativo";
   const [filters, setFilters] = useState<Filters>(() =>
-    grupoParam ? { ...emptyFilters, siglaGrupo: grupoParam } : lastFilters,
+    grupoParam
+      ? { ...emptyFilters, siglaGrupo: grupoParam, status: initialStatus }
+      : { ...lastFilters, status: initialStatus },
   );
+  const [quickField, setQuickField] = useState<QuickField>(() =>
+    QUICK_FIELD_OPTIONS.some((o) => o.value === campo) ? (campo as QuickField) : "sigla",
+  );
+  const [quickQuery, setQuickQuery] = useState(() => q ?? "");
+  const [quickDraft, setQuickDraft] = useState(() => q ?? "");
   const [draft, setDraft] = useState<Filters>(() => filters);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [page, setPage] = useState(1);
@@ -482,6 +540,10 @@ function ClientsPage() {
     setPage(1);
   }, [filters]);
 
+  useEffect(() => {
+    setPage(1);
+  }, [quickQuery, quickField]);
+
   // Sincroniza URL <-> filtro de grupo. Ao entrar via ?grupo=XXX, descarta qualquer
   // filtro anterior (sigla, busca etc.) para exibir todas as empresas do grupo.
   useEffect(() => {
@@ -490,23 +552,31 @@ function ClientsPage() {
         p.siglaGrupo.toUpperCase() === grupoParam &&
         !p.sigla && !p.nome && !p.razaoSocial && !p.fantasia &&
         !p.porte && !p.ramo && !p.cep && !p.cidade && !p.uf && !p.cnpj &&
-        p.status === "Todos" && !p.dateStart && !p.dateEnd
+        !p.dateStart && !p.dateEnd
           ? p
-          : { ...emptyFilters, siglaGrupo: grupoParam },
+          : { ...emptyFilters, siglaGrupo: grupoParam, status: p.status },
       );
     }
   }, [grupoParam]);
 
+  // Mantém a URL em sinc com a pesquisa rápida, o grupo e o status.
   useEffect(() => {
     const current = filters.siglaGrupo.trim().toUpperCase();
-    if (current !== grupoParam) {
-      navigate({
-        to: "/clientes",
-        search: current ? { grupo: current } : {},
-        replace: true,
-      });
+    const next: Record<string, string> = {};
+    if (current) next.grupo = current;
+    if (quickQuery.trim()) next.q = quickQuery.trim();
+    if (quickField !== "sigla") next.campo = quickField;
+    if (filters.status !== "Ativo") next.status = filters.status;
+    const same =
+      (next.grupo ?? "") === grupoParam &&
+      (next.q ?? "") === (q ?? "") &&
+      (next.campo ?? "") === (campo ?? "") &&
+      (next.status ?? "") === (statusParam ?? "");
+    if (!same) {
+      navigate({ to: "/clientes", search: next, replace: true });
     }
-  }, [filters.siglaGrupo]);
+  }, [filters.siglaGrupo, filters.status, quickQuery, quickField]);
+
 
   useEffect(() => {
     setPage(1);
@@ -517,7 +587,42 @@ function ClientsPage() {
   }, [filtersOpen, filters]);
 
   const filtered = useMemo(() => {
+    const quick = quickQuery.trim();
+    const quickMatches = (c: ClientRow) => {
+      if (!quick) return true;
+      switch (quickField) {
+        case "sigla":
+          return normalize(c.acronym).includes(normalize(quick));
+        case "siglaGrupo":
+          return (
+            normalize(c.group).includes(normalize(quick)) ||
+            normalize(c.acronym) === normalize(quick)
+          );
+        case "nome":
+          return normalize(c.name).includes(normalize(quick));
+        case "razaoSocial":
+          return normalize(c.razaoSocial).includes(normalize(quick));
+        case "fantasia":
+          return normalize(c.fantasia).includes(normalize(quick));
+        case "porte":
+          return normalize(c.size).includes(normalize(quick));
+        case "ramo":
+          return normalize(c.segment).includes(normalize(quick));
+        case "cep":
+          return digits(c.cep).includes(digits(quick));
+        case "cidade":
+          return normalize(c.city).includes(normalize(quick));
+        case "uf":
+          return normalize(c.uf).includes(normalize(quick));
+        case "cnpj":
+          return digits(c.cnpj).includes(digits(quick));
+        default:
+          return true;
+      }
+    };
     return clients.filter((c) => {
+      if (!quickMatches(c)) return false;
+
       if (filters.sigla && !normalize(c.acronym).includes(normalize(filters.sigla))) return false;
       if (filters.siglaGrupo) {
         // Match tanto o group_acronym quanto a sigla do próprio cliente (raiz).
@@ -557,7 +662,7 @@ function ClientsPage() {
       }
       return true;
     });
-  }, [clients, filters]);
+  }, [clients, filters, quickQuery, quickField]);
 
   const sizes = useMemo(() => Array.from(new Set(clients.map((c) => c.size))).sort(), [clients]);
   const segments = useMemo(() => Array.from(new Set(clients.map((c) => c.segment))).sort(), [clients]);
@@ -653,11 +758,86 @@ function ClientsPage() {
         breadcrumbs={[{ label: "Clientes" }]}
       />
 
-      <div className="mb-4 flex justify-end">
+      <div className="mb-4 flex w-full min-w-0 flex-wrap items-center gap-2 lg:flex-nowrap">
+        {/* Campo de pesquisa rápida */}
+        <div className="relative min-w-[200px] flex-[2]">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <input
+            value={quickDraft}
+            onChange={(e) => setQuickDraft(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                setQuickQuery(quickDraft);
+              }
+            }}
+            type="search"
+            placeholder="Digite para pesquisar..."
+            aria-label="Pesquisa rápida de clientes"
+            className="h-10 w-full rounded-lg border border-border bg-background pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+          />
+        </div>
+
+        {/* Tipo de filtro */}
+        <select
+          value={quickField}
+          onChange={(e) => {
+            setQuickField(e.target.value as QuickField);
+            setQuickQuery(quickDraft);
+          }}
+          aria-label="Filtro"
+          className="h-10 min-w-[150px] flex-1 cursor-pointer rounded-lg border border-border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+        >
+          {QUICK_FIELD_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+
+        {/* Pesquisa avançada (abre o painel existente) */}
+        <button
+          type="button"
+          onClick={() => setFiltersOpen(true)}
+          aria-label="Abrir pesquisa avançada"
+          className="flex h-10 min-w-[170px] flex-1 cursor-pointer items-center justify-between gap-2 rounded-lg border border-border bg-background px-3 text-sm text-foreground outline-none hover:bg-muted/50 focus:ring-2 focus:ring-ring"
+        >
+          <span className="truncate">Pesquisa avançada</span>
+          <SlidersHorizontal className="h-4 w-4 shrink-0 text-muted-foreground" />
+        </button>
+
+        {/* Status */}
+        <select
+          value={filters.status}
+          onChange={(e) => setFilters((p) => ({ ...p, status: e.target.value as StatusFilter }))}
+          aria-label="Status"
+          className="h-10 min-w-[150px] flex-1 cursor-pointer rounded-lg border border-border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+        >
+          {QUICK_STATUS_OPTIONS.map((s) => (
+            <option key={s} value={s}>
+              {s}
+            </option>
+          ))}
+        </select>
+
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => {
+            setQuickDraft("");
+            setQuickQuery("");
+            setQuickField("sigla");
+            setFilters({ ...emptyFilters, status: "Ativo" });
+          }}
+          className="h-10 shrink-0 cursor-pointer rounded-lg px-4 text-sm font-medium"
+        >
+          Limpar
+        </Button>
+
         <Button
           type="button"
           onClick={() => setFiltersOpen(true)}
-          className="h-10 cursor-pointer gap-2 rounded-lg bg-blue-600 px-4 text-sm font-medium text-primary-foreground shadow-md hover:bg-blue-700"
+          className="h-10 shrink-0 cursor-pointer gap-2 rounded-lg bg-blue-600 px-4 text-sm font-medium text-primary-foreground shadow-md hover:bg-blue-700"
         >
           <Filter className="h-4 w-4" />
           Filtros
@@ -668,6 +848,7 @@ function ClientsPage() {
           )}
         </Button>
       </div>
+
 
       {chips.length > 0 && (
         <div className="mb-3 flex flex-wrap items-center gap-2">
