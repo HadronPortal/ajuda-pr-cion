@@ -1750,6 +1750,11 @@ export function ClientTab({
   activities: ClientTicketActivity[];
   onOpenCompanies?: () => void;
 }) {
+  const clientLocalEvents = useLocalEventsForClient(client.id);
+  const eventsWithLocal = useMemo(
+    () => [...events, ...localToClientEvents(clientLocalEvents)],
+    [events, clientLocalEvents],
+  );
 
   const company = companies[0];
   const companyCityUf = normalizeCityUf(
@@ -1827,11 +1832,11 @@ export function ClientTab({
 
       {/* Linha 4: Próximo evento + Histórico + Atividade recente */}
       <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-        <ClientNextEvent client={client} events={events} tickets={tickets} />
+        <ClientNextEvent client={client} events={eventsWithLocal} tickets={tickets} />
         <Section title="Agendamentos e atendimentos" icon={HardDrive}>
-          <SupportRowsCompact tickets={tickets} events={events} />
+          <SupportRowsCompact tickets={tickets} events={eventsWithLocal} />
         </Section>
-        <RecentActivityCard activities={activities} events={events} />
+        <RecentActivityCard activities={activities} events={eventsWithLocal} />
       </div>
     </div>
   );
@@ -2137,18 +2142,8 @@ function SupportRowsCompact({ tickets, events }: { tickets: ClientTicket[]; even
   );
 }
 
-function ClientNextEvent({
-  client,
-  events,
-  tickets,
-}: {
-  client: ClientRow;
-  events: ClientEvent[];
-  tickets: ClientTicket[];
-}) {
-  const [createOpen, setCreateOpen] = useState(false);
-  const localEvents = useLocalEventsForClient(client.id);
-  const localAsClientEvents: ClientEvent[] = localEvents.map((item) => ({
+function localToClientEvents(localEvents: ReturnType<typeof useLocalEventsForClient>): ClientEvent[] {
+  return localEvents.map((item) => ({
     id: String(item.id),
     title: item.title,
     description: item.description || "",
@@ -2162,8 +2157,20 @@ function ClientNextEvent({
     ticketProtocol: "",
     legacyTicketId: "",
   }));
-  const allEvents = [...events, ...localAsClientEvents];
-  const event = allEvents
+}
+
+function ClientNextEvent({
+  client,
+  events,
+  tickets,
+}: {
+  client: ClientRow;
+  events: ClientEvent[];
+  tickets: ClientTicket[];
+}) {
+  const [createOpen, setCreateOpen] = useState(false);
+  const localEvents = useLocalEventsForClient(client.id);
+  const event = events
     .filter((item) => item.status === "scheduled" && new Date(item.startsAtIso).getTime() >= Date.now())
     .sort((left, right) => left.startsAtIso.localeCompare(right.startsAtIso))[0];
   const scheduledTicket = tickets.find((ticket) => ticket.status.toLowerCase() === "scheduled");
