@@ -722,7 +722,7 @@ function ClientsPage() {
         breadcrumbs={[{ label: "Clientes" }]}
       />
 
-      <div className="mb-4">
+      <div className="mb-3">
         <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-[200px_minmax(240px,1fr)_170px_160px]">
           <label className="relative block min-w-0">
             <span className="sr-only">Pesquisar por sigla</span>
@@ -731,7 +731,7 @@ function ClientsPage() {
               onChange={(event) => setQuickAcronym(event.target.value)}
               type="search"
               placeholder="Sigla"
-              className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/20"
+              className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/20"
             />
           </label>
 
@@ -752,7 +752,7 @@ function ClientsPage() {
               }}
               type="search"
               placeholder="Pesquisa geral"
-              className="h-10 w-full rounded-md border border-input bg-background pl-9 pr-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/20"
+              className="h-9 w-full rounded-md border border-input bg-background pl-9 pr-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/20"
             />
           </label>
 
@@ -766,7 +766,7 @@ function ClientsPage() {
                   status: event.target.value as StatusFilter,
                 }))
               }
-              className="h-10 w-full cursor-pointer rounded-md border border-input bg-background px-3 text-sm outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/20"
+              className="h-9 w-full cursor-pointer rounded-md border border-input bg-background px-3 text-sm outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/20"
             >
               {QUICK_STATUS_OPTIONS.map((status) => (
                 <option key={status} value={status}>
@@ -779,7 +779,7 @@ function ClientsPage() {
           <Button
             type="button"
             onClick={() => setFiltersOpen(true)}
-            className="relative h-10 w-full cursor-pointer justify-center gap-2 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white shadow-md hover:bg-blue-700"
+            className="relative h-9 w-full cursor-pointer justify-center gap-2 rounded-md bg-blue-600 px-4 text-sm font-medium text-white shadow-sm hover:bg-blue-700"
           >
             <Filter className="h-4 w-4" />
             Filtros
@@ -795,6 +795,7 @@ function ClientsPage() {
 
       {chips.length > 0 && (
         <div className="mb-3 flex flex-wrap items-center gap-2">
+          <span className="text-xs font-medium text-muted-foreground">Filtros:</span>
           {chips.map((chip) => (
             <span
               key={chip.key}
