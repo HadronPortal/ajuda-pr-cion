@@ -71,6 +71,7 @@ import { addLocalEvent, useLocalEventsForClient } from "@/lib/local-events-store
 
 const clientesSearchSchema = z.object({
   grupo: fallback(z.string(), "").optional(),
+  origem: fallback(z.string(), "").optional(),
   q: fallback(z.string(), "").optional(),
   campo: fallback(z.string(), "").optional(),
   sigla: fallback(z.string(), "").optional(),
@@ -492,7 +493,7 @@ function ClientVersionCell({ client }: { client: ClientRow }) {
 
 function ClientsPage() {
   const { clients } = Route.useLoaderData() as { clients: ClientRow[] };
-  const { grupo, q, sigla: siglaParam, status: statusParam } = Route.useSearch();
+  const { grupo, origem, q, sigla: siglaParam, status: statusParam } = Route.useSearch();
   const navigate = useNavigate();
   const grupoParam = (grupo ?? "").trim().toUpperCase();
   const initialStatus = (QUICK_STATUS_OPTIONS as string[]).includes(statusParam ?? "")
@@ -541,11 +542,13 @@ function ClientsPage() {
     const current = filters.siglaGrupo.trim().toUpperCase();
     const next: Record<string, string> = {};
     if (current) next.grupo = current;
+    if (current && origem) next.origem = origem;
     if (quickQuery.trim()) next.q = quickQuery.trim();
     if (quickAcronym.trim()) next.sigla = quickAcronym.trim();
     if (filters.status !== "Ativo") next.status = filters.status;
     const same =
       (next.grupo ?? "") === grupoParam &&
+      (next.origem ?? "") === (origem ?? "") &&
       (next.q ?? "") === (q ?? "") &&
       (next.sigla ?? "") === (siglaParam ?? "") &&
       (next.status ?? "") === (statusParam ?? "");
@@ -725,14 +728,22 @@ function ClientsPage() {
             variant="outline"
             size="sm"
             onClick={() => {
+              if (origem) {
+                navigate({
+                  to: "/clientes/$clienteId",
+                  params: { clienteId: origem },
+                  search: { tab: "cliente" },
+                });
+                return;
+              }
               setFilters((previous) => ({ ...previous, siglaGrupo: "" }));
               navigate({ to: "/clientes", search: {}, replace: true });
             }}
             className="h-8 cursor-pointer rounded-lg"
-            aria-label="Voltar para Clientes"
+            aria-label={origem ? "Voltar para o cliente" : "Voltar para Clientes"}
           >
             <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
-            Voltar para Clientes
+            {origem ? "Voltar para o cliente" : "Voltar para Clientes"}
           </Button>
         </div>
       )}

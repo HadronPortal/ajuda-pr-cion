@@ -181,7 +181,7 @@ function ClientDetailPage() {
                   {groupCode ? (
                     <Link
                       to="/clientes"
-                      search={{ grupo: groupCode }}
+                      search={{ grupo: groupCode, origem: client.id }}
                       className="cursor-pointer text-sm font-medium text-primary hover:underline"
                       title={`Ver clientes do grupo ${groupCode}`}
                     >
@@ -213,7 +213,7 @@ function ClientDetailPage() {
                 title="Ver clientes deste grupo"
                 className="h-9 cursor-pointer gap-1.5 rounded-full border-primary/30 bg-primary/5 px-3.5 text-[12.5px] font-medium text-primary hover:bg-primary/10"
               >
-                <Link to="/clientes" search={{ grupo: groupCode }}>
+                <Link to="/clientes" search={{ grupo: groupCode, origem: client.id }}>
                   <Network className="h-3.5 w-3.5" />
                   Ver clientes do grupo {groupCode} ({groupMembersCount})
                 </Link>
