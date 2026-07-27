@@ -17,7 +17,6 @@ import {
   Cpu,
   Database,
   FileText,
-  Filter,
   Globe2,
   RefreshCw,
   Search,
@@ -758,96 +757,79 @@ function ClientsPage() {
         breadcrumbs={[{ label: "Clientes" }]}
       />
 
-      <div className="mb-4 flex w-full min-w-0 flex-wrap items-center gap-2 lg:flex-nowrap">
-        {/* Campo de pesquisa rápida */}
-        <div className="relative min-w-[200px] flex-[2]">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <input
-            value={quickDraft}
-            onChange={(e) => setQuickDraft(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
+      <Card className="mb-4 p-3 shadow-sm">
+        <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-[minmax(280px,1fr)_180px_190px_170px]">
+          <label className="relative block min-w-0">
+            <span className="sr-only">Pesquisar clientes</span>
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              value={quickDraft}
+              onChange={(event) => {
+                setQuickDraft(event.target.value);
+                setQuickQuery(event.target.value);
+              }}
+              type="search"
+              placeholder="Digite para pesquisar..."
+              className="h-10 w-full rounded-md border border-input bg-background pl-9 pr-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/20"
+            />
+          </label>
+
+          <label>
+            <span className="sr-only">Campo da pesquisa</span>
+            <select
+              value={quickField}
+              onChange={(event) => {
+                setQuickField(event.target.value as QuickField);
                 setQuickQuery(quickDraft);
-              }
-            }}
-            type="search"
-            placeholder="Digite para pesquisar..."
-            aria-label="Pesquisa rápida de clientes"
-            className="h-10 w-full rounded-lg border border-border bg-background pl-9 pr-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-          />
-        </div>
+              }}
+              className="h-10 w-full cursor-pointer rounded-md border border-input bg-background px-3 text-sm outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/20"
+            >
+              {QUICK_FIELD_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
 
-        {/* Tipo de filtro */}
-        <select
-          value={quickField}
-          onChange={(e) => {
-            setQuickField(e.target.value as QuickField);
-            setQuickQuery(quickDraft);
-          }}
-          aria-label="Filtro"
-          className="h-10 min-w-[150px] flex-1 cursor-pointer rounded-lg border border-border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-        >
-          {QUICK_FIELD_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
-          ))}
-        </select>
-
-        {/* Pesquisa avançada (abre o painel existente) */}
-        <button
-          type="button"
-          onClick={() => setFiltersOpen(true)}
-          aria-label="Abrir pesquisa avançada"
-          className="flex h-10 min-w-[170px] flex-1 cursor-pointer items-center justify-between gap-2 rounded-lg border border-border bg-background px-3 text-sm text-foreground outline-none hover:bg-muted/50 focus:ring-2 focus:ring-ring"
-        >
-          <span className="truncate">Pesquisa avançada</span>
-          <SlidersHorizontal className="h-4 w-4 shrink-0 text-muted-foreground" />
-        </button>
-
-        {/* Status */}
-        <select
-          value={filters.status}
-          onChange={(e) => setFilters((p) => ({ ...p, status: e.target.value as StatusFilter }))}
-          aria-label="Status"
-          className="h-10 min-w-[150px] flex-1 cursor-pointer rounded-lg border border-border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-        >
-          {QUICK_STATUS_OPTIONS.map((s) => (
-            <option key={s} value={s}>
-              {s}
-            </option>
-          ))}
-        </select>
-
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => {
-            setQuickDraft("");
-            setQuickQuery("");
-            setQuickField("sigla");
-            setFilters({ ...emptyFilters, status: "Ativo" });
-          }}
-          className="h-10 shrink-0 cursor-pointer rounded-lg px-4 text-sm font-medium"
-        >
-          Limpar
-        </Button>
-
-        <Button
-          type="button"
-          onClick={() => setFiltersOpen(true)}
-          className="h-10 shrink-0 cursor-pointer gap-2 rounded-lg bg-blue-600 px-4 text-sm font-medium text-primary-foreground shadow-md hover:bg-blue-700"
-        >
-          <Filter className="h-4 w-4" />
-          Filtros
-          {activeCount > 0 && (
-            <span className="ml-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-white/25 px-1.5 text-[11px] font-semibold">
-              {activeCount}
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setFiltersOpen(true)}
+            className="h-10 cursor-pointer justify-between gap-3 rounded-md px-3 text-sm font-normal"
+          >
+            <span>Pesquisa avançada</span>
+            <span className="flex shrink-0 items-center gap-2">
+              {activeCount > 0 && (
+                <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[11px] font-semibold text-primary-foreground">
+                  {activeCount}
+                </span>
+              )}
+              <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
             </span>
-          )}
-        </Button>
-      </div>
+          </Button>
+
+          <label>
+            <span className="sr-only">Status do cliente</span>
+            <select
+              value={filters.status}
+              onChange={(event) =>
+                setFilters((previous) => ({
+                  ...previous,
+                  status: event.target.value as StatusFilter,
+                }))
+              }
+              className="h-10 w-full cursor-pointer rounded-md border border-input bg-background px-3 text-sm outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/20"
+            >
+              {QUICK_STATUS_OPTIONS.map((status) => (
+                <option key={status} value={status}>
+                  {status}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      </Card>
 
 
       {chips.length > 0 && (
@@ -868,13 +850,6 @@ function ClientsPage() {
               </button>
             </span>
           ))}
-          <button
-            type="button"
-            onClick={() => setFilters(emptyFilters)}
-            className="cursor-pointer text-xs text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-          >
-            Limpar todos
-          </button>
         </div>
       )}
 
