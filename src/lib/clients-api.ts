@@ -53,7 +53,9 @@ export type ClientHadronUser = {
   email: string;
   operator: string;
   role: string;
+  status: string;
   active: boolean;
+  createdAt: string;
   updatedAt: string;
 };
 
@@ -407,7 +409,9 @@ export async function getClientDetail(acronym: string): Promise<ClientDetail | n
       email: String(user.email || ""),
       operator: String(user.operator || ""),
       role: String(user.role || ""),
+      status: String(user.status || ""),
       active: user.active !== false,
+      createdAt: date(user.crm_created_at, true),
       updatedAt: date(user.crm_updated_at || user.crm_created_at, true),
     }),
   );

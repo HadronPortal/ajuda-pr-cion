@@ -2714,20 +2714,24 @@ export function ClientHadronTab({
 
 export function ClientUsersTab({ users }: { users: ClientHadronUser[] }) {
   return (
-    <Section title="Usuarios do portal" icon={UsersRound}>
+    <Section title={`Usuários do portal (${users.length})`} icon={UsersRound}>
       {users.length ? (
         <DataTable
-          headers={["Nome", "E-mail", "Operador", "Perfil", "Status", "Cadastro / atualizacao"]}
+          headers={["Nome", "E-mail", "Operador", "Perfil", "Situação", "Ativo", "Datas"]}
           rows={users.map((user) => [
-            user.name,
-            user.email,
+            user.name || "-",
+            user.email || "-",
             user.operator || "-",
             user.role || "-",
-            user.active ? "Ativo" : "Inativo",
-            user.updatedAt || "-",
+            user.status || "-",
+            user.active ? "Sim" : "Não",
+            <span className="space-y-0.5 text-xs">
+              <span className="block">{user.createdAt || "-"}</span>
+              <span className="block">{user.updatedAt || "-"}</span>
+            </span>,
           ])}
         />
-      ) : <EmptyState text="Nenhum usuario vinculado a este cliente." />}
+      ) : <EmptyState text="Nenhum usuário vinculado a este cliente." />}
     </Section>
   );
 }
