@@ -63,6 +63,7 @@ import type {
 } from "@/lib/clients-api";
 import { normalizeCityUf } from "@/lib/br-city";
 import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
 
 const clientesSearchSchema = z.object({
   grupo: fallback(z.string(), "").optional(),
@@ -1256,7 +1257,36 @@ function formatPhoneBR(raw: string): string {
   return raw.trim();
 }
 
-type ContactLine = { key: string; value: string; display: string; description: string; href: string };
+type ContactLine = {
+  key: string;
+  value: string;
+  display: string;
+  description: string;
+  href: string;
+  kind: "phone" | "email";
+};
+
+async function copyContactValue(item: ContactLine) {
+  const text = item.value;
+  try {
+    if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      const el = document.createElement("textarea");
+      el.value = text;
+      el.setAttribute("readonly", "");
+      el.style.position = "fixed";
+      el.style.opacity = "0";
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand("copy");
+      document.body.removeChild(el);
+    }
+    toast.success(item.kind === "phone" ? "Telefone copiado" : "E-mail copiado");
+  } catch {
+    toast.error("Não foi possível copiar.");
+  }
+}
 
 function buildContactLines(
   contacts: ClientContact[],
@@ -1279,10 +1309,11 @@ function buildContactLines(
         const digits = trimmed.replace(/\D+/g, "");
         out.push({
           key: `${c.id}-${digits || trimmed}`,
-          value: trimmed,
+          value: formatPhoneBR(trimmed),
           display: formatPhoneBR(trimmed),
           description,
           href: `tel:${digits || trimmed}`,
+          kind,
         });
       } else {
         const lower = trimmed.toLowerCase();
@@ -1292,12 +1323,14 @@ function buildContactLines(
           display: lower,
           description,
           href: `mailto:${lower}`,
+          kind,
         });
       }
     }
   }
   return out;
 }
+
 
 function ContactsCard({
   contacts,
@@ -1353,7 +1386,7 @@ function ContactsCard({
                 className="cursor-pointer gap-1.5 rounded-full border-primary/25 px-4 text-xs font-medium text-primary hover:bg-primary/10 hover:text-primary"
                 onClick={() => setOpen(true)}
               >
-                Ver todos os {total} contatos
+                Ver todos os contatos
                 <ChevronRight className="h-3.5 w-3.5" />
               </Button>
             </div>
@@ -1393,9 +1426,12 @@ function ContactPreviewList({
         <ul className="space-y-1.5">
           {items.map((item) => (
             <li key={item.key}>
-              <a
-                href={item.href}
-                className="group flex min-w-0 cursor-pointer items-start gap-2 rounded-md px-2 py-1.5 transition hover:bg-accent/60"
+              <button
+                type="button"
+                onClick={() => void copyContactValue(item)}
+                title={`Copiar ${item.kind === "phone" ? "telefone" : "e-mail"}`}
+                aria-label={`Copiar ${item.kind === "phone" ? "telefone" : "e-mail"} ${item.display}`}
+                className="group flex w-full min-w-0 cursor-pointer items-start gap-2 rounded-md px-2 py-1.5 text-left transition hover:bg-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <Icon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground group-hover:text-foreground" />
                 <span className="min-w-0 flex-1">
@@ -1408,7 +1444,7 @@ function ContactPreviewList({
                     </span>
                   )}
                 </span>
-              </a>
+              </button>
             </li>
           ))}
         </ul>
@@ -1549,9 +1585,12 @@ function ContactGrid({ items, icon: Icon }: { items: ContactLine[]; icon: typeof
     <ul className="grid gap-2 md:grid-cols-2">
       {items.map((item) => (
         <li key={item.key}>
-          <a
-            href={item.href}
-            className="group flex min-w-0 cursor-pointer items-start gap-2 rounded-md border border-border/60 bg-background px-3 py-2 transition hover:border-primary/40 hover:bg-accent/40"
+          <button
+            type="button"
+            onClick={() => void copyContactValue(item)}
+            title={`Copiar ${item.kind === "phone" ? "telefone" : "e-mail"}`}
+            aria-label={`Copiar ${item.kind === "phone" ? "telefone" : "e-mail"} ${item.display}`}
+            className="group flex w-full min-w-0 cursor-pointer items-start gap-2 rounded-md border border-border/60 bg-background px-3 py-2 text-left transition hover:border-primary/40 hover:bg-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <Icon className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground group-hover:text-foreground" />
             <span className="min-w-0 flex-1">
@@ -1564,7 +1603,7 @@ function ContactGrid({ items, icon: Icon }: { items: ContactLine[]; icon: typeof
                 </span>
               )}
             </span>
-          </a>
+          </button>
         </li>
       ))}
     </ul>
