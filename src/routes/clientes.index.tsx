@@ -1386,7 +1386,7 @@ function ContactsCard({
                 className="cursor-pointer gap-1.5 rounded-full border-primary/25 px-4 text-xs font-medium text-primary hover:bg-primary/10 hover:text-primary"
                 onClick={() => setOpen(true)}
               >
-                Ver todos os {total} contatos
+                Ver todos os contatos
                 <ChevronRight className="h-3.5 w-3.5" />
               </Button>
             </div>
