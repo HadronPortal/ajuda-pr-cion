@@ -29,7 +29,7 @@ function MiniSummary({ label, value }: { label: string; value: string }) {
   );
 }
 
-import { getClientDetail } from "@/lib/clients-api";
+import { getClientDetail, type ClientDetail } from "@/lib/clients-api";
 import { normalizeCityUf } from "@/lib/br-city";
 import { useClients, resolveGroupCode, getGroupMembers } from "@/lib/clients-store";
 
