@@ -2,7 +2,7 @@ import { supabase } from "@/lib/supabase";
 import { normalizeCityName } from "@/lib/br-city";
 import type { ClientRow } from "@/routes/clientes.index";
 
-type DatabaseClient = Record<string, string | boolean | null>;
+type DatabaseClient = Record<string, unknown>;
 
 export type ClientContact = {
   id: string;
@@ -305,6 +305,7 @@ export function mapDatabaseClient(c: DatabaseClient): ClientRow {
     cep: String(c.postal_code || ""),
     cnpj: formatCnpj(c.document),
     status: c.active ? "Ativo" : "Inativo",
+    sourcePayload: parseJsonField(c.source_payload),
   };
 }
 

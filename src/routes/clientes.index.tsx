@@ -126,6 +126,7 @@ export type ClientRow = {
   cep: string;
   cnpj: string;
   status: "Ativo" | "Inativo";
+  sourcePayload?: Record<string, unknown>;
 };
 
 export const clientRows: ClientRow[] = [
@@ -2469,39 +2470,74 @@ export function ClientHadronTab({
 }) {
   const contracted = modules.filter((item) => item.contracted);
   const unavailable = modules.filter((item) => !item.contracted);
-  const terminal = terminals[0];
-  const serial = terminal?.serialNumber
-    ? `${client.acronym} - ${terminal.serialNumber}`
-    : client.acronym;
-  const environmentFields: Array<[string, string]> = [
-    ["Serial", serial],
-    ["Versão", terminal?.version || client.version || "Não informada"],
-    ["Terminais", String(terminals.length)],
-    ["Última instalação", terminal?.registeredAt || "Não informada"],
-    ["Última atualização", terminal?.updatedAt || client.versionUpdatedAt || "Não informada"],
-    ["IP", terminal?.ipAddress || "Não informado"],
-    ["Pasta de instalação", terminal?.installPath || "Não informada"],
-    [
-      "Sistema operacional",
-      [terminal?.operatingSystem, terminal?.operatingSystemVersion].filter(Boolean).join(" ") ||
-        "Não informado",
-    ],
-    [
-      "Emite NF-e",
-      terminal?.emitsNfe == null ? "Não informado" : terminal.emitsNfe ? "Sim" : "Não",
-    ],
-    ["Ambiente", terminal?.environment || "Não informado"],
-  ];
+  const payload = client.sourcePayload || {};
+  const text = (key: string) => String(payload[key] ?? "").trim();
+  const parseLegacyValue = (key: string): unknown => {
+    const value = payload[key];
+    if (value && typeof value === "object") {
+      return value;
+    }
+    try {
+      return JSON.parse(String(value || "[]"));
+    } catch {
+      return [];
+    }
+  };
+  const hasLegacySelection = (value: unknown, ...keys: string[]) => {
+    if (Array.isArray(value)) {
+      return keys.some((key) => value.some((item) => String(item).toLowerCase() === key));
+    }
+    if (!value || typeof value !== "object") return false;
+    const record = value as Record<string, unknown>;
+    return keys.some((key) => Object.prototype.hasOwnProperty.call(record, key));
+  };
+  const hasAnyLegacySelection = (value: unknown) =>
+    Array.isArray(value)
+      ? value.length > 0
+      : Boolean(value && typeof value === "object" && Object.keys(value).length);
+  const serial = [text("cli_serial1") || client.acronym, text("cli_serial2"), text("cli_serial3")]
+    .filter(Boolean)
+    .join(" - ");
+  const responsibles = [text("cli_operador_resp1"), text("cli_operador_resp2")]
+    .filter(Boolean)
+    .join("/");
+  const fiscalDocuments = parseLegacyValue("cli_docs_fiscais");
+  const fiscalOptions = [
+    ["nfe", "NF-e"],
+    ["cte", "CT-e"],
+    ["nfce", "NFC-e"],
+    ["nfse", "NFS-e"],
+    ["mdfe", "MDF-e"],
+    ["ecf-sat", "SAT"],
+  ] as const;
+  const usesNoFiscalDocument = hasLegacySelection(
+    fiscalDocuments,
+    "no",
+    "nao",
+    "nao_utiliza",
+    "naoutiliza",
+  );
+  const importedData = parseLegacyValue("cli_import_dados");
+  const importedDataOptions = [
+    ["produtos", "Produtos"],
+    ["terceiros", "Terceiros"],
+    ["estoque", "Estoque"],
+  ] as const;
+  const yesNo = (value: string) => (value === "1" ? "SIM" : "NÃO");
+  const networkLabel =
+    ({ cabo: "Cabo", wireless: "Wireless", wifi: "Wi-Fi", "wi-fi": "Wi-Fi", "0": "Não informada" } as Record<
+      string,
+      string
+    >)[text("cli_config_rede").toLowerCase()] ||
+    text("cli_config_rede") ||
+    "Não informada";
+  const terminalCount = text("cli_nterminais") || String(terminals.length);
 
   return (
     <Section title="Hádron" icon={HadronMenuIcon}>
-      <div className="grid gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-        {environmentFields.map(([label, value]) => (
-          <Field key={label} label={label} value={value} />
-        ))}
+      <div className="mb-5">
+        <Field label="Serial" value={serial || "Não informado"} />
       </div>
-
-      <div className="my-5 border-t border-border" />
 
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <h4 className="text-sm font-medium">Módulos</h4>
@@ -2533,6 +2569,104 @@ export function ClientHadronTab({
       ) : (
         <EmptyState text="Nenhum módulo cadastrado para este cliente." />
       )}
+
+      <div className="my-6 border-t border-border" />
+
+      <div className="space-y-6">
+        <div>
+          <h4 className="mb-3 text-sm font-medium">Responsáveis</h4>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Responsáveis" value={responsibles || "Não informado"} />
+            <Field label="Tempo de instalação" value={text("cli_tmp_mod") || "Não informado"} />
+          </div>
+        </div>
+
+        <div>
+          <h4 className="mb-3 text-sm font-medium">Documentos fiscais</h4>
+          <div className="flex flex-wrap gap-x-5 gap-y-2">
+            {fiscalOptions.map(([key, label]) => {
+              const active = hasLegacySelection(fiscalDocuments, key);
+              return (
+                <span
+                  key={key}
+                  className={cn(
+                    "flex items-center gap-1.5 text-sm",
+                    !active && "text-muted-foreground",
+                  )}
+                >
+                  {active ? (
+                    <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                  ) : (
+                    <X className="h-4 w-4" />
+                  )}
+                  {label}
+                </span>
+              );
+            })}
+            <span
+              className={cn(
+                "flex items-center gap-1.5 text-sm",
+                !usesNoFiscalDocument && "text-muted-foreground",
+              )}
+            >
+              {usesNoFiscalDocument ? (
+                <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+              ) : (
+                <X className="h-4 w-4" />
+              )}
+              Não utiliza
+            </span>
+          </div>
+          <div className="mt-4">
+            <Field
+              label="Homologação das NF-e em conjunto com o cliente e contador?"
+              value={yesNo(text("cli_homo_nfes"))}
+            />
+          </div>
+        </div>
+
+        <div>
+          <h4 className="mb-3 text-sm font-medium">Configurações da rede</h4>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-4">
+              <Field label="Terminais" value={terminalCount || "Não informado"} />
+              <Field label="Configuração de rede" value={networkLabel} />
+            </div>
+            <div>
+              <p className="mb-2 text-xs uppercase text-muted-foreground">Importação de dados</p>
+              <div className="flex flex-wrap gap-x-5 gap-y-2">
+                {importedDataOptions.map(([key, label]) => {
+                  const active = hasLegacySelection(importedData, key);
+                  return (
+                    <span
+                      key={key}
+                      className={cn(
+                        "flex items-center gap-1.5 text-sm",
+                        !active && "text-muted-foreground",
+                      )}
+                    >
+                      {active ? (
+                        <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                      ) : (
+                        <X className="h-4 w-4" />
+                      )}
+                      {label}
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h4 className="mb-3 text-sm font-medium">Cobrança</h4>
+          <Field
+            label="Boleto bancário"
+            value={hasAnyLegacySelection(parseLegacyValue("cli_boleto_dados")) ? "SIM" : "NÃO"}
+          />
+        </div>
+      </div>
     </Section>
   );
 }
