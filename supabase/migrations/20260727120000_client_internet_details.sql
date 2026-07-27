@@ -1,3 +1,6 @@
+alter table public.auth_contratos
+  add column if not exists contract_key text;
+
 create or replace function public.get_crm_client(client_acronym text)
 returns jsonb
 language sql stable security definer set search_path = public
@@ -80,6 +83,7 @@ as $$
             jsonb_build_object(
               'id', contract.id,
               'legacy_id', contract.legacy_id,
+              'contract_key', contract.contract_key,
               'name', contract.name,
               'web_url', contract.web_url,
               'database_name', contract.database_name,

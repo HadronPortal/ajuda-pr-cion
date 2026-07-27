@@ -72,7 +72,9 @@ const safePayload = (row) =>
 const contractRows = tableRows(files.contracts);
 const applicationRows = tableRows(files.applications);
 const deviceRows = tableRows(files.devices).filter((row) => text(row.id_dis));
-if (!deviceRows.length) throw new Error("Nenhum dispositivo valido encontrado.");
+if (!contractRows.length && !applicationRows.length && !deviceRows.length) {
+  throw new Error("Nenhum registro valido de internet encontrado.");
+}
 
 const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
@@ -123,10 +125,12 @@ try {
     await pool.query(
       `
       insert into public.auth_contratos
-        (legacy_id, client_id, client_legacy_id, name, web_url, database_name, server_host,
-         status, active, starts_at, expires_at, crm_created_at, crm_updated_at, source_payload)
-      values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
+        (legacy_id, contract_key, client_id, client_legacy_id, name, web_url, database_name,
+         server_host, status, active, starts_at, expires_at, crm_created_at, crm_updated_at,
+         source_payload)
+      values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
       on conflict (legacy_id) do update set
+        contract_key=excluded.contract_key,
         client_id=excluded.client_id,
         client_legacy_id=excluded.client_legacy_id,
         name=excluded.name,
@@ -144,6 +148,7 @@ try {
     `,
       [
         legacyId,
+        firstText(row, ["con_chave", "con_key", "chave", "contract_key"]) || null,
         clientId,
         clientLegacyId || null,
         firstText(row, ["con_nome", "con_descricao", "descricao", "nome"]),

@@ -2864,7 +2864,7 @@ export function ClientInternetTab({ internet }: { internet: ClientInternet }) {
 
   return (
     <div className="space-y-5">
-      <Section title={`Contrato Web (${contracts.length})`} icon={Server}>
+      <Section title="Contrato Web" icon={Server}>
         {contracts.length ? (
           <div className="space-y-3">
             {contracts.map((contract) => {
@@ -2910,8 +2910,8 @@ export function ClientInternetTab({ internet }: { internet: ClientInternet }) {
                     </HadronDetail>
                     <HadronDetail icon={KeyRound}>
                       <Field
-                        label="Código do contrato"
-                        value={contract.legacyId || contract.id || "Não informado"}
+                        label="Chave do contrato"
+                        value={contract.contractKey || "Não informada"}
                       />
                     </HadronDetail>
                     <HadronDetail icon={Smartphone}>
@@ -2972,6 +2972,19 @@ export function ClientInternetTab({ internet }: { internet: ClientInternet }) {
             </div>
           ))}
         </div>
+        {catalog.find((app) => app.key === "web")?.contracted && webUrl && (
+          <div className="mt-5 flex items-center gap-3 border-t border-border pt-4">
+            <HadronMenuIcon className="h-5 w-5 shrink-0 text-primary" />
+            <div>
+              <p className="mb-2 text-sm font-medium">Hádron Web</p>
+              <Button asChild size="sm" className="h-8 cursor-pointer">
+                <a href={webUrl} target="_blank" rel="noreferrer">
+                  Configurar
+                </a>
+              </Button>
+            </div>
+          </div>
+        )}
         {otherApps.length > 0 && (
           <div className="mt-4">
             <p className="mb-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">

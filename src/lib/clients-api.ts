@@ -187,6 +187,7 @@ export type ClientTicketActivity = {
 export type ClientParameter = {
   id: string;
   legacyId: string;
+  contractKey: string;
   parameterLegacyId: string;
   optionLegacyId: string;
   signature: string;
@@ -477,6 +478,7 @@ export async function getClientDetail(acronym: string): Promise<ClientDetail | n
       return {
         id: String(contract.id || ""),
         legacyId: String(contract.legacy_id || ""),
+        contractKey: String(contract.contract_key || ""),
         name: String(contract.name || ""),
         webUrl: String(contract.web_url || ""),
         databaseName: String(contract.database_name || ""),
