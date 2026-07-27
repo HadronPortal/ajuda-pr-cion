@@ -240,6 +240,7 @@ export type ClientDetail = {
   client: ClientRow;
   contacts: ClientContact[];
   companies: ClientCompany[];
+  groupCompanies: ClientCompany[];
   users: ClientHadronUser[];
   terminals: ClientTerminal[];
   modules: ClientModule[];
@@ -421,13 +422,13 @@ export async function getClientDetail(acronym: string): Promise<ClientDetail | n
     }),
   );
 
-  const rawCompanies =
+  const rawGroupCompanies =
     Array.isArray(groupCompanyData) && groupCompanyData.length
       ? groupCompanyData
       : Array.isArray(data.companies)
         ? data.companies
         : [];
-  const companies = rawCompanies.map((company: Record<string, unknown>): ClientCompany => {
+  const mapCompany = (company: Record<string, unknown>): ClientCompany => {
     const payload = parseJsonField(company.source_payload);
     const respRaw = parseJsonField(payload.tcl_responsavel || payload.cli_responsavel);
     const ctdRaw = parseJsonField(payload.tcl_contador || payload.cli_contador);
@@ -479,7 +480,17 @@ export async function getClientDetail(acronym: string): Promise<ClientDetail | n
         ctdRaw.cli_ctd_email || ctdRaw.tcl_ctd_email || company.accountant_email || "",
       ),
     };
-  });
+  };
+  const groupCompanies = rawGroupCompanies.map(mapCompany);
+  const rawCurrentCompanies = Array.isArray(data.companies) ? data.companies : [];
+  const currentCompanies =
+    rawCurrentCompanies.length > 0
+      ? rawCurrentCompanies
+      : rawGroupCompanies.filter(
+          (company: Record<string, unknown>) =>
+            String(company.client_acronym || "").toUpperCase() === acronym.toUpperCase(),
+        );
+  const companies = currentCompanies.map(mapCompany);
 
   const users = (Array.isArray(data.users) ? data.users : []).map(
     (user: Record<string, unknown>): ClientHadronUser => ({
@@ -713,6 +724,7 @@ export async function getClientDetail(acronym: string): Promise<ClientDetail | n
     client: mapDatabaseClient(data.client),
     contacts,
     companies,
+    groupCompanies,
     users,
     terminals,
     modules,
