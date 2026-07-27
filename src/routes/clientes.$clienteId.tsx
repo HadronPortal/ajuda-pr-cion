@@ -195,7 +195,7 @@ function ClientDetailPage() {
                   </Badge>
                 </div>
 
-                <h2 className="mt-1 truncate text-xl font-semibold text-foreground">
+                <h2 className="mt-1 truncate text-xl font-medium text-foreground">
                   {client.razaoSocial}
                 </h2>
                 <p className="text-sm text-muted-foreground">
