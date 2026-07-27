@@ -513,12 +513,22 @@ function ClientVersionCell({ client }: { client: ClientRow }) {
 
 function ClientsPage() {
   const { clients } = Route.useLoaderData() as { clients: ClientRow[] };
-  const { grupo } = Route.useSearch();
+  const { grupo, q, campo, status: statusParam } = Route.useSearch();
   const navigate = useNavigate();
   const grupoParam = (grupo ?? "").trim().toUpperCase();
+  const initialStatus = (QUICK_STATUS_OPTIONS as string[]).includes(statusParam ?? "")
+    ? (statusParam as StatusFilter)
+    : "Ativo";
   const [filters, setFilters] = useState<Filters>(() =>
-    grupoParam ? { ...emptyFilters, siglaGrupo: grupoParam } : lastFilters,
+    grupoParam
+      ? { ...emptyFilters, siglaGrupo: grupoParam, status: initialStatus }
+      : { ...lastFilters, status: initialStatus },
   );
+  const [quickField, setQuickField] = useState<QuickField>(() =>
+    QUICK_FIELD_OPTIONS.some((o) => o.value === campo) ? (campo as QuickField) : "sigla",
+  );
+  const [quickQuery, setQuickQuery] = useState(() => q ?? "");
+  const [quickDraft, setQuickDraft] = useState(() => q ?? "");
   const [draft, setDraft] = useState<Filters>(() => filters);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [page, setPage] = useState(1);
@@ -529,6 +539,10 @@ function ClientsPage() {
     setPage(1);
   }, [filters]);
 
+  useEffect(() => {
+    setPage(1);
+  }, [quickQuery, quickField]);
+
   // Sincroniza URL <-> filtro de grupo. Ao entrar via ?grupo=XXX, descarta qualquer
   // filtro anterior (sigla, busca etc.) para exibir todas as empresas do grupo.
   useEffect(() => {
@@ -537,23 +551,31 @@ function ClientsPage() {
         p.siglaGrupo.toUpperCase() === grupoParam &&
         !p.sigla && !p.nome && !p.razaoSocial && !p.fantasia &&
         !p.porte && !p.ramo && !p.cep && !p.cidade && !p.uf && !p.cnpj &&
-        p.status === "Todos" && !p.dateStart && !p.dateEnd
+        !p.dateStart && !p.dateEnd
           ? p
-          : { ...emptyFilters, siglaGrupo: grupoParam },
+          : { ...emptyFilters, siglaGrupo: grupoParam, status: p.status },
       );
     }
   }, [grupoParam]);
 
+  // Mantém a URL em sinc com a pesquisa rápida, o grupo e o status.
   useEffect(() => {
     const current = filters.siglaGrupo.trim().toUpperCase();
-    if (current !== grupoParam) {
-      navigate({
-        to: "/clientes",
-        search: current ? { grupo: current } : {},
-        replace: true,
-      });
+    const next: Record<string, string> = {};
+    if (current) next.grupo = current;
+    if (quickQuery.trim()) next.q = quickQuery.trim();
+    if (quickField !== "sigla") next.campo = quickField;
+    if (filters.status !== "Ativo") next.status = filters.status;
+    const same =
+      (next.grupo ?? "") === grupoParam &&
+      (next.q ?? "") === (q ?? "") &&
+      (next.campo ?? "") === (campo ?? "") &&
+      (next.status ?? "") === (statusParam ?? "");
+    if (!same) {
+      navigate({ to: "/clientes", search: next, replace: true });
     }
-  }, [filters.siglaGrupo]);
+  }, [filters.siglaGrupo, filters.status, quickQuery, quickField]);
+
 
   useEffect(() => {
     setPage(1);
