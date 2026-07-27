@@ -742,6 +742,23 @@ function ClientsPage() {
         <div className="flex flex-wrap items-center gap-2">
           <span className="shrink-0 text-xs font-medium text-muted-foreground">Filtros:</span>
 
+          {chips.map((chip) => (
+            <span
+              key={chip.key}
+              className="inline-flex max-w-full items-center gap-1.5 whitespace-nowrap rounded-full border border-border bg-muted/50 px-3 py-1 text-xs text-foreground"
+            >
+              <span className="truncate">{chip.label}</span>
+              <button
+                type="button"
+                onClick={chip.onRemove}
+                aria-label={`Remover filtro ${chip.label}`}
+                className="grid h-4 w-4 shrink-0 cursor-pointer place-items-center rounded-full text-muted-foreground hover:bg-background hover:text-foreground"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          ))}
+
           <label className="relative block w-full min-w-0 sm:w-[200px]">
             <span className="sr-only">Pesquisar por sigla</span>
             <input
@@ -794,22 +811,6 @@ function ClientsPage() {
             </select>
           </label>
 
-          {chips.map((chip) => (
-            <span
-              key={chip.key}
-              className="inline-flex max-w-full items-center gap-1.5 whitespace-nowrap rounded-full border border-border bg-muted/50 px-3 py-1 text-xs text-foreground"
-            >
-              <span className="truncate">{chip.label}</span>
-              <button
-                type="button"
-                onClick={chip.onRemove}
-                aria-label={`Remover filtro ${chip.label}`}
-                className="grid h-4 w-4 shrink-0 cursor-pointer place-items-center rounded-full text-muted-foreground hover:bg-background hover:text-foreground"
-              >
-                <X className="h-3 w-3" />
-              </button>
-            </span>
-          ))}
         </div>
       </div>
 
