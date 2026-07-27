@@ -42,12 +42,15 @@ export function CreateEventDialog({
   initialDate,
   existingEvents,
   onCreate,
+  lockedClient,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   initialDate: string;
   existingEvents: CalendarEvent[];
   onCreate: (event: Omit<CalendarEvent, "id">) => void;
+  /** Cliente fixo (vindo dos detalhes do cliente), vinculado pelo ID real. */
+  lockedClient?: { id: string; label: string };
 }) {
   const [type, setType] = useState<EventType>("Visita presencial");
   const [title, setTitle] = useState("");
