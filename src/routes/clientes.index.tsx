@@ -333,7 +333,7 @@ function countActive(f: Filters): number {
   if (f.cidade.trim()) n++;
   if (f.uf) n++;
   if (f.cnpj.trim()) n++;
-  if (f.status !== "Todos") n++;
+  // Status é controlado na barra rápida; não conta como filtro avançado.
   if (f.dateStart || f.dateEnd) n++;
   return n;
 }
