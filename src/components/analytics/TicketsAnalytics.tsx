@@ -52,69 +52,27 @@ export type IndicatorCardLink = {
 };
 
 function RevenueStyleCards({
-  openTickets,
-  inProgressTickets,
-  overdueTickets,
-  finishedTickets,
+  cards,
   links,
 }: {
-  openTickets: number;
-  inProgressTickets: number;
-  overdueTickets: number;
-  finishedTickets: number;
+  cards: {
+    tag: string;
+    title: string;
+    value: number;
+    change: string | null;
+    positive: boolean;
+    helper: string;
+    tone: string;
+    arrow: string;
+    bars: number[];
+  }[];
   links?: (IndicatorCardLink | undefined)[];
 }) {
-  const cards = [
-    {
-      tag: "ABR",
-      title: "Chamados Abertos",
-      value: openTickets,
-      change: "+18 hoje",
-      helper: "Abertos e aguardando atendimento",
-      tone: "from-[#ff9d00] to-[#ffb13b]",
-      arrow: "bg-[#e28a00]",
-      positive: true,
-      bars: [34, 42, 28, 56, 48],
-    },
-    {
-      tag: "AND",
-      title: "Em Atendimento",
-      value: inProgressTickets,
-      change: "+8%",
-      helper: "Chamados em atendimento",
-      tone: "from-[#0b97c4] to-[#36b9df]",
-      arrow: "bg-[#087fa6]",
-      positive: true,
-      bars: [26, 40, 44, 36, 52],
-    },
-    {
-      tag: "SLA",
-      title: "Chamados Atrasados",
-      value: overdueTickets,
-      change: "-5.0%",
-      helper: "Exigem retorno imediato",
-      tone: "from-[#ff1f25] to-[#ff4a50]",
-      arrow: "bg-[#d80f15]",
-      positive: false,
-      bars: [46, 32, 28, 58, 38],
-    },
-    {
-      tag: "FIN",
-      title: "Finalizados Hoje",
-      value: finishedTickets,
-      change: "+12%",
-      helper: "Concluídos pela equipe",
-      tone: "from-[#18b978] to-[#36d695]",
-      arrow: "bg-[#10955f]",
-      positive: true,
-      bars: [28, 48, 36, 62, 44],
-    },
-  ];
-
   return (
     <div className="grid grid-cols-1 gap-5 md:grid-cols-2 2xl:grid-cols-4">
       {cards.map((card, idx) => {
         const link = links?.[idx];
+        const maxBar = Math.max(...card.bars, 1);
         const cardEl = (
           <Card
             className={cn(
@@ -148,14 +106,18 @@ function RevenueStyleCards({
                 style={{ gridTemplateColumns: "minmax(0, 1fr) 56px" }}
               >
                 <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-                  <span
-                    className={cn(
-                      "shrink-0 rounded-full px-2 py-1 text-[13px] font-semibold",
-                      card.positive ? "bg-emerald-100 text-emerald-600" : "bg-rose-100 text-rose-600",
-                    )}
-                  >
-                    {card.change}
-                  </span>
+                  {card.change && (
+                    <span
+                      className={cn(
+                        "shrink-0 rounded-full px-2 py-1 text-[13px] font-semibold",
+                        card.positive
+                          ? "bg-emerald-100 text-emerald-600"
+                          : "bg-rose-100 text-rose-600",
+                      )}
+                    >
+                      {card.change}
+                    </span>
+                  )}
                   <span
                     className="min-w-0 flex-1 text-[13px] leading-tight text-muted-foreground"
                     style={{
@@ -176,7 +138,7 @@ function RevenueStyleCards({
                     <span
                       key={index}
                       className="w-[6px] rounded-t bg-[#cfc6f4]"
-                      style={{ height: Math.min(40, Math.round(height * 0.65)) }}
+                      style={{ height: Math.max(3, Math.round((height / maxBar) * 40)) }}
                     />
                   ))}
                 </div>
@@ -204,30 +166,101 @@ function RevenueStyleCards({
   );
 }
 
-export function TicketsIndicatorCards() {
+export function TicketsIndicatorCards({ month }: { month?: string } = {}) {
   const supportTickets = useTickets();
-  const openTickets = supportTickets.filter(
-    (t) => !["Finalizado", "Cancelado"].includes(t.status),
-  ).length;
-  const inProgressTickets = supportTickets.filter((t) => t.status === "Em andamento").length;
-  const overdueTickets = supportTickets.filter((t) => t.status === "Atrasado").length;
-  const finishedTickets = supportTickets.filter((t) => t.status === "Finalizado").length;
+  const monthKey = isMonthKey(month) ? month : currentMonthKey();
 
-  return (
-    <RevenueStyleCards
-      openTickets={openTickets}
-      inProgressTickets={inProgressTickets}
-      overdueTickets={overdueTickets}
-      finishedTickets={finishedTickets}
-      links={[
-        { to: "/chamados", search: { status: "Em Aberto" } },
-        { to: "/chamados", search: { status: "Em andamento" } },
-        { to: "/chamados", search: { status: "Atrasado" } },
-        { to: "/chamados", search: { status: "Finalizado", today: 1 } },
-      ]}
-    />
-  );
+  const { cards, links } = useMemo(() => {
+    const previousKey = addMonths(monthKey, -1);
+    const current = computeMonthMetrics(supportTickets, monthKey);
+    const previous = computeMonthMetrics(supportTickets, previousKey);
+    const series = buildMonthSeries(supportTickets, lastMonthKeys(monthKey, 5));
+    const monthName = monthLabel(monthKey);
+
+    const build = (
+      tag: string,
+      title: string,
+      value: number,
+      previousValue: number,
+      helper: string,
+      tone: string,
+      arrow: string,
+      bars: number[],
+      higherIsBetter: boolean,
+    ) => {
+      const delta = percentChange(value, previousValue);
+      return {
+        tag,
+        title,
+        value,
+        change: formatPercentChange(delta),
+        positive: delta === null ? true : higherIsBetter ? delta >= 0 : delta <= 0,
+        helper,
+        tone,
+        arrow,
+        bars,
+      };
+    };
+
+    return {
+      cards: [
+        build(
+          "ABR",
+          "Chamados Abertos",
+          current.open,
+          previous.open,
+          `Abertos em ${monthName}`,
+          "from-[#ff9d00] to-[#ffb13b]",
+          "bg-[#e28a00]",
+          series.map((p) => p.opened),
+          true,
+        ),
+        build(
+          "AND",
+          "Em Atendimento",
+          current.inProgress,
+          previous.inProgress,
+          `Em atendimento no mês`,
+          "from-[#0b97c4] to-[#36b9df]",
+          "bg-[#087fa6]",
+          series.map((p) => p.opened),
+          true,
+        ),
+        build(
+          "SLA",
+          "Chamados Atrasados",
+          current.overdue,
+          previous.overdue,
+          "Fora do SLA no mês",
+          "from-[#ff1f25] to-[#ff4a50]",
+          "bg-[#d80f15]",
+          series.map((p) => p.overdue),
+          false,
+        ),
+        build(
+          "FIN",
+          "Finalizados no Mês",
+          current.finished,
+          previous.finished,
+          "Concluídos pela equipe no mês",
+          "from-[#18b978] to-[#36d695]",
+          "bg-[#10955f]",
+          series.map((p) => p.finished),
+          true,
+        ),
+      ],
+      links: [
+        { to: "/chamados", search: { status: "Em Aberto", mes: monthKey } },
+        { to: "/chamados", search: { status: "Em andamento", mes: monthKey } },
+        { to: "/chamados", search: { status: "Atrasado", mes: monthKey } },
+        { to: "/chamados", search: { status: "Finalizado", mes: monthKey } },
+      ] as IndicatorCardLink[],
+    };
+  }, [supportTickets, monthKey]);
+
+  return <RevenueStyleCards cards={cards} links={links} />;
 }
+
 
 
 const agentProfiles: Record<string, { name: string; role: string; avatar: string; rating: number }> = {
