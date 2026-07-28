@@ -11,11 +11,17 @@ import {
   TrendingUp,
   Trophy,
 } from "lucide-react";
+import { type SupportTicket } from "@/lib/support-tickets-data";
+import { useTickets } from "@/lib/tickets-store";
 import {
-  supportTickets,
-  dailyTicketAnalytics,
-  type SupportTicket,
-} from "@/lib/support-tickets-data";
+  buildMonthSeries,
+  currentMonthKey,
+  isTicketInMonth,
+  lastMonthKeys,
+  monthLabel,
+  OPEN_TICKET_STATUSES,
+  type MonthSeriesPoint,
+} from "@/lib/tickets-month";
 
 type NewsItem = {
   id: string;
@@ -24,19 +30,8 @@ type NewsItem = {
   title: string;
   description: string;
   updatedAt?: string;
-  to: string;
-  search?: Record<string, string>;
+  search: Record<string, string>;
 };
-
-const OPEN_STATUSES: SupportTicket["status"][] = [
-  "Atrasado",
-  "Em Aberto",
-  "Ocupado",
-  "Em andamento",
-  "Aguardando cliente",
-  "Com especialista",
-  "Agendamento",
-];
 
 function latestUpdatedAt(tickets: SupportTicket[]) {
   if (tickets.length === 0) return undefined;
@@ -61,13 +56,21 @@ function topEntry<T extends string>(counts: Record<T, number>) {
   return entries[0];
 }
 
-function buildNews(tickets: SupportTicket[]): NewsItem[] {
+function buildNews(
+  allTickets: SupportTicket[],
+  monthKey: string,
+  series: MonthSeriesPoint[],
+): NewsItem[] {
   const items: NewsItem[] = [];
-  const active = tickets.filter((t) => OPEN_STATUSES.includes(t.status));
-  const overdue = tickets.filter((t) => t.status === "Atrasado");
-  const finalized = tickets.filter((t) => t.status === "Finalizado");
+  const monthTickets = allTickets.filter((t) => isTicketInMonth(t, monthKey));
+  const active = monthTickets.filter((t) => OPEN_TICKET_STATUSES.includes(t.status));
+  const overdue = monthTickets.filter((t) => t.status === "Atrasado");
+  const finalized = allTickets.filter(
+    (t) => t.status === "Finalizado" && isTicketInMonth(t, monthKey, "updatedAt"),
+  );
+  const base = { mes: monthKey };
 
-  // Módulo com maior volume
+  // Módulo com maior volume no mês
   const modCount: Record<string, number> = {};
   active.forEach((t) => {
     modCount[t.module] = (modCount[t.module] ?? 0) + 1;
@@ -81,13 +84,13 @@ function buildNews(tickets: SupportTicket[]): NewsItem[] {
       icon: Layers,
       tone: "bg-primary/10 text-primary",
       title: `${mod} concentra o maior volume`,
-      description: `${count} chamado${count === 1 ? "" : "s"} em aberto neste módulo hoje.`,
+      description: `${count} chamado${count === 1 ? "" : "s"} em aberto neste módulo no mês.`,
       updatedAt: latestUpdatedAt(modTickets),
-      to: "/chamados",
+      search: base,
     });
   }
 
-  // NF-e nas últimas atualizações
+  // NF-e no mês
   const nfe = active.filter((t) => /nfe|nf-e/i.test(t.module));
   if (nfe.length > 0) {
     items.push({
@@ -95,15 +98,15 @@ function buildNews(tickets: SupportTicket[]): NewsItem[] {
       icon: TrendingUp,
       tone: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
       title: `${nfe.length} chamado${nfe.length === 1 ? "" : "s"} de NF-e em andamento`,
-      description: "Monitorando rejeições e falhas de autorização em tempo real.",
+      description: "Rejeições e falhas de autorização monitoradas no mês.",
       updatedAt: latestUpdatedAt(nfe),
-      to: "/chamados",
+      search: base,
     });
   }
 
-  // Assuntos recorrentes
+  // Assuntos recorrentes no mês
   const subjectCount: Record<string, number> = {};
-  tickets.forEach((t) => {
+  monthTickets.forEach((t) => {
     subjectCount[t.subject] = (subjectCount[t.subject] ?? 0) + 1;
   });
   const recurring = Object.entries(subjectCount)
@@ -116,8 +119,8 @@ function buildNews(tickets: SupportTicket[]): NewsItem[] {
       icon: Flame,
       tone: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
       title: `Aumento de chamados: "${subject}"`,
-      description: `${count} ocorrência${count === 1 ? "" : "s"} do mesmo assunto nos últimos dias.`,
-      to: "/chamados",
+      description: `${count} ocorrência${count === 1 ? "" : "s"} do mesmo assunto no mês.`,
+      search: base,
     });
   }
 
@@ -129,9 +132,9 @@ function buildNews(tickets: SupportTicket[]): NewsItem[] {
       icon: Clock3,
       tone: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
       title: `${nearSla.length} chamado${nearSla.length === 1 ? "" : "s"} próximo${nearSla.length === 1 ? "" : "s"} do SLA`,
-      description: "Alta prioridade sem atendimento finalizado. Priorize agora.",
+      description: "Alta prioridade sem atendimento finalizado no mês. Priorize agora.",
       updatedAt: latestUpdatedAt(nearSla),
-      to: "/chamados",
+      search: { ...base, prioridade: "Alta" },
     });
   }
 
@@ -142,13 +145,13 @@ function buildNews(tickets: SupportTicket[]): NewsItem[] {
       icon: AlertTriangle,
       tone: "bg-red-500/10 text-red-600 dark:text-red-400",
       title: `${overdue.length} chamado${overdue.length === 1 ? "" : "s"} atrasado${overdue.length === 1 ? "" : "s"}`,
-      description: "Ultrapassaram o tempo previsto de atendimento.",
+      description: "Ultrapassaram o tempo previsto de atendimento no mês.",
       updatedAt: latestUpdatedAt(overdue),
-      to: "/chamados",
+      search: { ...base, status: "Atrasado" },
     });
   }
 
-  // Operador com mais finalizações
+  // Operador com mais finalizações no mês
   const opCount: Record<string, number> = {};
   finalized.forEach((t) => {
     opCount[t.owner] = (opCount[t.owner] ?? 0) + 1;
@@ -161,16 +164,16 @@ function buildNews(tickets: SupportTicket[]): NewsItem[] {
       icon: Trophy,
       tone: "bg-violet-500/10 text-violet-600 dark:text-violet-400",
       title: `${op} lidera finalizações`,
-      description: `${count} chamado${count === 1 ? "" : "s"} concluído${count === 1 ? "" : "s"} recentemente.`,
-      to: "/chamados",
+      description: `${count} chamado${count === 1 ? "" : "s"} concluído${count === 1 ? "" : "s"} no mês.`,
+      search: { ...base, status: "Finalizado" },
     });
   }
 
-  // Variação em relação ao dia anterior
-  if (dailyTicketAnalytics.length >= 2) {
-    const today = dailyTicketAnalytics.at(-1)!;
-    const yesterday = dailyTicketAnalytics.at(-2)!;
-    const delta = today.opened - yesterday.opened;
+  // Variação em relação ao mês anterior
+  const currentPoint = series.at(-1);
+  const previousPoint = series.at(-2);
+  if (currentPoint && previousPoint) {
+    const delta = currentPoint.opened - previousPoint.opened;
     if (delta !== 0) {
       const up = delta > 0;
       items.push({
@@ -179,9 +182,9 @@ function buildNews(tickets: SupportTicket[]): NewsItem[] {
         tone: up
           ? "bg-rose-500/10 text-rose-600 dark:text-rose-400"
           : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-        title: `${up ? "Alta" : "Queda"} de ${Math.abs(delta)} chamado${Math.abs(delta) === 1 ? "" : "s"} vs ontem`,
-        description: `Hoje: ${today.opened} abertos · ontem: ${yesterday.opened}.`,
-        to: "/chamados",
+        title: `${up ? "Alta" : "Queda"} de ${Math.abs(delta)} chamado${Math.abs(delta) === 1 ? "" : "s"} vs mês anterior`,
+        description: `${monthLabel(currentPoint.key)}: ${currentPoint.opened} abertos · ${monthLabel(previousPoint.key)}: ${previousPoint.opened}.`,
+        search: base,
       });
     }
   }
@@ -189,17 +192,25 @@ function buildNews(tickets: SupportTicket[]): NewsItem[] {
   return items;
 }
 
-function NewsMiniChart({ itemId }: { itemId: string }) {
-  const primaryKey = itemId === "overdue" || itemId === "near-sla" ? "overdue" : "opened";
-  const primary = dailyTicketAnalytics.map((point) => point[primaryKey]);
-  const comparison = dailyTicketAnalytics.map((point) => point.finished);
+function NewsMiniChart({
+  itemId,
+  series,
+}: {
+  itemId: string;
+  series: MonthSeriesPoint[];
+}) {
+  if (series.length === 0) return null;
+  const primary = series.map((point) =>
+    itemId === "overdue" || itemId === "near-sla" ? point.overdue : point.opened,
+  );
+  const comparison = series.map((point) => point.finished);
   const max = Math.max(...primary, ...comparison, 1);
   const width = 280;
   const height = 120;
   const baseY = 96;
   const chartTop = 8;
   const chartRange = baseY - chartTop;
-  const step = width / dailyTicketAnalytics.length;
+  const step = width / series.length;
   const linePoints = comparison
     .map((value, index) => {
       const x = index * step + step / 2;
@@ -215,17 +226,17 @@ function NewsMiniChart({ itemId }: { itemId: string }) {
         preserveAspectRatio="none"
         className="h-full w-full overflow-visible"
         role="img"
-        aria-label="Tendência dos chamados nos últimos sete dias"
+        aria-label="Tendência mensal dos chamados"
       >
         <line x1="0" y1={baseY} x2={width} y2={baseY} className="stroke-border" />
         {primary.map((value, index) => {
           const barHeight = Math.max(4, (value / max) * chartRange);
           return (
             <rect
-              key={dailyTicketAnalytics[index].day}
+              key={series[index].key}
               x={index * step + 8}
               y={baseY - barHeight}
-              width={step - 16}
+              width={Math.max(4, step - 16)}
               height={barHeight}
               rx="4"
               className="fill-primary/55"
@@ -242,7 +253,7 @@ function NewsMiniChart({ itemId }: { itemId: string }) {
         />
         {comparison.map((value, index) => (
           <circle
-            key={`${dailyTicketAnalytics[index].day}-point`}
+            key={`${series[index].key}-point`}
             cx={index * step + step / 2}
             cy={baseY - (value / max) * chartRange}
             r="3"
@@ -250,15 +261,15 @@ function NewsMiniChart({ itemId }: { itemId: string }) {
             strokeWidth="2"
           />
         ))}
-        {dailyTicketAnalytics.map((point, index) => (
+        {series.map((point, index) => (
           <text
-            key={`${point.day}-label`}
+            key={`${point.key}-label`}
             x={index * step + step / 2}
             y={height - 8}
             textAnchor="middle"
             className="fill-muted-foreground text-[8px]"
           >
-            {point.day}
+            {point.label}
           </text>
         ))}
       </svg>
@@ -274,11 +285,24 @@ function NewsMiniChart({ itemId }: { itemId: string }) {
   );
 }
 
-export function TicketsNewsCard() {
-  const news = useMemo(() => buildNews(supportTickets), []);
+export function TicketsNewsCard({ month }: { month?: string } = {}) {
+  const tickets = useTickets();
+  const monthKey = month ?? currentMonthKey();
+  const series = useMemo(
+    () => buildMonthSeries(tickets, lastMonthKeys(monthKey, 6)),
+    [tickets, monthKey],
+  );
+  const news = useMemo(
+    () => buildNews(tickets, monthKey, series),
+    [tickets, monthKey, series],
+  );
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (index >= news.length) setIndex(0);
+  }, [index, news.length]);
 
   useEffect(() => {
     if (paused || news.length <= 1) return;
@@ -292,7 +316,7 @@ export function TicketsNewsCard() {
 
   if (news.length === 0) return null;
 
-  const item = news[index];
+  const item = news[Math.min(index, news.length - 1)];
   const Icon = item.icon;
 
   const goPrev = () => setIndex((i) => (i - 1 + news.length) % news.length);
@@ -310,7 +334,7 @@ export function TicketsNewsCard() {
             Notícias dos chamados
           </h2>
           <p className="mt-0.5 text-[11px] text-muted-foreground">
-            Insights em tempo real da sua operação
+            Insights da sua operação em {monthLabel(monthKey)}
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-1">
@@ -334,7 +358,8 @@ export function TicketsNewsCard() {
       </header>
 
       <Link
-        to={item.to}
+        to="/chamados"
+        search={item.search as never}
         className="group flex flex-1 min-h-0 cursor-pointer flex-col px-6 py-4 transition hover:bg-muted/40"
       >
         <div className="flex items-start gap-4">
@@ -348,10 +373,12 @@ export function TicketsNewsCard() {
             </p>
           </div>
         </div>
-        <NewsMiniChart itemId={item.id} />
+        <NewsMiniChart itemId={item.id} series={series} />
         <div className="mt-4 flex items-center justify-between text-[11px] text-muted-foreground">
           <span>
-            {item.updatedAt ? `Atualizado às ${formatTime(item.updatedAt)}` : "Atualização recente"}
+            {item.updatedAt
+              ? `Atualizado às ${formatTime(item.updatedAt)}`
+              : `Referente a ${monthLabel(monthKey)}`}
           </span>
           <span className="opacity-0 transition group-hover:opacity-100">Ver chamados →</span>
         </div>

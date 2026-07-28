@@ -91,6 +91,14 @@ import { ptBR } from "date-fns/locale";
 import { TicketDetailSheet } from "@/components/tickets/TicketDetailSheet";
 import { TicketHistoryModal } from "@/components/tickets/TicketHistoryModal";
 
+import {
+  addMonths,
+  currentMonthKey,
+  isMonthKey,
+  monthKeyFromDate,
+  monthLabel,
+  monthRange,
+} from "@/lib/tickets-month";
 import { z } from "zod";
 import { fallback, zodValidator } from "@tanstack/zod-adapter";
 
@@ -98,6 +106,8 @@ const chamadosSearchSchema = z.object({
   status: fallback(z.string(), "").optional(),
   today: fallback(z.coerce.number(), 0).optional(),
   ticket: fallback(z.string(), "").optional(),
+  mes: fallback(z.string(), "").optional(),
+  prioridade: fallback(z.string(), "").optional(),
 });
 
 
@@ -227,10 +237,28 @@ const initialFilters: Filters = {
   dateEnd: undefined,
 };
 
-function todayFilters(): Filters {
-  const today = new Date();
-  const day = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-  return { ...initialFilters, dateStart: day, dateEnd: day };
+/** Filtros pré-preenchidos com o mês inteiro (do primeiro ao último dia). */
+function monthRange2(monthKey: string): { dateStart: Date; dateEnd: Date } {
+  const { start, end } = monthRange(monthKey);
+  return { dateStart: start, dateEnd: end };
+}
+
+function monthFilters(monthKey: string): Filters {
+  const { start, end } = monthRange(monthKey);
+  return { ...initialFilters, dateStart: start, dateEnd: end };
+}
+
+/** Retorna a chave YYYY-MM quando o período selecionado cobre um mês inteiro. */
+function activeMonthKey(f: Filters): string | null {
+  if (!f.dateStart || !f.dateEnd) return null;
+  const key = monthKeyFromDate(f.dateStart);
+  const { start, end } = monthRange(key);
+  const sameStart = f.dateStart.getDate() === start.getDate();
+  const sameEnd =
+    f.dateEnd.getFullYear() === end.getFullYear() &&
+    f.dateEnd.getMonth() === end.getMonth() &&
+    f.dateEnd.getDate() === end.getDate();
+  return sameStart && sameEnd ? key : null;
 }
 
 function normalizeFilterText(value: string) {
@@ -391,6 +419,7 @@ function QuickFiltersBar({
   }, [tickets]);
 
   const anyActive = hasAnyActive(filters);
+  const monthApplied = activeMonthKey(filters);
 
 
   const clearAll = () => {
@@ -452,6 +481,37 @@ function QuickFiltersBar({
         </datalist>
       </div>
 
+      {/* Mês aplicado */}
+      {monthApplied && (
+        <div className="flex h-9 shrink-0 items-center gap-1 rounded-lg border border-primary/30 bg-primary/10 px-2 text-xs font-medium text-primary">
+          <span className="whitespace-nowrap capitalize">{monthLabel(monthApplied)}</span>
+          <button
+            type="button"
+            aria-label="Mês anterior"
+            onClick={() => setFilters((p) => ({ ...p, ...monthFilters(addMonths(monthApplied, -1)) , status: p.status, priority: p.priority, query: p.query, sigla: p.sigla, operator: p.operator, operatorType: p.operatorType, dateType: p.dateType }))}
+            className="cursor-pointer rounded px-1 hover:bg-primary/20"
+          >
+            ‹
+          </button>
+          <button
+            type="button"
+            aria-label="Próximo mês"
+            onClick={() => setFilters((p) => ({ ...p, ...monthFilters(addMonths(monthApplied, 1)), status: p.status, priority: p.priority, query: p.query, sigla: p.sigla, operator: p.operator, operatorType: p.operatorType, dateType: p.dateType }))}
+            className="cursor-pointer rounded px-1 hover:bg-primary/20"
+          >
+            ›
+          </button>
+          <button
+            type="button"
+            aria-label="Remover filtro de mês"
+            onClick={() => setFilters((p) => ({ ...p, dateStart: undefined, dateEnd: undefined }))}
+            className="cursor-pointer rounded px-1 hover:bg-primary/20"
+          >
+            ×
+          </button>
+        </div>
+      )}
+
       {/* Período */}
       <div className="min-w-[180px] flex-[1.4]">
         <DateRangeFilter
@@ -462,6 +522,7 @@ function QuickFiltersBar({
           }
         />
       </div>
+
 
       {/* Limpar */}
       {anyActive && (
@@ -492,13 +553,14 @@ function ChamadosRouteShell() {
 function TicketsPage() {
   const search = Route.useSearch();
   const supportTickets = useTickets();
+  const initialMonthKey = isMonthKey(search.mes) ? search.mes : currentMonthKey();
   const [filters, setFilters] = useState<Filters>(() => {
     const snapshot = search.ticket ? readChamadosSnapshot() : null;
     if (snapshot && snapshot.ticketId === search.ticket && snapshot.filters) {
       try {
         const raw = snapshot.filters as Record<string, unknown>;
         const rehydrated: Filters = {
-          ...todayFilters(),
+          ...monthFilters(initialMonthKey),
           ...(raw as Partial<Filters>),
           dateStart:
             typeof raw.dateStart === "string" ? new Date(raw.dateStart) : undefined,
@@ -510,8 +572,9 @@ function TicketsPage() {
         // fallback below
       }
     }
-    const base = todayFilters();
+    const base = monthFilters(initialMonthKey);
     if (search.status) base.status = search.status;
+    if (search.prioridade) base.priority = search.prioridade;
     return base;
   });
 
@@ -535,8 +598,11 @@ function TicketsPage() {
       requestAnimationFrame(() => window.scrollTo({ top: y, behavior: "auto" }));
     }
     clearChamadosSnapshot();
-    navigateHere({ search: { status: search.status, today: search.today }, replace: true });
-  }, [search.ticket, supportTickets, navigateHere, search.status, search.today]);
+    navigateHere({
+      search: { status: search.status, mes: search.mes, prioridade: search.prioridade },
+      replace: true,
+    });
+  }, [search.ticket, supportTickets, navigateHere, search.status, search.mes, search.prioridade]);
 
 
   const openTicketDetail = (ticket: SupportTicket) => {
@@ -562,6 +628,8 @@ function TicketsPage() {
 
 
 
+
+  const appliedMonth = activeMonthKey(filters);
 
   const filteredTickets = useMemo(() => {
     const query = filters.query.trim().toLowerCase();
@@ -858,7 +926,7 @@ function TicketsPage() {
           </p>
         </div>
 
-        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2 xl:flex-nowrap">
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
           <label className="relative min-w-[180px] flex-[2]">
             <span className="sr-only">Pesquisa avancada</span>
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -903,6 +971,40 @@ function TicketsPage() {
             </select>
           </label>
 
+          {appliedMonth && (
+            <div className="flex h-9 shrink-0 items-center gap-1 rounded-lg border border-primary/30 bg-primary/10 px-2 text-xs font-medium text-primary">
+              <span className="whitespace-nowrap capitalize">{monthLabel(appliedMonth)}</span>
+              <button
+                type="button"
+                aria-label="Mês anterior"
+                onClick={() =>
+                  setFilters((c) => ({ ...c, ...monthRange2(addMonths(appliedMonth, -1)) }))
+                }
+                className="cursor-pointer rounded px-1 hover:bg-primary/20"
+              >
+                ‹
+              </button>
+              <button
+                type="button"
+                aria-label="Próximo mês"
+                onClick={() =>
+                  setFilters((c) => ({ ...c, ...monthRange2(addMonths(appliedMonth, 1)) }))
+                }
+                className="cursor-pointer rounded px-1 hover:bg-primary/20"
+              >
+                ›
+              </button>
+              <button
+                type="button"
+                aria-label="Remover filtro de mês"
+                onClick={() => setFilters((c) => ({ ...c, dateStart: undefined, dateEnd: undefined }))}
+                className="cursor-pointer rounded px-1 hover:bg-primary/20"
+              >
+                ×
+              </button>
+            </div>
+          )}
+
           <div className="min-w-[200px] flex-[1.4]">
             <DateRangeFilter
               start={filters.dateStart}
@@ -916,6 +1018,7 @@ function TicketsPage() {
               }
             />
           </div>
+
 
         </div>
       </div>
