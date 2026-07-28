@@ -60,42 +60,6 @@ import { useClients, resolveGroupCode, getGroupMembers } from "@/lib/clients-sto
 const tabs = ["cliente", "hadron", "internet", "dispositivos", "parametros", "usuarios", "logs", "logs-externos", "terminais", "empresas"] as const;
 type TabValue = (typeof tabs)[number];
 
-const parseBrazilianDateTime = (value: string) => {
-  const match = value.match(
-    /^(\d{2})\/(\d{2})\/(\d{4})(?:[,\s]+(\d{2}):(\d{2}))?$/,
-  );
-  if (!match) return Number.NEGATIVE_INFINITY;
-  const [, day, month, year, hour = "00", minute = "00"] = match;
-  return Date.UTC(
-    Number(year),
-    Number(month) - 1,
-    Number(day),
-    Number(hour),
-    Number(minute),
-  );
-};
-
-const latestTechnicalUpdate = (
-  client: ClientDetail["client"],
-  terminals: ClientDetail["terminals"],
-  hadronInfo: ClientDetail["hadronInfo"],
-) => {
-  const candidates = [
-    client.versionUpdatedAt,
-    client.updated,
-    ...terminals.map((terminal) => terminal.registeredAt),
-    ...hadronInfo.map((info) => info.updatedAt),
-  ].filter(Boolean);
-
-  return candidates.reduce(
-    (latest, candidate) =>
-      parseBrazilianDateTime(candidate) > parseBrazilianDateTime(latest)
-        ? candidate
-        : latest,
-    "",
-  );
-};
-
 
 const searchSchema = z.object({
   tab: fallback(z.string(), "cliente").default("cliente"),
@@ -198,7 +162,6 @@ function ClientDetailPage() {
   };
 
   const erpStatus = getClientErpVersionStatus(client.version, client.versionDate);
-  const technicalUpdatedAt = latestTechnicalUpdate(client, terminals, hadronInfo);
   const breadcrumbGroupLabel = groupCode || client.acronym;
   return (
     <AppShell>
@@ -257,7 +220,7 @@ function ClientDetailPage() {
           />
           <MiniSummary
             label="Data de atualização"
-            value={technicalUpdatedAt || "Não informada"}
+            value={client.versionUpdatedAt || "Não informada"}
           />
           <MiniSummary
             label="Dispositivos"

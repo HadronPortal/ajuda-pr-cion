@@ -1597,19 +1597,18 @@ async function copyContactValue(item: ContactLine) {
 }
 
 function buildContactLines(contacts: ClientContact[], kind: "phone" | "email"): ContactLine[] {
-  const seen = new Set<string>();
   const out: ContactLine[] = [];
   for (const c of contacts) {
     const description = [c.name, c.department].filter(Boolean).join(" / ").trim();
     const values: string[] = kind === "phone" ? [c.phone, c.mobile, c.whatsapp] : [c.email];
+    const contactValues = new Set<string>();
     for (const raw of values) {
       const trimmed = (raw || "").trim();
       if (!trimmed) continue;
       const norm = kind === "email" ? trimmed.toLowerCase() : trimmed.replace(/\D+/g, "");
       if (!norm) continue;
-      const dedupeKey = `${norm}|${description.toLowerCase()}`;
-      if (seen.has(dedupeKey)) continue;
-      seen.add(dedupeKey);
+      if (contactValues.has(norm)) continue;
+      contactValues.add(norm);
       if (kind === "phone") {
         const digits = trimmed.replace(/\D+/g, "");
         out.push({
