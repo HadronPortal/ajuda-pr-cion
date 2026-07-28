@@ -2789,12 +2789,12 @@ export function ClientHadronTab({
         <EmptyState text="Nenhum módulo cadastrado para este cliente." />
       )}
 
-      <div className="my-6 border-t border-border" />
+      <div className="my-5 border-t border-border" />
 
-      <div className="space-y-6">
-        <div>
-          <h4 className="mb-3 text-sm font-medium">Responsáveis</h4>
-          <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-x-8 gap-y-5 lg:grid-cols-2">
+        <div className="min-w-0">
+          <h4 className="mb-2 text-sm font-medium">Responsáveis</h4>
+          <div className="grid gap-3 sm:grid-cols-2">
             <HadronDetail icon={UsersRound}>
               <Field label="Responsáveis" value={responsibles || "Não informado"} />
             </HadronDetail>
@@ -2804,61 +2804,19 @@ export function ClientHadronTab({
           </div>
         </div>
 
-        <div>
-          <h4 className="mb-3 text-sm font-medium">Documentos fiscais</h4>
-          <HadronDetail icon={Printer}>
-            <div className="grid gap-x-6 gap-y-2 pt-1 sm:grid-cols-2 lg:grid-cols-3">
-              {fiscalEntries.map((entry) => (
-                <div
-                  key={entry.key}
-                  className={cn(
-                    "flex items-start gap-1.5 text-sm",
-                    entry.active
-                      ? "text-emerald-700 dark:text-emerald-400"
-                      : "text-muted-foreground",
-                  )}
-                >
-                  {entry.active ? (
-                    <Check className="mt-0.5 h-4 w-4 shrink-0" />
-                  ) : (
-                    <X className="mt-0.5 h-4 w-4 shrink-0" />
-                  )}
-                  <span className="min-w-0">
-                    <span className={cn(entry.active && "font-medium")}>{entry.label}</span>
-                    {entry.detail ? (
-                      <span className="block text-xs text-muted-foreground">{entry.detail}</span>
-                    ) : null}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </HadronDetail>
-
-          <div className="mt-4">
-            <HadronDetail icon={ClipboardCheck}>
-              <Field
-                label="Homologação das NF-e em conjunto com o cliente e contador?"
-                value={yesNo(text("cli_homo_nfes"))}
-              />
+        <div className="min-w-0">
+          <h4 className="mb-2 text-sm font-medium">Configurações da rede</h4>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <HadronDetail icon={Monitor}>
+              <Field label="Terminais" value={terminalCount || "Não informado"} />
             </HadronDetail>
-          </div>
-        </div>
-
-        <div>
-          <h4 className="mb-3 text-sm font-medium">Configurações da rede</h4>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-4">
-              <HadronDetail icon={Monitor}>
-                <Field label="Terminais" value={terminalCount || "Não informado"} />
-              </HadronDetail>
-              <HadronDetail icon={Cable}>
-                <Field label="Configuração de rede" value={networkLabel} />
-              </HadronDetail>
-            </div>
-            <HadronDetail icon={Database}>
-              <div>
-                <p className="mb-2 text-xs uppercase text-muted-foreground">Importação de dados</p>
-                <div className="flex flex-wrap gap-x-5 gap-y-2">
+            <HadronDetail icon={Cable}>
+              <Field label="Configuração de rede" value={networkLabel} />
+            </HadronDetail>
+            <div className="sm:col-span-2">
+              <HadronDetail icon={Database}>
+                <p className="text-xs uppercase text-muted-foreground">Importação de dados</p>
+                <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1">
                   {importedDataOptions.map(([key, label]) => {
                     const active = hasLegacySelection(importedData, key);
                     return (
@@ -2866,49 +2824,84 @@ export function ClientHadronTab({
                         key={key}
                         className={cn(
                           "flex items-center gap-1.5 text-sm",
-                          !active && "text-muted-foreground",
+                          active
+                            ? "text-emerald-700 dark:text-emerald-400"
+                            : "text-muted-foreground",
                         )}
                       >
                         {active ? (
-                          <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                          <Check className="h-4 w-4 shrink-0" />
                         ) : (
-                          <X className="h-4 w-4" />
+                          <X className="h-4 w-4 shrink-0" />
                         )}
                         {label}
                       </span>
                     );
                   })}
                 </div>
-              </div>
-            </HadronDetail>
+              </HadronDetail>
+            </div>
           </div>
         </div>
 
-        <div>
-          <h4 className="mb-3 text-sm font-medium">Cobrança</h4>
-          <HadronDetail icon={Landmark}>
-            <div className="space-y-3">
-              <Field label="Boleto bancário" value={bankEntries.length ? "SIM" : "NÃO"} />
-              {bankEntries.length ? (
-                <div className="grid gap-2 sm:grid-cols-2">
-                  {bankEntries.map((bank) => (
-                    <div
-                      key={bank.name}
-                      className="rounded-md border border-border bg-muted/30 px-3 py-2"
-                    >
-                      <p className="text-sm font-medium text-foreground">{bank.name}</p>
-                      {bank.detail ? (
-                        <p className="text-xs text-muted-foreground">{bank.detail}</p>
-                      ) : null}
-                    </div>
-                  ))}
-                </div>
-              ) : null}
+        <div className="min-w-0">
+          <h4 className="mb-2 text-sm font-medium">Documentos fiscais</h4>
+          <HadronDetail icon={Printer}>
+            <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+              {fiscalEntries.map((entry) => (
+                <span
+                  key={entry.key}
+                  className={cn(
+                    "inline-flex items-center gap-1.5 text-sm",
+                    entry.active
+                      ? "text-emerald-700 dark:text-emerald-400"
+                      : "text-muted-foreground",
+                  )}
+                >
+                  {entry.active ? (
+                    <Check className="h-4 w-4 shrink-0" />
+                  ) : (
+                    <X className="h-4 w-4 shrink-0" />
+                  )}
+                  <span className={cn(entry.active && "font-medium")}>{entry.label}</span>
+                  {entry.detail ? (
+                    <span className="text-xs text-muted-foreground">({entry.detail})</span>
+                  ) : null}
+                </span>
+              ))}
             </div>
+            <p className="mt-2 text-xs text-muted-foreground">
+              Homologação das NF-e em conjunto com o cliente e contador:{" "}
+              <span className="font-medium text-foreground">{yesNo(text("cli_homo_nfes"))}</span>
+            </p>
           </HadronDetail>
         </div>
 
+        <div className="min-w-0">
+          <h4 className="mb-2 text-sm font-medium">Cobrança</h4>
+          <HadronDetail icon={Landmark}>
+            <Field label="Boleto bancário" value={bankEntries.length ? "SIM" : "NÃO"} />
+            {bankEntries.length ? (
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {bankEntries.map((bank) => (
+                  <span
+                    key={bank.name}
+                    title={[bank.name, bank.detail].filter(Boolean).join(" · ")}
+                    className="inline-flex h-7 max-w-full items-center gap-1.5 rounded-md border border-border bg-muted/30 px-2 text-xs"
+                  >
+                    <BankMark name={bank.name} />
+                    <span className="truncate font-medium text-foreground">{bank.name}</span>
+                    {bank.detail ? (
+                      <span className="truncate text-muted-foreground">· {bank.detail}</span>
+                    ) : null}
+                  </span>
+                ))}
+              </div>
+            ) : null}
+          </HadronDetail>
+        </div>
       </div>
+
     </Section>
   );
 }
