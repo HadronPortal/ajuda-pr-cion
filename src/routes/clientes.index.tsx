@@ -3567,10 +3567,6 @@ export function ClientParametersTab({ parameters }: { parameters: ClientParamete
   );
 }
 
-const deviceUuidLabel = (value: string) => {
-  if (!value) return "-";
-  return value.length > 10 ? `...${value.slice(-8)}` : value;
-};
 
 const deviceTypeLabel: Record<string, string> = {
   M: "Mobile",
