@@ -25,6 +25,7 @@ import {
   Globe2,
   RefreshCw,
   Search,
+  Save,
   HardDrive,
   KeyRound,
   MessageCircle,
@@ -61,6 +62,9 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 import { listClients } from "@/lib/clients-api";
 import type {
@@ -108,6 +112,23 @@ function HadronDetail({
       </span>
       <div className="min-w-0 flex-1">{children}</div>
     </div>
+  );
+}
+
+function ConfigInput({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <label className="block space-y-1.5">
+      <span className="text-xs font-medium uppercase text-muted-foreground">{label}</span>
+      <Input value={value} onChange={(event) => onChange(event.target.value)} />
+    </label>
   );
 }
 import { CreateEventDialog } from "@/components/calendar/CreateEventDialog";
@@ -3187,6 +3208,33 @@ export function ClientInternetTab({
   const otherApps = internet.applications.filter(
     (app) => !HADRON_APP_CATALOG.some((item) => item.matches(app.name, app.appType)),
   );
+  const initialConfig = {
+    description:
+      (webContract && contractText(webContract, "con_descricao")) ||
+      client.fantasia ||
+      client.razaoSocial ||
+      client.name,
+    acronym:
+      (webContract && contractText(webContract, "con_cliente_sigla")) || client.acronym,
+    contractKey: webContract?.contractKey || "",
+    deviceLimit,
+    webUrl,
+    serverHost: webContract?.serverHost || "",
+    databaseName: webContract?.databaseName || "",
+    databaseUser,
+    active: webContract?.active ?? false,
+    modules: Object.fromEntries(catalog.map((app) => [app.key, app.contracted])),
+  };
+  const [config, setConfig] = useState(initialConfig);
+
+  const updateConfig = <Key extends keyof typeof config>(
+    key: Key,
+    value: (typeof config)[Key],
+  ) => setConfig((current) => ({ ...current, [key]: value }));
+  const openConfiguration = () => {
+    setConfig(initialConfig);
+    setConfigOpen(true);
+  };
 
   return (
     <div className="space-y-5">
@@ -3309,7 +3357,7 @@ export function ClientInternetTab({
               <Button
                 size="sm"
                 className="h-8 cursor-pointer"
-                onClick={() => setConfigOpen(true)}
+                onClick={openConfiguration}
               >
                 Configurar
               </Button>
@@ -3336,25 +3384,42 @@ export function ClientInternetTab({
       </Section>
 
       <Dialog open={configOpen} onOpenChange={setConfigOpen}>
-        <DialogContent className="max-h-[90vh] max-w-5xl overflow-y-auto p-0">
-          <DialogHeader className="border-b border-border px-6 py-5">
-            <DialogTitle className="flex items-center gap-3 text-lg">
-              <HadronMenuIcon className="h-6 w-6 text-primary" />
-              {client.acronym} - {client.razaoSocial || client.name}
+        <DialogContent className="max-h-[92vh] max-w-6xl overflow-y-auto p-0">
+          <DialogHeader className="border-b border-border bg-muted/30 px-6 py-5">
+            <DialogTitle className="flex items-center gap-3 text-xl">
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground">
+                <HadronMenuIcon className="h-6 w-6" />
+              </span>
+              <span className="min-w-0 truncate">
+                {client.acronym} - {client.razaoSocial || client.name}
+              </span>
             </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-6 px-6 pb-6">
-            <div className="grid gap-5 border-b border-border pb-5 sm:grid-cols-2">
-              <Field
-                label="Descrição"
-                value={client.fantasia || client.razaoSocial || client.name}
-              />
-              <Field label="Sigla" value={client.acronym} />
-              <Field
-                label="Contrato"
-                value={webContract?.contractKey || "Não informado"}
-              />
+          <div className="space-y-6 px-6 pb-7">
+            <div>
+              <h3 className="mb-5 border-b border-border bg-muted/60 px-4 py-3 text-sm font-medium">
+                Dados do cliente
+              </h3>
+              <div className="grid gap-5 sm:grid-cols-2">
+                <ConfigInput
+                  label="Descrição"
+                  value={config.description}
+                  onChange={(value) => updateConfig("description", value)}
+                />
+                <div />
+                <ConfigInput
+                  label="Sigla"
+                  value={config.acronym}
+                  onChange={(value) => updateConfig("acronym", value.toUpperCase())}
+                />
+                <label className="block space-y-1.5">
+                  <span className="text-xs font-medium uppercase text-muted-foreground">
+                    Contrato
+                  </span>
+                  <Input value={config.contractKey || "Não informado"} readOnly />
+                </label>
+              </div>
             </div>
 
             <div>
@@ -3363,16 +3428,27 @@ export function ClientInternetTab({
               </h3>
               <div className="grid gap-2 px-2 sm:grid-cols-2 lg:grid-cols-4">
                 {catalog.map((app) => (
-                  <div key={app.key} className="flex items-center gap-2 py-2 text-sm">
-                    {app.contracted ? (
-                      <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                    ) : (
-                      <X className="h-4 w-4 text-muted-foreground" />
-                    )}
-                    <span className={!app.contracted ? "text-muted-foreground" : undefined}>
+                  <label
+                    key={app.key}
+                    className="flex min-h-10 cursor-pointer items-center gap-2 py-2 text-sm"
+                  >
+                    <Checkbox
+                      checked={config.modules[app.key] === true}
+                      onCheckedChange={(checked) =>
+                        updateConfig("modules", {
+                          ...config.modules,
+                          [app.key]: checked === true,
+                        })
+                      }
+                    />
+                    <span
+                      className={
+                        !config.modules[app.key] ? "text-muted-foreground" : undefined
+                      }
+                    >
                       {app.label}
                     </span>
-                  </div>
+                  </label>
                 ))}
               </div>
             </div>
@@ -3383,33 +3459,87 @@ export function ClientInternetTab({
               </h3>
               <div className="grid gap-x-10 gap-y-6 sm:grid-cols-2">
                 <HadronDetail icon={Smartphone}>
-                  <Field
-                    label="Quant. dispositivos"
-                    value={deviceLimit || String(webContract?.devices.length ?? 0)}
-                  />
+                  <label className="block space-y-1.5">
+                    <span className="text-xs font-medium uppercase text-muted-foreground">
+                      Quant. dispositivos
+                    </span>
+                    <Input
+                      type="number"
+                      min="0"
+                      value={config.deviceLimit}
+                      onChange={(event) => updateConfig("deviceLimit", event.target.value)}
+                    />
+                  </label>
                 </HadronDetail>
                 <HadronDetail icon={Globe2}>
-                  <Field label="URL RGBW" value={webUrl || "Não informada"} />
+                  <ConfigInput
+                    label="URL RGBW"
+                    value={config.webUrl}
+                    onChange={(value) => updateConfig("webUrl", value)}
+                  />
                 </HadronDetail>
                 <HadronDetail icon={Server}>
-                  <Field
+                  <ConfigInput
                     label="Host/server BD"
-                    value={webContract?.serverHost || "Não informado"}
+                    value={config.serverHost}
+                    onChange={(value) => updateConfig("serverHost", value)}
                   />
                 </HadronDetail>
                 <HadronDetail icon={Database}>
-                  <Field
+                  <ConfigInput
                     label="Base de dados"
-                    value={webContract?.databaseName || "Não informada"}
+                    value={config.databaseName}
+                    onChange={(value) => updateConfig("databaseName", value)}
                   />
                 </HadronDetail>
                 <HadronDetail icon={CircleUserRound}>
-                  <Field label="Usuário BD" value={databaseUser || "Não informado"} />
+                  <ConfigInput
+                    label="Usuário BD"
+                    value={config.databaseUser}
+                    onChange={(value) => updateConfig("databaseUser", value)}
+                  />
                 </HadronDetail>
                 <HadronDetail icon={LockKeyhole}>
-                  <Field label="Senha BD" value="Não importada" />
+                  <label className="block space-y-1.5">
+                    <span className="text-xs font-medium uppercase text-muted-foreground">
+                      Senha BD
+                    </span>
+                    <Input
+                      type="password"
+                      value=""
+                      readOnly
+                      placeholder="Protegida no CRM original"
+                      autoComplete="new-password"
+                    />
+                  </label>
                 </HadronDetail>
               </div>
+            </div>
+
+            <div>
+              <h3 className="mb-4 border-b border-border bg-muted/60 px-4 py-3 text-sm font-medium">
+                Status
+              </h3>
+              <label className="flex w-fit cursor-pointer items-center gap-3">
+                <Switch
+                  checked={config.active}
+                  onCheckedChange={(checked) => updateConfig("active", checked)}
+                />
+                <span className="text-sm font-medium">
+                  {config.active ? "Ativado" : "Desativado"}
+                </span>
+              </label>
+            </div>
+
+            <div className="flex justify-end border-t border-border pt-5">
+              <Button
+                disabled
+                title="Disponível após ativar a autenticação administrativa"
+                className="gap-2"
+              >
+                <Save className="h-4 w-4" />
+                Salvar
+              </Button>
             </div>
           </div>
         </DialogContent>
