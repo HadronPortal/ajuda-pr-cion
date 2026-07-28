@@ -3583,38 +3583,66 @@ export function ClientDevicesTab({ internet }: { internet: ClientInternet }) {
     ? internet.devices
     : internet.contracts.flatMap((contract) => contract.devices);
 
+  type DeviceRow = (typeof devices)[number];
+
   return (
     <Section title={`Dispositivos (${devices.length})`} icon={Monitor}>
       {devices.length ? (
-        <DataTable
-          headers={[
-            "Utilizador",
-            "Tipo",
-            "Sistema",
-            "App",
-            "Build",
-            "Banco",
-            "Status",
-            "UUID",
-            "Ultima verificacao",
+        <SortableDataTable<DeviceRow>
+          rows={devices}
+          dense
+          minWidthClass="min-w-[900px]"
+          initialSort={{ key: "lastChecked", dir: "desc" }}
+          columns={[
+            { key: "user", label: "Utilizador", value: (d) => d.user || "", render: (d) => d.user || "-" },
+            {
+              key: "type",
+              label: "Tipo",
+              value: (d) => deviceTypeLabel[d.type] || d.type || "",
+              render: (d) => deviceTypeLabel[d.type] || d.type || "-",
+            },
+            { key: "system", label: "Sistema", value: (d) => d.system || "", render: (d) => d.system || "-" },
+            { key: "app", label: "App", value: (d) => d.appType || "", render: (d) => d.appType || "-" },
+            {
+              key: "build",
+              label: "Build",
+              value: (d) => d.buildVersion || "",
+              render: (d) => d.buildVersion || "-",
+            },
+            {
+              key: "db",
+              label: "Banco",
+              value: (d) => d.dbVersion || "",
+              render: (d) => d.dbVersion || "-",
+            },
+            {
+              key: "status",
+              label: "Status",
+              value: (d) => (d.active ? "Ativo" : d.status || "Inativo"),
+              render: (d) => (d.active ? "Ativo" : d.status || "Inativo"),
+            },
+            {
+              key: "uuid",
+              label: "UUID",
+              value: (d) => d.deviceUuid || "",
+              cellClassName: "font-mono text-[11.5px] leading-snug break-all whitespace-normal",
+              render: (d) => d.deviceUuid || "-",
+            },
+            {
+              key: "lastChecked",
+              label: "Última verificação",
+              value: (d) => parseBrDateValue(d.lastCheckedAt || d.updatedAt),
+              cellClassName: "whitespace-nowrap",
+              render: (d) => d.lastCheckedAt || d.updatedAt || "-",
+            },
           ]}
-          rows={devices.map((device) => [
-            device.user || "-",
-            deviceTypeLabel[device.type] || device.type || "-",
-            device.system || "-",
-            device.appType || "-",
-            device.buildVersion || "-",
-            device.dbVersion || "-",
-            device.active ? "Ativo" : device.status || "Inativo",
-            deviceUuidLabel(device.deviceUuid),
-            device.lastCheckedAt || device.updatedAt || "-",
-          ])}
         />
       ) : (
         <EmptyState text="Nenhum dispositivo vinculado aos contratos ativos." />
       )}
     </Section>
   );
+
 }
 
 const HADRON_APP_CATALOG: {
