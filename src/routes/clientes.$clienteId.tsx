@@ -113,6 +113,30 @@ function ClientDetailPage() {
   const showDevices = showInternet;
   const showParameters = parameters.length > 0;
 
+  // Dispositivos: ativos vinculados aos contratos ativos / limite do contrato
+  // (auth_contratos.con_qtd_dispositivos).
+  const deviceUsage = (() => {
+    const activeContracts = internet.contracts.filter((c) => c.active);
+    const activeKeys = new Set(
+      activeContracts.map((c) => c.legacyId).filter(Boolean),
+    );
+    const scoped = activeKeys.size
+      ? internet.devices.filter(
+          (d) => !d.contractLegacyId || activeKeys.has(d.contractLegacyId),
+        )
+      : internet.devices;
+    const active = scoped.filter((d) => d.active).length;
+
+    const limit = activeContracts.reduce((total, contract) => {
+      const raw = (contract.sourcePayload as Record<string, unknown>)?.con_qtd_dispositivos;
+      const parsed = Number(String(raw ?? "").replace(/[^\d]/g, ""));
+      return total + (Number.isFinite(parsed) ? parsed : 0);
+    }, 0);
+
+    return { active, limit, label: limit > 0 ? `${active}/${limit}` : String(active) };
+  })();
+
+
   // Grupo: usa group_acronym do cliente. Se vazio, verifica se ele é raiz de
   // um grupo (algum outro cliente aponta group_acronym para a sigla dele).
   const groupCode = resolveGroupCode(client, allClients);
