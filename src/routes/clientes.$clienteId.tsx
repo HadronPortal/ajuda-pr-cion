@@ -54,6 +54,7 @@ function MiniSummary({
 
 import { getClientDetail, type ClientDetail } from "@/lib/clients-api";
 import { normalizeCityUf } from "@/lib/br-city";
+import { getClientErpVersionStatus } from "@/lib/erp-versions";
 import { useClients, resolveGroupCode, getGroupMembers } from "@/lib/clients-store";
 
 const tabs = ["cliente", "hadron", "internet", "dispositivos", "parametros", "usuarios", "logs", "logs-externos", "terminais", "empresas"] as const;
@@ -183,7 +184,12 @@ function ClientDetailPage() {
         <div className="flex min-w-0 flex-wrap items-center justify-end gap-x-5 gap-y-1.5">
           <MiniSummary label="Atendimento" value={normalizeCityUf(client.city) || "Não informado"} />
           <MiniSummary label="Status" value={client.status || "Não informado"} />
-          <MiniSummary label="Versão Hádron" value={client.versionDate || client.version || "Não informada"} />
+          <MiniSummary
+            label="Versão Hádron"
+            value={client.versionDate || client.version || "Não informada"}
+            tone={erpStatus.needsAttention ? "danger" : "default"}
+            title={erpStatus.label}
+          />
           <MiniSummary label="Data de atualização" value={client.versionUpdatedAt || client.updated || "Não informada"} />
           <MiniSummary label="Dispositivos" value={String(internet.devices.length)} />
         </div>
