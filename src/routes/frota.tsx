@@ -28,14 +28,14 @@ export const Route = createFileRoute("/frota")({
 type TabKey = "hoje" | "veiculos" | "em_uso" | "historico";
 
 const TABS: { key: TabKey; label: string; icon: typeof KeyRound }[] = [
-  { key: "hoje", label: "Saídas de hoje", icon: KeyRound },
   { key: "veiculos", label: "Veículos", icon: Truck },
+  { key: "hoje", label: "Saídas de hoje", icon: KeyRound },
   { key: "em_uso", label: "Em uso", icon: Undo2 },
   { key: "historico", label: "Histórico", icon: History },
 ];
 
 function FleetPage() {
-  const [tab, setTab] = useState<TabKey>("hoje");
+  const [tab, setTab] = useState<TabKey>("veiculos");
   const [query, setQuery] = useState("");
 
   return (
