@@ -3682,6 +3682,7 @@ export function ClientInternetTab({
               const contractDevices = contract.devices.length
                 ? contract.devices
                 : internet.devices.filter((d) => d.contractLegacyId === contract.legacyId);
+              const activeContractDevices = contractDevices.filter((device) => device.active).length;
               const isActive = contract.active;
               const deviceLimit = contractText(contract, "con_qtd_dispositivos");
               const contractUrl =
@@ -3731,7 +3732,11 @@ export function ClientInternetTab({
                     <HadronDetail icon={Smartphone}>
                       <Field
                         label="Dispositivos"
-                        value={`${contractDevices.length}/${deviceLimit}`}
+                        value={
+                          deviceLimit
+                            ? `${activeContractDevices}/${deviceLimit}`
+                            : String(activeContractDevices)
+                        }
                       />
                     </HadronDetail>
                     <HadronDetail icon={Globe2}>
