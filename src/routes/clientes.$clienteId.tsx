@@ -147,7 +147,6 @@ function ClientDetailPage() {
     (tabs as readonly string[]).includes(requestedTab) &&
     (requestedTab !== "dispositivos" || showDevices) &&
     (requestedTab !== "parametros" || showParameters) &&
-    (!["logs", "logs-externos"].includes(requestedTab) || logs.authorized) &&
     (requestedTab !== "internet" || showInternet);
   const currentTab: TabValue = tabAllowed ? (requestedTab as TabValue) : "cliente";
 
@@ -300,8 +299,8 @@ function ClientDetailPage() {
                 ...(showDevices ? [["dispositivos", "Dispositivos", Monitor]] : []),
                 ...(showParameters ? [["parametros", "Parâmetros", SlidersHorizontal]] : []),
                 ["usuarios", "Usuarios", UsersRound],
-                ...(logs.authorized ? [["logs", "Logs", ScrollText]] : []),
-                ...(logs.authorized ? [["logs-externos", "Logs externos", History]] : []),
+                ["logs", "Logs", ScrollText],
+                ["logs-externos", "Logs externos", History],
                 ["terminais", "Terminais", Monitor],
                 ["empresas", "Empresas", Network],
               ].map(([value, label, Icon]) => {
@@ -353,16 +352,12 @@ function ClientDetailPage() {
             <TabsContent value="usuarios" className="m-0">
               <ClientUsersTab users={users} />
             </TabsContent>
-            {logs.authorized && (
-              <TabsContent value="logs" className="m-0">
-                <ClientLogsTab logs={logs.logs} />
-              </TabsContent>
-            )}
-            {logs.authorized && (
-              <TabsContent value="logs-externos" className="m-0">
-                <ClientExternalLogsTab logs={logs.externalLogs} />
-              </TabsContent>
-            )}
+            <TabsContent value="logs" className="m-0">
+              <ClientLogsTab logs={logs.logs} />
+            </TabsContent>
+            <TabsContent value="logs-externos" className="m-0">
+              <ClientExternalLogsTab logs={logs.externalLogs} />
+            </TabsContent>
             <TabsContent value="terminais" className="m-0">
               <ClientTerminalsTab terminals={terminals} />
             </TabsContent>
