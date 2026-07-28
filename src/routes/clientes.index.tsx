@@ -2675,32 +2675,52 @@ export function ClientHadronTab({
     const record = value as Record<string, unknown>;
     return keys.some((key) => Object.prototype.hasOwnProperty.call(record, key));
   };
-  const hasAnyLegacySelection = (value: unknown) =>
-    Array.isArray(value)
-      ? value.length > 0
-      : Boolean(value && typeof value === "object" && Object.keys(value).length);
   const serial = [text("cli_serial1") || client.acronym, text("cli_serial2"), text("cli_serial3")]
     .filter(Boolean)
     .join(" - ");
   const responsibles = [text("cli_operador_resp1"), text("cli_operador_resp2")]
     .filter(Boolean)
     .join("/");
-  const fiscalDocuments = parseLegacyValue("cli_docs_fiscais");
-  const fiscalOptions = [
-    ["nfe", "NF-e"],
-    ["cte", "CT-e"],
-    ["nfce", "NFC-e"],
-    ["nfse", "NFS-e"],
-    ["mdfe", "MDF-e"],
-    ["ecf-sat", "SAT"],
+  const legacyEntries = (value: unknown): Array<[string, string]> => {
+    if (Array.isArray(value)) {
+      return value
+        .map((item) => String(item ?? "").trim())
+        .filter(Boolean)
+        .map((item) => [item, ""] as [string, string]);
+    }
+    if (!value || typeof value !== "object") return [];
+    return Object.entries(value as Record<string, unknown>)
+      .map(([key, raw]) => [String(key).trim(), String(raw ?? "").trim()] as [string, string])
+      .filter(([key]) => Boolean(key));
+  };
+  const normalizeKey = (value: string) =>
+    value
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]/g, "");
+  const fiscalDocuments = legacyEntries(parseLegacyValue("cli_docs_fiscais"));
+  const fiscalDefinitions = [
+    ["nfe", "NF-e", ["nfe", "nf-e"]],
+    ["cte", "CT-e", ["cte", "ct-e"]],
+    ["nfce", "NFC-e", ["nfce", "nfc-e"]],
+    ["nfse", "NFS-e", ["nfse", "nfs-e"]],
+    ["mdfe", "MDF-e", ["mdfe", "mdf-e"]],
+    ["sat", "SAT", ["ecfsat", "sat", "ecf"]],
+    ["no", "Não utiliza", ["no", "nao", "naoutiliza", "nenhum"]],
   ] as const;
-  const usesNoFiscalDocument = hasLegacySelection(
-    fiscalDocuments,
-    "no",
-    "nao",
-    "nao_utiliza",
-    "naoutiliza",
-  );
+  const fiscalEntries = fiscalDefinitions.map(([key, label, aliases]) => {
+    const match = fiscalDocuments.find(([entryKey]) =>
+      (aliases as readonly string[]).includes(normalizeKey(entryKey)),
+    );
+    const rawDetail = match?.[1] ?? "";
+    const detail =
+      rawDetail && normalizeKey(rawDetail) !== normalizeKey(match?.[0] ?? "")
+        ? rawDetail.replace(/^[.\s-]+$/, "")
+        : "";
+    return { key, label, active: Boolean(match), detail };
+  });
+
   const importedData = parseLegacyValue("cli_import_dados");
   const importedDataOptions = [
     ["produtos", "Produtos"],
@@ -2721,6 +2741,13 @@ export function ClientHadronTab({
     text("cli_config_rede") ||
     "Não informada";
   const terminalCount = text("cli_nterminais") || String(terminals.length);
+  const bankEntries = legacyEntries(parseLegacyValue("cli_boleto_dados"))
+    .filter(([name]) => name.replace(/[.\s-]/g, "").length > 0)
+    .map(([name, detail]) => ({
+      name,
+      detail: detail.replace(/^[.\s-]+$/, ""),
+    }));
+
 
   return (
     <Section title="Hádron" icon={HadronMenuIcon}>
@@ -2743,16 +2770,19 @@ export function ClientHadronTab({
               key={item.id}
               className={cn(
                 "flex min-h-8 items-center gap-2 border-b border-border/60 py-1.5 text-sm",
-                !item.contracted && "text-muted-foreground",
+                item.contracted
+                  ? "text-emerald-700 dark:text-emerald-400"
+                  : "text-muted-foreground",
               )}
             >
               {item.contracted ? (
-                <Check className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                <Check className="h-4 w-4 shrink-0" />
               ) : (
                 <X className="h-4 w-4 shrink-0 text-muted-foreground" />
               )}
               <span className={cn(item.contracted && "font-medium")}>{item.name}</span>
             </div>
+
           ))}
         </div>
       ) : (
@@ -2777,41 +2807,33 @@ export function ClientHadronTab({
         <div>
           <h4 className="mb-3 text-sm font-medium">Documentos fiscais</h4>
           <HadronDetail icon={Printer}>
-            <div className="flex flex-wrap gap-x-5 gap-y-2 pt-1">
-              {fiscalOptions.map(([key, label]) => {
-                const active = hasLegacySelection(fiscalDocuments, key);
-                return (
-                  <span
-                    key={key}
-                    className={cn(
-                      "flex items-center gap-1.5 text-sm",
-                      !active && "text-muted-foreground",
-                    )}
-                  >
-                    {active ? (
-                      <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                    ) : (
-                      <X className="h-4 w-4" />
-                    )}
-                    {label}
+            <div className="grid gap-x-6 gap-y-2 pt-1 sm:grid-cols-2 lg:grid-cols-3">
+              {fiscalEntries.map((entry) => (
+                <div
+                  key={entry.key}
+                  className={cn(
+                    "flex items-start gap-1.5 text-sm",
+                    entry.active
+                      ? "text-emerald-700 dark:text-emerald-400"
+                      : "text-muted-foreground",
+                  )}
+                >
+                  {entry.active ? (
+                    <Check className="mt-0.5 h-4 w-4 shrink-0" />
+                  ) : (
+                    <X className="mt-0.5 h-4 w-4 shrink-0" />
+                  )}
+                  <span className="min-w-0">
+                    <span className={cn(entry.active && "font-medium")}>{entry.label}</span>
+                    {entry.detail ? (
+                      <span className="block text-xs text-muted-foreground">{entry.detail}</span>
+                    ) : null}
                   </span>
-                );
-              })}
-              <span
-                className={cn(
-                  "flex items-center gap-1.5 text-sm",
-                  !usesNoFiscalDocument && "text-muted-foreground",
-                )}
-              >
-                {usesNoFiscalDocument ? (
-                  <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                ) : (
-                  <X className="h-4 w-4" />
-                )}
-                Não utiliza
-              </span>
+                </div>
+              ))}
             </div>
           </HadronDetail>
+
           <div className="mt-4">
             <HadronDetail icon={ClipboardCheck}>
               <Field
@@ -2865,12 +2887,27 @@ export function ClientHadronTab({
         <div>
           <h4 className="mb-3 text-sm font-medium">Cobrança</h4>
           <HadronDetail icon={Landmark}>
-            <Field
-              label="Boleto bancário"
-              value={hasAnyLegacySelection(parseLegacyValue("cli_boleto_dados")) ? "SIM" : "NÃO"}
-            />
+            <div className="space-y-3">
+              <Field label="Boleto bancário" value={bankEntries.length ? "SIM" : "NÃO"} />
+              {bankEntries.length ? (
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {bankEntries.map((bank) => (
+                    <div
+                      key={bank.name}
+                      className="rounded-md border border-border bg-muted/30 px-3 py-2"
+                    >
+                      <p className="text-sm font-medium text-foreground">{bank.name}</p>
+                      {bank.detail ? (
+                        <p className="text-xs text-muted-foreground">{bank.detail}</p>
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+            </div>
           </HadronDetail>
         </div>
+
       </div>
     </Section>
   );
