@@ -871,10 +871,10 @@ function ClientsPage() {
             <span className="sr-only">Pesquisar por sigla</span>
             <input
               value={quickAcronym}
-              onChange={(event) => setQuickAcronym(event.target.value)}
+              onChange={(event) => setQuickAcronym(event.target.value.toUpperCase())}
               type="search"
               placeholder="Sigla"
-              className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/20"
+              className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm uppercase outline-none transition-colors placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/20"
             />
           </label>
 
