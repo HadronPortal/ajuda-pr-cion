@@ -36,6 +36,18 @@ import {
   type TicketStatus,
 } from "@/lib/support-tickets-data";
 import { useTickets } from "@/lib/tickets-store";
+import {
+  addMonths,
+  buildMonthSeries,
+  computeMonthMetrics,
+  currentMonthKey,
+  formatPercentChange,
+  isMonthKey,
+  lastMonthKeys,
+  monthLabel,
+  percentChange,
+  type MonthSeriesPoint,
+} from "@/lib/tickets-month";
 
 const sourceLabels = {
   Telefone: "Telefone",
@@ -212,7 +224,7 @@ export function TicketsIndicatorCards({ month }: { month?: string } = {}) {
           `Abertos em ${monthName}`,
           "from-[#ff9d00] to-[#ffb13b]",
           "bg-[#e28a00]",
-          series.map((p) => p.opened),
+          series.map((p: MonthSeriesPoint) => p.opened),
           true,
         ),
         build(
@@ -223,7 +235,7 @@ export function TicketsIndicatorCards({ month }: { month?: string } = {}) {
           `Em atendimento no mês`,
           "from-[#0b97c4] to-[#36b9df]",
           "bg-[#087fa6]",
-          series.map((p) => p.opened),
+          series.map((p: MonthSeriesPoint) => p.opened),
           true,
         ),
         build(
@@ -234,7 +246,7 @@ export function TicketsIndicatorCards({ month }: { month?: string } = {}) {
           "Fora do SLA no mês",
           "from-[#ff1f25] to-[#ff4a50]",
           "bg-[#d80f15]",
-          series.map((p) => p.overdue),
+          series.map((p: MonthSeriesPoint) => p.overdue),
           false,
         ),
         build(
@@ -245,7 +257,7 @@ export function TicketsIndicatorCards({ month }: { month?: string } = {}) {
           "Concluídos pela equipe no mês",
           "from-[#18b978] to-[#36d695]",
           "bg-[#10955f]",
-          series.map((p) => p.finished),
+          series.map((p: MonthSeriesPoint) => p.finished),
           true,
         ),
       ],
@@ -1053,12 +1065,7 @@ export function TicketsAnalyticsSection() {
 
   return (
     <section className="space-y-6">
-      <RevenueStyleCards
-        openTickets={openTickets}
-        inProgressTickets={inProgressTickets}
-        overdueTickets={overdueTickets}
-        finishedTickets={finishedTickets}
-      />
+      <TicketsIndicatorCards />
 
       <div id="analytics-detalhado" className="grid scroll-mt-24 grid-cols-1 gap-6 xl:grid-cols-[0.92fr_1.35fr]">
         <TopAgentsCard tickets={supportTickets} />
