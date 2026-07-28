@@ -138,6 +138,7 @@ function ClientDetailPage() {
     });
   };
 
+  const erpStatus = getClientErpVersionStatus(client.version, client.versionDate);
   const breadcrumbGroupLabel = groupCode || client.acronym;
   return (
     <AppShell>
