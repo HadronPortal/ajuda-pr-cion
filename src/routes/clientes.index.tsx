@@ -4236,7 +4236,7 @@ export function ClientTechnicalCompaniesTab({
           <span className="flex min-w-0 flex-1 items-center gap-2">
             <span className="text-sm font-mono text-muted-foreground">001</span>
             <span className="truncate text-sm font-medium text-foreground">
-              {client.tradeName || client.name}
+              {client.fantasia || client.name}
             </span>
           </span>
           <ArrowDown
