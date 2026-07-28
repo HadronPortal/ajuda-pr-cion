@@ -2745,6 +2745,13 @@ export function ClientHadronTab({
     text("cli_config_rede") ||
     "Não informada";
   const terminalCount = text("cli_nterminais") || String(terminals.length);
+  const bankEntries = legacyEntries(parseLegacyValue("cli_boleto_dados"))
+    .filter(([name]) => name.replace(/[.\s-]/g, "").length > 0)
+    .map(([name, detail]) => ({
+      name,
+      detail: detail.replace(/^[.\s-]+$/, ""),
+    }));
+
 
   return (
     <Section title="Hádron" icon={HadronMenuIcon}>
