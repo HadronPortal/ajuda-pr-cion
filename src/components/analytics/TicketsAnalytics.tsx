@@ -1024,12 +1024,8 @@ function BarRow({
 export function TicketsAnalyticsSection() {
   const supportTickets = useTickets();
 
-  const openTickets = supportTickets.filter(
-    (ticket) => !["Finalizado", "Cancelado"].includes(ticket.status),
-  ).length;
-  const inProgressTickets = supportTickets.filter((ticket) => ticket.status === "Em andamento").length;
-  const overdueTickets = supportTickets.filter((ticket) => ticket.status === "Atrasado").length;
   const portalTickets = supportTickets.filter((ticket) => ticket.source === "Portal do cliente").length;
+
   const finishedTickets = supportTickets.filter((ticket) => ticket.status === "Finalizado").length;
   const resolutionRate = supportTickets.length
     ? Math.round((finishedTickets / supportTickets.length) * 100)
