@@ -315,7 +315,13 @@ const optionalLabel = (value: unknown, labels: Record<string, string>) => {
 
 const date = (value: unknown, withTime = false) => {
   if (!value) return "";
-  const parsed = new Date(String(value));
+  const raw = String(value).trim();
+  const dateOnlyMatch = raw.match(/^(\d{4})-(\d{2})-(\d{2})(?:T00:00:00(?:\.000)?Z)?$/);
+  if (!withTime && dateOnlyMatch) {
+    const [, year, month, day] = dateOnlyMatch;
+    return `${day}/${month}/${year}`;
+  }
+  const parsed = new Date(raw);
   if (Number.isNaN(parsed.getTime())) return "";
   return new Intl.DateTimeFormat(
     "pt-BR",
