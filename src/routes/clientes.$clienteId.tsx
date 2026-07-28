@@ -325,7 +325,12 @@ function ClientDetailPage() {
               <ClientTab client={client} contacts={contacts} companies={companies} terminals={terminals} tickets={tickets} events={events} activities={activities} onOpenCompanies={() => setTab("empresas")} />
             </TabsContent>
             <TabsContent value="hadron" className="m-0 space-y-5">
-              <ClientHadronTab client={client} modules={modules} terminals={terminals} />
+              <ClientHadronTab
+                client={client}
+                companies={companies}
+                modules={modules}
+                terminals={terminals}
+              />
             </TabsContent>
             {showInternet && (
               <TabsContent value="internet" className="m-0 space-y-5">

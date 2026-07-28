@@ -2699,12 +2699,196 @@ export function CompaniesTab() {
   );
 }
 
+function HadronCompanyDetails({
+  payload,
+  terminalFallback = 0,
+}: {
+  payload: Record<string, unknown>;
+  terminalFallback?: number;
+}) {
+  const text = (cliKey: string, companyKey = cliKey.replace(/^cli_/, "tcl_")) =>
+    String(payload[companyKey] ?? payload[cliKey] ?? "").trim();
+  const parseLegacyValue = (cliKey: string): unknown => {
+    const companyKey = cliKey.replace(/^cli_/, "tcl_");
+    const value = payload[companyKey] ?? payload[cliKey];
+    if (value && typeof value === "object") return value;
+    try {
+      return JSON.parse(String(value || "[]"));
+    } catch {
+      return [];
+    }
+  };
+  const legacyEntries = (value: unknown): Array<[string, string]> => {
+    if (Array.isArray(value)) {
+      return value
+        .map((item) => String(item ?? "").trim())
+        .filter(Boolean)
+        .map((item) => [item, ""]);
+    }
+    if (!value || typeof value !== "object") return [];
+    return Object.entries(value as Record<string, unknown>)
+      .map(([key, raw]) => [key.trim(), String(raw ?? "").trim()] as [string, string])
+      .filter(([key]) => Boolean(key));
+  };
+  const normalizeKey = (value: string) =>
+    value
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]/g, "");
+  const hasLegacySelection = (value: unknown, key: string) =>
+    legacyEntries(value).some(([entryKey]) => normalizeKey(entryKey) === normalizeKey(key));
+
+  const responsibles = [text("cli_operador_resp1"), text("cli_operador_resp2")]
+    .filter(Boolean)
+    .join("/");
+  const fiscalDocuments = legacyEntries(parseLegacyValue("cli_docs_fiscais"));
+  const fiscalDefinitions = [
+    ["nfe", "NF-e", ["nfe"]],
+    ["cte", "CT-e", ["cte"]],
+    ["nfce", "NFC-e", ["nfce"]],
+    ["nfse", "NFS-e", ["nfse"]],
+    ["mdfe", "MDF-e", ["mdfe"]],
+    ["sat", "SAT", ["ecfsat", "sat", "ecf"]],
+    ["no", "Não utiliza", ["no", "nao", "naoutiliza", "nenhum"]],
+  ] as const;
+  const fiscalEntries = fiscalDefinitions.map(([key, label, aliases]) => {
+    const match = fiscalDocuments.find(([entryKey]) =>
+      aliases.includes(normalizeKey(entryKey) as never),
+    );
+    const rawDetail = match?.[1] ?? "";
+    const detail =
+      rawDetail && normalizeKey(rawDetail) !== normalizeKey(match?.[0] ?? "")
+        ? rawDetail.replace(/^[.\s-]+$/, "")
+        : "";
+    return { key, label, active: Boolean(match), detail };
+  });
+  const importedData = parseLegacyValue("cli_import_dados");
+  const importedDataOptions = [
+    ["produtos", "Produtos"],
+    ["terceiros", "Terceiros"],
+    ["estoque", "Estoque"],
+  ] as const;
+  const networkValue = text("cli_config_rede").toLowerCase();
+  const networkLabel =
+    ({ cabo: "Cabo", wireless: "Wireless", wifi: "Wi-Fi", "wi-fi": "Wi-Fi", "0": "Não informada" }[
+      networkValue
+    ] ?? text("cli_config_rede") ?? "Não informada") || "Não informada";
+  const terminalCount = text("cli_nterminais") || String(terminalFallback);
+  const bankEntries = legacyEntries(parseLegacyValue("cli_boleto_dados"))
+    .filter(([name]) => name.replace(/[.\s-]/g, "").length > 0)
+    .map(([name, detail]) => ({ name, detail: detail.replace(/^[.\s-]+$/, "") }));
+
+  return (
+    <div className="divide-y divide-border">
+      <section className="py-6">
+        <h4 className="mb-4 text-sm font-medium">Responsáveis</h4>
+        <div className="grid gap-x-8 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
+          <HadronDetail icon={UsersRound}>
+            <Field label="Responsáveis" value={responsibles || "Não informado"} />
+          </HadronDetail>
+          <HadronDetail icon={Clock3}>
+            <Field label="Tempo de instalação" value={text("cli_tmp_mod") || "Não informado"} />
+          </HadronDetail>
+        </div>
+      </section>
+
+      <section className="py-6">
+        <h4 className="mb-4 text-sm font-medium">Documentos fiscais</h4>
+        <HadronDetail icon={Printer}>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+            {fiscalEntries.map((entry) => (
+              <span
+                key={entry.key}
+                className={cn(
+                  "inline-flex items-center gap-1.5 text-sm",
+                  entry.active ? "text-emerald-700 dark:text-emerald-400" : "text-muted-foreground",
+                )}
+              >
+                {entry.active ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
+                <span className={cn(entry.active && "font-medium")}>{entry.label}</span>
+                {entry.detail ? <span className="text-xs text-muted-foreground">({entry.detail})</span> : null}
+              </span>
+            ))}
+          </div>
+        </HadronDetail>
+        <p className="mt-5 text-xs text-muted-foreground">
+          Homologação das NF-e em conjunto com o cliente e contador:{" "}
+          <span className="font-medium text-foreground">
+            {text("cli_homo_nfes") === "1" ? "SIM" : "NÃO"}
+          </span>
+        </p>
+      </section>
+
+      <section className="py-6">
+        <h4 className="mb-4 text-sm font-medium">Configurações da rede</h4>
+        <div className="grid gap-x-8 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
+          <HadronDetail icon={Monitor}>
+            <Field label="Terminais" value={terminalCount || "Não informado"} />
+          </HadronDetail>
+          <HadronDetail icon={Cable}>
+            <Field label="Configuração de rede" value={networkLabel} />
+          </HadronDetail>
+          <HadronDetail icon={Database}>
+            <p className="text-xs uppercase text-muted-foreground">Importação de dados</p>
+            <div className="mt-1.5 flex flex-wrap gap-x-5 gap-y-1.5">
+              {importedDataOptions.map(([key, label]) => {
+                const active = hasLegacySelection(importedData, key);
+                return (
+                  <span
+                    key={key}
+                    className={cn(
+                      "flex items-center gap-1.5 text-sm",
+                      active ? "text-emerald-700 dark:text-emerald-400" : "text-muted-foreground",
+                    )}
+                  >
+                    {active ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
+                    {label}
+                  </span>
+                );
+              })}
+            </div>
+          </HadronDetail>
+        </div>
+      </section>
+
+      <section className="py-6">
+        <h4 className="mb-4 text-sm font-medium">Cobrança</h4>
+        <HadronDetail icon={Landmark}>
+          <Field label="Boleto bancário" value={bankEntries.length ? "SIM" : "NÃO"} />
+        </HadronDetail>
+        {bankEntries.length ? (
+          <div className="mt-4 flex flex-wrap gap-3">
+            {bankEntries.map((bank) => (
+              <span
+                key={bank.name}
+                title={[bank.name, bank.detail].filter(Boolean).join(" · ")}
+                className="inline-flex max-w-full items-center gap-2.5 rounded-lg border border-border bg-muted/20 px-3 py-2 text-sm"
+              >
+                <BankMark name={bank.name} />
+                <span className="min-w-0">
+                  <span className="block truncate font-medium text-foreground">{bank.name}</span>
+                  {bank.detail ? (
+                    <span className="block truncate text-xs text-muted-foreground">{bank.detail}</span>
+                  ) : null}
+                </span>
+              </span>
+            ))}
+          </div>
+        ) : null}
+      </section>
+    </div>
+  );
+}
+
 export function ClientHadronTab({
   client,
+  companies,
   modules,
   terminals,
 }: {
   client: ClientRow;
+  companies: ClientCompany[];
   modules: ClientModule[];
   terminals: ClientTerminal[];
 }) {
@@ -2845,7 +3029,7 @@ export function ClientHadronTab({
         <EmptyState text="Nenhum módulo cadastrado para este cliente." />
       )}
 
-      <div className="mt-6 divide-y divide-border border-t border-border">
+      <div className="hidden">
         <section className="py-6">
           <h4 className="mb-4 text-sm font-medium">Responsáveis</h4>
           <div className="grid gap-x-8 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -2956,6 +3140,49 @@ export function ClientHadronTab({
             </div>
           ) : null}
         </section>
+      </div>
+
+      <div className="mt-6 space-y-3 border-t border-border pt-6">
+        {companies.length === 0 ? (
+          <details open className="group overflow-hidden rounded-md border border-border">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 bg-muted/40 px-4 py-3">
+              <span className="min-w-0">
+                <span className="block truncate text-sm font-medium">
+                  {client.tradeName || client.name || client.legalName}
+                </span>
+                <span className="block text-xs text-muted-foreground">
+                  {[client.acronym, client.document].filter(Boolean).join(" · ")}
+                </span>
+              </span>
+              <ChevronRight className="h-4 w-4 shrink-0 transition-transform group-open:rotate-90" />
+            </summary>
+            <div className="px-4">
+              <HadronCompanyDetails
+                payload={client.sourcePayload || {}}
+                terminalFallback={terminals.length}
+              />
+            </div>
+          </details>
+        ) : null}
+
+        {companies.map((company) => (
+          <details key={company.id} open className="group overflow-hidden rounded-md border border-border">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 bg-muted/40 px-4 py-3">
+              <span className="min-w-0">
+                <span className="block truncate text-sm font-medium">
+                  {company.tradeName || company.legalName || "Empresa vinculada"}
+                </span>
+                <span className="block text-xs text-muted-foreground">
+                  {[company.companyNumber, company.document].filter(Boolean).join(" · ")}
+                </span>
+              </span>
+              <ChevronRight className="h-4 w-4 shrink-0 transition-transform group-open:rotate-90" />
+            </summary>
+            <div className="px-4">
+              <HadronCompanyDetails payload={company.sourcePayload} />
+            </div>
+          </details>
+        ))}
       </div>
 
 

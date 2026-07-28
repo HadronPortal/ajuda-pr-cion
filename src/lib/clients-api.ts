@@ -47,6 +47,7 @@ export type ClientCompany = {
   accountantName: string;
   accountantPhone: string;
   accountantEmail: string;
+  sourcePayload: Record<string, unknown>;
 };
 
 export type ClientHadronUser = {
@@ -479,6 +480,7 @@ export async function getClientDetail(acronym: string): Promise<ClientDetail | n
       accountantEmail: String(
         ctdRaw.cli_ctd_email || ctdRaw.tcl_ctd_email || company.accountant_email || "",
       ),
+      sourcePayload: payload,
     };
   };
   const groupCompanies = rawGroupCompanies.map(mapCompany);
