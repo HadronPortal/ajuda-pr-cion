@@ -238,6 +238,11 @@ const initialFilters: Filters = {
 };
 
 /** Filtros pré-preenchidos com o mês inteiro (do primeiro ao último dia). */
+function monthRange2(monthKey: string): { dateStart: Date; dateEnd: Date } {
+  const { start, end } = monthRange(monthKey);
+  return { dateStart: start, dateEnd: end };
+}
+
 function monthFilters(monthKey: string): Filters {
   const { start, end } = monthRange(monthKey);
   return { ...initialFilters, dateStart: start, dateEnd: end };
@@ -624,6 +629,8 @@ function TicketsPage() {
 
 
 
+  const appliedMonth = activeMonthKey(filters);
+
   const filteredTickets = useMemo(() => {
     const query = filters.query.trim().toLowerCase();
     const sigla = filters.sigla.trim().toLowerCase();
@@ -971,7 +978,7 @@ function TicketsPage() {
                 type="button"
                 aria-label="Mês anterior"
                 onClick={() =>
-                  setFilters((c) => ({ ...c, ...monthRangeFilters(addMonths(appliedMonth, -1)) }))
+                  setFilters((c) => ({ ...c, ...monthRange2(addMonths(appliedMonth, -1)) }))
                 }
                 className="cursor-pointer rounded px-1 hover:bg-primary/20"
               >
@@ -981,7 +988,7 @@ function TicketsPage() {
                 type="button"
                 aria-label="Próximo mês"
                 onClick={() =>
-                  setFilters((c) => ({ ...c, ...monthRangeFilters(addMonths(appliedMonth, 1)) }))
+                  setFilters((c) => ({ ...c, ...monthRange2(addMonths(appliedMonth, 1)) }))
                 }
                 className="cursor-pointer rounded px-1 hover:bg-primary/20"
               >
