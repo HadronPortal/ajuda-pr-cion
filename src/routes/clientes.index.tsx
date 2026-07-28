@@ -3165,8 +3165,12 @@ export function ClientHadronTab({
           </details>
         ) : null}
 
-        {companies.map((company) => (
-          <details key={company.id} open className="group overflow-hidden rounded-md border border-border">
+        {companies.map((company, index) => (
+          <details
+            key={company.id}
+            open={index === 0}
+            className="group overflow-hidden rounded-md border border-border"
+          >
             <summary className="flex cursor-pointer list-none items-center justify-between gap-4 bg-muted/40 px-4 py-3">
               <span className="min-w-0">
                 <span className="block truncate text-sm font-medium">
