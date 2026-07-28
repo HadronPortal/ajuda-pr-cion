@@ -115,6 +115,43 @@ function HadronDetail({
   );
 }
 
+const BANK_MARKS: Array<{ match: RegExp; short: string; className: string }> = [
+  { match: /santander/, short: "S", className: "bg-[#ec0000] text-white" },
+  { match: /bradesco/, short: "B", className: "bg-[#cc092f] text-white" },
+  { match: /ita[uú]/, short: "I", className: "bg-[#ec7000] text-white" },
+  { match: /(banco\s*do\s*brasil|^bb$|\bbb\b)/, short: "BB", className: "bg-[#f9dd16] text-[#0033a0]" },
+  { match: /(caixa|cef)/, short: "C", className: "bg-[#0070af] text-white" },
+  { match: /sicredi/, short: "SI", className: "bg-[#3fa110] text-white" },
+];
+
+function BankMark({ name }: { name: string }) {
+  const normalized = name
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+  const mark = BANK_MARKS.find((item) => item.match.test(normalized));
+
+  if (!mark) {
+    return (
+      <Landmark aria-hidden className="h-4 w-4 shrink-0 text-muted-foreground" />
+    );
+  }
+
+  return (
+    <span
+      aria-hidden
+      className={cn(
+        "grid h-4 w-4 shrink-0 place-items-center rounded-[3px] text-[8px] font-bold leading-none",
+        mark.className,
+      )}
+    >
+      {mark.short}
+    </span>
+  );
+}
+
+
+
 function ConfigInput({
   label,
   value,
