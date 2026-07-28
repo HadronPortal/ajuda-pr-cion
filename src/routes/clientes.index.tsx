@@ -3319,20 +3319,43 @@ export function ClientUsersTab({ users }: { users: ClientHadronUser[] }) {
   return (
     <Section title={`Usuários do portal (${users.length})`} icon={UsersRound}>
       {users.length ? (
-        <DataTable
-          headers={["Nome", "E-mail", "Operador", "Perfil", "Situação", "Ativo", "Datas"]}
-          rows={users.map((user) => [
-            user.name || "-",
-            user.email || "-",
-            user.operator || "-",
-            user.role || "-",
-            user.status || "-",
-            user.active ? "Sim" : "Não",
-            <span className="space-y-0.5 text-xs">
-              <span className="block">{user.createdAt || "-"}</span>
-              <span className="block">{user.updatedAt || "-"}</span>
-            </span>,
-          ])}
+        <SortableDataTable<ClientHadronUser>
+          rows={users}
+          initialSort={{ key: "dates", dir: "desc" }}
+          columns={[
+            { key: "name", label: "Nome", value: (u) => u.name || "", render: (u) => u.name || "-" },
+            { key: "email", label: "E-mail", value: (u) => u.email || "", render: (u) => u.email || "-" },
+            {
+              key: "operator",
+              label: "Operador",
+              value: (u) => u.operator || "",
+              render: (u) => u.operator || "-",
+            },
+            { key: "role", label: "Perfil", value: (u) => u.role || "", render: (u) => u.role || "-" },
+            {
+              key: "status",
+              label: "Situação",
+              value: (u) => u.status || "",
+              render: (u) => u.status || "-",
+            },
+            {
+              key: "active",
+              label: "Ativo",
+              value: (u) => (u.active ? 1 : 0),
+              render: (u) => (u.active ? "Sim" : "Não"),
+            },
+            {
+              key: "dates",
+              label: "Datas",
+              value: (u) => parseBrDateValue(u.updatedAt || u.createdAt),
+              render: (u) => (
+                <span className="space-y-0.5 text-xs">
+                  <span className="block">{u.createdAt || "-"}</span>
+                  <span className="block">{u.updatedAt || "-"}</span>
+                </span>
+              ),
+            },
+          ]}
         />
       ) : (
         <EmptyState text="Nenhum usuário vinculado a este cliente." />
@@ -3359,16 +3382,42 @@ export function ClientTerminalsTab({ terminals }: { terminals: ClientTerminal[] 
   return (
     <Section title={`Terminais instalados (${terminals.length})`} icon={Monitor}>
       {terminals.length ? (
-        <DataTable
-          headers={["Terminal", "IP", "Pasta", "Último setup", "Última versão", "Nº de série"]}
-          rows={terminals.map((terminal) => [
-            terminal.terminalNumber == null ? "-" : String(terminal.terminalNumber),
-            terminal.ipAddress || "-",
-            terminal.installPath || "-",
-            terminal.registeredAt || "-",
-            versionCell(terminal.versionDate),
-            terminal.serialNumber || "-",
-          ])}
+        <SortableDataTable<ClientTerminal>
+          rows={terminals}
+          initialSort={{ key: "registeredAt", dir: "desc" }}
+          columns={[
+            {
+              key: "terminal",
+              label: "Terminal",
+              value: (t) => (t.terminalNumber == null ? Number.NaN : Number(t.terminalNumber)),
+              render: (t) => (t.terminalNumber == null ? "-" : String(t.terminalNumber)),
+            },
+            { key: "ip", label: "IP", value: (t) => t.ipAddress || "", render: (t) => t.ipAddress || "-" },
+            {
+              key: "path",
+              label: "Pasta",
+              value: (t) => t.installPath || "",
+              render: (t) => t.installPath || "-",
+            },
+            {
+              key: "registeredAt",
+              label: "Último setup",
+              value: (t) => parseBrDateValue(t.registeredAt),
+              render: (t) => t.registeredAt || "-",
+            },
+            {
+              key: "versionDate",
+              label: "Última versão",
+              value: (t) => parseBrDateValue(t.versionDate),
+              render: (t) => versionCell(t.versionDate),
+            },
+            {
+              key: "serial",
+              label: "Nº de série",
+              value: (t) => t.serialNumber || "",
+              render: (t) => t.serialNumber || "-",
+            },
+          ]}
         />
       ) : (
         <EmptyState text="Nenhum terminal vinculado a este cliente." />
@@ -3376,6 +3425,7 @@ export function ClientTerminalsTab({ terminals }: { terminals: ClientTerminal[] 
     </Section>
   );
 }
+
 
 export function ClientLogsTab({ logs }: { logs: ClientLogs["logs"] }) {
   return (
