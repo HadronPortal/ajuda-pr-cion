@@ -92,6 +92,7 @@ import { TicketDetailSheet } from "@/components/tickets/TicketDetailSheet";
 import { TicketHistoryModal } from "@/components/tickets/TicketHistoryModal";
 
 import {
+  addMonths,
   currentMonthKey,
   isMonthKey,
   monthKeyFromDate,
@@ -413,6 +414,7 @@ function QuickFiltersBar({
   }, [tickets]);
 
   const anyActive = hasAnyActive(filters);
+  const monthApplied = activeMonthKey(filters);
 
 
   const clearAll = () => {
