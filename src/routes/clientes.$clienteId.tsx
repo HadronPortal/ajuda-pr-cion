@@ -112,7 +112,6 @@ function ClientDetailPage() {
   const showInternet = internet.hasActiveContract || internet.contracts.some((c: { active: boolean }) => c.active);
   const showDevices = showInternet;
   const showParameters = parameters.length > 0;
-
   // Dispositivos: ativos vinculados aos contratos ativos / limite do contrato
   // (auth_contratos.con_qtd_dispositivos).
   const deviceUsage = (() => {
@@ -229,7 +228,6 @@ function ClientDetailPage() {
                 : `${deviceUsage.active} dispositivos ativos`
             }
           />
-
         </div>
       </div>
 

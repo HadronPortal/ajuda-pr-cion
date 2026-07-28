@@ -263,7 +263,7 @@ try {
         text(row.dis_tipo),
         text(row.dis_sistema),
         text(row.dis_status),
-        text(row.dis_status) === "0",
+        text(row.dis_status) === "1",
         text(row.dis_app_type),
         text(row.dis_build_version),
         text(row.dis_db_version),
