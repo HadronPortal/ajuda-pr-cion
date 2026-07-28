@@ -2743,16 +2743,19 @@ export function ClientHadronTab({
               key={item.id}
               className={cn(
                 "flex min-h-8 items-center gap-2 border-b border-border/60 py-1.5 text-sm",
-                !item.contracted && "text-muted-foreground",
+                item.contracted
+                  ? "text-emerald-700 dark:text-emerald-400"
+                  : "text-muted-foreground",
               )}
             >
               {item.contracted ? (
-                <Check className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                <Check className="h-4 w-4 shrink-0" />
               ) : (
                 <X className="h-4 w-4 shrink-0 text-muted-foreground" />
               )}
               <span className={cn(item.contracted && "font-medium")}>{item.name}</span>
             </div>
+
           ))}
         </div>
       ) : (
