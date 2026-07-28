@@ -2892,6 +2892,7 @@ export function ClientHadronTab({
   modules: ClientModule[];
   terminals: ClientTerminal[];
 }) {
+  const [openCompanyId, setOpenCompanyId] = useState<string | null | undefined>(undefined);
   const contracted = modules.filter((item) => item.contracted);
   const unavailable = modules.filter((item) => !item.contracted);
   const payload = client.sourcePayload || {};
