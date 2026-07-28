@@ -184,7 +184,11 @@ function ClientDetailPage() {
 
         <div className="flex min-w-0 flex-wrap items-center justify-end gap-x-5 gap-y-1.5">
           <MiniSummary label="Atendimento" value={normalizeCityUf(client.city) || "Não informado"} />
-          <MiniSummary label="Status" value={client.status || "Não informado"} />
+          <MiniSummary
+            label="Status"
+            value={client.status || "Não informado"}
+            tone={client.status.trim().toLowerCase().startsWith("ativo") ? "success" : "default"}
+          />
           <MiniSummary
             label="Versão Hádron"
             value={client.versionDate || client.version || "Não informada"}
@@ -192,7 +196,16 @@ function ClientDetailPage() {
             title={erpStatus.label}
           />
           <MiniSummary label="Data de atualização" value={client.versionUpdatedAt || client.updated || "Não informada"} />
-          <MiniSummary label="Dispositivos" value={String(internet.devices.length)} />
+          <MiniSummary
+            label="Dispositivos"
+            value={deviceUsage.label}
+            title={
+              deviceUsage.limit
+                ? `${deviceUsage.active} dispositivos ativos de ${deviceUsage.limit} contratados`
+                : `${deviceUsage.active} dispositivos ativos`
+            }
+          />
+
         </div>
       </div>
 
