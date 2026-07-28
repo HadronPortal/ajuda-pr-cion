@@ -86,6 +86,34 @@ export type ClientTerminal = {
   updatedAt: string;
 };
 
+export type ClientHadronInfo = {
+  id: string;
+  companyNumber: number | null;
+  branchNumber: number | null;
+  companyDescription: string;
+  terminalNumber: number | null;
+  versionDate: string;
+  operatingSystem: string;
+  operatingSystemVersion: string;
+  emitsNfe: boolean;
+  notesIssued: number;
+  memoryUsed: string;
+  memoryTotal: string;
+  drives: Array<{
+    name: string;
+    role: string;
+    total: number | null;
+    free: number | null;
+    used: number | null;
+  }>;
+  certificateType: string;
+  certificateExpiresAt: string;
+  environment: string;
+  totalIncompatible: number | null;
+  registeredAt: string;
+  updatedAt: string;
+};
+
 export type ClientModule = {
   id: string;
   name: string;
@@ -244,6 +272,7 @@ export type ClientDetail = {
   groupCompanies: ClientCompany[];
   users: ClientHadronUser[];
   terminals: ClientTerminal[];
+  hadronInfo: ClientHadronInfo[];
   modules: ClientModule[];
   internet: ClientInternet;
   tickets: ClientTicket[];
@@ -394,6 +423,7 @@ export async function getClientDetail(acronym: string): Promise<ClientDetail | n
     { data: clientEventData, error: clientEventError },
     { data: logData, error: logError },
     { data: groupCompanyData, error: groupCompanyError },
+    { data: hadronInfoData, error: hadronInfoError },
   ] = await Promise.all([
     supabase.rpc("get_crm_client", { client_acronym: acronym }),
     supabase.rpc("get_crm_client_ticket_activity", { client_acronym: acronym }),
@@ -401,6 +431,7 @@ export async function getClientDetail(acronym: string): Promise<ClientDetail | n
     supabase.rpc("get_crm_client_events", { client_acronym: acronym }),
     supabase.rpc("get_crm_client_logs", { client_acronym: acronym }),
     supabase.rpc("get_crm_client_group_companies", { client_acronym: acronym }),
+    supabase.rpc("get_crm_client_hadron_info", { client_acronym: acronym }),
   ]);
   if (error) throw error;
   if (activityError) throw activityError;
@@ -408,6 +439,7 @@ export async function getClientDetail(acronym: string): Promise<ClientDetail | n
   if (clientEventError) throw clientEventError;
   if (logError && logError.code !== "PGRST202") throw logError;
   if (groupCompanyError && groupCompanyError.code !== "PGRST202") throw groupCompanyError;
+  if (hadronInfoError && hadronInfoError.code !== "PGRST202") throw hadronInfoError;
   if (!data?.client) return null;
 
   const contacts = (Array.isArray(data.contacts) ? data.contacts : []).map(
@@ -532,6 +564,33 @@ export async function getClientDetail(acronym: string): Promise<ClientDetail | n
       drives: Array.isArray(terminal.drives) ? terminal.drives : [],
       registeredAt: legacyDate(terminal.registered_at, true),
       updatedAt: date(terminal.updated_at, true),
+    }),
+  );
+
+  const hadronInfo = (Array.isArray(hadronInfoData) ? hadronInfoData : []).map(
+    (info: Record<string, unknown>): ClientHadronInfo => ({
+      id: String(info.id || ""),
+      companyNumber: typeof info.company_number === "number" ? info.company_number : null,
+      branchNumber: typeof info.branch_number === "number" ? info.branch_number : null,
+      companyDescription: String(info.company_description || ""),
+      terminalNumber: typeof info.terminal_number === "number" ? info.terminal_number : null,
+      versionDate: legacyDate(info.version_released_at),
+      operatingSystem: String(info.operating_system || ""),
+      operatingSystemVersion: String(info.operating_system_version || ""),
+      emitsNfe: info.emits_nfe === true,
+      notesIssued: Number(info.notes_issued || 0),
+      memoryUsed: String(info.memory_used ?? ""),
+      memoryTotal: String(info.memory_total ?? ""),
+      drives: Array.isArray(info.drives)
+        ? (info.drives as ClientHadronInfo["drives"])
+        : [],
+      certificateType: String(info.certificate_type || ""),
+      certificateExpiresAt: legacyDate(info.certificate_expires_at),
+      environment: String(info.environment || ""),
+      totalIncompatible:
+        typeof info.total_incompatible === "number" ? info.total_incompatible : null,
+      registeredAt: date(info.registered_at, true),
+      updatedAt: date(info.technical_updated_at, true),
     }),
   );
 
@@ -729,6 +788,7 @@ export async function getClientDetail(acronym: string): Promise<ClientDetail | n
     groupCompanies,
     users,
     terminals,
+    hadronInfo,
     modules,
     internet,
     tickets,

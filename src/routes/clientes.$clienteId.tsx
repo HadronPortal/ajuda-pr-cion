@@ -103,7 +103,7 @@ export const Route = createFileRoute("/clientes/$clienteId")({
 });
 
 function ClientDetailPage() {
-  const { client, contacts, companies, groupCompanies, users, terminals, modules, internet, tickets, events, activities, parameters, logs } =
+  const { client, contacts, companies, groupCompanies, users, terminals, hadronInfo, modules, internet, tickets, events, activities, parameters, logs } =
     Route.useLoaderData() as ClientDetail;
   const { tab, from, ticketId } = Route.useSearch();
   const navigate = useNavigate();
@@ -367,6 +367,7 @@ function ClientDetailPage() {
               <ClientTechnicalCompaniesTab
                 client={client}
                 terminals={terminals}
+                hadronInfo={hadronInfo}
               />
             </TabsContent>
           </div>

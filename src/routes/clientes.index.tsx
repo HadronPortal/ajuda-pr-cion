@@ -79,6 +79,7 @@ import type {
   ClientContact,
   ClientEvent,
   ClientHadronUser,
+  ClientHadronInfo,
   ClientInternet,
   ClientLogs,
   ClientModule,
@@ -4152,9 +4153,11 @@ export function ClientCompaniesTab({
 export function ClientTechnicalCompaniesTab({
   client,
   terminals,
+  hadronInfo,
 }: {
   client: ClientRow;
   terminals: ClientTerminal[];
+  hadronInfo: ClientHadronInfo[];
 }) {
   const [expanded, setExpanded] = useState(true);
   const terminal = useMemo(
@@ -4166,6 +4169,10 @@ export function ClientTechnicalCompaniesTab({
       })[0],
     [terminals],
   );
+
+  if (hadronInfo.length > 0) {
+    return <ClientHadronInfoCards rows={hadronInfo} />;
+  }
 
   if (!terminal) {
     return (
@@ -4271,6 +4278,171 @@ export function ClientTechnicalCompaniesTab({
         )}
       </div>
     </Section>
+  );
+}
+
+function ClientHadronInfoCards({ rows }: { rows: ClientHadronInfo[] }) {
+  const [openId, setOpenId] = useState<string | null>(rows[0]?.id || null);
+
+  const status = (active: boolean) => (
+    <span className={cn("inline-flex items-center gap-1.5", active ? "text-emerald-600" : "text-muted-foreground")}>
+      {active ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
+      {active ? "Sim" : "Não"}
+    </span>
+  );
+
+  return (
+    <Section title={`Empresas (${rows.length})`} icon={Server}>
+      <div className="space-y-2">
+        {rows.map((info, index) => {
+          const expanded = openId === info.id;
+          const companyNumber = String(info.companyNumber ?? index + 1).padStart(3, "0");
+          const title =
+            info.companyDescription.replace(/^\d+\s*-\s*/, "").trim() || `Empresa ${companyNumber}`;
+          return (
+            <div
+              key={info.id}
+              className="overflow-hidden rounded-md border border-border bg-background"
+            >
+              <button
+                type="button"
+                onClick={() => setOpenId(expanded ? null : info.id)}
+                aria-expanded={expanded}
+                className="flex w-full cursor-pointer items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/40"
+              >
+                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
+                  <Server className="h-4 w-4" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="mr-2 font-mono text-xs text-muted-foreground">
+                    {companyNumber}
+                  </span>
+                  <span className="text-sm font-medium text-foreground">{title}</span>
+                </span>
+                <ArrowDown
+                  className={cn(
+                    "h-4 w-4 shrink-0 text-muted-foreground transition-transform",
+                    expanded && "rotate-180",
+                  )}
+                />
+              </button>
+
+              {expanded && (
+                <div className="border-t border-border px-4 py-5">
+                  <div className="grid gap-x-8 gap-y-5 md:grid-cols-2 xl:grid-cols-3">
+                    <TechnicalValue icon={Monitor} label="Terminal" value={info.terminalNumber} />
+                    <TechnicalValue icon={Building2} label="Filial" value={info.branchNumber} />
+                    <TechnicalValue
+                      icon={CalendarDays}
+                      label="Versão"
+                      value={info.versionDate}
+                    />
+                    <TechnicalValue
+                      icon={Cpu}
+                      label="Sistema operacional"
+                      value={info.operatingSystem}
+                    />
+                    <TechnicalValue
+                      icon={Cpu}
+                      label="Versão do sistema operacional"
+                      value={info.operatingSystemVersion}
+                    />
+                    <TechnicalValue
+                      icon={Printer}
+                      label="Emite NF-e"
+                      value={status(info.emitsNfe)}
+                    />
+                    <TechnicalValue
+                      icon={FileText}
+                      label="Notas emitidas"
+                      value={info.notesIssued}
+                    />
+                    <TechnicalValue
+                      icon={Cpu}
+                      label="Memória usada/memória total"
+                      value={`${info.memoryUsed || "0"}/${info.memoryTotal || "0"}`}
+                    />
+                    <TechnicalValue
+                      icon={ShieldCheck}
+                      label="Tipo de certificado"
+                      value={info.certificateType}
+                    />
+                    <TechnicalValue
+                      icon={CalendarDays}
+                      label="Validade do certificado"
+                      value={info.certificateExpiresAt}
+                    />
+                    <TechnicalValue icon={Server} label="Ambiente" value={info.environment} />
+                    <TechnicalValue
+                      icon={X}
+                      label="Total incompatível"
+                      value={info.totalIncompatible}
+                    />
+                    <TechnicalValue
+                      icon={RefreshCw}
+                      label="Atualizado em"
+                      value={info.updatedAt}
+                    />
+                    <TechnicalValue
+                      icon={Clock3}
+                      label="Registrado em"
+                      value={info.registeredAt}
+                    />
+                  </div>
+
+                  {info.drives.length > 0 && (
+                    <div className="mt-5 grid gap-3 border-t border-border pt-5 md:grid-cols-2 xl:grid-cols-3">
+                      {info.drives.map((drive) => (
+                        <div
+                          key={`${drive.role}-${drive.name}`}
+                          className="flex items-start gap-3 rounded-md border border-border px-3 py-3"
+                        >
+                          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
+                            <HardDrive className="h-4 w-4" />
+                          </span>
+                          <div className="min-w-0">
+                            <p className="text-[11px] uppercase text-muted-foreground">
+                              Drive {drive.role}
+                            </p>
+                            <p className="text-sm font-medium text-foreground">{drive.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {drive.used ?? 0}/{drive.total ?? 0} usado/total
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </Section>
+  );
+}
+
+function TechnicalValue({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: ComponentType<{ className?: string }>;
+  label: string;
+  value: ReactNode;
+}) {
+  if (value == null || value === "") return null;
+  return (
+    <div className="flex min-w-0 items-start gap-3">
+      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
+        <Icon className="h-4 w-4" />
+      </span>
+      <div className="min-w-0">
+        <p className="text-[11px] uppercase text-muted-foreground">{label}</p>
+        <div className="break-words text-sm text-foreground">{value}</div>
+      </div>
+    </div>
   );
 }
 
