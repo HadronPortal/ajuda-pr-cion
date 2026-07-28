@@ -3002,39 +3002,19 @@ export function ClientHadronTab({
         <Field label="Serial" value={serial || "Não informado"} />
       </div>
 
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+      <div className="mb-3">
         <h4 className="text-sm font-medium">Módulos</h4>
-        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-          <span>{contracted.length} contratados</span>
-          <span>{unavailable.length} não contratados</span>
-        </div>
       </div>
 
       {modules.length ? (
-        <div className="grid gap-x-8 gap-y-1 sm:grid-cols-2 lg:grid-cols-3">
-          {[...contracted, ...unavailable].map((item) => (
-            <div
-              key={item.id}
-              className={cn(
-                "flex min-h-8 items-center gap-2 border-b border-border/60 py-1.5 text-sm",
-                item.contracted
-                  ? "text-emerald-700 dark:text-emerald-400"
-                  : "text-muted-foreground",
-              )}
-            >
-              {item.contracted ? (
-                <Check className="h-4 w-4 shrink-0" />
-              ) : (
-                <X className="h-4 w-4 shrink-0 text-muted-foreground" />
-              )}
-              <span className={cn(item.contracted && "font-medium")}>{item.name}</span>
-            </div>
-
-          ))}
+        <div className="grid gap-4 lg:grid-cols-2">
+          <ModuleColumn title="Contratados" items={contracted} contracted />
+          <ModuleColumn title="Não contratados" items={unavailable} />
         </div>
       ) : (
         <EmptyState text="Nenhum módulo cadastrado para este cliente." />
       )}
+
 
       <div className="hidden">
         <section className="py-6">
