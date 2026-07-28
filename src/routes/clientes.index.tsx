@@ -2675,10 +2675,6 @@ export function ClientHadronTab({
     const record = value as Record<string, unknown>;
     return keys.some((key) => Object.prototype.hasOwnProperty.call(record, key));
   };
-  const hasAnyLegacySelection = (value: unknown) =>
-    Array.isArray(value)
-      ? value.length > 0
-      : Boolean(value && typeof value === "object" && Object.keys(value).length);
   const serial = [text("cli_serial1") || client.acronym, text("cli_serial2"), text("cli_serial3")]
     .filter(Boolean)
     .join(" - ");
