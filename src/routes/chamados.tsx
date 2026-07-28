@@ -964,6 +964,40 @@ function TicketsPage() {
             </select>
           </label>
 
+          {appliedMonth && (
+            <div className="flex h-9 shrink-0 items-center gap-1 rounded-lg border border-primary/30 bg-primary/10 px-2 text-xs font-medium text-primary">
+              <span className="whitespace-nowrap capitalize">{monthLabel(appliedMonth)}</span>
+              <button
+                type="button"
+                aria-label="Mês anterior"
+                onClick={() =>
+                  setFilters((c) => ({ ...c, ...monthRangeFilters(addMonths(appliedMonth, -1)) }))
+                }
+                className="cursor-pointer rounded px-1 hover:bg-primary/20"
+              >
+                ‹
+              </button>
+              <button
+                type="button"
+                aria-label="Próximo mês"
+                onClick={() =>
+                  setFilters((c) => ({ ...c, ...monthRangeFilters(addMonths(appliedMonth, 1)) }))
+                }
+                className="cursor-pointer rounded px-1 hover:bg-primary/20"
+              >
+                ›
+              </button>
+              <button
+                type="button"
+                aria-label="Remover filtro de mês"
+                onClick={() => setFilters((c) => ({ ...c, dateStart: undefined, dateEnd: undefined }))}
+                className="cursor-pointer rounded px-1 hover:bg-primary/20"
+              >
+                ×
+              </button>
+            </div>
+          )}
+
           <div className="min-w-[200px] flex-[1.4]">
             <DateRangeFilter
               start={filters.dateStart}
@@ -977,6 +1011,7 @@ function TicketsPage() {
               }
             />
           </div>
+
 
         </div>
       </div>
