@@ -2865,12 +2865,27 @@ export function ClientHadronTab({
         <div>
           <h4 className="mb-3 text-sm font-medium">Cobrança</h4>
           <HadronDetail icon={Landmark}>
-            <Field
-              label="Boleto bancário"
-              value={hasAnyLegacySelection(parseLegacyValue("cli_boleto_dados")) ? "SIM" : "NÃO"}
-            />
+            <div className="space-y-3">
+              <Field label="Boleto bancário" value={bankEntries.length ? "SIM" : "NÃO"} />
+              {bankEntries.length ? (
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {bankEntries.map((bank) => (
+                    <div
+                      key={bank.name}
+                      className="rounded-md border border-border bg-muted/30 px-3 py-2"
+                    >
+                      <p className="text-sm font-medium text-foreground">{bank.name}</p>
+                      {bank.detail ? (
+                        <p className="text-xs text-muted-foreground">{bank.detail}</p>
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+            </div>
           </HadronDetail>
         </div>
+
       </div>
     </Section>
   );
