@@ -17,7 +17,7 @@ import {
   ClientParametersTab,
   ClientUsersTab,
   ClientTerminalsTab,
-  ClientCompaniesTab,
+  ClientTechnicalCompaniesTab,
   ClientExternalLogsTab,
   ClientLogsTab,
   HadronMenuIcon,
@@ -364,9 +364,8 @@ function ClientDetailPage() {
               <ClientTerminalsTab terminals={terminals} />
             </TabsContent>
             <TabsContent value="empresas" className="m-0">
-              <ClientCompaniesTab
+              <ClientTechnicalCompaniesTab
                 client={client}
-                companies={groupCompanies}
                 terminals={terminals}
               />
             </TabsContent>

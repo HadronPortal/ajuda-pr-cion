@@ -28,6 +28,7 @@ import {
   Database,
   FileText,
   Filter,
+  FolderOpen,
   Globe2,
   RefreshCw,
   Search,
@@ -4143,6 +4144,131 @@ export function ClientCompaniesTab({
             </div>
           );
         })}
+      </div>
+    </Section>
+  );
+}
+
+export function ClientTechnicalCompaniesTab({
+  client,
+  terminals,
+}: {
+  client: ClientRow;
+  terminals: ClientTerminal[];
+}) {
+  const [expanded, setExpanded] = useState(true);
+  const terminal = useMemo(
+    () =>
+      [...terminals].sort((left, right) => {
+        const leftDate = new Date(left.registeredAt || left.updatedAt || 0).getTime();
+        const rightDate = new Date(right.registeredAt || right.updatedAt || 0).getTime();
+        return rightDate - leftDate;
+      })[0],
+    [terminals],
+  );
+
+  if (!terminal) {
+    return (
+      <Section title="Empresas" icon={Server}>
+        <EmptyState text="Nenhuma informação técnica encontrada para este cliente." />
+      </Section>
+    );
+  }
+
+  const formatTechnicalDate = (value: string, withTime = false) => {
+    if (!value) return "";
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+      return withTime ? value : formatVersionDate(value.slice(0, 10));
+    }
+    return format(parsed, withTime ? "dd/MM/yyyy, HH:mm" : "dd/MM/yyyy", { locale: ptBR });
+  };
+
+  const version = terminal.versionDate
+    ? formatTechnicalDate(terminal.versionDate)
+    : terminal.version;
+  const operatingSystem = [terminal.operatingSystem, terminal.operatingSystemVersion]
+    .filter(Boolean)
+    .join(" ");
+  const memory =
+    terminal.memoryUsed || terminal.memoryTotal
+      ? `${terminal.memoryUsed || "0"}/${terminal.memoryTotal || "0"}`
+      : "";
+  const drives = Array.isArray(terminal.drives) ? terminal.drives : [];
+  const rows: Array<[string, string, ComponentType<{ className?: string }>]> = [
+    ["Terminal", terminal.terminalNumber != null ? String(terminal.terminalNumber) : "", Monitor],
+    ["Filial", terminal.companyNumber != null ? String(terminal.companyNumber) : "1", Building2],
+    ["Versão", version, CalendarDays],
+    ["IP", terminal.ipAddress, Globe2],
+    ["Pasta de instalação", terminal.installPath, FolderOpen],
+    ["Número de série", terminal.serialNumber, KeyRound],
+    ["Data do setup", formatTechnicalDate(terminal.registeredAt, true), Clock3],
+    ["Sistema operacional", operatingSystem, Cpu],
+    ["Memória usada/total", memory, Cpu],
+    ["Certificado", terminal.certificateType, ShieldCheck],
+    ["Validade do certificado", formatTechnicalDate(terminal.certificateExpiresAt), CalendarDays],
+    ["Ambiente", terminal.environment, Server],
+  ].filter((row): row is [string, string, ComponentType<{ className?: string }>] =>
+    Boolean(row[1]),
+  );
+
+  return (
+    <Section title="Empresas" icon={Server}>
+      <div className="overflow-hidden rounded-md border border-border bg-background">
+        <button
+          type="button"
+          onClick={() => setExpanded((value) => !value)}
+          aria-expanded={expanded}
+          className="flex w-full cursor-pointer items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/40"
+        >
+          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
+            <Server className="h-4 w-4" />
+          </span>
+          <span className="flex min-w-0 flex-1 items-center gap-2">
+            <span className="text-sm font-mono text-muted-foreground">001</span>
+            <span className="truncate text-sm font-medium text-foreground">
+              {client.tradeName || client.name}
+            </span>
+          </span>
+          <ArrowDown
+            className={cn(
+              "h-4 w-4 shrink-0 text-muted-foreground transition-transform",
+              expanded ? "rotate-180" : "rotate-0",
+            )}
+          />
+        </button>
+
+        {expanded && (
+          <div className="border-t border-border px-4 py-5">
+            <div className="grid gap-x-8 gap-y-5 sm:grid-cols-2 lg:grid-cols-3">
+              {rows.map(([label, value, Icon]) => (
+                <div key={label} className="flex min-w-0 gap-3">
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
+                    <Icon className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-[11px] uppercase text-muted-foreground">{label}</p>
+                    <p className="break-words text-sm text-foreground">{value}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {drives.length > 0 && (
+              <div className="mt-5 border-t border-border pt-5">
+                <div className="flex items-center gap-3">
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
+                    <HardDrive className="h-4 w-4" />
+                  </span>
+                  <div>
+                    <p className="text-[11px] uppercase text-muted-foreground">Discos</p>
+                    <p className="text-sm text-foreground">{drives.length} informado(s)</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </Section>
   );
