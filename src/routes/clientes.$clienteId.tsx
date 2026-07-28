@@ -31,25 +31,25 @@ function MiniSummary({
 }: {
   label: string;
   value: string;
-  tone?: "default" | "danger";
+  tone?: "default" | "danger" | "success";
   title?: string;
 }) {
+  const toneClass =
+    tone === "danger"
+      ? "truncate text-[12.5px] font-semibold text-red-600 dark:text-red-400"
+      : tone === "success"
+        ? "truncate text-[12.5px] font-semibold text-emerald-600 dark:text-emerald-400"
+        : "truncate text-[12.5px] font-medium text-foreground";
   return (
     <div className="flex min-w-0 items-baseline gap-1.5">
       <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{label}</span>
-      <span
-        className={
-          tone === "danger"
-            ? "truncate text-[12.5px] font-semibold text-red-600 dark:text-red-400"
-            : "truncate text-[12.5px] font-medium text-foreground"
-        }
-        title={title ?? value}
-      >
+      <span className={toneClass} title={title ?? value}>
         {value}
       </span>
     </div>
   );
 }
+
 
 
 import { getClientDetail, type ClientDetail } from "@/lib/clients-api";
@@ -112,6 +112,30 @@ function ClientDetailPage() {
   const showInternet = internet.hasActiveContract || internet.contracts.some((c: { active: boolean }) => c.active);
   const showDevices = showInternet;
   const showParameters = parameters.length > 0;
+
+  // Dispositivos: ativos vinculados aos contratos ativos / limite do contrato
+  // (auth_contratos.con_qtd_dispositivos).
+  const deviceUsage = (() => {
+    const activeContracts = internet.contracts.filter((c) => c.active);
+    const activeKeys = new Set(
+      activeContracts.map((c) => c.legacyId).filter(Boolean),
+    );
+    const scoped = activeKeys.size
+      ? internet.devices.filter(
+          (d) => !d.contractLegacyId || activeKeys.has(d.contractLegacyId),
+        )
+      : internet.devices;
+    const active = scoped.filter((d) => d.active).length;
+
+    const limit = activeContracts.reduce((total, contract) => {
+      const raw = (contract.sourcePayload as Record<string, unknown>)?.con_qtd_dispositivos;
+      const parsed = Number(String(raw ?? "").replace(/[^\d]/g, ""));
+      return total + (Number.isFinite(parsed) ? parsed : 0);
+    }, 0);
+
+    return { active, limit, label: limit > 0 ? `${active}/${limit}` : String(active) };
+  })();
+
 
   // Grupo: usa group_acronym do cliente. Se vazio, verifica se ele é raiz de
   // um grupo (algum outro cliente aponta group_acronym para a sigla dele).
@@ -184,7 +208,11 @@ function ClientDetailPage() {
 
         <div className="flex min-w-0 flex-wrap items-center justify-end gap-x-5 gap-y-1.5">
           <MiniSummary label="Atendimento" value={normalizeCityUf(client.city) || "Não informado"} />
-          <MiniSummary label="Status" value={client.status || "Não informado"} />
+          <MiniSummary
+            label="Status"
+            value={client.status || "Não informado"}
+            tone={client.status.trim().toLowerCase().startsWith("ativo") ? "success" : "default"}
+          />
           <MiniSummary
             label="Versão Hádron"
             value={client.versionDate || client.version || "Não informada"}
@@ -192,7 +220,16 @@ function ClientDetailPage() {
             title={erpStatus.label}
           />
           <MiniSummary label="Data de atualização" value={client.versionUpdatedAt || client.updated || "Não informada"} />
-          <MiniSummary label="Dispositivos" value={String(internet.devices.length)} />
+          <MiniSummary
+            label="Dispositivos"
+            value={deviceUsage.label}
+            title={
+              deviceUsage.limit
+                ? `${deviceUsage.active} dispositivos ativos de ${deviceUsage.limit} contratados`
+                : `${deviceUsage.active} dispositivos ativos`
+            }
+          />
+
         </div>
       </div>
 
