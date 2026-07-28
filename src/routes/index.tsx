@@ -12,6 +12,11 @@ import {
 import { SefazStatusPanel } from "@/components/portal/SefazStatusPanel";
 import { TicketsNewsCard } from "@/components/portal/TicketsNewsCard";
 import { TicketsIndicatorCards } from "@/components/analytics/TicketsAnalytics";
+import {
+  availableMonthKeys,
+  currentMonthKey,
+  monthLabel,
+} from "@/lib/tickets-month";
 import { AppShell } from "@/components/portal/AppShell";
 
 import { Card } from "@/components/ui/card";
@@ -99,6 +104,9 @@ function HomePage() {
     kbCategoriesFull.map((c) => [c.id, c]),
   );
 
+  const [selectedMonth, setSelectedMonth] = useState(currentMonthKey());
+  const monthOptions = useMemo(() => availableMonthKeys(supportTickets), [supportTickets]);
+
   // Lista única e pessoal do usuário logado — todos os chips derivam dela.
   const personalTickets = getTicketsForCurrentUser(supportTickets, currentUser);
 
@@ -116,13 +124,30 @@ function HomePage() {
 
   return (
     <AppShell>
-      <section className="mb-6">
-        <TicketsIndicatorCards />
+      <section className="mb-6 space-y-4">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-sm font-medium text-muted-foreground">
+            Indicadores de <span className="capitalize">{monthLabel(selectedMonth)}</span>
+          </h2>
+          <select
+            aria-label="Selecionar mês"
+            value={selectedMonth}
+            onChange={(e) => setSelectedMonth(e.target.value)}
+            className="h-9 cursor-pointer rounded-lg border border-border bg-background px-3 text-sm capitalize outline-none focus:ring-2 focus:ring-ring"
+          >
+            {monthOptions.map((key) => (
+              <option key={key} value={key} className="capitalize">
+                {monthLabel(key)}
+              </option>
+            ))}
+          </select>
+        </div>
+        <TicketsIndicatorCards month={selectedMonth} />
       </section>
 
       <section className="mb-6 grid grid-cols-1 items-stretch gap-6 lg:h-[400px] lg:grid-cols-[minmax(0,68fr)_minmax(0,32fr)]">
         <SefazStatusPanel />
-        <TicketsNewsCard />
+        <TicketsNewsCard month={selectedMonth} />
       </section>
 
 
