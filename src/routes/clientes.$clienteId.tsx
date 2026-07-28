@@ -23,11 +23,30 @@ import {
   HadronMenuIcon,
 } from "./clientes.index";
 
-function MiniSummary({ label, value }: { label: string; value: string }) {
+function MiniSummary({
+  label,
+  value,
+  tone = "default",
+  title,
+}: {
+  label: string;
+  value: string;
+  tone?: "default" | "danger";
+  title?: string;
+}) {
   return (
     <div className="flex min-w-0 items-baseline gap-1.5">
       <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{label}</span>
-      <span className="truncate text-[12.5px] font-medium text-foreground" title={value}>{value}</span>
+      <span
+        className={
+          tone === "danger"
+            ? "truncate text-[12.5px] font-semibold text-red-600 dark:text-red-400"
+            : "truncate text-[12.5px] font-medium text-foreground"
+        }
+        title={title ?? value}
+      >
+        {value}
+      </span>
     </div>
   );
 }
