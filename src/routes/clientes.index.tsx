@@ -4475,6 +4475,142 @@ function DataTable({ headers, rows }: { headers: string[]; rows: ReactNode[][] }
   );
 }
 
+// ---------------------------------------------------------------------------
+// Tabela com ordenação clicável nos cabeçalhos
+// ---------------------------------------------------------------------------
+type TableSortDir = "asc" | "desc";
+
+export type SortableColumn<T> = {
+  key: string;
+  label: string;
+  /** Valor usado na ordenação (string ou número). */
+  value?: (row: T) => string | number;
+  render: (row: T) => ReactNode;
+  cellClassName?: string;
+};
+
+/** Converte datas pt-BR ("dd/mm/aaaa hh:mm") em timestamp ordenável. */
+export function parseBrDateValue(raw: string | number | null | undefined): number {
+  if (typeof raw === "number") return raw;
+  const value = String(raw ?? "").trim();
+  const match = value.match(/(\d{2})\/(\d{2})\/(\d{4})(?:[,\s]+(\d{2}):(\d{2})(?::(\d{2}))?)?/);
+  if (!match) return Number.NaN;
+  const [, d, m, y, hh = "0", mm = "0", ss = "0"] = match;
+  return new Date(
+    Number(y),
+    Number(m) - 1,
+    Number(d),
+    Number(hh),
+    Number(mm),
+    Number(ss),
+  ).getTime();
+}
+
+function compareSortValues(a: string | number, b: string | number): number {
+  if (typeof a === "number" || typeof b === "number") {
+    const na = typeof a === "number" ? a : Number.NaN;
+    const nb = typeof b === "number" ? b : Number.NaN;
+    const aNaN = Number.isNaN(na);
+    const bNaN = Number.isNaN(nb);
+    if (aNaN && bNaN) return 0;
+    if (aNaN) return 1;
+    if (bNaN) return -1;
+    return na - nb;
+  }
+  const sa = String(a ?? "");
+  const sb = String(b ?? "");
+  const empty = (v: string) => !v || v === "-";
+  if (empty(sa) && empty(sb)) return 0;
+  if (empty(sa)) return 1;
+  if (empty(sb)) return -1;
+  return sa.localeCompare(sb, "pt-BR", { sensitivity: "base", numeric: true });
+}
+
+function SortableDataTable<T>({
+  columns,
+  rows,
+  initialSort,
+  minWidthClass = "min-w-[760px]",
+  dense = false,
+}: {
+  columns: SortableColumn<T>[];
+  rows: T[];
+  initialSort?: { key: string; dir: TableSortDir };
+  minWidthClass?: string;
+  dense?: boolean;
+}) {
+  const [sort, setSort] = useState<{ key: string; dir: TableSortDir } | null>(initialSort ?? null);
+
+  const sorted = useMemo(() => {
+    if (!sort) return rows;
+    const column = columns.find((c) => c.key === sort.key);
+    if (!column?.value) return rows;
+    const factor = sort.dir === "asc" ? 1 : -1;
+    return [...rows].sort((a, b) => compareSortValues(column.value!(a), column.value!(b)) * factor);
+  }, [rows, sort, columns]);
+
+  const cellPad = dense ? "px-3 py-2.5" : "px-4 py-4";
+  const bodyText = dense ? "text-[12.5px]" : "text-sm";
+
+  return (
+    <div className="overflow-x-auto rounded-md border border-border">
+      <table className={`w-full ${minWidthClass} ${bodyText}`}>
+        <thead className="bg-muted/35 text-xs uppercase text-muted-foreground">
+          <tr>
+            {columns.map((column) => {
+              const sortable = !!column.value;
+              const active = sort?.key === column.key;
+              const dir = active ? sort!.dir : null;
+              return (
+                <th
+                  key={column.key}
+                  aria-sort={dir === "asc" ? "ascending" : dir === "desc" ? "descending" : "none"}
+                  onClick={
+                    sortable
+                      ? () =>
+                          setSort((prev) =>
+                            prev && prev.key === column.key
+                              ? { key: column.key, dir: prev.dir === "asc" ? "desc" : "asc" }
+                              : { key: column.key, dir: "asc" },
+                          )
+                      : undefined
+                  }
+                  className={`${dense ? "px-3 py-2.5" : "px-4 py-3"} text-left font-medium select-none ${
+                    sortable ? "cursor-pointer transition-colors hover:text-foreground" : ""
+                  }`}
+                >
+                  <span className="inline-flex items-center gap-1">
+                    {column.label}
+                    {sortable &&
+                      (dir === "asc" ? (
+                        <ArrowUp className="h-3 w-3" />
+                      ) : dir === "desc" ? (
+                        <ArrowDown className="h-3 w-3" />
+                      ) : (
+                        <ArrowUpDown className="h-3 w-3 opacity-40" />
+                      ))}
+                  </span>
+                </th>
+              );
+            })}
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-border">
+          {sorted.map((row, i) => (
+            <tr key={i}>
+              {columns.map((column) => (
+                <td key={column.key} className={`${cellPad} ${column.cellClassName ?? ""}`}>
+                  {column.render(row)}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 function Pagination({
   page,
   totalPages,
