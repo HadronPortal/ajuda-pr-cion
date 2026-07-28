@@ -2685,22 +2685,46 @@ export function ClientHadronTab({
   const responsibles = [text("cli_operador_resp1"), text("cli_operador_resp2")]
     .filter(Boolean)
     .join("/");
-  const fiscalDocuments = parseLegacyValue("cli_docs_fiscais");
-  const fiscalOptions = [
-    ["nfe", "NF-e"],
-    ["cte", "CT-e"],
-    ["nfce", "NFC-e"],
-    ["nfse", "NFS-e"],
-    ["mdfe", "MDF-e"],
-    ["ecf-sat", "SAT"],
+  const legacyEntries = (value: unknown): Array<[string, string]> => {
+    if (Array.isArray(value)) {
+      return value
+        .map((item) => String(item ?? "").trim())
+        .filter(Boolean)
+        .map((item) => [item, ""] as [string, string]);
+    }
+    if (!value || typeof value !== "object") return [];
+    return Object.entries(value as Record<string, unknown>)
+      .map(([key, raw]) => [String(key).trim(), String(raw ?? "").trim()] as [string, string])
+      .filter(([key]) => Boolean(key));
+  };
+  const normalizeKey = (value: string) =>
+    value
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]/g, "");
+  const fiscalDocuments = legacyEntries(parseLegacyValue("cli_docs_fiscais"));
+  const fiscalDefinitions = [
+    ["nfe", "NF-e", ["nfe", "nf-e"]],
+    ["cte", "CT-e", ["cte", "ct-e"]],
+    ["nfce", "NFC-e", ["nfce", "nfc-e"]],
+    ["nfse", "NFS-e", ["nfse", "nfs-e"]],
+    ["mdfe", "MDF-e", ["mdfe", "mdf-e"]],
+    ["sat", "SAT", ["ecfsat", "sat", "ecf"]],
+    ["no", "Não utiliza", ["no", "nao", "naoutiliza", "nenhum"]],
   ] as const;
-  const usesNoFiscalDocument = hasLegacySelection(
-    fiscalDocuments,
-    "no",
-    "nao",
-    "nao_utiliza",
-    "naoutiliza",
-  );
+  const fiscalEntries = fiscalDefinitions.map(([key, label, aliases]) => {
+    const match = fiscalDocuments.find(([entryKey]) =>
+      (aliases as readonly string[]).includes(normalizeKey(entryKey)),
+    );
+    const rawDetail = match?.[1] ?? "";
+    const detail =
+      rawDetail && normalizeKey(rawDetail) !== normalizeKey(match?.[0] ?? "")
+        ? rawDetail.replace(/^[.\s-]+$/, "")
+        : "";
+    return { key, label, active: Boolean(match), detail };
+  });
+
   const importedData = parseLegacyValue("cli_import_dados");
   const importedDataOptions = [
     ["produtos", "Produtos"],
