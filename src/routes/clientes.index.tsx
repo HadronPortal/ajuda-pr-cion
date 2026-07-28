@@ -2777,41 +2777,33 @@ export function ClientHadronTab({
         <div>
           <h4 className="mb-3 text-sm font-medium">Documentos fiscais</h4>
           <HadronDetail icon={Printer}>
-            <div className="flex flex-wrap gap-x-5 gap-y-2 pt-1">
-              {fiscalOptions.map(([key, label]) => {
-                const active = hasLegacySelection(fiscalDocuments, key);
-                return (
-                  <span
-                    key={key}
-                    className={cn(
-                      "flex items-center gap-1.5 text-sm",
-                      !active && "text-muted-foreground",
-                    )}
-                  >
-                    {active ? (
-                      <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                    ) : (
-                      <X className="h-4 w-4" />
-                    )}
-                    {label}
+            <div className="grid gap-x-6 gap-y-2 pt-1 sm:grid-cols-2 lg:grid-cols-3">
+              {fiscalEntries.map((entry) => (
+                <div
+                  key={entry.key}
+                  className={cn(
+                    "flex items-start gap-1.5 text-sm",
+                    entry.active
+                      ? "text-emerald-700 dark:text-emerald-400"
+                      : "text-muted-foreground",
+                  )}
+                >
+                  {entry.active ? (
+                    <Check className="mt-0.5 h-4 w-4 shrink-0" />
+                  ) : (
+                    <X className="mt-0.5 h-4 w-4 shrink-0" />
+                  )}
+                  <span className="min-w-0">
+                    <span className={cn(entry.active && "font-medium")}>{entry.label}</span>
+                    {entry.detail ? (
+                      <span className="block text-xs text-muted-foreground">{entry.detail}</span>
+                    ) : null}
                   </span>
-                );
-              })}
-              <span
-                className={cn(
-                  "flex items-center gap-1.5 text-sm",
-                  !usesNoFiscalDocument && "text-muted-foreground",
-                )}
-              >
-                {usesNoFiscalDocument ? (
-                  <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                ) : (
-                  <X className="h-4 w-4" />
-                )}
-                Não utiliza
-              </span>
+                </div>
+              ))}
             </div>
           </HadronDetail>
+
           <div className="mt-4">
             <HadronDetail icon={ClipboardCheck}>
               <Field
