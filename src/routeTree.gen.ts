@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VersoesRouteImport } from './routes/versoes'
 import { Route as MinhaContaRouteImport } from './routes/minha-conta'
+import { Route as LogsRouteImport } from './routes/logs'
 import { Route as KanbanDashboardRouteImport } from './routes/kanban-dashboard'
 import { Route as KanbanRouteImport } from './routes/kanban'
 import { Route as IniciarHadronRouteImport } from './routes/iniciar-hadron'
@@ -36,6 +37,11 @@ const VersoesRoute = VersoesRouteImport.update({
 const MinhaContaRoute = MinhaContaRouteImport.update({
   id: '/minha-conta',
   path: '/minha-conta',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LogsRoute = LogsRouteImport.update({
+  id: '/logs',
+  path: '/logs',
   getParentRoute: () => rootRouteImport,
 } as any)
 const KanbanDashboardRoute = KanbanDashboardRouteImport.update({
@@ -130,6 +136,7 @@ export interface FileRoutesByFullPath {
   '/iniciar-hadron': typeof IniciarHadronRoute
   '/kanban': typeof KanbanRouteWithChildren
   '/kanban-dashboard': typeof KanbanDashboardRoute
+  '/logs': typeof LogsRoute
   '/minha-conta': typeof MinhaContaRoute
   '/versoes': typeof VersoesRoute
   '/base-de-conhecimento/$slug': typeof BaseDeConhecimentoSlugRoute
@@ -149,6 +156,7 @@ export interface FileRoutesByTo {
   '/iniciar-hadron': typeof IniciarHadronRoute
   '/kanban': typeof KanbanRouteWithChildren
   '/kanban-dashboard': typeof KanbanDashboardRoute
+  '/logs': typeof LogsRoute
   '/minha-conta': typeof MinhaContaRoute
   '/versoes': typeof VersoesRoute
   '/base-de-conhecimento/$slug': typeof BaseDeConhecimentoSlugRoute
@@ -170,6 +178,7 @@ export interface FileRoutesById {
   '/iniciar-hadron': typeof IniciarHadronRoute
   '/kanban': typeof KanbanRouteWithChildren
   '/kanban-dashboard': typeof KanbanDashboardRoute
+  '/logs': typeof LogsRoute
   '/minha-conta': typeof MinhaContaRoute
   '/versoes': typeof VersoesRoute
   '/base-de-conhecimento/$slug': typeof BaseDeConhecimentoSlugRoute
@@ -192,6 +201,7 @@ export interface FileRouteTypes {
     | '/iniciar-hadron'
     | '/kanban'
     | '/kanban-dashboard'
+    | '/logs'
     | '/minha-conta'
     | '/versoes'
     | '/base-de-conhecimento/$slug'
@@ -211,6 +221,7 @@ export interface FileRouteTypes {
     | '/iniciar-hadron'
     | '/kanban'
     | '/kanban-dashboard'
+    | '/logs'
     | '/minha-conta'
     | '/versoes'
     | '/base-de-conhecimento/$slug'
@@ -231,6 +242,7 @@ export interface FileRouteTypes {
     | '/iniciar-hadron'
     | '/kanban'
     | '/kanban-dashboard'
+    | '/logs'
     | '/minha-conta'
     | '/versoes'
     | '/base-de-conhecimento/$slug'
@@ -252,6 +264,7 @@ export interface RootRouteChildren {
   IniciarHadronRoute: typeof IniciarHadronRoute
   KanbanRoute: typeof KanbanRouteWithChildren
   KanbanDashboardRoute: typeof KanbanDashboardRoute
+  LogsRoute: typeof LogsRoute
   MinhaContaRoute: typeof MinhaContaRoute
   VersoesRoute: typeof VersoesRoute
   ClientesClienteIdRoute: typeof ClientesClienteIdRoute
@@ -272,6 +285,13 @@ declare module '@tanstack/react-router' {
       path: '/minha-conta'
       fullPath: '/minha-conta'
       preLoaderRoute: typeof MinhaContaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/logs': {
+      id: '/logs'
+      path: '/logs'
+      fullPath: '/logs'
+      preLoaderRoute: typeof LogsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/kanban-dashboard': {
@@ -436,6 +456,7 @@ const rootRouteChildren: RootRouteChildren = {
   IniciarHadronRoute: IniciarHadronRoute,
   KanbanRoute: KanbanRouteWithChildren,
   KanbanDashboardRoute: KanbanDashboardRoute,
+  LogsRoute: LogsRoute,
   MinhaContaRoute: MinhaContaRoute,
   VersoesRoute: VersoesRoute,
   ClientesClienteIdRoute: ClientesClienteIdRoute,
