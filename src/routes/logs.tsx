@@ -74,7 +74,7 @@ function LogsPage() {
 
   return (
     <AppShell>
-      <PageHeader title="Logs do sistema" subtitle="Registros externos mais recentes" />
+      <PageHeader title="Logs do sistema" description="Registros externos mais recentes" />
 
       <form
         className="mb-4 flex flex-wrap items-center gap-2"
