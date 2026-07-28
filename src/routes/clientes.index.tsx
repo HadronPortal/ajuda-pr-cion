@@ -6,6 +6,12 @@ import {
   Activity,
   ArrowDown,
   ArrowLeft,
+  Boxes,
+  Calculator,
+  ShoppingCart,
+  Truck,
+  Wrench,
+  MinusCircle,
   ArrowUp,
   ArrowUpDown,
   Building2,
@@ -2881,6 +2887,79 @@ function HadronCompanyDetails({
   );
 }
 
+const MODULE_ICON_RULES: Array<[RegExp, ComponentType<{ className?: string }>]> = [
+  [/venda|pedido|pdv|orcament/i, ShoppingCart],
+  [/fiscal|nota|nfe|sped|ecf/i, FileText],
+  [/financ|caixa|banc|cobran|contas/i, CircleDollarSign],
+  [/estoque|produto|invent/i, Boxes],
+  [/compra|entrega|transport|frete|logist/i, Truck],
+  [/contab|apurac|calculo/i, Calculator],
+  [/web|portal|internet|integra/i, Globe2],
+  [/impress|etiqueta/i, Printer],
+  [/servi|manuten|ordem/i, Wrench],
+  [/usuari|terceiro|cliente/i, UsersRound],
+  [/relatorio|dados|base/i, Database],
+];
+
+function moduleIcon(name: string): ComponentType<{ className?: string }> {
+  const found = MODULE_ICON_RULES.find(([re]) => re.test(name));
+  return found ? found[1] : Server;
+}
+
+function ModuleColumn({
+  title,
+  items,
+  contracted = false,
+}: {
+  title: string;
+  items: ClientModule[];
+  contracted?: boolean;
+}) {
+  const StatusIcon = contracted ? CheckCircle2 : MinusCircle;
+  const accent = contracted
+    ? "text-emerald-600 dark:text-emerald-400"
+    : "text-muted-foreground";
+  return (
+    <div className="rounded-lg border border-border bg-card/40">
+      <div className="flex items-center gap-2 border-b border-border px-4 py-2.5">
+        <StatusIcon className={cn("h-4 w-4 shrink-0", accent)} />
+        <span className="text-sm font-medium text-foreground">{title}</span>
+        <Badge
+          variant="secondary"
+          className={cn(
+            "ml-auto rounded-full px-2 py-0 text-[11px] font-medium",
+            contracted && "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+          )}
+        >
+          {items.length}
+        </Badge>
+      </div>
+      {items.length ? (
+        <ul className="divide-y divide-border/60">
+          {items.map((item) => {
+            const Icon = moduleIcon(item.name);
+            return (
+              <li key={item.id} className="flex items-center gap-2.5 px-4 py-2">
+                <Icon className={cn("h-4 w-4 shrink-0", accent)} />
+                <span className="min-w-0 flex-1 truncate text-sm text-foreground">
+                  {item.name}
+                </span>
+                {contracted ? (
+                  <Check className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                ) : (
+                  <X className="h-4 w-4 shrink-0 text-muted-foreground" />
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        <p className="px-4 py-3 text-xs text-muted-foreground">Nenhum módulo nesta lista.</p>
+      )}
+    </div>
+  );
+}
+
 export function ClientHadronTab({
   client,
   companies,
@@ -2996,39 +3075,19 @@ export function ClientHadronTab({
         <Field label="Serial" value={serial || "Não informado"} />
       </div>
 
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+      <div className="mb-3">
         <h4 className="text-sm font-medium">Módulos</h4>
-        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-          <span>{contracted.length} contratados</span>
-          <span>{unavailable.length} não contratados</span>
-        </div>
       </div>
 
       {modules.length ? (
-        <div className="grid gap-x-8 gap-y-1 sm:grid-cols-2 lg:grid-cols-3">
-          {[...contracted, ...unavailable].map((item) => (
-            <div
-              key={item.id}
-              className={cn(
-                "flex min-h-8 items-center gap-2 border-b border-border/60 py-1.5 text-sm",
-                item.contracted
-                  ? "text-emerald-700 dark:text-emerald-400"
-                  : "text-muted-foreground",
-              )}
-            >
-              {item.contracted ? (
-                <Check className="h-4 w-4 shrink-0" />
-              ) : (
-                <X className="h-4 w-4 shrink-0 text-muted-foreground" />
-              )}
-              <span className={cn(item.contracted && "font-medium")}>{item.name}</span>
-            </div>
-
-          ))}
+        <div className="grid gap-4 lg:grid-cols-2">
+          <ModuleColumn title="Contratados" items={contracted} contracted />
+          <ModuleColumn title="Não contratados" items={unavailable} />
         </div>
       ) : (
         <EmptyState text="Nenhum módulo cadastrado para este cliente." />
       )}
+
 
       <div className="hidden">
         <section className="py-6">
