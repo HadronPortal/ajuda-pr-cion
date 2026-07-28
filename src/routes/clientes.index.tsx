@@ -2892,6 +2892,7 @@ export function ClientHadronTab({
   modules: ClientModule[];
   terminals: ClientTerminal[];
 }) {
+  const [openCompanyId, setOpenCompanyId] = useState<string | null | undefined>(undefined);
   const contracted = modules.filter((item) => item.contracted);
   const unavailable = modules.filter((item) => !item.contracted);
   const payload = client.sourcePayload || {};
@@ -3142,52 +3143,111 @@ export function ClientHadronTab({
         </section>
       </div>
 
-      <div className="mt-6 space-y-3 border-t border-border pt-6">
+      <div className="mt-6 space-y-2 border-t border-border pt-6">
         {companies.length === 0 ? (
-          <details open className="group overflow-hidden rounded-md border border-border">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 bg-muted/40 px-4 py-3">
-              <span className="min-w-0">
-                <span className="block truncate text-sm font-medium">
-                  {client.fantasia || client.name || client.razaoSocial}
-                </span>
-                <span className="block text-xs text-muted-foreground">
-                  {[client.acronym, client.cnpj].filter(Boolean).join(" · ")}
-                </span>
+          <div className="overflow-hidden rounded-md border border-border bg-background">
+            <div className="flex w-full items-center gap-3 px-4 py-3 text-left">
+              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
+                <Server className="h-4 w-4" />
               </span>
-              <ChevronRight className="h-4 w-4 shrink-0 transition-transform group-open:rotate-90" />
-            </summary>
-            <div className="px-4">
+              <span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
+                <span className="text-xs font-mono text-muted-foreground">001</span>
+                <span className="truncate text-sm font-medium text-foreground">
+                  {client.razaoSocial || client.fantasia || client.name}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {client.cnpj || "CNPJ não informado"}
+                </span>
+                <Badge
+                  variant="outline"
+                  className="h-5 rounded-full border-primary/30 bg-primary/10 px-2 text-[10.5px] font-medium text-primary"
+                >
+                  Principal
+                </Badge>
+              </span>
+            </div>
+            <div className="border-t border-border bg-muted/10 px-4">
               <HadronCompanyDetails
                 payload={client.sourcePayload || {}}
                 terminalFallback={terminals.length}
               />
             </div>
-          </details>
+          </div>
         ) : null}
 
-        {companies.map((company, index) => (
-          <details
-            key={company.id}
-            open={index === 0}
-            className="group overflow-hidden rounded-md border border-border"
-          >
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 bg-muted/40 px-4 py-3">
-              <span className="min-w-0">
-                <span className="block truncate text-sm font-medium">
-                  {company.tradeName || company.legalName || "Empresa vinculada"}
-                </span>
-                <span className="block text-xs text-muted-foreground">
-                  {[company.companyNumber, company.document].filter(Boolean).join(" · ")}
-                </span>
-              </span>
-              <ChevronRight className="h-4 w-4 shrink-0 transition-transform group-open:rotate-90" />
-            </summary>
-            <div className="px-4">
-              <HadronCompanyDetails payload={company.sourcePayload} />
-            </div>
-          </details>
-        ))}
+        {(() => {
+          const isPrincipal = (co: ClientCompany) => {
+            if (co.groupPosition === "001") return true;
+            const digits = (co.document || "").replace(/\D+/g, "");
+            if (digits.length === 14 && digits.slice(8, 12) === "0001") return true;
+            return co.companyNumber === 1;
+          };
+          const defaultOpen =
+            (companies.find(isPrincipal) ?? companies[0])?.id ?? null;
+          const activeId = openCompanyId === undefined ? defaultOpen : openCompanyId;
+
+          return companies.map((company) => {
+            const principal = isPrincipal(company);
+            const expanded = activeId === company.id;
+            const number =
+              company.groupPosition ||
+              (company.companyNumber != null
+                ? String(company.companyNumber).padStart(3, "0")
+                : company.clientAcronym || "—");
+
+            return (
+              <div
+                key={company.id}
+                className="overflow-hidden rounded-md border border-border bg-background"
+              >
+                <button
+                  type="button"
+                  onClick={() => setOpenCompanyId(expanded ? null : company.id)}
+                  aria-expanded={expanded}
+                  className="flex w-full cursor-pointer items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/40"
+                >
+                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
+                    <Server className="h-4 w-4" />
+                  </span>
+                  <span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1">
+                    <span className="text-xs font-mono text-muted-foreground">{number}</span>
+                    <span className="truncate text-sm font-medium text-foreground">
+                      {company.legalName || company.tradeName || "Empresa vinculada"}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {company.document || "CNPJ não informado"}
+                    </span>
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "h-5 rounded-full px-2 text-[10.5px] font-medium",
+                        principal
+                          ? "border-primary/30 bg-primary/10 text-primary"
+                          : "border-border text-muted-foreground",
+                      )}
+                    >
+                      {principal ? "Principal" : "Filial"}
+                    </Badge>
+                  </span>
+                  <ArrowDown
+                    className={cn(
+                      "h-4 w-4 shrink-0 text-muted-foreground transition-transform",
+                      expanded ? "rotate-180" : "rotate-0",
+                    )}
+                  />
+                </button>
+
+                {expanded && (
+                  <div className="border-t border-border bg-muted/10 px-4">
+                    <HadronCompanyDetails payload={company.sourcePayload} />
+                  </div>
+                )}
+              </div>
+            );
+          });
+        })()}
       </div>
+
 
 
     </Section>
