@@ -11,7 +11,7 @@ import {
   Tag,
 } from "lucide-react";
 import { SefazStatusPanel } from "@/components/portal/SefazStatusPanel";
-import { LatestLogsCard } from "@/components/portal/LatestLogsCard";
+import { BrazilNewsCard } from "@/components/portal/BrazilNewsCard";
 import { TicketsIndicatorCards } from "@/components/analytics/TicketsAnalytics";
 import {
   availableMonthKeys,
@@ -148,7 +148,7 @@ function HomePage() {
 
       <section className="mb-6 grid grid-cols-1 items-stretch gap-6 lg:h-[400px] lg:grid-cols-[minmax(0,68fr)_minmax(0,32fr)]">
         <SefazStatusPanel />
-        <LatestLogsCard />
+        <BrazilNewsCard />
       </section>
 
 
