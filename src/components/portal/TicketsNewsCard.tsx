@@ -19,7 +19,7 @@ import {
   isTicketInMonth,
   lastMonthKeys,
   monthLabel,
-  OPEN_TICKET_STATUSES,
+  ticketMatchesMonthView,
   type MonthSeriesPoint,
 } from "@/lib/tickets-month";
 
@@ -63,12 +63,14 @@ function buildNews(
 ): NewsItem[] {
   const items: NewsItem[] = [];
   const monthTickets = allTickets.filter((t) => isTicketInMonth(t, monthKey));
-  const active = monthTickets.filter((t) => OPEN_TICKET_STATUSES.includes(t.status));
-  const overdue = monthTickets.filter((t) => t.status === "Atrasado");
-  const finalized = allTickets.filter(
-    (t) => t.status === "Finalizado" && isTicketInMonth(t, monthKey, "updatedAt"),
+  const active = allTickets.filter((t) => ticketMatchesMonthView(t, monthKey, "open"));
+  const overdue = allTickets.filter((t) =>
+    ticketMatchesMonthView(t, monthKey, "overdue"),
   );
-  const base = { mes: monthKey };
+  const finalized = allTickets.filter((t) =>
+    ticketMatchesMonthView(t, monthKey, "finished"),
+  );
+  const base = { mes: monthKey, visao: "open" };
 
   // Módulo com maior volume no mês
   const modCount: Record<string, number> = {};
@@ -86,7 +88,7 @@ function buildNews(
       title: `${mod} concentra o maior volume`,
       description: `${count} chamado${count === 1 ? "" : "s"} em aberto neste módulo no mês.`,
       updatedAt: latestUpdatedAt(modTickets),
-      search: base,
+      search: { ...base, busca: mod },
     });
   }
 
@@ -100,7 +102,7 @@ function buildNews(
       title: `${nfe.length} chamado${nfe.length === 1 ? "" : "s"} de NF-e em andamento`,
       description: "Rejeições e falhas de autorização monitoradas no mês.",
       updatedAt: latestUpdatedAt(nfe),
-      search: base,
+      search: { ...base, busca: "NF-e" },
     });
   }
 
@@ -120,7 +122,7 @@ function buildNews(
       tone: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
       title: `Aumento de chamados: "${subject}"`,
       description: `${count} ocorrência${count === 1 ? "" : "s"} do mesmo assunto no mês.`,
-      search: base,
+      search: { ...base, busca: subject },
     });
   }
 
@@ -147,7 +149,7 @@ function buildNews(
       title: `${overdue.length} chamado${overdue.length === 1 ? "" : "s"} atrasado${overdue.length === 1 ? "" : "s"}`,
       description: "Ultrapassaram o tempo previsto de atendimento no mês.",
       updatedAt: latestUpdatedAt(overdue),
-      search: { ...base, status: "Atrasado" },
+      search: { ...base, visao: "overdue" },
     });
   }
 
@@ -165,7 +167,7 @@ function buildNews(
       tone: "bg-violet-500/10 text-violet-600 dark:text-violet-400",
       title: `${op} lidera finalizações`,
       description: `${count} chamado${count === 1 ? "" : "s"} concluído${count === 1 ? "" : "s"} no mês.`,
-      search: { ...base, status: "Finalizado" },
+      search: { mes: monthKey, visao: "finished", busca: op },
     });
   }
 

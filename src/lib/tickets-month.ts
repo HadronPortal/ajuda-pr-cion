@@ -94,15 +94,47 @@ export type MonthMetrics = {
   total: number;
 };
 
+export type TicketMonthView = "open" | "in-progress" | "overdue" | "finished";
+
+export function isTicketMonthView(value: string | undefined | null): value is TicketMonthView {
+  return ["open", "in-progress", "overdue", "finished"].includes(value || "");
+}
+
+export function ticketMatchesMonthView(
+  ticket: SupportTicket,
+  key: string,
+  view: TicketMonthView,
+): boolean {
+  if (view === "open") {
+    return (
+      OPEN_TICKET_STATUSES.includes(ticket.status) &&
+      isTicketInMonth(ticket, key, "openedAt")
+    );
+  }
+  if (view === "in-progress") {
+    return (
+      IN_PROGRESS_STATUSES.includes(ticket.status) &&
+      isTicketInMonth(ticket, key)
+    );
+  }
+  if (view === "overdue") {
+    return ticket.status === "Atrasado" && isTicketInMonth(ticket, key);
+  }
+  return ticket.status === "Finalizado" && isTicketInMonth(ticket, key, "updatedAt");
+}
+
 export function computeMonthMetrics(tickets: SupportTicket[], key: string): MonthMetrics {
-  const opened = tickets.filter((t) => isTicketInMonth(t, key, "openedAt"));
   const touched = tickets.filter((t) => isTicketInMonth(t, key));
   return {
-    open: opened.filter((t) => OPEN_TICKET_STATUSES.includes(t.status)).length,
-    inProgress: touched.filter((t) => IN_PROGRESS_STATUSES.includes(t.status)).length,
-    overdue: touched.filter((t) => t.status === "Atrasado").length,
-    finished: tickets.filter(
-      (t) => t.status === "Finalizado" && isTicketInMonth(t, key, "updatedAt"),
+    open: tickets.filter((ticket) => ticketMatchesMonthView(ticket, key, "open")).length,
+    inProgress: tickets.filter((ticket) =>
+      ticketMatchesMonthView(ticket, key, "in-progress"),
+    ).length,
+    overdue: tickets.filter((ticket) =>
+      ticketMatchesMonthView(ticket, key, "overdue"),
+    ).length,
+    finished: tickets.filter((ticket) =>
+      ticketMatchesMonthView(ticket, key, "finished"),
     ).length,
     total: touched.length,
   };
@@ -136,7 +168,7 @@ export function buildMonthSeries(
     return {
       key,
       label: monthShortLabel(key),
-      opened: tickets.filter((t) => isTicketInMonth(t, key, "openedAt")).length,
+      opened: metrics.open,
       finished: metrics.finished,
       overdue: metrics.overdue,
     };

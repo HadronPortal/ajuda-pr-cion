@@ -95,9 +95,11 @@ import {
   addMonths,
   currentMonthKey,
   isMonthKey,
+  isTicketMonthView,
   monthKeyFromDate,
   monthLabel,
   monthRange,
+  ticketMatchesMonthView,
 } from "@/lib/tickets-month";
 import { z } from "zod";
 import { fallback, zodValidator } from "@tanstack/zod-adapter";
@@ -108,6 +110,8 @@ const chamadosSearchSchema = z.object({
   ticket: fallback(z.string(), "").optional(),
   mes: fallback(z.string(), "").optional(),
   prioridade: fallback(z.string(), "").optional(),
+  visao: fallback(z.string(), "").optional(),
+  busca: fallback(z.string(), "").optional(),
 });
 
 
@@ -575,6 +579,7 @@ function TicketsPage() {
     const base = monthFilters(initialMonthKey);
     if (search.status) base.status = search.status;
     if (search.prioridade) base.priority = search.prioridade;
+    if (search.busca) base.query = search.busca;
     return base;
   });
 
@@ -599,10 +604,25 @@ function TicketsPage() {
     }
     clearChamadosSnapshot();
     navigateHere({
-      search: { status: search.status, mes: search.mes, prioridade: search.prioridade },
+      search: {
+        status: search.status,
+        mes: search.mes,
+        prioridade: search.prioridade,
+        visao: search.visao,
+        busca: search.busca,
+      },
       replace: true,
     });
-  }, [search.ticket, supportTickets, navigateHere, search.status, search.mes, search.prioridade]);
+  }, [
+    search.ticket,
+    supportTickets,
+    navigateHere,
+    search.status,
+    search.mes,
+    search.prioridade,
+    search.visao,
+    search.busca,
+  ]);
 
 
   const openTicketDetail = (ticket: SupportTicket) => {
@@ -630,11 +650,18 @@ function TicketsPage() {
 
 
   const appliedMonth = activeMonthKey(filters);
+  const monthView = isTicketMonthView(search.visao) ? search.visao : null;
 
   const filteredTickets = useMemo(() => {
     const query = filters.query.trim().toLowerCase();
     const sigla = filters.sigla.trim().toLowerCase();
     return supportTickets.filter((ticket) => {
+      if (
+        monthView &&
+        !ticketMatchesMonthView(ticket, initialMonthKey, monthView)
+      ) {
+        return false;
+      }
       if (filters.status !== "Todos" && ticket.status !== filters.status) return false;
       if (filters.priority !== "Todas" && ticket.priority !== filters.priority) return false;
       if (sigla && !ticket.clientCode.toLowerCase().includes(sigla)) return false;
@@ -647,7 +674,7 @@ function TicketsPage() {
         if (operatorType.startsWith("respons") && owner !== op) return false;
         if (operatorType === "todos" && attendant !== op && owner !== op) return false;
       }
-      if (filters.dateStart || filters.dateEnd) {
+      if (!monthView && (filters.dateStart || filters.dateEnd)) {
         const raw = filters.dateType === "Registro" ? ticket.openedAt : ticket.updatedAt;
         const d = new Date(raw);
         const day = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
@@ -677,7 +704,7 @@ function TicketsPage() {
         .toLowerCase()
         .includes(query);
     });
-  }, [filters, supportTickets]);
+  }, [filters, supportTickets, monthView, initialMonthKey]);
 
 
 

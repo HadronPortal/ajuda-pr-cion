@@ -262,10 +262,10 @@ export function TicketsIndicatorCards({ month }: { month?: string } = {}) {
         ),
       ],
       links: [
-        { to: "/chamados", search: { status: "Em Aberto", mes: monthKey } },
-        { to: "/chamados", search: { status: "Em andamento", mes: monthKey } },
-        { to: "/chamados", search: { status: "Atrasado", mes: monthKey } },
-        { to: "/chamados", search: { status: "Finalizado", mes: monthKey } },
+        { to: "/chamados", search: { visao: "open", mes: monthKey } },
+        { to: "/chamados", search: { visao: "in-progress", mes: monthKey } },
+        { to: "/chamados", search: { visao: "overdue", mes: monthKey } },
+        { to: "/chamados", search: { visao: "finished", mes: monthKey } },
       ] as IndicatorCardLink[],
     };
   }, [supportTickets, monthKey]);
