@@ -3148,10 +3148,10 @@ export function ClientHadronTab({
             <summary className="flex cursor-pointer list-none items-center justify-between gap-4 bg-muted/40 px-4 py-3">
               <span className="min-w-0">
                 <span className="block truncate text-sm font-medium">
-                  {client.tradeName || client.name || client.legalName}
+                  {client.fantasia || client.name || client.razaoSocial}
                 </span>
                 <span className="block text-xs text-muted-foreground">
-                  {[client.acronym, client.document].filter(Boolean).join(" · ")}
+                  {[client.acronym, client.cnpj].filter(Boolean).join(" · ")}
                 </span>
               </span>
               <ChevronRight className="h-4 w-4 shrink-0 transition-transform group-open:rotate-90" />
@@ -3165,8 +3165,12 @@ export function ClientHadronTab({
           </details>
         ) : null}
 
-        {companies.map((company) => (
-          <details key={company.id} open className="group overflow-hidden rounded-md border border-border">
+        {companies.map((company, index) => (
+          <details
+            key={company.id}
+            open={index === 0}
+            className="group overflow-hidden rounded-md border border-border"
+          >
             <summary className="flex cursor-pointer list-none items-center justify-between gap-4 bg-muted/40 px-4 py-3">
               <span className="min-w-0">
                 <span className="block truncate text-sm font-medium">
