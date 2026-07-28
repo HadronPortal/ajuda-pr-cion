@@ -14,7 +14,6 @@ import {
 import { type SupportTicket } from "@/lib/support-tickets-data";
 import { useTickets } from "@/lib/tickets-store";
 import {
-  addMonths,
   buildMonthSeries,
   currentMonthKey,
   isTicketInMonth,
