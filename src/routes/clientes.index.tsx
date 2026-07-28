@@ -4202,22 +4202,24 @@ export function ClientTechnicalCompaniesTab({
       ? `${terminal.memoryUsed || "0"}/${terminal.memoryTotal || "0"}`
       : "";
   const drives = Array.isArray(terminal.drives) ? terminal.drives : [];
-  const rows: Array<[string, string, ComponentType<{ className?: string }>]> = [
-    ["Terminal", terminal.terminalNumber != null ? String(terminal.terminalNumber) : "", Monitor],
-    ["Filial", terminal.companyNumber != null ? String(terminal.companyNumber) : "1", Building2],
-    ["Versão", version, CalendarDays],
-    ["IP", terminal.ipAddress, Globe2],
-    ["Pasta de instalação", terminal.installPath, FolderOpen],
-    ["Número de série", terminal.serialNumber, KeyRound],
-    ["Data do setup", formatTechnicalDate(terminal.registeredAt, true), Clock3],
-    ["Sistema operacional", operatingSystem, Cpu],
-    ["Memória usada/total", memory, Cpu],
-    ["Certificado", terminal.certificateType, ShieldCheck],
-    ["Validade do certificado", formatTechnicalDate(terminal.certificateExpiresAt), CalendarDays],
-    ["Ambiente", terminal.environment, Server],
-  ].filter((row): row is [string, string, ComponentType<{ className?: string }>] =>
-    Boolean(row[1]),
-  );
+  type TerminalInfoRow = [string, string, ComponentType<{ className?: string }>];
+  const rows: TerminalInfoRow[] = (
+    [
+      ["Terminal", terminal.terminalNumber != null ? String(terminal.terminalNumber) : "", Monitor],
+      ["Filial", terminal.companyNumber != null ? String(terminal.companyNumber) : "1", Building2],
+      ["Versão", version, CalendarDays],
+      ["IP", terminal.ipAddress, Globe2],
+      ["Pasta de instalação", terminal.installPath, FolderOpen],
+      ["Número de série", terminal.serialNumber, KeyRound],
+      ["Data do setup", formatTechnicalDate(terminal.registeredAt, true), Clock3],
+      ["Sistema operacional", operatingSystem, Cpu],
+      ["Memória usada/total", memory, Cpu],
+      ["Certificado", terminal.certificateType, ShieldCheck],
+      ["Validade do certificado", formatTechnicalDate(terminal.certificateExpiresAt), CalendarDays],
+      ["Ambiente", terminal.environment, Server],
+    ] as TerminalInfoRow[]
+  ).filter((row) => Boolean(row[1]));
+
 
   return (
     <Section title="Empresas" icon={Server}>
