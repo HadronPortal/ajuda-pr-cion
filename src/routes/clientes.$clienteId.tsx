@@ -23,11 +23,30 @@ import {
   HadronMenuIcon,
 } from "./clientes.index";
 
-function MiniSummary({ label, value }: { label: string; value: string }) {
+function MiniSummary({
+  label,
+  value,
+  tone = "default",
+  title,
+}: {
+  label: string;
+  value: string;
+  tone?: "default" | "danger";
+  title?: string;
+}) {
   return (
     <div className="flex min-w-0 items-baseline gap-1.5">
       <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{label}</span>
-      <span className="truncate text-[12.5px] font-medium text-foreground" title={value}>{value}</span>
+      <span
+        className={
+          tone === "danger"
+            ? "truncate text-[12.5px] font-semibold text-red-600 dark:text-red-400"
+            : "truncate text-[12.5px] font-medium text-foreground"
+        }
+        title={title ?? value}
+      >
+        {value}
+      </span>
     </div>
   );
 }
@@ -35,6 +54,7 @@ function MiniSummary({ label, value }: { label: string; value: string }) {
 
 import { getClientDetail, type ClientDetail } from "@/lib/clients-api";
 import { normalizeCityUf } from "@/lib/br-city";
+import { getClientErpVersionStatus } from "@/lib/erp-versions";
 import { useClients, resolveGroupCode, getGroupMembers } from "@/lib/clients-store";
 
 const tabs = ["cliente", "hadron", "internet", "dispositivos", "parametros", "usuarios", "logs", "logs-externos", "terminais", "empresas"] as const;
@@ -118,6 +138,7 @@ function ClientDetailPage() {
     });
   };
 
+  const erpStatus = getClientErpVersionStatus(client.version, client.versionDate);
   const breadcrumbGroupLabel = groupCode || client.acronym;
   return (
     <AppShell>
@@ -164,7 +185,12 @@ function ClientDetailPage() {
         <div className="flex min-w-0 flex-wrap items-center justify-end gap-x-5 gap-y-1.5">
           <MiniSummary label="Atendimento" value={normalizeCityUf(client.city) || "Não informado"} />
           <MiniSummary label="Status" value={client.status || "Não informado"} />
-          <MiniSummary label="Versão Hádron" value={client.versionDate || client.version || "Não informada"} />
+          <MiniSummary
+            label="Versão Hádron"
+            value={client.versionDate || client.version || "Não informada"}
+            tone={erpStatus.needsAttention ? "danger" : "default"}
+            title={erpStatus.label}
+          />
           <MiniSummary label="Data de atualização" value={client.versionUpdatedAt || client.updated || "Não informada"} />
           <MiniSummary label="Dispositivos" value={String(internet.devices.length)} />
         </div>
