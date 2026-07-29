@@ -231,6 +231,7 @@ export function ForwardSpecialistModal({
           Enviar chamado {ticket.protocol} a especialista
         </DialogTitle>
         <DetailModalHeader
+          dense
           icon={UserCheck}
           title="Enviar a especialista"
           protocol={ticket.protocol}
@@ -243,8 +244,8 @@ export function ForwardSpecialistModal({
             </span>
           }
         />
-        <div className="flex-1 space-y-4 overflow-y-auto px-5 py-4 md:px-6">
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto px-5 py-3 md:px-6">
+          <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
             <Field label="Tipo">
               <select
                 value={type}
