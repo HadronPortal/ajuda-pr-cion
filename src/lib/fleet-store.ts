@@ -24,16 +24,9 @@ export type Vehicle = {
   imageUrl: string;
 };
 
-export type UsageStatus =
-  | "aguardando_retirada"
-  | "em_deslocamento"
-  | "devolvido"
-  | "cancelado";
+export type UsageStatus = "aguardando_retirada" | "em_deslocamento" | "devolvido" | "cancelado";
 
-export type ReservationStatus =
-  | "pre_agendado"
-  | "convertida_em_uso"
-  | "cancelada";
+export type ReservationStatus = "pre_agendado" | "convertida_em_uso" | "cancelada";
 
 export type VehicleReservation = {
   id: string;
@@ -75,6 +68,7 @@ export type VehicleUsage = {
 };
 
 const nowISO = () => new Date().toISOString();
+const RUNTIME_STORAGE_KEY = "procion.fleet-runtime.v1";
 
 // -----------------------------------------------------------------------------
 // Frota inicial
@@ -209,6 +203,54 @@ let usages: VehicleUsage[] = [
 ];
 
 let reservations: VehicleReservation[] = [];
+let runtimeHydrated = false;
+
+function hydrateRuntimeRecords() {
+  if (runtimeHydrated || typeof window === "undefined") return;
+  runtimeHydrated = true;
+  try {
+    const raw = window.localStorage.getItem(RUNTIME_STORAGE_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw) as {
+      usages?: VehicleUsage[];
+      reservations?: VehicleReservation[];
+    };
+    const savedUsages = Array.isArray(parsed.usages) ? parsed.usages : [];
+    const savedReservations = Array.isArray(parsed.reservations) ? parsed.reservations : [];
+    const usageIds = new Set(usages.map((usage) => usage.id));
+    const reservationIds = new Set(reservations.map((reservation) => reservation.id));
+    usages = [...savedUsages.filter((usage) => !usageIds.has(usage.id)), ...usages];
+    reservations = [
+      ...savedReservations.filter((reservation) => !reservationIds.has(reservation.id)),
+      ...reservations,
+    ];
+  } catch {
+    // Mantém os registros da sessão quando o armazenamento estiver indisponível.
+  }
+}
+
+function persistRuntimeRecords() {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(
+      RUNTIME_STORAGE_KEY,
+      JSON.stringify({
+        usages: usages.filter(
+          (usage) =>
+            String(usage.appointmentId ?? "").startsWith("ticket-") ||
+            String(usage.appointmentId ?? "").startsWith("local-"),
+        ),
+        reservations: reservations.filter(
+          (reservation) =>
+            String(reservation.eventId ?? "").startsWith("ticket-") ||
+            String(reservation.eventId ?? "").startsWith("local-"),
+        ),
+      }),
+    );
+  } catch {
+    // A aplicação continua funcional durante a sessão.
+  }
+}
 
 // -----------------------------------------------------------------------------
 // Pub-sub
@@ -217,7 +259,10 @@ const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((l) => l());
 
 function subscribe(listener: () => void) {
+  const wasHydrated = runtimeHydrated;
+  hydrateRuntimeRecords();
   listeners.add(listener);
+  if (!wasHydrated && runtimeHydrated) queueMicrotask(listener);
   return () => listeners.delete(listener);
 }
 
@@ -228,6 +273,7 @@ export function getVehiclesSnapshot() {
   return vehicles;
 }
 export function getUsagesSnapshot() {
+  hydrateRuntimeRecords();
   return usages;
 }
 
@@ -239,6 +285,7 @@ export function useUsages() {
 }
 
 export function getReservationsSnapshot() {
+  hydrateRuntimeRecords();
   return reservations;
 }
 export function useReservations() {
@@ -246,9 +293,7 @@ export function useReservations() {
 }
 
 export function getActiveReservationsByVehicle(vehicleId: string) {
-  return reservations.filter(
-    (r) => r.vehicleId === vehicleId && r.status === "pre_agendado",
-  );
+  return reservations.filter((r) => r.vehicleId === vehicleId && r.status === "pre_agendado");
 }
 
 export function hasReservationConflict(
@@ -275,11 +320,7 @@ export function createReservation(input: {
   customerId?: string;
   destination?: string;
 }): VehicleReservation | { error: "conflict"; conflict: VehicleReservation } {
-  const conflict = hasReservationConflict(
-    input.vehicleId,
-    input.startAt,
-    input.endAt,
-  );
+  const conflict = hasReservationConflict(input.vehicleId, input.startAt, input.endAt);
   if (conflict) return { error: "conflict", conflict };
   const now = nowISO();
   const reservation: VehicleReservation = {
@@ -297,6 +338,7 @@ export function createReservation(input: {
     updatedAt: now,
   };
   reservations = [reservation, ...reservations];
+  persistRuntimeRecords();
   emit();
   return reservation;
 }
@@ -307,9 +349,9 @@ export function cancelReservationByEvent(eventId: string | number) {
       ? { ...r, status: "cancelada", updatedAt: nowISO() }
       : r,
   );
+  persistRuntimeRecords();
   emit();
 }
-
 
 // -----------------------------------------------------------------------------
 // Consultas auxiliares
@@ -324,9 +366,8 @@ export function getUsageById(id: string) {
 }
 
 export function getUsageByAppointment(appointmentId: number | string) {
-  return usages.find(
-    (u) => u.appointmentId === appointmentId && u.status !== "cancelado",
-  );
+  hydrateRuntimeRecords();
+  return usages.find((u) => u.appointmentId === appointmentId && u.status !== "cancelado");
 }
 
 export function getActiveUsageByVehicle(vehicleId: string) {
@@ -384,6 +425,7 @@ export function createUsageForAppointment(input: {
     updatedAt: nowISO(),
   };
   usages = [usage, ...usages];
+  persistRuntimeRecords();
   emit();
   return usage;
 }
@@ -432,6 +474,7 @@ export function registerDeparture(
         }
       : v,
   );
+  persistRuntimeRecords();
   emit();
 }
 
@@ -478,6 +521,7 @@ export function registerReturn(
         : v,
     );
   }
+  persistRuntimeRecords();
   emit();
 }
 
@@ -487,19 +531,13 @@ export function cancelUsage(id: string) {
     u.id === id ? { ...u, status: "cancelado", updatedAt: nowISO() } : u,
   );
   if (usage?.vehicleId) {
-    vehicles = vehicles.map((v) =>
-      v.id === usage.vehicleId ? { ...v, status: "disponivel" } : v,
-    );
+    vehicles = vehicles.map((v) => (v.id === usage.vehicleId ? { ...v, status: "disponivel" } : v));
   }
+  persistRuntimeRecords();
   emit();
 }
 
-export function hasConflict(
-  vehicleId: string,
-  start: string,
-  end: string,
-  ignoreUsageId?: string,
-) {
+export function hasConflict(vehicleId: string, start: string, end: string, ignoreUsageId?: string) {
   return usages.some((u) => {
     if (u.id === ignoreUsageId) return false;
     if (u.vehicleId !== vehicleId) return false;

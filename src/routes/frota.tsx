@@ -87,7 +87,6 @@ function FleetPage() {
         </div>
       </div>
 
-
       {tab === "hoje" && <TodayView query={query} />}
       {tab === "veiculos" && <VehiclesView query={query} />}
       {tab === "em_uso" && <InUseView query={query} />}
@@ -102,7 +101,7 @@ function FleetPage() {
 function TodayView({ query }: { query: string }) {
   const usages = useUsages();
   const today = new Date().toISOString().slice(0, 10) || "2026-07-20";
-  // Use fixed reference date matching mock data
+  // Mantém os dados demonstrativos e inclui futuras retiradas já agendadas.
   const day = "2026-07-20";
   const rows = useMemo(
     () =>
@@ -110,7 +109,9 @@ function TodayView({ query }: { query: string }) {
         .filter((u) => {
           if (u.status === "cancelado") return false;
           const ref = (u.departureAt ?? u.expectedReturnAt ?? u.createdAt).slice(0, 10);
-          return ref === day || ref === today;
+          return (
+            ref === day || ref === today || (u.status === "aguardando_retirada" && ref > today)
+          );
         })
         .filter((u) => matchesQuery(u, query))
         .sort((a, b) =>
@@ -137,9 +138,19 @@ function TodayView({ query }: { query: string }) {
             style={{ gridTemplateColumns: "120px 120px 1fr 180px 160px 220px" }}
           >
             <span className="tabular-nums text-foreground">
-              {u.departureAt ? new Date(u.departureAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "—"}
+              {u.departureAt
+                ? new Date(u.departureAt).toLocaleTimeString("pt-BR", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
+                : "—"}
               {" → "}
-              {u.expectedReturnAt ? new Date(u.expectedReturnAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "—"}
+              {u.expectedReturnAt
+                ? new Date(u.expectedReturnAt).toLocaleTimeString("pt-BR", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
+                : "—"}
             </span>
             <span className="text-foreground">{u.operatorId}</span>
             <span className="min-w-0 truncate text-muted-foreground">{u.destination}</span>
@@ -173,7 +184,10 @@ function TodayView({ query }: { query: string }) {
                 <span className="text-[11.5px] text-emerald-600 dark:text-emerald-400">
                   Devolvido{" "}
                   {u.returnedAt
-                    ? new Date(u.returnedAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+                    ? new Date(u.returnedAt).toLocaleTimeString("pt-BR", {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })
                     : ""}
                 </span>
               )}
@@ -224,10 +238,21 @@ function VehiclesView({ query }: { query: string }) {
                 <VehicleBadge status={v.status} />
               </div>
               <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[11.5px] text-muted-foreground">
-                <span>Categoria: <span className="text-foreground">{v.category}</span></span>
-                <span>Cor: <span className="text-foreground">{v.color}</span></span>
-                <span>Ano: <span className="text-foreground">{v.yearModel}</span></span>
-                <span>KM: <span className="text-foreground">{v.currentMileage.toLocaleString("pt-BR")}</span></span>
+                <span>
+                  Categoria: <span className="text-foreground">{v.category}</span>
+                </span>
+                <span>
+                  Cor: <span className="text-foreground">{v.color}</span>
+                </span>
+                <span>
+                  Ano: <span className="text-foreground">{v.yearModel}</span>
+                </span>
+                <span>
+                  KM:{" "}
+                  <span className="text-foreground">
+                    {v.currentMileage.toLocaleString("pt-BR")}
+                  </span>
+                </span>
                 <span className="col-span-2">
                   Revisão: <span className="text-foreground">{v.nextRevisionDate}</span>
                 </span>
@@ -332,7 +357,9 @@ function HistoryView({ query }: { query: string }) {
             <span className="text-foreground">{u.operatorId}</span>
             <span className="min-w-0 truncate text-muted-foreground">{u.destination}</span>
             <span className="tabular-nums text-muted-foreground">
-              {u.distanceTraveled !== undefined ? `${u.distanceTraveled.toLocaleString("pt-BR")} km` : "—"}
+              {u.distanceTraveled !== undefined
+                ? `${u.distanceTraveled.toLocaleString("pt-BR")} km`
+                : "—"}
             </span>
             <UsageBadge status={u.status} />
           </div>
@@ -358,7 +385,9 @@ function TableHeader({ cols, widths }: { cols: string[]; widths: string[] }) {
       style={{ gridTemplateColumns: widths.join(" ") }}
     >
       {cols.map((c, i) => (
-        <span key={i} className={cn(i === cols.length - 1 && "text-right")}>{c}</span>
+        <span key={i} className={cn(i === cols.length - 1 && "text-right")}>
+          {c}
+        </span>
       ))}
     </div>
   );

@@ -3,6 +3,7 @@ import type { CalendarEvent } from "@/lib/calendar-events";
 import { createUsageForAppointment, getUsageByAppointment } from "@/lib/fleet-store";
 
 const STORAGE_KEY = "procion.local-calendar-events.v1";
+const CHANGE_EVENT = "procion:calendar-events-changed";
 
 const EMPTY: CalendarEvent[] = [];
 
@@ -28,6 +29,7 @@ function write(next: CalendarEvent[]) {
   cache = next;
   try {
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    window.dispatchEvent(new Event(CHANGE_EVENT));
   } catch {
     /* armazenamento indisponível: mantém apenas em memória */
   }
@@ -68,9 +70,15 @@ function subscribe(listener: () => void) {
     }
   };
   window.addEventListener("storage", onStorage);
+  const onLocalChange = () => {
+    cache = null;
+    listener();
+  };
+  window.addEventListener(CHANGE_EVENT, onLocalChange);
   return () => {
     listeners.delete(listener);
     window.removeEventListener("storage", onStorage);
+    window.removeEventListener(CHANGE_EVENT, onLocalChange);
   };
 }
 
