@@ -370,17 +370,14 @@ export function getActiveUsageByVehicle(vehicleId: string) {
 }
 
 export function getTodayUsages(today = new Date()) {
-  const day = today.toISOString().slice(0, 10);
+  const day = fleetDayKey(today.toISOString());
   return usages
     .filter((u) => {
       if (u.status === "cancelado") return false;
-      const ref = (u.departureAt ?? u.expectedReturnAt ?? u.createdAt).slice(0, 10);
-      return ref === day;
+      return fleetDayKey(getUsageDepartureRef(u)) === day;
     })
     .sort((a, b) =>
-      (a.expectedReturnAt ?? a.departureAt ?? "").localeCompare(
-        b.expectedReturnAt ?? b.departureAt ?? "",
-      ),
+      (getUsageDepartureRef(a) ?? "").localeCompare(getUsageDepartureRef(b) ?? ""),
     );
 }
 
@@ -403,6 +400,7 @@ export function createUsageForAppointment(input: {
   vehicleId?: string;
   client?: string;
   destination: string;
+  expectedDepartureAt?: string;
   expectedReturnAt?: string;
 }) {
   const usage: VehicleUsage = {
@@ -412,11 +410,13 @@ export function createUsageForAppointment(input: {
     operatorId: input.operatorId,
     client: input.client,
     destination: input.destination,
+    expectedDepartureAt: input.expectedDepartureAt,
     expectedReturnAt: input.expectedReturnAt,
     status: "aguardando_retirada",
     createdAt: nowISO(),
     updatedAt: nowISO(),
   };
+
   usages = [usage, ...usages];
   persistRuntimeRecords();
   emit();
