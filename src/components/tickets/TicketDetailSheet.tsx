@@ -146,9 +146,8 @@ function buildMock(ticket: SupportTicket) {
   const phoneA = 3000 + (h % 6999);
   const phoneB = 1000 + ((h >> 3) % 8999);
   return {
-    description:
-      "Cliente relata dificuldade recorrente ao executar a operação descrita no assunto. Solicita análise do time de suporte e retorno com orientação técnica ou correção do comportamento identificado.",
     city,
+
     uf,
     clientPhone: `(${11 + (h % 88)}) 9${phoneA}-${phoneB}`,
     contactPhone: `(${11 + ((h >> 1) % 88)}) 9${phoneB}-${phoneA}`,
@@ -279,6 +278,12 @@ export function TicketDetailSheet({
 
   const mock = useMemo(() => (ticket ? buildMock(ticket) : null), [ticket]);
   const sla = useMemo(() => (ticket ? computeSla(ticket) : null), [ticket]);
+  // Descrição real informada na abertura do chamado (sem texto padrão).
+  const ticketDescription = useMemo(() => {
+    const raw = ticket?.description;
+    return typeof raw === "string" ? raw.replace(/\r\n/g, "\n").trim() : "";
+  }, [ticket?.id, ticket?.description]);
+
 
   if (!ticket || !mock || !sla) return null;
 
@@ -574,8 +579,20 @@ export function TicketDetailSheet({
                 </Section>
 
                 <Section title="Descrição do problema" icon={FileText}>
-                  <p className="text-[13px] leading-relaxed text-foreground">{mock.description}</p>
+                  {ticketDescription ? (
+                    <p
+                      key={ticket.id}
+                      className="whitespace-pre-wrap break-words text-[13px] leading-relaxed text-foreground"
+                    >
+                      {ticketDescription}
+                    </p>
+                  ) : (
+                    <p className="text-[13px] leading-relaxed text-muted-foreground">
+                      Descrição não informada
+                    </p>
+                  )}
                 </Section>
+
 
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                   <Section title="Cliente" icon={Building2} compact>
