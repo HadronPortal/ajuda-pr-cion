@@ -34,7 +34,12 @@ function OptionRow({
       className="flex w-full cursor-pointer items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left hover:bg-accent"
     >
       <span className="min-w-0">
-        <span className="block truncate text-[13px] text-foreground">{collaborator.name}</span>
+        <span className="block truncate text-[13px] text-foreground">
+          {collaborator.name}
+          {!collaborator.active && (
+            <span className="ml-1.5 text-[10.5px] uppercase tracking-wide text-muted-foreground">inativo</span>
+          )}
+        </span>
         <span className="block truncate text-[11.5px] text-muted-foreground">
           {[collaborator.acronym, departmentLabel(collaborator.department)].filter(Boolean).join(" · ")}
         </span>
