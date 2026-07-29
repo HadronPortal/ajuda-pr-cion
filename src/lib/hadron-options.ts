@@ -16,8 +16,15 @@ export function normalizeSearch(value: string) {
     .trim();
 }
 
-export const hadronOptions: HadronOption[] = cvsOptions.map((item) => ({
-  ...item,
+type CvsOption = { id: string; option: string; form: string; description: string };
+
+export const hadronOptions: HadronOption[] = (
+  cvsOptions as readonly CvsOption[]
+).map((item) => ({
+  id: item.id,
+  option: item.option,
+  form: item.form,
+  description: item.description,
   label: `${item.description} (${item.option} - ${item.form || item.option})`,
 }));
 
