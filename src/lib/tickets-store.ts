@@ -436,7 +436,11 @@ export const ticketsStore = {
 
   updateTicketStatus(id: string, status: TicketStatus) {
     const op = operator();
-    updateTicket(id, { status });
+    const existing = tickets.find((t) => t.id === id);
+    // Ao finalizar pelo seletor de status, congela o SLA na hora exata.
+    const patch: Partial<SupportTicket> =
+      status === "Finalizado" ? { status, closedAt: existing?.closedAt ?? nowIso() } : { status };
+    updateTicket(id, patch);
     pushEvent(id, {
       kind: "status",
       when: nowIso(),
@@ -447,7 +451,8 @@ export const ticketsStore = {
     emit();
     persistUpdate(
       id,
-      { status },
+      patch,
+
       {
         kind: "status",
         actor: op,
@@ -459,10 +464,13 @@ export const ticketsStore = {
 
   closeTicket(id: string, payload: ClosurePayload) {
     const op = operator();
-    updateTicket(id, { status: "Finalizado", lockedBy: undefined });
+    const existing = tickets.find((t) => t.id === id);
+    // Nunca redefine uma finalização já registrada.
+    const closedAt = existing?.closedAt ?? nowIso();
+    updateTicket(id, { status: "Finalizado", lockedBy: undefined, closedAt });
     pushEvent(id, {
       kind: "closed",
-      when: nowIso(),
+      when: closedAt,
       actor: op,
       actorType: "suporte",
       description: `Chamado finalizado por ${op} — ${payload.type}. ${payload.solution}`.trim(),
@@ -470,7 +478,7 @@ export const ticketsStore = {
     emit();
     persistUpdate(
       id,
-      { status: "Finalizado", lockedBy: undefined },
+      { status: "Finalizado", lockedBy: undefined, closedAt },
       {
         kind: "closed",
         actor: op,
@@ -479,6 +487,7 @@ export const ticketsStore = {
       },
     );
   },
+
 
   addInternalNote(id: string, note: string) {
     const op = operator();
