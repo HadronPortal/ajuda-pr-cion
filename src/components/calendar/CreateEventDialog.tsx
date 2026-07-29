@@ -121,7 +121,8 @@ export function CreateEventDialog({
           : undefined,
       clientId: lockedClient?.id,
       description: description.trim() || undefined,
-      guests: guests.length ? guests : undefined,
+      guests: guests.length ? guests.map((g) => g.acronym ?? g.name) : undefined,
+      guestList: guests.length ? guests : undefined,
       needsDisplacement: type === "Visita presencial" ? needsDisplacement : undefined,
       address: type === "Visita presencial" ? (address.trim() || undefined) : undefined,
       responsible,
@@ -240,7 +241,7 @@ export function CreateEventDialog({
                 </NewField>
               )}
               <NewField label="Responsável">
-                <SelectNative value={responsible} onChange={setResponsible} options={PRC_OPERATORS} />
+                <CollaboratorSelect value={responsible} onChange={setResponsible} />
               </NewField>
               <NewField label="Endereço" className="sm:col-span-2">
                 <div className="relative">
@@ -272,7 +273,7 @@ export function CreateEventDialog({
                 <SelectNative value={platform} onChange={setPlatform} options={PLATFORM_OPTIONS} />
               </NewField>
               <NewField label="Responsável">
-                <SelectNative value={responsible} onChange={setResponsible} options={PRC_OPERATORS} />
+                <CollaboratorSelect value={responsible} onChange={setResponsible} />
               </NewField>
             </div>
           )}
@@ -283,7 +284,7 @@ export function CreateEventDialog({
                 <SelectNative value={room} onChange={setRoom} options={ROOM_OPTIONS} />
               </NewField>
               <NewField label="Responsável">
-                <SelectNative value={responsible} onChange={setResponsible} options={PRC_OPERATORS} />
+                <CollaboratorSelect value={responsible} onChange={setResponsible} />
               </NewField>
             </div>
           )}
@@ -291,7 +292,7 @@ export function CreateEventDialog({
           {type === "Pessoal" && (
             <div className="grid gap-3 sm:grid-cols-2">
               <NewField label="Responsável">
-                <SelectNative value={responsible} onChange={setResponsible} options={PRC_OPERATORS} />
+                <CollaboratorSelect value={responsible} onChange={setResponsible} />
               </NewField>
               <div className="flex items-end">
                 <label className="flex cursor-pointer items-center gap-2 text-[13px] text-foreground">
