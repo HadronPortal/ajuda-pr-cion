@@ -309,11 +309,12 @@ function InUseView({ query }: { query: string }) {
             <span className="text-foreground">{u.operatorId}</span>
             <span className="min-w-0 truncate text-muted-foreground">{u.destination}</span>
             <span className="tabular-nums text-muted-foreground">
-              {u.departureAt ? new Date(u.departureAt).toLocaleString("pt-BR") : "—"}
+              {formatFleetDateTime(getUsageDepartureRef(u))}
             </span>
             <span className="tabular-nums text-muted-foreground">
-              {u.expectedReturnAt ? new Date(u.expectedReturnAt).toLocaleString("pt-BR") : "—"}
+              {formatFleetDateTime(u.expectedReturnAt)}
             </span>
+
             <div className="flex justify-end">
               <Button
                 size="sm"
