@@ -210,9 +210,10 @@ export function TransferTicketModal({
   const [relatedArticles, setRelatedArticles] = useState<string[]>([]);
   const [relatedForms, setRelatedForms] = useState<string[]>([]);
 
+  const operatorAcronyms = useOperatorAcronyms();
   const needsOperator = type !== "Devolver para fila";
 
-  const availableOperators = ticketOperators.filter((op) => op !== ticket.owner);
+  const availableOperators = operatorAcronyms.filter((op) => op !== ticket.owner);
   const filteredOperators = availableOperators.filter((op) =>
     op.toLowerCase().includes(operatorQuery.toLowerCase()),
   );
