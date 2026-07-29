@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from "react";
 import type { CalendarEvent } from "@/lib/calendar-events";
+import { createUsageForAppointment, getUsageByAppointment } from "@/lib/fleet-store";
 
 const STORAGE_KEY = "procion.local-calendar-events.v1";
 
@@ -40,6 +41,21 @@ export function addLocalEvent(event: Omit<CalendarEvent, "id"> & { id?: string |
     status: event.status ?? "Agendado",
   };
   write([...read(), created]);
+
+  if (created.needsDisplacement && !getUsageByAppointment(created.id)) {
+    const destination = created.address
+      ? `${created.client ?? created.title} - ${created.address}`
+      : (created.client ?? created.title);
+
+    createUsageForAppointment({
+      appointmentId: created.id,
+      operatorId: created.responsible ?? created.operator,
+      client: created.client,
+      destination,
+      expectedReturnAt: `${created.date}T${created.end}:00`,
+    });
+  }
+
   return created;
 }
 

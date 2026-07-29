@@ -10,6 +10,8 @@ import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import { ticketsStore } from "@/lib/tickets-store";
 import type { SupportTicket } from "@/lib/support-tickets-data";
 import { modulesMap, moduleOptions, splitModule } from "@/lib/modules-map";
+import { addLocalEvent } from "@/lib/local-events-store";
+import type { EventType } from "@/lib/calendar-events";
 import {
   useVehicles,
   useReservations,
@@ -87,10 +89,12 @@ export function ScheduleEventModal({
   const vehicleAvailability = useMemo(() => {
     const map = new Map<string, VehicleAvailability>();
     for (const v of vehicles) {
-      map.set(v.id, evaluateVehicle(v, windowValid ? windowStart : null, windowValid ? windowEnd : null));
+      map.set(
+        v.id,
+        evaluateVehicle(v, windowValid ? windowStart : null, windowValid ? windowEnd : null),
+      );
     }
     return map;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vehicles, windowStart, windowEnd, windowValid]);
 
   useEffect(() => {
@@ -98,7 +102,11 @@ export function ScheduleEventModal({
     if (vehicleId === NO_VEHICLE) return;
     const info = vehicleAvailability.get(vehicleId);
     if (!info) return;
-    if (info.key === "em_uso" || info.key === "indisponivel" || (info.key === "pre_agendado" && info.conflict)) {
+    if (
+      info.key === "em_uso" ||
+      info.key === "indisponivel" ||
+      (info.key === "pre_agendado" && info.conflict)
+    ) {
       setVehicleId(NO_VEHICLE);
       toast.info("Veículo indisponível no período selecionado. Escolha outro.");
     }
@@ -111,34 +119,54 @@ export function ScheduleEventModal({
   };
 
   const reset = () => {
-    setType(EVENT_TYPES[1]); setDate(""); setStartTime(""); setEndTime("");
-    setResponsible(ticket.owner || RESPONSIBLES[0]); setGuests(""); setVehicleId(NO_VEHICLE);
-    setModule(defaults.module); setSubmodule(defaults.submodule);
-    setDescription(""); setReminder(true);
+    setType(EVENT_TYPES[1]);
+    setDate("");
+    setStartTime("");
+    setEndTime("");
+    setResponsible(ticket.owner || RESPONSIBLES[0]);
+    setGuests("");
+    setVehicleId(NO_VEHICLE);
+    setModule(defaults.module);
+    setSubmodule(defaults.submodule);
+    setDescription("");
+    setReminder(true);
   };
 
   const submit = () => {
     if (!date || !startTime || !endTime || !responsible || !module || !submodule) {
-      toast.error("Preencha os campos obrigatórios."); return;
+      toast.error("Preencha os campos obrigatórios.");
+      return;
     }
-    if (endTime <= startTime) { toast.error("O horário final deve ser posterior ao inicial."); return; }
+    if (endTime <= startTime) {
+      toast.error("O horário final deve ser posterior ao inicial.");
+      return;
+    }
 
     let vehicleLabel: string | undefined;
     let reservationId: string | undefined;
+    const eventId = `ticket-${ticket.id}-${Date.now()}`;
 
     if (vehicleId !== NO_VEHICLE) {
       const vehicle = vehicles.find((v) => v.id === vehicleId);
-      if (!vehicle) { toast.error("Veículo não encontrado."); return; }
-      if (!windowStart || !windowEnd) { toast.error("Informe data e horários para reservar veículo."); return; }
+      if (!vehicle) {
+        toast.error("Veículo não encontrado.");
+        return;
+      }
+      if (!windowStart || !windowEnd) {
+        toast.error("Informe data e horários para reservar veículo.");
+        return;
+      }
       const info = vehicleAvailability.get(vehicleId);
       if (info && (info.key === "em_uso" || info.key === "indisponivel")) {
-        toast.error("Veículo indisponível para reserva."); return;
+        toast.error("Veículo indisponível para reserva.");
+        return;
       }
       const created = createReservation({
         vehicleId: vehicle.id,
         operatorId: responsible,
         startAt: windowStart,
         endAt: windowEnd,
+        eventId,
         ticketId: ticket.id,
         customerId: ticket.clientCode,
         destination: `${ticket.clientCode || "—"} · ${ticket.clientName || "Cliente não vinculado"}`,
@@ -154,15 +182,51 @@ export function ScheduleEventModal({
     }
 
     ticketsStore.scheduleEvent(ticket.id, {
-      type, date, startTime, endTime, responsible,
+      type,
+      date,
+      startTime,
+      endTime,
+      responsible,
       guests: guests.trim() || undefined,
       vehicle: vehicleLabel,
-      module, submodule, description: description.trim() || undefined, reminder,
+      module,
+      submodule,
+      description: description.trim() || undefined,
+      reminder,
     });
+
+    const calendarType: EventType =
+      type === "Visita"
+        ? "Visita presencial"
+        : type === "Reunião PRC"
+          ? "Reunião na Prócion"
+          : "Reunião remota";
+    const clientLabel = [ticket.clientCode, ticket.clientName].filter(Boolean).join(" · ");
+
+    addLocalEvent({
+      id: eventId,
+      date,
+      time: startTime,
+      end: endTime,
+      type: calendarType,
+      origin: "Suporte",
+      operator: responsible,
+      responsible,
+      title: `${ticket.protocol} - ${ticket.subject}`,
+      client: clientLabel || undefined,
+      description: description.trim() || undefined,
+      guests: guests
+        .split(",")
+        .map((guest) => guest.trim())
+        .filter(Boolean),
+      needsDisplacement: calendarType === "Visita presencial",
+    });
+
     toast.success("Evento agendado", {
       description: `${date} · ${startTime} às ${endTime}${reservationId ? " · veículo pré-agendado" : ""}`,
     });
-    reset(); onOpenChange(false);
+    reset();
+    onOpenChange(false);
   };
 
   return (
@@ -191,13 +255,25 @@ export function ScheduleEventModal({
         <div className="flex-1 space-y-2.5 overflow-y-auto bg-card px-5 py-3 md:px-6">
           <div className="grid gap-2.5 sm:grid-cols-2">
             <Field label="Tipo do evento" required>
-              <select value={type} onChange={(e) => setType(e.target.value)} className={selectClass}>
-                {EVENT_TYPES.map((item) => <option key={item}>{item}</option>)}
+              <select
+                value={type}
+                onChange={(e) => setType(e.target.value)}
+                className={selectClass}
+              >
+                {EVENT_TYPES.map((item) => (
+                  <option key={item}>{item}</option>
+                ))}
               </select>
             </Field>
             <Field label="Responsável" required>
-              <select value={responsible} onChange={(e) => setResponsible(e.target.value)} className={selectClass}>
-                {RESPONSIBLES.map((item) => <option key={item}>{item}</option>)}
+              <select
+                value={responsible}
+                onChange={(e) => setResponsible(e.target.value)}
+                className={selectClass}
+              >
+                {RESPONSIBLES.map((item) => (
+                  <option key={item}>{item}</option>
+                ))}
               </select>
             </Field>
           </div>
@@ -240,13 +316,30 @@ export function ScheduleEventModal({
           </div>
           <div className="grid gap-2.5 sm:grid-cols-2">
             <Field label="Módulo" required>
-              <select value={module} onChange={(e) => changeModule(e.target.value)} className={selectClass}>
-                {moduleOptions.map((item) => <option key={item} value={item}>{item}</option>)}
+              <select
+                value={module}
+                onChange={(e) => changeModule(e.target.value)}
+                className={selectClass}
+              >
+                {moduleOptions.map((item) => (
+                  <option key={item} value={item}>
+                    {item}
+                  </option>
+                ))}
               </select>
             </Field>
             <Field label="Submódulo" required>
-              <select value={submodule} onChange={(e) => setSubmodule(e.target.value)} className={selectClass} disabled={availableSubs.length === 0}>
-                {availableSubs.map((item) => <option key={item} value={item}>{item}</option>)}
+              <select
+                value={submodule}
+                onChange={(e) => setSubmodule(e.target.value)}
+                className={selectClass}
+                disabled={availableSubs.length === 0}
+              >
+                {availableSubs.map((item) => (
+                  <option key={item} value={item}>
+                    {item}
+                  </option>
+                ))}
               </select>
             </Field>
           </div>
@@ -254,7 +347,12 @@ export function ScheduleEventModal({
             <Field label="Convidados">
               <div className="relative">
                 <Users className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input className="pl-8" value={guests} onChange={(e) => setGuests(e.target.value)} placeholder="Nomes ou e-mails, separados por vírgula" />
+                <Input
+                  className="pl-8"
+                  value={guests}
+                  onChange={(e) => setGuests(e.target.value)}
+                  placeholder="Nomes ou e-mails, separados por vírgula"
+                />
               </div>
             </Field>
             {type === "Visita" && (
@@ -283,17 +381,18 @@ export function ScheduleEventModal({
                     })}
                   </select>
                 </div>
-                {vehicleId !== NO_VEHICLE && (() => {
-                  const info = vehicleAvailability.get(vehicleId);
-                  if (info?.key === "pre_agendado" && info.conflict) {
-                    return (
-                      <p className="mt-1 text-[11px] text-destructive">
-                        Conflito com outra pré-reserva no período informado.
-                      </p>
-                    );
-                  }
-                  return null;
-                })()}
+                {vehicleId !== NO_VEHICLE &&
+                  (() => {
+                    const info = vehicleAvailability.get(vehicleId);
+                    if (info?.key === "pre_agendado" && info.conflict) {
+                      return (
+                        <p className="mt-1 text-[11px] text-destructive">
+                          Conflito com outra pré-reserva no período informado.
+                        </p>
+                      );
+                    }
+                    return null;
+                  })()}
               </Field>
             )}
           </div>
@@ -310,12 +409,25 @@ export function ScheduleEventModal({
         </div>
         <DialogFooter className="flex shrink-0 items-center justify-between gap-3 border-t border-border bg-card px-5 py-2.5 sm:justify-between">
           <label className="flex cursor-pointer items-center gap-2 text-[11.5px] text-muted-foreground">
-            <Checkbox checked={reminder} onCheckedChange={(value) => setReminder(value === true)} className="h-4 w-4 cursor-pointer" />
+            <Checkbox
+              checked={reminder}
+              onCheckedChange={(value) => setReminder(value === true)}
+              className="h-4 w-4 cursor-pointer"
+            />
             Gerar lembrete
           </label>
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => onOpenChange(false)} className="cursor-pointer">Cancelar</Button>
-            <Button onClick={submit} className="cursor-pointer"><CalendarClock className="mr-1.5 h-4 w-4" />Agendar evento</Button>
+            <Button
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              className="cursor-pointer"
+            >
+              Cancelar
+            </Button>
+            <Button onClick={submit} className="cursor-pointer">
+              <CalendarClock className="mr-1.5 h-4 w-4" />
+              Agendar evento
+            </Button>
           </div>
         </DialogFooter>
       </DialogContent>
@@ -323,7 +435,15 @@ export function ScheduleEventModal({
   );
 }
 
-function Field({ label, required, children }: { label: string; required?: boolean; children: ReactNode }) {
+function Field({
+  label,
+  required,
+  children,
+}: {
+  label: string;
+  required?: boolean;
+  children: ReactNode;
+}) {
   return (
     <div>
       <Label className="mb-1.5 block text-[12.5px] font-medium">
