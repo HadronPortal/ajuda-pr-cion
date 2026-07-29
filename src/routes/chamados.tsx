@@ -92,12 +92,9 @@ import { TicketDetailSheet } from "@/components/tickets/TicketDetailSheet";
 import { TicketHistoryModal } from "@/components/tickets/TicketHistoryModal";
 
 import {
-  addMonths,
   currentMonthKey,
   isMonthKey,
   isTicketMonthView,
-  monthKeyFromDate,
-  monthLabel,
   monthRange,
   ticketMatchesMonthView,
 } from "@/lib/tickets-month";
@@ -241,28 +238,9 @@ const initialFilters: Filters = {
   dateEnd: undefined,
 };
 
-/** Filtros pré-preenchidos com o mês inteiro (do primeiro ao último dia). */
-function monthRange2(monthKey: string): { dateStart: Date; dateEnd: Date } {
-  const { start, end } = monthRange(monthKey);
-  return { dateStart: start, dateEnd: end };
-}
-
 function monthFilters(monthKey: string): Filters {
   const { start, end } = monthRange(monthKey);
   return { ...initialFilters, dateStart: start, dateEnd: end };
-}
-
-/** Retorna a chave YYYY-MM quando o período selecionado cobre um mês inteiro. */
-function activeMonthKey(f: Filters): string | null {
-  if (!f.dateStart || !f.dateEnd) return null;
-  const key = monthKeyFromDate(f.dateStart);
-  const { start, end } = monthRange(key);
-  const sameStart = f.dateStart.getDate() === start.getDate();
-  const sameEnd =
-    f.dateEnd.getFullYear() === end.getFullYear() &&
-    f.dateEnd.getMonth() === end.getMonth() &&
-    f.dateEnd.getDate() === end.getDate();
-  return sameStart && sameEnd ? key : null;
 }
 
 function normalizeFilterText(value: string) {
@@ -423,7 +401,6 @@ function QuickFiltersBar({
   }, [tickets]);
 
   const anyActive = hasAnyActive(filters);
-  const monthApplied = activeMonthKey(filters);
 
 
   const clearAll = () => {
@@ -485,36 +462,8 @@ function QuickFiltersBar({
         </datalist>
       </div>
 
-      {/* Mês aplicado */}
-      {monthApplied && (
-        <div className="flex h-9 shrink-0 items-center gap-1 rounded-lg border border-primary/30 bg-primary/10 px-2 text-xs font-medium text-primary">
-          <span className="whitespace-nowrap capitalize">{monthLabel(monthApplied)}</span>
-          <button
-            type="button"
-            aria-label="Mês anterior"
-            onClick={() => setFilters((p) => ({ ...p, ...monthFilters(addMonths(monthApplied, -1)) , status: p.status, priority: p.priority, query: p.query, sigla: p.sigla, operator: p.operator, operatorType: p.operatorType, dateType: p.dateType }))}
-            className="cursor-pointer rounded px-1 hover:bg-primary/20"
-          >
-            ‹
-          </button>
-          <button
-            type="button"
-            aria-label="Próximo mês"
-            onClick={() => setFilters((p) => ({ ...p, ...monthFilters(addMonths(monthApplied, 1)), status: p.status, priority: p.priority, query: p.query, sigla: p.sigla, operator: p.operator, operatorType: p.operatorType, dateType: p.dateType }))}
-            className="cursor-pointer rounded px-1 hover:bg-primary/20"
-          >
-            ›
-          </button>
-          <button
-            type="button"
-            aria-label="Remover filtro de mês"
-            onClick={() => setFilters((p) => ({ ...p, dateStart: undefined, dateEnd: undefined }))}
-            className="cursor-pointer rounded px-1 hover:bg-primary/20"
-          >
-            ×
-          </button>
-        </div>
-      )}
+
+
 
       {/* Período */}
       <div className="min-w-[180px] flex-[1.4]">
@@ -649,7 +598,6 @@ function TicketsPage() {
 
 
 
-  const appliedMonth = activeMonthKey(filters);
   const monthView = isTicketMonthView(search.visao) ? search.visao : null;
 
   const filteredTickets = useMemo(() => {
@@ -998,39 +946,8 @@ function TicketsPage() {
             </select>
           </label>
 
-          {appliedMonth && (
-            <div className="flex h-9 shrink-0 items-center gap-1 rounded-lg border border-primary/30 bg-primary/10 px-2 text-xs font-medium text-primary">
-              <span className="whitespace-nowrap capitalize">{monthLabel(appliedMonth)}</span>
-              <button
-                type="button"
-                aria-label="Mês anterior"
-                onClick={() =>
-                  setFilters((c) => ({ ...c, ...monthRange2(addMonths(appliedMonth, -1)) }))
-                }
-                className="cursor-pointer rounded px-1 hover:bg-primary/20"
-              >
-                ‹
-              </button>
-              <button
-                type="button"
-                aria-label="Próximo mês"
-                onClick={() =>
-                  setFilters((c) => ({ ...c, ...monthRange2(addMonths(appliedMonth, 1)) }))
-                }
-                className="cursor-pointer rounded px-1 hover:bg-primary/20"
-              >
-                ›
-              </button>
-              <button
-                type="button"
-                aria-label="Remover filtro de mês"
-                onClick={() => setFilters((c) => ({ ...c, dateStart: undefined, dateEnd: undefined }))}
-                className="cursor-pointer rounded px-1 hover:bg-primary/20"
-              >
-                ×
-              </button>
-            </div>
-          )}
+
+
 
           <div className="min-w-[200px] flex-[1.4]">
             <DateRangeFilter
