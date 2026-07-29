@@ -264,16 +264,21 @@ function pushEvent(id: string, event: Omit<TicketEvent, "id">) {
 
 const operator = () => currentUser.operator ?? "PRC???";
 
-export const TRANSFER_BLOCKED_MESSAGE =
-  "Não é possível transferir um chamado com atendimento já iniciado.";
+export const TRANSFER_BLOCKED_MESSAGE = "Não é possível transferir um chamado ocupado.";
 
-/** Um chamado só pode ser transferido antes de o atendimento ser iniciado. */
+/** Normaliza texto removendo acentos e caixa para comparação de status. */
+function normalizeStatus(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
+}
+
+/** Um chamado só não pode ser transferido quando o status atual for "Ocupado". */
 export function canTransferTicket(ticket: SupportTicket | null | undefined): boolean {
   if (!ticket) return false;
-  if (ticket.status === "Em andamento" || ticket.status === "Ocupado") return false;
-  if (ticket.lockedBy) return false;
-  if (ticket.owner && ticket.owner !== "Sem responsável") return false;
-  return true;
+  return normalizeStatus(ticket.status) !== "ocupado";
 }
 
 function persistUpdate(
