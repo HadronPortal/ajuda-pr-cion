@@ -264,6 +264,18 @@ function pushEvent(id: string, event: Omit<TicketEvent, "id">) {
 
 const operator = () => currentUser.operator ?? "PRC???";
 
+export const TRANSFER_BLOCKED_MESSAGE =
+  "Não é possível transferir um chamado com atendimento já iniciado.";
+
+/** Um chamado só pode ser transferido antes de o atendimento ser iniciado. */
+export function canTransferTicket(ticket: SupportTicket | null | undefined): boolean {
+  if (!ticket) return false;
+  if (ticket.status === "Em andamento" || ticket.status === "Ocupado") return false;
+  if (ticket.lockedBy) return false;
+  if (ticket.owner && ticket.owner !== "Sem responsável") return false;
+  return true;
+}
+
 function persistUpdate(
   id: string,
   patch: Partial<SupportTicket>,
@@ -569,6 +581,10 @@ export const ticketsStore = {
       relatedForms: string[];
     },
   ) {
+    const current = tickets.find((t) => t.id === id) ?? null;
+    if (!canTransferTicket(current)) {
+      throw new Error(TRANSFER_BLOCKED_MESSAGE);
+    }
     const from = operator();
     const nextStatus: TicketStatus =
       input.type === "Devolver para fila" ? "Em Aberto" : "Em andamento";
