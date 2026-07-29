@@ -265,6 +265,9 @@ function pushEvent(id: string, event: Omit<TicketEvent, "id">) {
 const operator = () => currentUser.operator ?? "PRC???";
 
 export const TRANSFER_BLOCKED_MESSAGE = "Não é possível transferir um chamado ocupado.";
+export const TRANSFER_BLOCKED_OCUPADO_MESSAGE = "Não é possível transferir um chamado ocupado.";
+export const TRANSFER_BLOCKED_FINALIZADO_MESSAGE =
+  "Não é possível transferir um chamado finalizado.";
 
 /** Normaliza texto removendo acentos e caixa para comparação de status. */
 function normalizeStatus(value: string): string {
@@ -275,11 +278,39 @@ function normalizeStatus(value: string): string {
     .toLowerCase();
 }
 
-/** Um chamado só não pode ser transferido quando o status atual for "Ocupado". */
-export function canTransferTicket(ticket: SupportTicket | null | undefined): boolean {
-  if (!ticket) return false;
-  return normalizeStatus(ticket.status) !== "ocupado";
+const OCUPADO_STATUSES = new Set(["ocupado"]);
+const FINALIZADO_STATUSES = new Set([
+  "finalizado",
+  "finalizada",
+  "concluido",
+  "concluida",
+  "fechado",
+  "fechada",
+  "encerrado",
+  "encerrada",
+  "resolvido",
+  "resolvida",
+]);
+
+/**
+ * Retorna a mensagem de bloqueio quando o chamado não pode ser transferido,
+ * ou `null` quando a transferência é permitida.
+ */
+export function getTransferBlockReason(
+  ticket: SupportTicket | null | undefined,
+): string | null {
+  if (!ticket) return TRANSFER_BLOCKED_OCUPADO_MESSAGE;
+  const status = normalizeStatus(ticket.status ?? "");
+  if (OCUPADO_STATUSES.has(status)) return TRANSFER_BLOCKED_OCUPADO_MESSAGE;
+  if (FINALIZADO_STATUSES.has(status)) return TRANSFER_BLOCKED_FINALIZADO_MESSAGE;
+  return null;
 }
+
+/** Um chamado só não pode ser transferido quando estiver "Ocupado" ou finalizado. */
+export function canTransferTicket(ticket: SupportTicket | null | undefined): boolean {
+  return getTransferBlockReason(ticket) === null;
+}
+
 
 function persistUpdate(
   id: string,
@@ -587,8 +618,9 @@ export const ticketsStore = {
     },
   ) {
     const current = tickets.find((t) => t.id === id) ?? null;
-    if (!canTransferTicket(current)) {
-      throw new Error(TRANSFER_BLOCKED_MESSAGE);
+    const blockReason = getTransferBlockReason(current);
+    if (blockReason) {
+      throw new Error(blockReason);
     }
     const from = operator();
     const nextStatus: TicketStatus =

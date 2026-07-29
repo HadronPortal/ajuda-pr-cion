@@ -14,9 +14,8 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import {
-  canTransferTicket,
+  getTransferBlockReason,
   ticketsStore,
-  TRANSFER_BLOCKED_MESSAGE,
 } from "@/lib/tickets-store";
 import { cn } from "@/lib/utils";
 import {
@@ -187,14 +186,14 @@ export function TransferTicketModal({
   ticket: SupportTicket;
 }) {
   const sla = useMemo(() => computeSla(ticket), [ticket]);
-  const allowed = canTransferTicket(ticket);
+  const blockReason = getTransferBlockReason(ticket);
 
   useEffect(() => {
-    if (open && !allowed) {
-      toast.error(TRANSFER_BLOCKED_MESSAGE);
+    if (open && blockReason) {
+      toast.error(blockReason);
       onOpenChange(false);
     }
-  }, [open, allowed, onOpenChange]);
+  }, [open, blockReason, onOpenChange]);
 
   const [hadronOption, setHadronOption] = useState("");
   const [hadronQuery, setHadronQuery] = useState("");
@@ -251,8 +250,9 @@ export function TransferTicketModal({
   };
 
   const submit = () => {
-    if (!canTransferTicket(ticket)) {
-      toast.error(TRANSFER_BLOCKED_MESSAGE);
+    const reason = getTransferBlockReason(ticket);
+    if (reason) {
+      toast.error(reason);
       onOpenChange(false);
       return;
     }
@@ -290,8 +290,8 @@ export function TransferTicketModal({
     } catch (error) {
       const description = error instanceof Error ? error.message : "";
       toast.error(
-        description === TRANSFER_BLOCKED_MESSAGE
-          ? TRANSFER_BLOCKED_MESSAGE
+        description.startsWith("Não é possível transferir")
+          ? description
           : "Não foi possível transferir o chamado. Tente novamente.",
       );
     }
