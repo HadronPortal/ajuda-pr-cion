@@ -596,7 +596,9 @@ function AgendaItem({ event }: { event: CalendarEvent }) {
         operatorId: event.operator,
         client: event.client,
         destination: event.address ? `${event.client ?? ""} — ${event.address}`.trim().replace(/^—\s+/, "") : (event.client ?? event.title),
+        expectedDepartureAt: `${event.date}T${event.time}:00`,
         expectedReturnAt: `${event.date}T${event.end}:00`,
+
       });
     fleetActions.openPickup(target.id);
   };

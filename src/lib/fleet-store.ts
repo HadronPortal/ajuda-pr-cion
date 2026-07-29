@@ -50,8 +50,11 @@ export type VehicleUsage = {
   operatorId: string;
   client?: string;
   destination: string;
+  /** Data/hora prevista de saída (início do agendamento). */
+  expectedDepartureAt?: string;
   departureAt?: string;
   expectedReturnAt?: string;
+
   returnedAt?: string;
   departureMileage?: number;
   returnMileage?: number;
@@ -69,6 +72,59 @@ export type VehicleUsage = {
 
 const nowISO = () => new Date().toISOString();
 const RUNTIME_STORAGE_KEY = "procion.fleet-runtime.v2";
+const SP_TIME_ZONE = "America/Sao_Paulo";
+
+/**
+ * Datas "ingênuas" (2026-07-30T08:00:00, sem fuso) vêm do agendamento e devem ser
+ * lidas literalmente — converter para UTC reduziria um dia. Datas com fuso (Z/offset)
+ * são convertidas para America/Sao_Paulo.
+ */
+const NAIVE_DATETIME = /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})/;
+
+export function formatFleetDateTime(value?: string) {
+  if (!value) return "—";
+  const naive = NAIVE_DATETIME.exec(value);
+  if (naive && !/[zZ]|[+-]\d{2}:?\d{2}$/.test(value)) {
+    const [, y, m, d, hh, mm] = naive;
+    return `${d}/${m}/${y}, ${hh}:${mm}`;
+  }
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "—";
+  return parsed.toLocaleString("pt-BR", {
+    timeZone: SP_TIME_ZONE,
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+/** Data (yyyy-mm-dd) do agendamento, sem conversão de fuso. */
+export function fleetDayKey(value?: string) {
+  if (!value) return "";
+  const naive = NAIVE_DATETIME.exec(value);
+  if (naive && !/[zZ]|[+-]\d{2}:?\d{2}$/.test(value)) return value.slice(0, 10);
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "";
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: SP_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(parsed);
+}
+
+/** Momento previsto (ou real) da saída — nunca usa createdAt. */
+export function getUsageDepartureRef(u: VehicleUsage) {
+  return u.departureAt ?? u.expectedDepartureAt ?? u.expectedReturnAt;
+}
+
+/** Momento previsto (ou real) da devolução. */
+export function getUsageReturnRef(u: VehicleUsage) {
+  return u.returnedAt ?? u.expectedReturnAt;
+}
+
 
 // -----------------------------------------------------------------------------
 // Frota inicial
@@ -314,17 +370,14 @@ export function getActiveUsageByVehicle(vehicleId: string) {
 }
 
 export function getTodayUsages(today = new Date()) {
-  const day = today.toISOString().slice(0, 10);
+  const day = fleetDayKey(today.toISOString());
   return usages
     .filter((u) => {
       if (u.status === "cancelado") return false;
-      const ref = (u.departureAt ?? u.expectedReturnAt ?? u.createdAt).slice(0, 10);
-      return ref === day;
+      return fleetDayKey(getUsageDepartureRef(u)) === day;
     })
     .sort((a, b) =>
-      (a.expectedReturnAt ?? a.departureAt ?? "").localeCompare(
-        b.expectedReturnAt ?? b.departureAt ?? "",
-      ),
+      (getUsageDepartureRef(a) ?? "").localeCompare(getUsageDepartureRef(b) ?? ""),
     );
 }
 
@@ -347,6 +400,7 @@ export function createUsageForAppointment(input: {
   vehicleId?: string;
   client?: string;
   destination: string;
+  expectedDepartureAt?: string;
   expectedReturnAt?: string;
 }) {
   const usage: VehicleUsage = {
@@ -356,11 +410,13 @@ export function createUsageForAppointment(input: {
     operatorId: input.operatorId,
     client: input.client,
     destination: input.destination,
+    expectedDepartureAt: input.expectedDepartureAt,
     expectedReturnAt: input.expectedReturnAt,
     status: "aguardando_retirada",
     createdAt: nowISO(),
     updatedAt: nowISO(),
   };
+
   usages = [usage, ...usages];
   persistRuntimeRecords();
   emit();
