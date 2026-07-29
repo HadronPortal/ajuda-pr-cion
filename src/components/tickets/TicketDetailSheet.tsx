@@ -283,6 +283,12 @@ export function TicketDetailSheet({
     const raw = ticket?.description;
     return typeof raw === "string" ? raw.replace(/\r\n/g, "\n").trim() : "";
   }, [ticket?.id, ticket?.description]);
+  const summaryState = useTicketSummary(
+    ticket?.id,
+    ticketDescription,
+    ticket?.descriptionSummary ?? null,
+  );
+
 
 
   if (!ticket || !mock || !sla) return null;
