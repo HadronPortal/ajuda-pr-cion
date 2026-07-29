@@ -163,55 +163,9 @@ export function CreateEventDialog({
           </NewField>
 
           <NewField label="Convidados">
-            <div className="rounded-md border border-input bg-background px-2 py-2">
-              {guests.length > 0 && (
-                <div className="mb-2 flex flex-wrap gap-1.5">
-                  {guests.map((g) => (
-                    <span key={g} className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[12px] text-primary">
-                      {g}
-                      <button type="button" onClick={() => removeGuest(g)} aria-label={`Remover ${g}`} className="grid h-4 w-4 cursor-pointer place-items-center rounded-full hover:bg-primary/20">
-                        <X className="h-3 w-3" />
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              )}
-              <div className="flex items-center gap-2">
-                <input
-                  value={guestInput}
-                  onChange={(e) => setGuestInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === ",") { e.preventDefault(); commitGuestInput(); }
-                  }}
-                  onBlur={commitGuestInput}
-                  placeholder="Pesquise ou digite siglas separadas por vírgula"
-                  className="h-8 flex-1 bg-transparent px-1 text-[13px] outline-none placeholder:text-muted-foreground"
-                />
-                <Popover open={guestOpen} onOpenChange={setGuestOpen}>
-                  <PopoverTrigger asChild>
-                    <button type="button" className="cursor-pointer rounded-md border border-input bg-background px-2 py-1 text-[12px] text-muted-foreground hover:text-foreground">
-                      Selecionar operadores
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent align="end" className="w-56 p-1">
-                    <ul className="max-h-64 overflow-y-auto">
-                      {PRC_OPERATORS.map((op) => {
-                        const active = guests.includes(op);
-                        return (
-                          <li key={op}>
-                            <button type="button" onClick={() => active ? removeGuest(op) : addGuestValue(op)} className="flex w-full cursor-pointer items-center justify-between rounded-md px-2 py-1.5 text-left text-[13px] hover:bg-accent">
-                              <span>{op}</span>
-                              {active && <Check className="h-4 w-4 text-primary" />}
-                            </button>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </PopoverContent>
-                </Popover>
-              </div>
-            </div>
+            <CollaboratorMultiSelect value={guests} onChange={setGuests} />
           </NewField>
+
 
           <div className="grid gap-3 sm:grid-cols-3">
             <NewField label="Data" required>
