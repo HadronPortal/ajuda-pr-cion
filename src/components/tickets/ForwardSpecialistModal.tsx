@@ -10,8 +10,13 @@ import { ticketsStore } from "@/lib/tickets-store";
 import { cn } from "@/lib/utils";
 import type { SupportTicket, TicketPriority } from "@/lib/support-tickets-data";
 import { modulesMap, moduleOptions, splitModule } from "@/lib/modules-map";
-import { kbArticlesFull } from "@/lib/kb-data";
-import { normalizeSearch, searchHadronOptions, type HadronOption } from "@/lib/hadron-options";
+import { cvsArticles } from "@/lib/cvs-catalogs-imported";
+import {
+  normalizeSearch,
+  searchHadronForms,
+  searchHadronOptions,
+  type HadronOption,
+} from "@/lib/hadron-options";
 
 const PRIORITY_OPTIONS: {
   value: TicketPriority;
@@ -151,15 +156,14 @@ export function ForwardSpecialistModal({
   const articleSuggestions = useMemo(() => {
     const query = normalizeSearch(articleQuery);
     if (!query) return [];
-    return kbArticlesFull
-      .filter((article) =>
-        normalizeSearch(`${article.title} ${article.summary} ${article.module}`).includes(query),
-      )
+    return cvsArticles
+      .filter((article) => article.status === "1")
+      .filter((article) => normalizeSearch(`${article.id} ${article.title}`).includes(query))
       .slice(0, 10)
       .map((article) => article.title);
   }, [articleQuery]);
   const formSuggestions = useMemo(
-    () => searchHadronOptions(formQuery).map((option) => option.label),
+    () => searchHadronForms(formQuery).map((option) => option.label),
     [formQuery],
   );
 
@@ -469,15 +473,17 @@ function HadronOptionPicker({
               suggestions.map((option) => (
                 <button
                   type="button"
-                  key={option.code}
+                  key={option.id}
                   onMouseDown={(event) => event.preventDefault()}
                   onClick={() => onSelect(option)}
                   className="block w-full cursor-pointer rounded px-3 py-2 text-left hover:bg-accent"
                 >
                   <span className="block text-xs font-medium text-popover-foreground">
-                    {option.title}
+                    {option.description}
                   </span>
-                  <span className="block text-[11px] text-muted-foreground">{option.code}</span>
+                  <span className="block text-[11px] text-muted-foreground">
+                    {option.option} - {option.form || option.option}
+                  </span>
                 </button>
               ))
             ) : (

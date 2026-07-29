@@ -18,6 +18,7 @@
     "import:crm-calendar": "node scripts/import-crm-calendar.mjs",
     "import:crm-tickets": "node scripts/import-crm-tickets.mjs",
     "import:crm-modules": "node scripts/import-crm-modules.mjs",
+    "import:cvs-catalogs": "node scripts/import-cvs-catalogs.mjs",
     "import:trello": "node scripts/import-trello-board.mjs",
     "lint": "eslint .",
     "format": "prettier --write ."
