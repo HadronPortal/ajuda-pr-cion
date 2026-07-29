@@ -49,16 +49,6 @@ export const ticketStatuses: TicketStatus[] = [
   "Cancelado",
 ];
 
-export const ticketOperators = [
-  "PRCSUZ",
-  "PRCMAR",
-  "PRCTRE",
-  "PRCROG",
-  "PRCLCZ",
-  "PRCGGC",
-  "PRCPED",
-];
-
 export const supportTickets: SupportTicket[] = [
   {
     id: "43730",
