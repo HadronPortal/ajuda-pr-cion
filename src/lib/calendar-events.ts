@@ -19,7 +19,10 @@ export type CalendarEvent = {
   clientId?: string;
   status?: EventStatus;
   description?: string;
+  /** Rótulos dos convidados (compatibilidade com registros antigos). */
   guests?: string[];
+  /** Convidados vinculados ao colaborador importado (id, nome e e-mail). */
+  guestList?: EventGuest[];
   needsDisplacement?: boolean;
   vehicleId?: string;
   address?: string;
@@ -30,17 +33,14 @@ export type CalendarEvent = {
   isPrivate?: boolean;
 };
 
-export const PRC_OPERATORS = [
-  "PRCGGC",
-  "PRCGIN",
-  "PRCJAC",
-  "PRCREN",
-  "PRCROG",
-  "PRCSUZ",
-  "PRCMAR",
-  "PRCLCZ",
-  "PRCPED",
-];
+/** Convidado do agendamento, sempre originado de tab_colaboradores. */
+export type EventGuest = {
+  id: string;
+  name: string;
+  email: string | null;
+  acronym: string | null;
+};
+
 
 export const PLATFORM_OPTIONS = ["Google Meet", "Microsoft Teams", "Zoom", "AnyDesk"];
 export const ROOM_OPTIONS = ["Sala Diretoria", "Sala Reuniões 1", "Sala Reuniões 2", "Auditório"];

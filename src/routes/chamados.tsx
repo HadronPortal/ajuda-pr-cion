@@ -68,7 +68,6 @@ import {
 } from "@/components/ui/chart";
 import {
   dailyTicketAnalytics,
-  ticketOperators,
   ticketStatuses,
   type SupportTicket,
   type TicketPriority,
@@ -76,6 +75,7 @@ import {
 } from "@/lib/support-tickets-data";
 
 const ticketPriorities: TicketPriority[] = ["Alta", "Media", "Baixa"];
+import { useOperatorAcronyms } from "@/lib/collaborators-store";
 import { useTickets, useTicketHistory, ticketsStore } from "@/lib/tickets-store";
 import { FileText } from "lucide-react";
 import { getModuleIcon } from "@/lib/ticket-icons";
@@ -378,6 +378,7 @@ function QuickFiltersBar({
   setFilters: React.Dispatch<React.SetStateAction<Filters>>;
   tickets: SupportTicket[];
 }) {
+  const ticketOperators = useOperatorAcronyms();
   const [queryDraft, setQueryDraft] = useState(filters.query);
 
   // Debounce: apply query typing after 250ms of inactivity.
@@ -504,6 +505,7 @@ function ChamadosRouteShell() {
 }
 
 function TicketsPage() {
+  const ticketOperators = useOperatorAcronyms();
   const search = Route.useSearch();
   const supportTickets = useTickets();
   const initialMonthKey = isMonthKey(search.mes) ? search.mes : currentMonthKey();

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { ArrowUp, ChevronDown, Minus, Plus, Repeat, Search, X } from "lucide-react";
 import { toast } from "sonner";
+import { useOperatorAcronyms } from "@/lib/collaborators-store";
 import {
   Dialog,
   DialogContent,
@@ -19,7 +20,6 @@ import {
 } from "@/lib/tickets-store";
 import { cn } from "@/lib/utils";
 import {
-  ticketOperators,
   type SupportTicket,
   type TicketPriority,
   type TicketStatus,
@@ -210,9 +210,10 @@ export function TransferTicketModal({
   const [relatedArticles, setRelatedArticles] = useState<string[]>([]);
   const [relatedForms, setRelatedForms] = useState<string[]>([]);
 
+  const operatorAcronyms = useOperatorAcronyms();
   const needsOperator = type !== "Devolver para fila";
 
-  const availableOperators = ticketOperators.filter((op) => op !== ticket.owner);
+  const availableOperators = operatorAcronyms.filter((op) => op !== ticket.owner);
   const filteredOperators = availableOperators.filter((op) =>
     op.toLowerCase().includes(operatorQuery.toLowerCase()),
   );
