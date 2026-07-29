@@ -14,7 +14,6 @@ import {
   formatFleetDateTime,
   getUsageDepartureRef,
   getUsageReturnRef,
-
   VEHICLE_STATUS_LABEL,
   USAGE_STATUS_LABEL,
   type UsageStatus,

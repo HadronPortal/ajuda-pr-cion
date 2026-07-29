@@ -38,11 +38,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import { cn } from "@/lib/utils";
-import {
-  useUsages,
-  createUsageForAppointment,
-  getUsageByAppointment,
-} from "@/lib/fleet-store";
+import { useUsages, createUsageForAppointment, getUsageByAppointment } from "@/lib/fleet-store";
 import { fleetActions } from "@/lib/fleet-action-store";
 import { listCrmCalendarEvents } from "@/lib/calendar-api";
 import { CreateEventDialog } from "@/components/calendar/CreateEventDialog";
@@ -67,22 +63,156 @@ export const Route = createFileRoute("/calendario")({
 });
 
 const initialEvents: CalendarEvent[] = [
-  { id: 1, date: "2026-07-02", time: "08:00", end: "09:30", type: "Visita presencial", origin: "Comercial", operator: "PRCGIN", title: "Visita técnica", client: "ICF · INCOFAP", needsDisplacement: true, address: "Av. Central, 720, Campinas/SP" },
-  { id: 2, date: "2026-07-03", time: "09:00", end: "10:00", type: "Reunião remota", origin: "Suporte", operator: "PRCROG", title: "Acompanhamento", client: "CPB · CAMPO BELO ALIMENTOS" },
-  { id: 3, date: "2026-07-06", time: "08:30", end: "11:00", type: "Visita presencial", origin: "Comercial", operator: "PRCJAC", title: "Implantação", client: "EIN · EUROIND", needsDisplacement: true, address: "Av. Industrial, 1500, Sorocaba/SP" },
-  { id: 4, date: "2026-07-08", time: "13:30", end: "15:00", type: "Visita presencial", origin: "Suporte", operator: "PRCREN", title: "Treinamento", client: "FRU · FRUTAVO", needsDisplacement: false },
-  { id: 5, date: "2026-07-10", time: "14:00", end: "15:00", type: "Reunião remota", origin: "Suporte", operator: "PRCROG", title: "Revisão de processo", client: "AVC · CENTER GLASS" },
-  { id: 6, date: "2026-07-13", time: "08:30", end: "10:30", type: "Visita presencial", origin: "Comercial", operator: "PRCJAC", title: "Visita comercial", client: "USB · US BRASIL", needsDisplacement: true, address: "Av. Paulista, 1000, São Paulo/SP" },
-  { id: 7, date: "2026-07-14", time: "14:00", end: "15:00", type: "Reunião na Prócion", origin: "Administração", operator: "PRCROG", title: "Reunião da equipe" },
-  { id: 8, date: "2026-07-15", time: "14:00", end: "15:00", type: "Pessoal", origin: "Administração", operator: "PRCREN", title: "Médico" },
-  { id: 9, date: "2026-07-17", time: "08:30", end: "10:00", type: "Visita presencial", origin: "Suporte", operator: "PRCGIN", title: "Validação final", client: "ICF · INCOFAP", needsDisplacement: true, address: "Av. Central, 720, Campinas/SP" },
-  { id: 10, date: "2026-07-17", time: "14:00", end: "15:00", type: "Reunião remota", origin: "Suporte", operator: "PRCSUZ", title: "Retorno de chamado", client: "MIT · MINERAÇÃO ITAPORANGA" },
-  { id: 11, date: "2026-07-21", time: "14:00", end: "16:00", type: "Visita presencial", origin: "Comercial", operator: "PRCJAC", title: "Apresentação", client: "NUT · NUTRIVET BRASIL", needsDisplacement: true, address: "Rod. Anhanguera, km 90, Jundiaí/SP" },
-  { id: 12, date: "2026-07-24", time: "14:00", end: "15:00", type: "Reunião na Prócion", origin: "Administração", operator: "PRCGGC", title: "Planejamento mensal" },
+  {
+    id: 1,
+    date: "2026-07-02",
+    time: "08:00",
+    end: "09:30",
+    type: "Visita presencial",
+    origin: "Comercial",
+    operator: "PRCGIN",
+    title: "Visita técnica",
+    client: "ICF · INCOFAP",
+    needsDisplacement: true,
+    address: "Av. Central, 720, Campinas/SP",
+  },
+  {
+    id: 2,
+    date: "2026-07-03",
+    time: "09:00",
+    end: "10:00",
+    type: "Reunião remota",
+    origin: "Suporte",
+    operator: "PRCROG",
+    title: "Acompanhamento",
+    client: "CPB · CAMPO BELO ALIMENTOS",
+  },
+  {
+    id: 3,
+    date: "2026-07-06",
+    time: "08:30",
+    end: "11:00",
+    type: "Visita presencial",
+    origin: "Comercial",
+    operator: "PRCJAC",
+    title: "Implantação",
+    client: "EIN · EUROIND",
+    needsDisplacement: true,
+    address: "Av. Industrial, 1500, Sorocaba/SP",
+  },
+  {
+    id: 4,
+    date: "2026-07-08",
+    time: "13:30",
+    end: "15:00",
+    type: "Visita presencial",
+    origin: "Suporte",
+    operator: "PRCREN",
+    title: "Treinamento",
+    client: "FRU · FRUTAVO",
+    needsDisplacement: false,
+  },
+  {
+    id: 5,
+    date: "2026-07-10",
+    time: "14:00",
+    end: "15:00",
+    type: "Reunião remota",
+    origin: "Suporte",
+    operator: "PRCROG",
+    title: "Revisão de processo",
+    client: "AVC · CENTER GLASS",
+  },
+  {
+    id: 6,
+    date: "2026-07-13",
+    time: "08:30",
+    end: "10:30",
+    type: "Visita presencial",
+    origin: "Comercial",
+    operator: "PRCJAC",
+    title: "Visita comercial",
+    client: "USB · US BRASIL",
+    needsDisplacement: true,
+    address: "Av. Paulista, 1000, São Paulo/SP",
+  },
+  {
+    id: 7,
+    date: "2026-07-14",
+    time: "14:00",
+    end: "15:00",
+    type: "Reunião na Prócion",
+    origin: "Administração",
+    operator: "PRCROG",
+    title: "Reunião da equipe",
+  },
+  {
+    id: 8,
+    date: "2026-07-15",
+    time: "14:00",
+    end: "15:00",
+    type: "Pessoal",
+    origin: "Administração",
+    operator: "PRCREN",
+    title: "Médico",
+  },
+  {
+    id: 9,
+    date: "2026-07-17",
+    time: "08:30",
+    end: "10:00",
+    type: "Visita presencial",
+    origin: "Suporte",
+    operator: "PRCGIN",
+    title: "Validação final",
+    client: "ICF · INCOFAP",
+    needsDisplacement: true,
+    address: "Av. Central, 720, Campinas/SP",
+  },
+  {
+    id: 10,
+    date: "2026-07-17",
+    time: "14:00",
+    end: "15:00",
+    type: "Reunião remota",
+    origin: "Suporte",
+    operator: "PRCSUZ",
+    title: "Retorno de chamado",
+    client: "MIT · MINERAÇÃO ITAPORANGA",
+  },
+  {
+    id: 11,
+    date: "2026-07-21",
+    time: "14:00",
+    end: "16:00",
+    type: "Visita presencial",
+    origin: "Comercial",
+    operator: "PRCJAC",
+    title: "Apresentação",
+    client: "NUT · NUTRIVET BRASIL",
+    needsDisplacement: true,
+    address: "Rod. Anhanguera, km 90, Jundiaí/SP",
+  },
+  {
+    id: 12,
+    date: "2026-07-24",
+    time: "14:00",
+    end: "15:00",
+    type: "Reunião na Prócion",
+    origin: "Administração",
+    operator: "PRCGGC",
+    title: "Planejamento mensal",
+  },
 ];
 
 const operators = ["Todos", "PRCGGC", "PRCGIN", "PRCJAC", "PRCREN", "PRCROG", "PRCSUZ"];
-const typeOptions = ["Todos", "Visita presencial", "Reunião remota", "Reunião na Prócion", "Pessoal"] as const;
+const typeOptions = [
+  "Todos",
+  "Visita presencial",
+  "Reunião remota",
+  "Reunião na Prócion",
+  "Pessoal",
+] as const;
 const originOptions = ["Todas", "Administração", "Suporte", "Comercial"] as const;
 const statusOptions = ["Todos", "Agendado", "Concluído", "Cancelado"] as const;
 
@@ -108,14 +238,33 @@ const emptyFilters: Filters = {
   dateEnd: undefined,
 };
 
-const typeStyles: Record<EventType, { dot: string; soft: string; text: string; icon: typeof Car }> = {
-  "Visita presencial": { dot: "bg-emerald-500", soft: "bg-emerald-500/10", text: "text-emerald-700 dark:text-emerald-300", icon: Car },
-  "Reunião remota": { dot: "bg-sky-500", soft: "bg-sky-500/10", text: "text-sky-700 dark:text-sky-300", icon: Laptop },
-  "Reunião na Prócion": { dot: "bg-violet-500", soft: "bg-violet-500/10", text: "text-violet-700 dark:text-violet-300", icon: UsersRound },
-  Pessoal: { dot: "bg-amber-500", soft: "bg-amber-500/12", text: "text-amber-700 dark:text-amber-300", icon: UserRound },
-};
-
-
+const typeStyles: Record<EventType, { dot: string; soft: string; text: string; icon: typeof Car }> =
+  {
+    "Visita presencial": {
+      dot: "bg-emerald-500",
+      soft: "bg-emerald-500/10",
+      text: "text-emerald-700 dark:text-emerald-300",
+      icon: Car,
+    },
+    "Reunião remota": {
+      dot: "bg-sky-500",
+      soft: "bg-sky-500/10",
+      text: "text-sky-700 dark:text-sky-300",
+      icon: Laptop,
+    },
+    "Reunião na Prócion": {
+      dot: "bg-violet-500",
+      soft: "bg-violet-500/10",
+      text: "text-violet-700 dark:text-violet-300",
+      icon: UsersRound,
+    },
+    Pessoal: {
+      dot: "bg-amber-500",
+      soft: "bg-amber-500/12",
+      text: "text-amber-700 dark:text-amber-300",
+      icon: UserRound,
+    },
+  };
 
 function dateKey(year: number, month: number, day: number) {
   const value = new Date(year, month, day);
@@ -187,28 +336,80 @@ function CalendarPage() {
   }, [filters]);
 
   const removeFilter = (k: keyof Filters) =>
-    setFilters((p) => ({ ...p, [k]: emptyFilters[k] } as Filters));
+    setFilters((p) => ({ ...p, [k]: emptyFilters[k] }) as Filters);
 
   const chips: { key: string; label: string; onRemove: () => void }[] = [];
-  if (filters.query.trim()) chips.push({ key: "query", label: `Busca: "${filters.query}"`, onRemove: () => removeFilter("query") });
-  if (filters.type !== "Todos") chips.push({ key: "type", label: `Tipo: ${filters.type}`, onRemove: () => removeFilter("type") });
-  if (filters.origin !== "Todas") chips.push({ key: "origin", label: `Origem: ${filters.origin}`, onRemove: () => removeFilter("origin") });
-  if (filters.operator !== "Todos") chips.push({ key: "operator", label: `Operador: ${filters.operator}`, onRemove: () => removeFilter("operator") });
-  if (filters.client.trim()) chips.push({ key: "client", label: `Cliente: ${filters.client}`, onRemove: () => removeFilter("client") });
-  if (filters.status !== "Todos") chips.push({ key: "status", label: `Status: ${filters.status}`, onRemove: () => removeFilter("status") });
-  if (filters.dateStart) chips.push({ key: "dateStart", label: `De: ${format(filters.dateStart, "dd/MM/yyyy")}`, onRemove: () => removeFilter("dateStart") });
-  if (filters.dateEnd) chips.push({ key: "dateEnd", label: `Até: ${format(filters.dateEnd, "dd/MM/yyyy")}`, onRemove: () => removeFilter("dateEnd") });
+  if (filters.query.trim())
+    chips.push({
+      key: "query",
+      label: `Busca: "${filters.query}"`,
+      onRemove: () => removeFilter("query"),
+    });
+  if (filters.type !== "Todos")
+    chips.push({
+      key: "type",
+      label: `Tipo: ${filters.type}`,
+      onRemove: () => removeFilter("type"),
+    });
+  if (filters.origin !== "Todas")
+    chips.push({
+      key: "origin",
+      label: `Origem: ${filters.origin}`,
+      onRemove: () => removeFilter("origin"),
+    });
+  if (filters.operator !== "Todos")
+    chips.push({
+      key: "operator",
+      label: `Operador: ${filters.operator}`,
+      onRemove: () => removeFilter("operator"),
+    });
+  if (filters.client.trim())
+    chips.push({
+      key: "client",
+      label: `Cliente: ${filters.client}`,
+      onRemove: () => removeFilter("client"),
+    });
+  if (filters.status !== "Todos")
+    chips.push({
+      key: "status",
+      label: `Status: ${filters.status}`,
+      onRemove: () => removeFilter("status"),
+    });
+  if (filters.dateStart)
+    chips.push({
+      key: "dateStart",
+      label: `De: ${format(filters.dateStart, "dd/MM/yyyy")}`,
+      onRemove: () => removeFilter("dateStart"),
+    });
+  if (filters.dateEnd)
+    chips.push({
+      key: "dateEnd",
+      label: `Até: ${format(filters.dateEnd, "dd/MM/yyyy")}`,
+      onRemove: () => removeFilter("dateEnd"),
+    });
 
   const year = cursor.getFullYear();
   const month = cursor.getMonth();
-  const monthTitle = new Intl.DateTimeFormat("pt-BR", { month: "long", year: "numeric" }).format(cursor);
+  const monthTitle = new Intl.DateTimeFormat("pt-BR", { month: "long", year: "numeric" }).format(
+    cursor,
+  );
   const firstWeekday = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const previousMonthDays = new Date(year, month, 0).getDate();
   const cells = Array.from({ length: 42 }, (_, index) => {
     const value = index - firstWeekday + 1;
-    if (value < 1) return { day: previousMonthDays + value, current: false, key: dateKey(year, month - 1, previousMonthDays + value) };
-    if (value > daysInMonth) return { day: value - daysInMonth, current: false, key: dateKey(year, month + 1, value - daysInMonth) };
+    if (value < 1)
+      return {
+        day: previousMonthDays + value,
+        current: false,
+        key: dateKey(year, month - 1, previousMonthDays + value),
+      };
+    if (value > daysInMonth)
+      return {
+        day: value - daysInMonth,
+        current: false,
+        key: dateKey(year, month + 1, value - daysInMonth),
+      };
     return { day: value, current: true, key: dateKey(year, month, value) };
   });
   const selectedEvents = filtered
@@ -290,10 +491,20 @@ function CalendarPage() {
       <Card className="overflow-hidden p-0">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4">
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" onClick={() => moveMonth(-1)} className="cursor-pointer">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => moveMonth(-1)}
+              className="cursor-pointer"
+            >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <Button variant="outline" size="icon" onClick={() => moveMonth(1)} className="cursor-pointer">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => moveMonth(1)}
+              className="cursor-pointer"
+            >
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
@@ -309,7 +520,10 @@ function CalendarPage() {
         </div>
         <div className="grid grid-cols-7 border-b border-border bg-muted/20">
           {["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].map((day) => (
-            <div key={day} className="px-2 py-2.5 text-center text-xs font-medium text-muted-foreground">
+            <div
+              key={day}
+              className="px-2 py-2.5 text-center text-xs font-medium text-muted-foreground"
+            >
               {day}
             </div>
           ))}
@@ -361,13 +575,14 @@ function CalendarPage() {
       </Card>
 
       <Sheet open={agendaOpen} onOpenChange={setAgendaOpen}>
-        <SheetContent
-          side="right"
-          className="flex w-[90vw] flex-col gap-0 p-0 sm:max-w-[420px]"
-        >
+        <SheetContent side="right" className="flex w-[90vw] flex-col gap-0 p-0 sm:max-w-[420px]">
           <SheetHeader className="border-b border-border px-5 py-4">
             <SheetTitle className="text-base font-medium">
-              {new Intl.DateTimeFormat("pt-BR", { weekday: "long", day: "2-digit", month: "long" }).format(new Date(`${selectedDate}T12:00:00`))}
+              {new Intl.DateTimeFormat("pt-BR", {
+                weekday: "long",
+                day: "2-digit",
+                month: "long",
+              }).format(new Date(`${selectedDate}T12:00:00`))}
             </SheetTitle>
           </SheetHeader>
           <div className="flex-1 min-h-0 overflow-y-auto px-5 py-5 space-y-6">
@@ -382,8 +597,14 @@ function CalendarPage() {
                 ) : (
                   <div className="rounded-md border border-dashed border-border px-4 py-10 text-center">
                     <CalendarDays className="mx-auto h-8 w-8 text-muted-foreground/45" />
-                    <p className="mt-3 text-sm text-muted-foreground">Nenhum compromisso neste dia.</p>
-                    <Button variant="link" onClick={() => setCreateOpen(true)} className="mt-1 cursor-pointer">
+                    <p className="mt-3 text-sm text-muted-foreground">
+                      Nenhum compromisso neste dia.
+                    </p>
+                    <Button
+                      variant="link"
+                      onClick={() => setCreateOpen(true)}
+                      className="mt-1 cursor-pointer"
+                    >
                       Adicionar evento
                     </Button>
                   </div>
@@ -393,10 +614,26 @@ function CalendarPage() {
             <section>
               <p className="mb-3 text-xs uppercase text-muted-foreground">Resumo do mês</p>
               <div className="grid grid-cols-2 gap-3">
-                <Metric value={filtered.filter((e) => getEventTone(e) === "done").length} label="Concluídos" color="text-emerald-600 dark:text-emerald-400" />
-                <Metric value={filtered.filter((e) => getEventTone(e) === "upcoming").length} label="Agendados" color="text-orange-600 dark:text-orange-400" />
-                <Metric value={filtered.filter((e) => getEventTone(e) === "cancelled").length} label="Cancelados" color="text-rose-600 dark:text-rose-400" />
-                <Metric value={filtered.filter((e) => getEventTone(e) === "other").length} label="Outros" color="text-sky-600 dark:text-sky-400" />
+                <Metric
+                  value={filtered.filter((e) => getEventTone(e) === "done").length}
+                  label="Concluídos"
+                  color="text-emerald-600 dark:text-emerald-400"
+                />
+                <Metric
+                  value={filtered.filter((e) => getEventTone(e) === "upcoming").length}
+                  label="Agendados"
+                  color="text-orange-600 dark:text-orange-400"
+                />
+                <Metric
+                  value={filtered.filter((e) => getEventTone(e) === "cancelled").length}
+                  label="Cancelados"
+                  color="text-rose-600 dark:text-rose-400"
+                />
+                <Metric
+                  value={filtered.filter((e) => getEventTone(e) === "other").length}
+                  label="Outros"
+                  color="text-sky-600 dark:text-sky-400"
+                />
               </div>
             </section>
           </div>
@@ -456,31 +693,80 @@ function FiltersPanel({
         </SheetHeader>
         <div className="flex-1 overflow-y-auto px-6 py-5">
           <div className="space-y-5">
-            <FieldText label="Pesquisa geral" value={draft.query} onChange={(v) => update("query", v)} placeholder="Cliente, compromisso, local ou operador" />
+            <FieldText
+              label="Pesquisa geral"
+              value={draft.query}
+              onChange={(v) => update("query", v)}
+              placeholder="Cliente, compromisso, local ou operador"
+            />
             <div className="grid grid-cols-2 gap-3">
-              <FieldSelect label="Tipo" value={draft.type} onChange={(v) => update("type", v)} options={typeOptions.map((o) => ({ value: o, label: o }))} />
-              <FieldSelect label="Origem" value={draft.origin} onChange={(v) => update("origin", v)} options={originOptions.map((o) => ({ value: o, label: o }))} />
+              <FieldSelect
+                label="Tipo"
+                value={draft.type}
+                onChange={(v) => update("type", v)}
+                options={typeOptions.map((o) => ({ value: o, label: o }))}
+              />
+              <FieldSelect
+                label="Origem"
+                value={draft.origin}
+                onChange={(v) => update("origin", v)}
+                options={originOptions.map((o) => ({ value: o, label: o }))}
+              />
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <FieldSelect label="Operador" value={draft.operator} onChange={(v) => update("operator", v)} options={operators.map((o) => ({ value: o, label: o }))} />
-              <FieldSelect label="Status" value={draft.status} onChange={(v) => update("status", v)} options={statusOptions.map((o) => ({ value: o, label: o }))} />
+              <FieldSelect
+                label="Operador"
+                value={draft.operator}
+                onChange={(v) => update("operator", v)}
+                options={operators.map((o) => ({ value: o, label: o }))}
+              />
+              <FieldSelect
+                label="Status"
+                value={draft.status}
+                onChange={(v) => update("status", v)}
+                options={statusOptions.map((o) => ({ value: o, label: o }))}
+              />
             </div>
-            <FieldText label="Cliente" value={draft.client} onChange={(v) => update("client", v)} placeholder="Sigla ou razão social" />
+            <FieldText
+              label="Cliente"
+              value={draft.client}
+              onChange={(v) => update("client", v)}
+              placeholder="Sigla ou razão social"
+            />
             <div className="space-y-2">
-              <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Período</p>
+              <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                Período
+              </p>
               <div className="grid grid-cols-2 gap-3">
-                <DateField label="Data inicial" value={draft.dateStart} onChange={(d) => update("dateStart", d)} />
-                <DateField label="Data final" value={draft.dateEnd} onChange={(d) => update("dateEnd", d)} />
+                <DateField
+                  label="Data inicial"
+                  value={draft.dateStart}
+                  onChange={(d) => update("dateStart", d)}
+                />
+                <DateField
+                  label="Data final"
+                  value={draft.dateEnd}
+                  onChange={(d) => update("dateEnd", d)}
+                />
               </div>
             </div>
           </div>
         </div>
         <div className="flex items-center justify-between gap-3 border-t border-border bg-background px-6 py-4">
-          <Button type="button" variant="ghost" className="h-10 cursor-pointer rounded-lg text-sm" onClick={onClear}>
+          <Button
+            type="button"
+            variant="ghost"
+            className="h-10 cursor-pointer rounded-lg text-sm"
+            onClick={onClear}
+          >
             <SlidersHorizontal className="mr-1.5 h-4 w-4" />
             Limpar filtros
           </Button>
-          <Button type="button" onClick={onApply} className="h-10 cursor-pointer rounded-lg bg-blue-600 px-5 text-sm font-medium text-white hover:bg-blue-700">
+          <Button
+            type="button"
+            onClick={onApply}
+            className="h-10 cursor-pointer rounded-lg bg-blue-600 px-5 text-sm font-medium text-white hover:bg-blue-700"
+          >
             Aplicar filtros
           </Button>
         </div>
@@ -489,10 +775,22 @@ function FiltersPanel({
   );
 }
 
-function FieldText({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string }) {
+function FieldText({
+  label,
+  value,
+  onChange,
+  placeholder,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+}) {
   return (
     <div className="space-y-2">
-      <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
+      <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+        {label}
+      </p>
       <input
         type="text"
         value={value}
@@ -504,28 +802,52 @@ function FieldText({ label, value, onChange, placeholder }: { label: string; val
   );
 }
 
-function FieldSelect({ label, value, onChange, options }: { label: string; value: string; onChange: (v: string) => void; options: { value: string; label: string }[] }) {
+function FieldSelect({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: { value: string; label: string }[];
+}) {
   return (
     <div className="space-y-2">
-      <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
+      <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+        {label}
+      </p>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className="h-10 w-full cursor-pointer rounded-lg border border-border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
       >
         {options.map((opt) => (
-          <option key={opt.value} value={opt.value}>{opt.label}</option>
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
         ))}
       </select>
     </div>
   );
 }
 
-function DateField({ label, value, onChange }: { label: string; value?: Date; onChange: (d?: Date) => void }) {
+function DateField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value?: Date;
+  onChange: (d?: Date) => void;
+}) {
   const [open, setOpen] = useState(false);
   return (
     <div className="space-y-2">
-      <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
+      <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+        {label}
+      </p>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <button
@@ -591,14 +913,16 @@ function AgendaItem({ event }: { event: CalendarEvent }) {
 
   const openPickup = () => {
     const target =
-      usage ?? createUsageForAppointment({
+      usage ??
+      createUsageForAppointment({
         appointmentId: event.id,
         operatorId: event.operator,
         client: event.client,
-        destination: event.address ? `${event.client ?? ""} — ${event.address}`.trim().replace(/^—\s+/, "") : (event.client ?? event.title),
-        expectedDepartureAt: `${event.date}T${event.time}:00`,
+        destination: event.address
+          ? `${event.client ?? ""} — ${event.address}`.trim().replace(/^—\s+/, "")
+          : (event.client ?? event.title),
+        scheduledStartAt: `${event.date}T${event.time}:00`,
         expectedReturnAt: `${event.date}T${event.end}:00`,
-
       });
     fleetActions.openPickup(target.id);
   };
@@ -631,7 +955,9 @@ function AgendaItem({ event }: { event: CalendarEvent }) {
             <p className="truncate text-sm font-medium">{event.title}</p>
             <span className="text-xs text-muted-foreground">{event.time}</span>
           </div>
-          {event.client && <p className="mt-0.5 truncate text-xs text-muted-foreground">{event.client}</p>}
+          {event.client && (
+            <p className="mt-0.5 truncate text-xs text-muted-foreground">{event.client}</p>
+          )}
           <div className="mt-2 flex items-center gap-3 text-[11px] text-muted-foreground">
             <span>{event.operator}</span>
             <span>{event.type}</span>
@@ -641,19 +967,30 @@ function AgendaItem({ event }: { event: CalendarEvent }) {
           {needsFleet && (
             <div className="mt-3 flex flex-wrap items-center gap-2">
               {(!usage || usage.status === "aguardando_retirada") && (
-                <Button size="sm" className="h-8 cursor-pointer bg-blue-600 text-white hover:bg-blue-700" onClick={openPickup}>
+                <Button
+                  size="sm"
+                  className="h-8 cursor-pointer bg-blue-600 text-white hover:bg-blue-700"
+                  onClick={openPickup}
+                >
                   <KeyRound className="mr-1.5 h-3.5 w-3.5" />
                   Retirar veículo
                 </Button>
               )}
               {usage?.status === "em_deslocamento" && (
-                <Button size="sm" variant="outline" className="h-8 cursor-pointer" onClick={openReturn}>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8 cursor-pointer"
+                  onClick={openReturn}
+                >
                   <Undo2 className="mr-1.5 h-3.5 w-3.5" />
                   Devolver veículo
                 </Button>
               )}
               {usage?.status === "devolvido" && (
-                <span className="text-[11.5px] text-emerald-600 dark:text-emerald-400">Veículo devolvido</span>
+                <span className="text-[11.5px] text-emerald-600 dark:text-emerald-400">
+                  Veículo devolvido
+                </span>
               )}
             </div>
           )}

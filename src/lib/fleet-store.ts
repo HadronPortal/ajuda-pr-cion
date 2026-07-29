@@ -50,8 +50,7 @@ export type VehicleUsage = {
   operatorId: string;
   client?: string;
   destination: string;
-  /** Data/hora prevista de saída (início do agendamento). */
-  expectedDepartureAt?: string;
+  scheduledStartAt?: string;
   departureAt?: string;
   expectedReturnAt?: string;
 
@@ -117,14 +116,13 @@ export function fleetDayKey(value?: string) {
 
 /** Momento previsto (ou real) da saída — nunca usa createdAt. */
 export function getUsageDepartureRef(u: VehicleUsage) {
-  return u.departureAt ?? u.expectedDepartureAt ?? u.expectedReturnAt;
+  return u.departureAt ?? u.scheduledStartAt;
 }
 
 /** Momento previsto (ou real) da devolução. */
 export function getUsageReturnRef(u: VehicleUsage) {
   return u.returnedAt ?? u.expectedReturnAt;
 }
-
 
 // -----------------------------------------------------------------------------
 // Frota inicial
@@ -203,11 +201,24 @@ function hydrateRuntimeRecords() {
     const raw = window.localStorage.getItem(RUNTIME_STORAGE_KEY);
     if (!raw) return;
     const parsed = JSON.parse(raw) as {
-      usages?: VehicleUsage[];
+      usages?: Array<VehicleUsage & { expectedDepartureAt?: string }>;
       reservations?: VehicleReservation[];
     };
-    const savedUsages = Array.isArray(parsed.usages) ? parsed.usages : [];
+    const requiresUsageMigration = Array.isArray(parsed.usages)
+      ? parsed.usages.some((usage) => !usage.scheduledStartAt)
+      : false;
     const savedReservations = Array.isArray(parsed.reservations) ? parsed.reservations : [];
+    const savedUsages = (Array.isArray(parsed.usages) ? parsed.usages : []).map((usage) => {
+      if (usage.scheduledStartAt) return usage;
+      const reservation = savedReservations.find(
+        (item) => String(item.eventId) === String(usage.appointmentId),
+      );
+      const calendarStart = getCalendarEventStart(usage.appointmentId);
+      return {
+        ...usage,
+        scheduledStartAt: usage.expectedDepartureAt ?? reservation?.startAt ?? calendarStart,
+      };
+    });
     const usageIds = new Set(usages.map((usage) => usage.id));
     const reservationIds = new Set(reservations.map((reservation) => reservation.id));
     usages = [...savedUsages.filter((usage) => !usageIds.has(usage.id)), ...usages];
@@ -215,8 +226,24 @@ function hydrateRuntimeRecords() {
       ...savedReservations.filter((reservation) => !reservationIds.has(reservation.id)),
       ...reservations,
     ];
+    if (requiresUsageMigration) {
+      persistRuntimeRecords();
+    }
   } catch {
     // Mantém os registros da sessão quando o armazenamento estiver indisponível.
+  }
+}
+
+function getCalendarEventStart(appointmentId?: string | number) {
+  if (appointmentId === undefined || typeof window === "undefined") return undefined;
+  try {
+    const raw = window.localStorage.getItem("procion.local-calendar-events.v2");
+    const events = raw ? (JSON.parse(raw) as Array<Record<string, unknown>>) : [];
+    const event = events.find((item) => String(item.id) === String(appointmentId));
+    if (!event?.date || !event?.time) return undefined;
+    return `${event.date}T${event.time}:00`;
+  } catch {
+    return undefined;
   }
 }
 
@@ -376,9 +403,7 @@ export function getTodayUsages(today = new Date()) {
       if (u.status === "cancelado") return false;
       return fleetDayKey(getUsageDepartureRef(u)) === day;
     })
-    .sort((a, b) =>
-      (getUsageDepartureRef(a) ?? "").localeCompare(getUsageDepartureRef(b) ?? ""),
-    );
+    .sort((a, b) => (getUsageDepartureRef(a) ?? "").localeCompare(getUsageDepartureRef(b) ?? ""));
 }
 
 export function getUsagesInUse() {
@@ -400,7 +425,7 @@ export function createUsageForAppointment(input: {
   vehicleId?: string;
   client?: string;
   destination: string;
-  expectedDepartureAt?: string;
+  scheduledStartAt?: string;
   expectedReturnAt?: string;
 }) {
   const usage: VehicleUsage = {
@@ -410,7 +435,7 @@ export function createUsageForAppointment(input: {
     operatorId: input.operatorId,
     client: input.client,
     destination: input.destination,
-    expectedDepartureAt: input.expectedDepartureAt,
+    scheduledStartAt: input.scheduledStartAt,
     expectedReturnAt: input.expectedReturnAt,
     status: "aguardando_retirada",
     createdAt: nowISO(),
@@ -535,7 +560,8 @@ export function hasConflict(vehicleId: string, start: string, end: string, ignor
     if (u.id === ignoreUsageId) return false;
     if (u.vehicleId !== vehicleId) return false;
     if (u.status !== "em_deslocamento") return false;
-    const s = u.departureAt ?? u.createdAt;
+    const s = u.departureAt ?? u.scheduledStartAt;
+    if (!s) return false;
     const e = u.expectedReturnAt ?? u.returnedAt ?? end;
     return s < end && e > start;
   });

@@ -97,13 +97,16 @@ export function VehicleHistoryModal({
     return allUsages
       .filter((u) => u.vehicleId === vehicle.id)
       .sort((a, b) =>
-        (b.departureAt ?? b.createdAt).localeCompare(a.departureAt ?? a.createdAt),
+        (b.departureAt ?? b.scheduledStartAt ?? b.returnedAt ?? "").localeCompare(
+          a.departureAt ?? a.scheduledStartAt ?? a.returnedAt ?? "",
+        ),
       );
   }, [allUsages, vehicle]);
 
   const filtered = useMemo(() => {
     return vehicleUsages.filter((u) => {
-      const ref = (u.departureAt ?? u.createdAt).slice(0, 10);
+      const ref = (u.departureAt ?? u.scheduledStartAt ?? u.returnedAt)?.slice(0, 10);
+      if (!ref) return false;
       if (dateFrom && ref < dateFrom) return false;
       if (dateTo && ref > dateTo) return false;
       if (operator.trim() && !u.operatorId.toLowerCase().includes(operator.trim().toLowerCase()))
@@ -127,7 +130,7 @@ export function VehicleHistoryModal({
     setDestination("");
   };
 
-  const selected = selectedId ? vehicleUsages.find((u) => u.id === selectedId) ?? null : null;
+  const selected = selectedId ? (vehicleUsages.find((u) => u.id === selectedId) ?? null) : null;
 
   const handleOpenChange = (v: boolean) => {
     if (!v) setSelectedId(null);
@@ -167,12 +170,14 @@ export function VehicleHistoryModal({
 
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                  <span className="text-[15px] font-medium text-foreground">
-                    {vehicle.model}
+                  <span className="text-[15px] font-medium text-foreground">{vehicle.model}</span>
+                  <span aria-hidden className="text-border">
+                    ·
                   </span>
-                  <span aria-hidden className="text-border">·</span>
                   <span className="font-mono text-[12.5px] text-primary">{vehicle.plate}</span>
-                  <span aria-hidden className="text-border">·</span>
+                  <span aria-hidden className="text-border">
+                    ·
+                  </span>
                   <VehicleStatusChip status={vehicle.status} />
                 </div>
                 <h2 className="mt-1 text-[13px] font-normal text-muted-foreground">
@@ -194,9 +199,7 @@ export function VehicleHistoryModal({
                   <span className="inline-flex items-center gap-1">
                     <CalendarClock className="h-3.5 w-3.5" />
                     Próxima revisão{" "}
-                    <span className="font-medium text-foreground">
-                      {vehicle.nextRevisionDate}
-                    </span>
+                    <span className="font-medium text-foreground">{vehicle.nextRevisionDate}</span>
                   </span>
                 </div>
               </div>
@@ -406,17 +409,18 @@ function ListView({
                 {usages.map((u) => {
                   const inProgress = u.status === "em_deslocamento";
                   return (
-                    <tr
-                      key={u.id}
-                      className="border-t border-border transition hover:bg-accent/40"
-                    >
-                      <Td className="tabular-nums">{formatDate(u.departureAt ?? u.createdAt)}</Td>
-                      <Td className="tabular-nums">{formatTime(u.departureAt)}</Td>
+                    <tr key={u.id} className="border-t border-border transition hover:bg-accent/40">
+                      <Td className="tabular-nums">
+                        {formatDate(u.departureAt ?? u.scheduledStartAt ?? u.returnedAt)}
+                      </Td>
+                      <Td className="tabular-nums">
+                        {formatTime(u.departureAt ?? u.scheduledStartAt)}
+                      </Td>
                       <Td className="tabular-nums">
                         {inProgress ? (
                           <span className="text-amber-600 dark:text-amber-300">Em andamento</span>
                         ) : (
-                          formatTime(u.returnedAt)
+                          formatTime(u.returnedAt ?? u.expectedReturnAt)
                         )}
                       </Td>
                       <Td>{u.operatorId}</Td>
@@ -432,7 +436,7 @@ function ListView({
                       </Td>
                       <Td className="text-muted-foreground">{u.fuelAtDeparture ?? "—"}</Td>
                       <Td className="text-muted-foreground">
-                        {inProgress ? "—" : u.fuelAtReturn ?? "—"}
+                        {inProgress ? "—" : (u.fuelAtReturn ?? "—")}
                       </Td>
                       <Td>
                         <span className={usageBadgeClass(u.status)}>
@@ -465,9 +469,7 @@ function ListView({
 
 function Th({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <th
-      className={cn("whitespace-nowrap px-3 py-2 text-left font-medium", className)}
-    >
+    <th className={cn("whitespace-nowrap px-3 py-2 text-left font-medium", className)}>
       {children}
     </th>
   );
@@ -568,7 +570,11 @@ function DetailView({
         </DetailBlock>
 
         <DetailBlock title="Saída">
-          <Row icon={CalendarClock} label="Data/hora" value={formatDateTime(usage.departureAt)} />
+          <Row
+            icon={CalendarClock}
+            label={usage.departureAt ? "Data/hora" : "Data/hora prevista"}
+            value={formatDateTime(usage.departureAt ?? usage.scheduledStartAt)}
+          />
           <Row icon={Gauge} label="KM inicial" value={formatKm(usage.departureMileage)} />
           <Row icon={Fuel} label="Combustível" value={usage.fuelAtDeparture ?? "—"} />
         </DetailBlock>
@@ -576,8 +582,12 @@ function DetailView({
         <DetailBlock title="Devolução">
           <Row
             icon={CalendarClock}
-            label="Data/hora"
-            value={inProgress ? "Em andamento" : formatDateTime(usage.returnedAt)}
+            label={usage.returnedAt ? "Data/hora" : "Data/hora prevista"}
+            value={
+              inProgress && !usage.expectedReturnAt
+                ? "Em andamento"
+                : formatDateTime(usage.returnedAt ?? usage.expectedReturnAt)
+            }
           />
           <Row
             icon={Gauge}
@@ -587,7 +597,7 @@ function DetailView({
           <Row
             icon={Fuel}
             label="Combustível"
-            value={inProgress ? "—" : usage.fuelAtReturn ?? "—"}
+            value={inProgress ? "—" : (usage.fuelAtReturn ?? "—")}
           />
           <Row
             icon={Gauge}
@@ -606,9 +616,7 @@ function DetailView({
 
         <DetailBlock title="Observações da devolução" full>
           <p className="text-[12.5px] text-foreground">
-            {usage.returnNotes ?? (
-              <span className="text-muted-foreground">Sem observações.</span>
-            )}
+            {usage.returnNotes ?? <span className="text-muted-foreground">Sem observações.</span>}
           </p>
         </DetailBlock>
 
@@ -644,12 +652,7 @@ function DetailBlock({
   full?: boolean;
 }) {
   return (
-    <div
-      className={cn(
-        "rounded-lg border border-border bg-card p-3",
-        full && "md:col-span-2",
-      )}
-    >
+    <div className={cn("rounded-lg border border-border bg-card p-3", full && "md:col-span-2")}>
       <p className="mb-2 text-[10.5px] font-medium uppercase tracking-wider text-muted-foreground">
         {title}
       </p>
@@ -719,20 +722,15 @@ function computeStats(usages: VehicleUsage[]) {
     };
   }
   const totalKm = usages.reduce((s, u) => s + (computeDistance(u) ?? 0), 0);
-  const totalHours = usages.reduce(
-    (s, u) => s + diffHours(u.departureAt, u.returnedAt),
-    0,
-  );
+  const totalHours = usages.reduce((s, u) => s + diffHours(u.departureAt, u.returnedAt), 0);
   const opCount: Record<string, number> = {};
   usages.forEach((u) => (opCount[u.operatorId] = (opCount[u.operatorId] ?? 0) + 1));
-  const topOperator =
-    Object.entries(opCount).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "—";
+  const topOperator = Object.entries(opCount).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "—";
   const withDistance = usages.filter((u) => computeDistance(u) !== undefined);
-  const avgKm = withDistance.length
-    ? Math.round(totalKm / withDistance.length)
-    : 0;
+  const avgKm = withDistance.length ? Math.round(totalKm / withDistance.length) : 0;
   const lastRef = usages
-    .map((u) => u.returnedAt ?? u.departureAt ?? u.createdAt)
+    .map((u) => u.returnedAt ?? u.departureAt ?? u.scheduledStartAt)
+    .filter((value): value is string => Boolean(value))
     .sort()
     .at(-1);
   return {
@@ -761,9 +759,11 @@ function exportHistory(vehicle: Vehicle, usages: VehicleUsage[]) {
     "Status",
   ];
   const rows = usages.map((u) => [
-    formatDate(u.departureAt ?? u.createdAt),
-    formatTime(u.departureAt),
-    u.status === "em_deslocamento" ? "Em andamento" : formatTime(u.returnedAt),
+    formatDate(u.departureAt ?? u.scheduledStartAt ?? u.returnedAt),
+    formatTime(u.departureAt ?? u.scheduledStartAt),
+    u.status === "em_deslocamento"
+      ? "Em andamento"
+      : formatTime(u.returnedAt ?? u.expectedReturnAt),
     u.operatorId,
     u.client ?? "",
     u.destination,
