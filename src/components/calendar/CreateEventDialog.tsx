@@ -58,12 +58,12 @@ export function CreateEventDialog({
   /** Cliente fixo (vindo dos detalhes do cliente), vinculado pelo ID real. */
   lockedClient?: { id: string; label: string };
 }) {
+  const { collaborators } = useCollaborators();
+  const defaultResponsible = collaborators[0]?.acronym ?? "";
   const [type, setType] = useState<EventType>("Visita presencial");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [guests, setGuests] = useState<string[]>([]);
-  const [guestInput, setGuestInput] = useState("");
-  const [guestOpen, setGuestOpen] = useState(false);
+  const [guests, setGuests] = useState<CollaboratorGuest[]>([]);
   const [date, setDate] = useState(initialDate);
   const [dateOpen, setDateOpen] = useState(false);
   const [startTime, setStartTime] = useState("09:00");
@@ -71,7 +71,7 @@ export function CreateEventDialog({
   const [client, setClient] = useState("");
   const [needsDisplacement, setNeedsDisplacement] = useState(false);
   const [address, setAddress] = useState("");
-  const [responsible, setResponsible] = useState(PRC_OPERATORS[0]);
+  const [responsible, setResponsible] = useState("");
   const [meetingLink, setMeetingLink] = useState("");
   const [platform, setPlatform] = useState(PLATFORM_OPTIONS[0]);
   const [room, setRoom] = useState(ROOM_OPTIONS[0]);
@@ -81,27 +81,20 @@ export function CreateEventDialog({
     if (open) setDate(initialDate);
   }, [open, initialDate]);
 
+  useEffect(() => {
+    if (!responsible && defaultResponsible) setResponsible(defaultResponsible);
+  }, [responsible, defaultResponsible]);
+
   const reset = () => {
     setType("Visita presencial"); setTitle(""); setDescription("");
-    setGuests([]); setGuestInput("");
+    setGuests([]);
     setStartTime("09:00"); setEndTime("10:00");
     setClient(""); setNeedsDisplacement(false); setAddress("");
-    setResponsible(PRC_OPERATORS[0]);
+    setResponsible(defaultResponsible);
     setMeetingLink(""); setPlatform(PLATFORM_OPTIONS[0]);
     setRoom(ROOM_OPTIONS[0]); setIsPrivate(false);
   };
 
-  const addGuestValue = (raw: string) => {
-    const value = raw.trim().toUpperCase();
-    if (!value) return;
-    setGuests((prev) => (prev.includes(value) ? prev : [...prev, value]));
-  };
-  const commitGuestInput = () => {
-    if (!guestInput.trim()) return;
-    guestInput.split(",").forEach(addGuestValue);
-    setGuestInput("");
-  };
-  const removeGuest = (value: string) => setGuests((prev) => prev.filter((g) => g !== value));
 
   const dayEvents = useMemo(
     () => existingEvents.filter((event) => event.date === date).sort((a, b) => a.time.localeCompare(b.time)),
