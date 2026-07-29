@@ -487,11 +487,36 @@ async function listNews(limit = 12, category?: string) {
   }));
 }
 
+async function collectionIsFresh() {
+  const { data, error } = await admin
+    .from("fiscal_news_sources")
+    .select("last_collected_at")
+    .not("last_collected_at", "is", null)
+    .order("last_collected_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data?.last_collected_at) return false;
+  const age = Date.now() - new Date(data.last_collected_at).getTime();
+  return age < 165 * 60 * 1000;
+}
+
 serve(async (request) => {
   if (request.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   try {
     const body = request.method === "POST" ? await request.json().catch(() => ({})) : {};
     const action = body.action || "list";
+    if (action === "scheduled_collect") {
+      const expected = `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}`;
+      if (request.headers.get("authorization") !== expected) {
+        return json({ error: "NÃ£o autorizado." }, 401);
+      }
+      if (await collectionIsFresh()) {
+        return json({ data: [], skipped: true, reason: "Coleta recente." });
+      }
+      return json({ data: await collectAll(), skipped: false });
+    }
+
     if (action === "collect") {
       const expected = Deno.env.get("NEWS_COLLECTOR_TOKEN");
       const supplied = request.headers.get("x-collector-token");

@@ -22,6 +22,13 @@ Coleta administrativa:
 A coleta exige o header `x-collector-token`, com o mesmo valor do secret
 `NEWS_COLLECTOR_TOKEN` configurado no Supabase.
 
+## AtualizaÃ§Ã£o automÃ¡tica
+
+A migration `20260729153000_schedule_fiscal_news.sql` agenda a coleta oficial
+a cada trÃªs horas. A chamada usa `pg_cron`, `pg_net` e credenciais pÃºblicas
+guardadas no Vault. A funÃ§Ã£o aplica uma trava de 165 minutos para impedir
+execuÃ§Ãµes repetidas.
+
 ## Fontes
 
 - Receita Federal
