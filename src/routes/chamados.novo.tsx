@@ -298,50 +298,6 @@ function NewTicketPage() {
     }));
   };
 
-  const openAddContact = (kind: "email" | "phone") => {
-    setAddContact({ ...initialAddContact, open: true, kind });
-  };
-
-  const handleSaveNewContact = async () => {
-    if (!clientUuid) {
-      toast.error("Selecione uma empresa antes de cadastrar um contato.");
-      return;
-    }
-    const value = addContact.value.trim();
-    if (!value) return;
-    setAddContact((prev) => ({ ...prev, saving: true }));
-    try {
-      const created = await addClientContact(
-        clientUuid,
-        addContact.kind,
-        value,
-        addContact.name.trim(),
-      );
-      if (addContact.kind === "email") {
-        setEmails((prev) =>
-          [...prev.filter((e) => e.id !== created.id), created].sort((a, b) =>
-            a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" }),
-          ),
-        );
-        handleSelectEmail(created.id);
-      } else {
-        setPhones((prev) =>
-          [...prev.filter((p) => p.id !== created.id), created].sort((a, b) =>
-            a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" }),
-          ),
-        );
-        handleSelectPhone(created.id);
-      }
-      toast.success("Contato cadastrado.");
-      setAddContact(initialAddContact);
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Não foi possível cadastrar o contato.";
-      toast.error(msg);
-      setAddContact((prev) => ({ ...prev, saving: false }));
-    }
-  };
-
-
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (requiredMissing || !client) {
