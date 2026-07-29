@@ -57,7 +57,12 @@ export function DetailModalHeader({
           </button>
         </div>
 
-        <div className="flex items-start gap-2.5 pl-4 pr-14 py-2.5 md:gap-3 md:py-3">
+        <div
+          className={cn(
+            "flex items-start gap-2.5 pl-4 pr-14 py-2.5 md:gap-3 md:py-3",
+            dense && "py-1.5 md:py-2",
+          )}
+        >
           {/* decorativeIconClassName intentionally unused */}
           <span aria-hidden className={cn("hidden", decorativeIconClassName)} />
           <span
