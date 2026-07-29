@@ -16,6 +16,7 @@ export function DetailModalHeader({
   meta,
   chips,
   onClose,
+  dense = false,
   accentClassName = "bg-primary",
   iconWrapClassName = "bg-primary text-primary-foreground",
   decorativeIconClassName = "text-primary/10",
