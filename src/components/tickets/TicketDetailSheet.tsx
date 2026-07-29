@@ -640,14 +640,12 @@ export function TicketDetailSheet({
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                   <Section title="Cliente" icon={Building2} compact>
                     {(() => {
-                      const clientSlug = ticket.clientCode.toLowerCase();
-                      const clientExists = clientRows.some((c) => c.id === clientSlug);
                       const nameNode = (
                         <p className="text-[13.5px] font-semibold text-foreground truncate">
                           {ticket.clientName || "Cliente não vinculado"}
                         </p>
                       );
-                      return clientExists ? (
+                      return clientSlug ? (
                         <Link
                           to="/clientes/$clienteId"
                           params={{ clienteId: clientSlug }}
@@ -663,6 +661,7 @@ export function TicketDetailSheet({
                         nameNode
                       );
                     })()}
+
                     <p className="mt-0.5 text-[11.5px] text-muted-foreground">
                       <MapPin className="mr-1 inline h-3 w-3" />
                       {mock.city} - {mock.uf}
