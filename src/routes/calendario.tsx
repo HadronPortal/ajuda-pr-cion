@@ -671,6 +671,41 @@ function CalendarPage() {
         }}
       />
 
+      {editingEvent && (
+        <CreateEventDialog
+          key={`edit-${editingEvent.id}`}
+          open
+          onOpenChange={(next) => {
+            if (!next) setEditingEvent(null);
+          }}
+          initialDate={editingEvent.date}
+          existingEvents={allEvents}
+          editingEvent={editingEvent}
+          onCreate={(payload) => {
+            updateLocalEvent(editingEvent.id, payload);
+            setSelectedDate(payload.date);
+            setEditingEvent(null);
+            toast.success("Agendamento atualizado");
+          }}
+        />
+      )}
+
+      <EventDetailsModal
+        event={detailEvent}
+        open={Boolean(detailEvent)}
+        onOpenChange={(next) => {
+          if (!next) setDetailEvent(null);
+        }}
+        canEdit={detailIsLocal}
+        canCancel={detailIsLocal && detailTone !== "cancelled" && detailTone !== "done"}
+        onEdit={(event) => {
+          setDetailEvent(null);
+          setEditingEvent(event);
+        }}
+        onCancelEvent={handleCancelEvent}
+        onPickupVehicle={handlePickupFromDetail}
+      />
+
       <FiltersPanel
         open={filtersOpen}
         onOpenChange={setFiltersOpen}
