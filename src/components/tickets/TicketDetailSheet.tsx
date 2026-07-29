@@ -623,7 +623,7 @@ export function TicketDetailSheet({
                       <button
                         type="button"
                         onClick={() => setDescriptionOpen(true)}
-                        className="text-[12px] font-medium text-primary underline-offset-2 hover:underline"
+                        className="cursor-default text-[12px] font-medium text-primary underline-offset-2 hover:underline"
                       >
                         Ver descrição original
                       </button>
