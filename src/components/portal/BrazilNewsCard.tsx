@@ -18,6 +18,40 @@ const formatPublishedAt = (value: string) => {
   }).format(parsed);
 };
 
+const isUsableImageUrl = (value?: string) => {
+  if (!value) return false;
+  try {
+    const parsed = new URL(value, window.location.href);
+    return parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+};
+
+function NewsThumb({ src, alt }: { src?: string; alt?: string }) {
+  const [failed, setFailed] = useState(false);
+  const usable = isUsableImageUrl(src) && !failed;
+
+  if (!usable) {
+    return (
+      <span className="grid h-14 w-20 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
+        <Newspaper className="h-5 w-5" />
+      </span>
+    );
+  }
+
+  return (
+    <img
+      src={src}
+      alt={alt ?? ""}
+      className="h-14 w-20 shrink-0 rounded-md object-cover"
+      loading="lazy"
+      referrerPolicy="no-referrer"
+      onError={() => setFailed(true)}
+    />
+  );
+}
+
 export function BrazilNewsCard() {
   const [articles, setArticles] = useState<BrazilNewsArticle[]>([]);
   const [loading, setLoading] = useState(true);
@@ -74,19 +108,7 @@ export function BrazilNewsCard() {
                   rel="noreferrer"
                   className="group flex min-w-0 gap-3 px-5 py-3 transition hover:bg-muted/40"
                 >
-                  {article.imageUrl ? (
-                    <img
-                      src={article.imageUrl}
-                      alt=""
-                      className="h-14 w-20 shrink-0 rounded-md object-cover"
-                      loading="lazy"
-                      referrerPolicy="no-referrer"
-                    />
-                  ) : (
-                    <span className="grid h-14 w-20 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
-                      <Newspaper className="h-5 w-5" />
-                    </span>
-                  )}
+                  <NewsThumb src={article.imageUrl} />
                   <span className="min-w-0 flex-1">
                     <span className="line-clamp-2 text-[13px] font-medium leading-snug text-foreground group-hover:text-primary">
                       {article.title}
