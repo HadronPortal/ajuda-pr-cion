@@ -91,6 +91,7 @@ import { kbArticlesFull } from "@/lib/kb-data";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { Link } from "@tanstack/react-router";
 import { clientRows } from "@/routes/clientes.index";
+import { useClients } from "@/lib/clients-store";
 import { snapshotCurrentChamadosForTicket } from "@/lib/return-to-ticket";
 
 const statusTone: Record<TicketStatus, string> = {
