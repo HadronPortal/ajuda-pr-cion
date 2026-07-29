@@ -7,7 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
-import { getUsageById, getVehicleById, registerDeparture } from "@/lib/fleet-store";
+import {
+  getUsageById,
+  getVehicleById,
+  registerDeparture,
+  formatFleetDateTime,
+} from "@/lib/fleet-store";
+
 import { fleetActions } from "@/lib/fleet-action-store";
 
 const preventClose = (e: Event) => e.preventDefault();
