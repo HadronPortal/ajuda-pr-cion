@@ -161,8 +161,16 @@ export function CreateEventDialog({
         style={{ maxHeight: "calc(100vh - 2rem)" }}
         className="flex w-[calc(100vw-2rem)] max-w-[880px] flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-card p-0 shadow-[0_30px_80px_rgba(0,0,0,0.35)] [&>button]:hidden"
       >
-        <DialogTitle className="sr-only">Novo agendamento</DialogTitle>
-        <DetailModalHeader icon={CalendarDays} title="Novo agendamento" protocol={dateLabel} onClose={() => onOpenChange(false)} />
+        <DialogTitle className="sr-only">
+          {editingEvent ? "Editar agendamento" : "Novo agendamento"}
+        </DialogTitle>
+        <DetailModalHeader
+          dense
+          icon={CalendarDays}
+          title={editingEvent ? "Editar agendamento" : "Novo agendamento"}
+          protocol={dateLabel}
+          onClose={() => onOpenChange(false)}
+        />
 
         <div className="flex-1 min-h-0 space-y-4 overflow-y-auto bg-card px-5 py-4 md:px-6">
           <NewField label="Título" required>
