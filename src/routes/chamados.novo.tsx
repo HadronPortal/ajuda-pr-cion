@@ -44,7 +44,6 @@ import type { SupportTicket, TicketPriority } from "@/lib/support-tickets-data";
 import type { ClosurePayload } from "@/lib/tickets-store";
 import { loadClients } from "@/lib/clients-store";
 import {
-  addClientContact,
   fetchClientContacts,
   formatPhoneDisplay,
   type ClientContact,
