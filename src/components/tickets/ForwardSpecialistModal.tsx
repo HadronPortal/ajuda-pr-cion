@@ -231,6 +231,7 @@ export function ForwardSpecialistModal({
           Enviar chamado {ticket.protocol} a especialista
         </DialogTitle>
         <DetailModalHeader
+          dense
           icon={UserCheck}
           title="Enviar a especialista"
           protocol={ticket.protocol}
@@ -243,8 +244,8 @@ export function ForwardSpecialistModal({
             </span>
           }
         />
-        <div className="flex-1 space-y-4 overflow-y-auto px-5 py-4 md:px-6">
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto px-5 py-3 md:px-6">
+          <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
             <Field label="Tipo">
               <select
                 value={type}
@@ -282,7 +283,7 @@ export function ForwardSpecialistModal({
               <PrioritySegmented value={priority} onChange={setPriority} />
             </Field>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-2.5 sm:grid-cols-2">
             <Field label="Módulo" required>
               <select
                 value={module}
@@ -328,13 +329,13 @@ export function ForwardSpecialistModal({
             <textarea
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              rows={3}
+              rows={2}
               maxLength={1000}
               placeholder="Descreva o diagnóstico, testes realizados e o que precisa ser analisado..."
-              className="min-h-[84px] w-full resize-none rounded-md border border-input bg-background p-3 text-[13px] outline-none focus:ring-2 focus:ring-ring"
+              className="min-h-[60px] w-full resize-none rounded-md border border-input bg-background p-2.5 text-[13px] outline-none focus:ring-2 focus:ring-ring"
             />
           </Field>
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-3 md:grid-cols-2">
             <RelatedPicker
               label="Artigos relacionados"
               query={articleQuery}
@@ -357,7 +358,7 @@ export function ForwardSpecialistModal({
             posteriormente pelo backend.
           </p>
         </div>
-        <DialogFooter className="shrink-0 gap-2 border-t border-border bg-card px-5 py-3 sm:gap-2">
+        <DialogFooter className="shrink-0 gap-2 border-t border-border bg-card px-5 py-2.5 sm:gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)} className="cursor-pointer">
             Cancelar
           </Button>
@@ -393,7 +394,7 @@ function RelatedPicker({
   };
   return (
     <div>
-      <Label className="mb-1.5 block text-[12.5px] font-medium">{label}</Label>
+      <Label className="mb-1 block text-[12.5px] font-medium">{label}</Label>
       <div className="relative">
         <Search className="pointer-events-none absolute left-3 top-2.5 z-10 h-4 w-4 text-muted-foreground" />
         <Input
@@ -425,18 +426,21 @@ function RelatedPicker({
         )}
       </div>
       {selected.length > 0 && (
-        <div className="mt-2 flex flex-wrap gap-1.5">
-          {selected.map((item) => (
-            <button
-              type="button"
-              key={item}
-              onClick={() => onSelected(selected.filter((value) => value !== item))}
-              className="inline-flex max-w-full cursor-pointer items-center gap-1 rounded-full border border-primary/20 bg-primary/10 px-2.5 py-1 text-[11px] text-primary"
-            >
-              <span className="truncate">{item}</span>
-              <X className="h-3 w-3 shrink-0" />
-            </button>
-          ))}
+        <div className="mt-1.5 max-h-[64px] overflow-y-auto rounded-md pr-0.5">
+          <div className="flex flex-wrap gap-1">
+            {selected.map((item) => (
+              <button
+                type="button"
+                key={item}
+                title={item}
+                onClick={() => onSelected(selected.filter((value) => value !== item))}
+                className="inline-flex max-w-[220px] cursor-pointer items-center gap-1 rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-[10.5px] leading-tight text-primary"
+              >
+                <span className="truncate">{item}</span>
+                <X className="h-2.5 w-2.5 shrink-0" />
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </div>
@@ -507,7 +511,7 @@ function Field({
 }) {
   return (
     <div>
-      <Label className="mb-1.5 block text-[12.5px] font-medium">
+      <Label className="mb-1 block text-[12.5px] font-medium">
         {label}
         {required && <span className="text-destructive"> *</span>}
       </Label>
