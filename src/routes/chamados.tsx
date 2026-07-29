@@ -95,7 +95,6 @@ import {
   currentMonthKey,
   isMonthKey,
   isTicketMonthView,
-  monthKeyFromDate,
   monthRange,
   ticketMatchesMonthView,
 } from "@/lib/tickets-month";
