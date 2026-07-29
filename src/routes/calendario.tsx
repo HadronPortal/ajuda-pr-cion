@@ -902,7 +902,7 @@ function CalendarEventPill({ event }: { event: CalendarEvent }) {
   );
 }
 
-function AgendaItem({ event }: { event: CalendarEvent }) {
+function AgendaItem({ event, onOpen }: { event: CalendarEvent; onOpen: (e: CalendarEvent) => void }) {
   const tone = getEventTone(event);
   const toneStyle = EVENT_TONE_STYLES[tone];
   const Icon = typeStyles[event.type].icon;
@@ -933,8 +933,17 @@ function AgendaItem({ event }: { event: CalendarEvent }) {
 
   return (
     <div
+      role="button"
+      tabIndex={0}
+      onClick={() => onOpen(event)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onOpen(event);
+        }
+      }}
       className={cn(
-        "rounded-md border border-l-[3px] border-border p-3 transition-colors hover:border-primary/25",
+        "cursor-pointer rounded-md border border-l-[3px] border-border p-3 text-left transition-colors hover:border-primary/25 hover:bg-accent/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
         tone === "done" && "border-l-emerald-500",
         tone === "cancelled" && "border-l-rose-500",
         tone === "upcoming" && "border-l-orange-500",
@@ -971,7 +980,10 @@ function AgendaItem({ event }: { event: CalendarEvent }) {
                 <Button
                   size="sm"
                   className="h-8 cursor-pointer bg-blue-600 text-white hover:bg-blue-700"
-                  onClick={openPickup}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openPickup();
+                  }}
                 >
                   <KeyRound className="mr-1.5 h-3.5 w-3.5" />
                   Retirar veículo
@@ -982,7 +994,10 @@ function AgendaItem({ event }: { event: CalendarEvent }) {
                   size="sm"
                   variant="outline"
                   className="h-8 cursor-pointer"
-                  onClick={openReturn}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openReturn();
+                  }}
                 >
                   <Undo2 className="mr-1.5 h-3.5 w-3.5" />
                   Devolver veículo
@@ -1001,14 +1016,6 @@ function AgendaItem({ event }: { event: CalendarEvent }) {
   );
 }
 
-function Metric({ value, label, color }: { value: number; label: string; color: string }) {
-  return (
-    <div className="rounded-md bg-muted/35 p-3">
-      <p className={cn("text-xl font-medium", color)}>{value}</p>
-      <p className="mt-0.5 text-xs text-muted-foreground">{label}</p>
-    </div>
-  );
-}
 
 // ---------------------------------------------------------------------------
 // Create event dialog
