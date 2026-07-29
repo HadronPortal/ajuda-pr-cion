@@ -50,8 +50,11 @@ export type VehicleUsage = {
   operatorId: string;
   client?: string;
   destination: string;
+  /** Data/hora prevista de saída (início do agendamento). */
+  expectedDepartureAt?: string;
   departureAt?: string;
   expectedReturnAt?: string;
+
   returnedAt?: string;
   departureMileage?: number;
   returnMileage?: number;
