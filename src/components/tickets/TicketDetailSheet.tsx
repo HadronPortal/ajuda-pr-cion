@@ -578,20 +578,33 @@ export function TicketDetailSheet({
                   </div>
                 </Section>
 
-                <Section title="Descrição do problema" icon={FileText}>
+                <Section title="Resumo do problema" icon={FileText}>
                   {ticketDescription ? (
-                    <p
-                      key={ticket.id}
-                      className="whitespace-pre-wrap break-words text-[13px] leading-relaxed text-foreground"
-                    >
-                      {ticketDescription}
-                    </p>
+                    <div key={ticket.id} className="space-y-2">
+                      {summaryState.status === "loading" ? (
+                        <p className="text-[13px] leading-relaxed text-muted-foreground">
+                          Gerando resumo da descrição...
+                        </p>
+                      ) : (
+                        <p className="whitespace-pre-wrap break-words text-[13px] leading-relaxed text-foreground">
+                          {summaryState.summary ?? ticketDescription}
+                        </p>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setDescriptionOpen(true)}
+                        className="text-[12px] font-medium text-primary underline-offset-2 hover:underline"
+                      >
+                        Ver descrição original
+                      </button>
+                    </div>
                   ) : (
                     <p className="text-[13px] leading-relaxed text-muted-foreground">
                       Descrição não informada
                     </p>
                   )}
                 </Section>
+
 
 
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
