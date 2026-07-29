@@ -2,7 +2,7 @@ import { useSyncExternalStore } from "react";
 import type { CalendarEvent } from "@/lib/calendar-events";
 import { createUsageForAppointment, getUsageByAppointment } from "@/lib/fleet-store";
 
-const STORAGE_KEY = "procion.local-calendar-events.v1";
+const STORAGE_KEY = "procion.local-calendar-events.v2";
 const CHANGE_EVENT = "procion:calendar-events-changed";
 
 const EMPTY: CalendarEvent[] = [];

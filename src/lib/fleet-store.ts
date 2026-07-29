@@ -68,7 +68,7 @@ export type VehicleUsage = {
 };
 
 const nowISO = () => new Date().toISOString();
-const RUNTIME_STORAGE_KEY = "procion.fleet-runtime.v1";
+const RUNTIME_STORAGE_KEY = "procion.fleet-runtime.v2";
 
 // -----------------------------------------------------------------------------
 // Frota inicial
@@ -113,7 +113,7 @@ let vehicles: Vehicle[] = [
     fuelLevel: "1/4",
     nextRevisionDate: "05/08/2026",
     nextRevisionMileage: 65000,
-    status: "em_uso",
+    status: "disponivel",
     imageUrl: onixImg,
   },
   {
@@ -135,72 +135,7 @@ let vehicles: Vehicle[] = [
 // -----------------------------------------------------------------------------
 // Utilizações (usages) — inclui alguns registros para "hoje" (2026-07-20)
 // -----------------------------------------------------------------------------
-let usages: VehicleUsage[] = [
-  {
-    id: "u-hoje-01",
-    appointmentId: "evt-today-1",
-    operatorId: "PRCJAC",
-    client: "EIN · EUROIND",
-    destination: "EIN · EUROIND — Av. Industrial, 1500, Sorocaba/SP",
-    expectedReturnAt: "2026-07-20T18:00:00",
-    status: "aguardando_retirada",
-    createdAt: "2026-07-19T18:00:00",
-    updatedAt: "2026-07-19T18:00:00",
-  },
-  {
-    id: "u-hoje-02",
-    vehicleId: "onix",
-    appointmentId: "evt-today-2",
-    operatorId: "PRCROG",
-    client: "AVC · CENTER GLASS",
-    destination: "AVC · CENTER GLASS — Rua das Palmeiras, 320, Itu/SP",
-    departureAt: "2026-07-20T08:00:00",
-    expectedReturnAt: "2026-07-20T17:00:00",
-    departureMileage: 62150,
-    fuelAtDeparture: "1/4",
-    status: "em_deslocamento",
-    departureNotes: "Retorno previsto no fim do expediente.",
-    createdAt: "2026-07-19T17:00:00",
-    updatedAt: "2026-07-20T08:00:00",
-  },
-  {
-    id: "u-hoje-03",
-    vehicleId: "corolla",
-    appointmentId: "evt-today-3",
-    operatorId: "PRCGIN",
-    client: "ICF · INCOFAP",
-    destination: "ICF · INCOFAP — Av. Central, 720, Campinas/SP",
-    departureAt: "2026-07-20T07:20:00",
-    expectedReturnAt: "2026-07-20T13:00:00",
-    returnedAt: "2026-07-20T13:15:00",
-    departureMileage: 45320,
-    returnMileage: 45678,
-    distanceTraveled: 358,
-    fuelAtDeparture: "Cheio",
-    fuelAtReturn: "1/2",
-    status: "devolvido",
-    createdAt: "2026-07-19T15:00:00",
-    updatedAt: "2026-07-20T13:15:00",
-  },
-  {
-    id: "u-hist-01",
-    vehicleId: "tracker",
-    operatorId: "PRCJAC",
-    client: "USB · US BRASIL",
-    destination: "USB · US BRASIL — Av. Paulista, 1000, São Paulo/SP",
-    departureAt: "2026-07-13T08:30:00",
-    expectedReturnAt: "2026-07-13T18:00:00",
-    returnedAt: "2026-07-13T17:40:00",
-    departureMileage: 30980,
-    returnMileage: 31420,
-    distanceTraveled: 440,
-    fuelAtDeparture: "Cheio",
-    fuelAtReturn: "1/2",
-    status: "devolvido",
-    createdAt: "2026-07-12T18:00:00",
-    updatedAt: "2026-07-13T17:40:00",
-  },
-];
+let usages: VehicleUsage[] = [];
 
 let reservations: VehicleReservation[] = [];
 let runtimeHydrated = false;
