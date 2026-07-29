@@ -35,6 +35,16 @@ function protocolFromTitle(title: string): string | undefined {
   return match ? match[1].toUpperCase() : undefined;
 }
 
+/** Remove marcação HTML herdada do CRM mantendo quebras de linha. */
+function plainText(value: string) {
+  return value
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/p>/gi, "\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/gi, " ")
+    .trim();
+}
+
 function formatDate(date: string) {
   const parsed = new Date(`${date}T12:00:00`);
   if (Number.isNaN(parsed.getTime())) return date;
@@ -213,7 +223,7 @@ export function EventDetailsModal({
             )}
             {event.description && (
               <Info icon={CalendarDays} label="Descrição e observações" className="sm:col-span-2">
-                <span className="whitespace-pre-wrap">{event.description}</span>
+                <span className="whitespace-pre-wrap">{plainText(event.description)}</span>
               </Info>
             )}
             {vehicle && (
