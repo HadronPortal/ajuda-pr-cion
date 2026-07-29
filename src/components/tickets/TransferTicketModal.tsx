@@ -164,18 +164,6 @@ const selectClass =
 
 const preventOutsideClose = (event: Event) => event.preventDefault();
 
-function computeSla(ticket: SupportTicket) {
-  const target = 24;
-  const openedAt = new Date(ticket.openedAt).getTime();
-  const hours = Math.max(0, (Date.now() - openedAt) / 36e5);
-  const rawPct = ticket.status === "Atrasado" ? 100 : Math.min(100, (hours / target) * 100);
-  const pct = Math.round(rawPct);
-  let tone: "ok" | "warn" | "late" = "ok";
-  if (ticket.status === "Atrasado" || pct >= 90) tone = "late";
-  else if (pct >= 60) tone = "warn";
-  return { pct, tone, hours: Math.round(hours) };
-}
-
 export function TransferTicketModal({
   open,
   onOpenChange,
