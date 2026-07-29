@@ -186,36 +186,15 @@ export function CreateEventDialog({
           </NewField>
 
 
-          <div className="grid gap-3 sm:grid-cols-3">
-            <NewField label="Data" required>
-              <Popover open={dateOpen} onOpenChange={setDateOpen}>
-                <PopoverTrigger asChild>
-                  <button type="button" className="inline-flex h-9 w-full cursor-pointer items-center gap-2 rounded-md border border-input bg-background px-3 text-[13px] outline-none focus:ring-2 focus:ring-ring">
-                    <CalendarDays className="h-4 w-4 opacity-70" />
-                    <span>{date ? format(new Date(`${date}T12:00:00`), "dd/MM/yyyy") : "dd/mm/aaaa"}</span>
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent align="start" className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={date ? new Date(`${date}T12:00:00`) : undefined}
-                    onSelect={(d) => {
-                      if (d) setDate(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`);
-                      setDateOpen(false);
-                    }}
-                    initialFocus
-                    className={cn("p-3 pointer-events-auto")}
-                  />
-                </PopoverContent>
-              </Popover>
-            </NewField>
-            <NewField label="Início" required>
-              <Input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} className="cursor-pointer" />
-            </NewField>
-            <NewField label="Término" required>
-              <Input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="cursor-pointer" />
-            </NewField>
-          </div>
+          <EventDateTimeFields
+            date={date}
+            onDateChange={setDate}
+            startTime={startTime}
+            onStartTimeChange={setStartTime}
+            endTime={endTime}
+            onEndTimeChange={setEndTime}
+          />
+
 
           <NewField label="Tipo de agendamento" required>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
