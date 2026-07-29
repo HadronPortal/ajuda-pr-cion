@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { ArrowUp, ChevronDown, Minus, Plus, Repeat, Search, X } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -12,7 +12,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
-import { ticketsStore } from "@/lib/tickets-store";
+import {
+  canTransferTicket,
+  ticketsStore,
+  TRANSFER_BLOCKED_MESSAGE,
+} from "@/lib/tickets-store";
 import { cn } from "@/lib/utils";
 import {
   ticketOperators,
@@ -157,7 +161,7 @@ function PrioritySegmented({
 }
 
 const selectClass =
-  "h-10 w-full cursor-pointer rounded-lg border border-input bg-card px-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring";
+  "h-9 w-full cursor-pointer rounded-lg border border-input bg-card px-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring";
 
 const preventOutsideClose = (event: Event) => event.preventDefault();
 
@@ -183,6 +187,14 @@ export function TransferTicketModal({
   ticket: SupportTicket;
 }) {
   const sla = useMemo(() => computeSla(ticket), [ticket]);
+  const allowed = canTransferTicket(ticket);
+
+  useEffect(() => {
+    if (open && !allowed) {
+      toast.error(TRANSFER_BLOCKED_MESSAGE);
+      onOpenChange(false);
+    }
+  }, [open, allowed, onOpenChange]);
 
   const [hadronOption, setHadronOption] = useState("");
   const [hadronQuery, setHadronQuery] = useState("");
@@ -238,6 +250,11 @@ export function TransferTicketModal({
   };
 
   const submit = () => {
+    if (!canTransferTicket(ticket)) {
+      toast.error(TRANSFER_BLOCKED_MESSAGE);
+      onOpenChange(false);
+      return;
+    }
     if (needsOperator && !operator) {
       toast.error("Selecione o operador de destino.");
       return;
@@ -269,8 +286,13 @@ export function TransferTicketModal({
       });
       reset();
       onOpenChange(false);
-    } catch {
-      toast.error("Não foi possível transferir o chamado. Tente novamente.");
+    } catch (error) {
+      const description = error instanceof Error ? error.message : "";
+      toast.error(
+        description === TRANSFER_BLOCKED_MESSAGE
+          ? TRANSFER_BLOCKED_MESSAGE
+          : "Não foi possível transferir o chamado. Tente novamente.",
+      );
     }
   };
 
@@ -280,7 +302,7 @@ export function TransferTicketModal({
         onPointerDownOutside={preventOutsideClose}
         onInteractOutside={preventOutsideClose}
         onEscapeKeyDown={preventOutsideClose}
-        style={{ maxHeight: "calc(100vh - 2rem)" }}
+        style={{ maxHeight: "min(94svh, calc(100dvh - 1.5rem))" }}
         className="flex w-[calc(100vw-2rem)] max-w-[940px] flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-card p-0 shadow-[0_30px_80px_rgba(0,0,0,0.35)] [&>button]:hidden"
       >
         <DialogTitle className="sr-only">
@@ -336,7 +358,7 @@ export function TransferTicketModal({
         />
 
         {/* Body */}
-        <div className="min-h-0 grid gap-4 overflow-y-auto px-4 py-5 sm:grid-cols-2 md:px-6">
+        <div className="grid min-h-0 gap-x-4 gap-y-2.5 overflow-y-auto px-4 py-3 sm:grid-cols-2 md:px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <Field label="Opção Hádron">
             <div className="relative">
               <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -347,7 +369,7 @@ export function TransferTicketModal({
                   setHadronQuery(e.target.value);
                 }}
                 placeholder="Pesquise uma opção do Hádron..."
-                className="h-10 rounded-lg bg-card pl-8"
+                className="h-9 rounded-lg bg-card pl-8"
               />
               {hadronQuery.trim() &&
                 hadronSuggestions.length > 0 &&
@@ -417,7 +439,7 @@ export function TransferTicketModal({
                   onFocus={() => setOperatorOpen(true)}
                   onBlur={() => setTimeout(() => setOperatorOpen(false), 150)}
                   placeholder="Buscar operador (sigla PRC)..."
-                  className="h-10 rounded-lg bg-card pl-8"
+                  className="h-9 rounded-lg bg-card pl-8"
                 />
                 {operatorOpen && filteredOperators.length > 0 && (
                   <div className="absolute z-20 mt-1 max-h-44 w-full overflow-y-auto rounded-lg border border-border bg-popover p-1 shadow-lg">
@@ -451,16 +473,16 @@ export function TransferTicketModal({
           {!needsOperator && <div />}
 
           <div className="sm:col-span-2">
-            <Label className="mb-1.5 block text-[12.5px] font-medium text-foreground">
+            <Label className="mb-1 block text-[12px] font-medium text-foreground">
               Mensagem de transferência <span className="text-destructive">*</span>
             </Label>
             <textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              rows={4}
+              rows={3}
               maxLength={1000}
               placeholder="Registre o motivo da transferência e as orientações ao próximo operador..."
-              className="min-h-[110px] w-full resize-y rounded-lg border border-input bg-card p-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+              className="min-h-[72px] w-full resize-y rounded-lg border border-input bg-card p-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
             />
           </div>
 
@@ -498,15 +520,15 @@ export function TransferTicketModal({
           />
         </div>
 
-        <DialogFooter className="gap-2 border-t border-border bg-card px-6 py-3 sm:gap-2">
+        <DialogFooter className="shrink-0 gap-2 border-t border-border bg-card px-6 py-2.5 sm:gap-2">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
-            className="cursor-pointer rounded-lg"
+            className="h-9 cursor-pointer rounded-lg"
           >
             Cancelar
           </Button>
-          <Button onClick={submit} className="cursor-pointer rounded-lg">
+          <Button onClick={submit} disabled={!allowed} className="h-9 cursor-pointer rounded-lg">
             <Repeat className="mr-1.5 h-4 w-4" />
             Transferir chamado
           </Button>
@@ -527,7 +549,7 @@ function Field({
 }) {
   return (
     <div>
-      <Label className="mb-1.5 block text-[12.5px] font-medium text-foreground">
+      <Label className="mb-1 block text-[12px] font-medium text-foreground">
         {label}
         {required && <span className="text-destructive"> *</span>}
       </Label>
@@ -567,7 +589,7 @@ function RelatedPicker({
               }
             }}
             placeholder="Buscar e adicionar..."
-            className="h-10 rounded-lg bg-card"
+            className="h-9 rounded-lg bg-card"
           />
           <Button
             type="button"
@@ -580,7 +602,7 @@ function RelatedPicker({
               if (!item) return;
               onAdd(item);
             }}
-            className="h-10 w-10 shrink-0 cursor-pointer rounded-lg disabled:cursor-not-allowed disabled:opacity-50"
+            className="h-9 w-9 shrink-0 cursor-pointer rounded-lg disabled:cursor-not-allowed disabled:opacity-50"
             aria-label={`Adicionar em ${label}`}
           >
             <Plus className="pointer-events-none h-4 w-4" />
