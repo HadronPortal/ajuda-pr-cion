@@ -18,6 +18,7 @@ import {
 import { toast } from "sonner";
 import { AppShell, PageHeader } from "@/components/portal/AppShell";
 import { ClientPicker } from "@/components/portal/ClientPicker";
+import { useOperatorAcronyms } from "@/lib/collaborators-store";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -71,13 +72,6 @@ const modulesMap: Record<string, string[]> = {
   "Impressoras": ["Configuração", "Etiquetas"],
 };
 
-const operators = [
-  { code: "PRCMAR", name: "Marina Souza" },
-  { code: "PRCSUZ", name: "Suzana Ribeiro" },
-  { code: "PRCROG", name: "Rogério Lima" },
-  { code: "PRCLCZ", name: "Lucas Zaboti" },
-  { code: "PRCPED", name: "Pedro Antunes" },
-];
 
 const ticketTypes: ClosurePayload["type"][] = [
   "Não definido",
@@ -175,7 +169,7 @@ const initialForm: FormState = {
   phoneValue: "",
   module: "Vendas",
   submodule: "NFE",
-  operator: operators[0].code,
+  operator: "",
   type: "Não definido",
   priority: "Media",
   subject: "",
@@ -204,7 +198,9 @@ function NewTicketPage() {
   }, []);
 
   const submodules = modulesMap[form.module] ?? [];
-  const operatorObj = operators.find((o) => o.code === form.operator);
+  // Somente colaboradores ativos (sem rescisão) podem ser escolhidos como operador.
+  const operatorAcronyms = useOperatorAcronyms();
+  const operatorObj = form.operator ? { code: form.operator } : null;
   const selectedCompany = companies.find((c) => c.id === form.companyId) ?? null;
 
   useEffect(() => {
@@ -551,12 +547,12 @@ function NewTicketPage() {
                   onValueChange={(v) => setForm((prev) => ({ ...prev, operator: v }))}
                 >
                   <SelectTrigger className="h-11 rounded-xl cursor-pointer">
-                    <SelectValue />
+                    <SelectValue placeholder="Selecione o operador" />
                   </SelectTrigger>
                   <SelectContent>
-                    {operators.map((op) => (
-                      <SelectItem key={op.code} value={op.code}>
-                        {op.code}
+                    {operatorAcronyms.map((code) => (
+                      <SelectItem key={code} value={code}>
+                        {code}
                       </SelectItem>
                     ))}
                   </SelectContent>
