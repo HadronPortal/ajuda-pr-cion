@@ -18,6 +18,7 @@ import {
 import { toast } from "sonner";
 import { AppShell, PageHeader } from "@/components/portal/AppShell";
 import { ClientPicker } from "@/components/portal/ClientPicker";
+import { useOperatorAcronyms } from "@/lib/collaborators-store";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -546,7 +547,7 @@ function NewTicketPage() {
                   onValueChange={(v) => setForm((prev) => ({ ...prev, operator: v }))}
                 >
                   <SelectTrigger className="h-11 rounded-xl cursor-pointer">
-                    <SelectValue />
+                    <SelectValue placeholder="Selecione o operador" />
                   </SelectTrigger>
                   <SelectContent>
                     {operatorAcronyms.map((code) => (
