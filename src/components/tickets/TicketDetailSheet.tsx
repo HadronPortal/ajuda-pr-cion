@@ -146,9 +146,8 @@ function buildMock(ticket: SupportTicket) {
   const phoneA = 3000 + (h % 6999);
   const phoneB = 1000 + ((h >> 3) % 8999);
   return {
-    description:
-      "Cliente relata dificuldade recorrente ao executar a operação descrita no assunto. Solicita análise do time de suporte e retorno com orientação técnica ou correção do comportamento identificado.",
     city,
+
     uf,
     clientPhone: `(${11 + (h % 88)}) 9${phoneA}-${phoneB}`,
     contactPhone: `(${11 + ((h >> 1) % 88)}) 9${phoneB}-${phoneA}`,
