@@ -584,15 +584,17 @@ function CalendarPage() {
               }).format(new Date(`${selectedDate}T12:00:00`))}
             </SheetTitle>
           </SheetHeader>
-          <div className="flex-1 min-h-0 overflow-y-auto px-5 py-5 space-y-6">
-            <section>
+          <div className="flex-1 min-h-0 overflow-y-auto px-5 py-5">
+            <section className="flex h-full flex-col">
               <div className="mb-3 flex items-center justify-between">
                 <p className="text-xs uppercase text-muted-foreground">Agenda do dia</p>
                 <Badge variant="secondary">{selectedEvents.length}</Badge>
               </div>
               <div className="space-y-3">
                 {selectedEvents.length ? (
-                  selectedEvents.map((event) => <AgendaItem key={event.id} event={event} />)
+                  selectedEvents.map((event) => (
+                    <AgendaItem key={event.id} event={event} onOpen={setDetailEvent} />
+                  ))
                 ) : (
                   <div className="rounded-md border border-dashed border-border px-4 py-10 text-center">
                     <CalendarDays className="mx-auto h-8 w-8 text-muted-foreground/45" />
@@ -610,32 +612,8 @@ function CalendarPage() {
                 )}
               </div>
             </section>
-            <section>
-              <p className="mb-3 text-xs uppercase text-muted-foreground">Resumo do mês</p>
-              <div className="grid grid-cols-2 gap-3">
-                <Metric
-                  value={filtered.filter((e) => getEventTone(e) === "done").length}
-                  label="Concluídos"
-                  color="text-emerald-600 dark:text-emerald-400"
-                />
-                <Metric
-                  value={filtered.filter((e) => getEventTone(e) === "upcoming").length}
-                  label="Agendados"
-                  color="text-orange-600 dark:text-orange-400"
-                />
-                <Metric
-                  value={filtered.filter((e) => getEventTone(e) === "cancelled").length}
-                  label="Cancelados"
-                  color="text-rose-600 dark:text-rose-400"
-                />
-                <Metric
-                  value={filtered.filter((e) => getEventTone(e) === "other").length}
-                  label="Outros"
-                  color="text-sky-600 dark:text-sky-400"
-                />
-              </div>
-            </section>
           </div>
+
         </SheetContent>
       </Sheet>
 
