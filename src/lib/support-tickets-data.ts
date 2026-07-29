@@ -18,6 +18,9 @@ export type SupportTicket = {
   priority: TicketPriority;
   openedAt: string;
   updatedAt: string;
+  /** Data/hora exata da finalização. Congela o cálculo de SLA. */
+  closedAt?: string | null;
+
   attendant: string;
   owner: string;
   clientCode: string;
