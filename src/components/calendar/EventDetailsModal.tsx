@@ -25,12 +25,7 @@ import {
   getEventTone,
   type CalendarEvent,
 } from "@/lib/calendar-events";
-import {
-  formatFleetDateTime,
-  getVehicleById,
-  useUsages,
-  useReservations,
-} from "@/lib/fleet-store";
+import { formatFleetDateTime, getVehicleById, useUsages, useReservations } from "@/lib/fleet-store";
 import { useTickets } from "@/lib/tickets-store";
 
 const preventOutsideClose = (event: Event) => event.preventDefault();
@@ -103,7 +98,9 @@ export function EventDetailsModal({
   const guestLabels =
     event.guestList?.map((guest) =>
       guest.acronym ? `${guest.acronym} · ${guest.name}` : guest.name,
-    ) ?? event.guests ?? [];
+    ) ??
+    event.guests ??
+    [];
 
   const canPickup =
     Boolean(vehicle) &&
@@ -171,7 +168,8 @@ export function EventDetailsModal({
             </Info>
             {(event.client || ticket?.clientName) && (
               <Info icon={UsersRound} label="Cliente / empresa" className="sm:col-span-2">
-                {event.client || [ticket?.clientCode, ticket?.clientName].filter(Boolean).join(" · ")}
+                {event.client ||
+                  [ticket?.clientCode, ticket?.clientName].filter(Boolean).join(" · ")}
               </Info>
             )}
             {guestLabels.length > 0 && (
@@ -203,8 +201,16 @@ export function EventDetailsModal({
                 </a>
               </Info>
             )}
-            {event.room && <Info icon={MapPin} label="Sala">{event.room}</Info>}
-            {event.platform && <Info icon={Link2} label="Plataforma">{event.platform}</Info>}
+            {event.room && (
+              <Info icon={MapPin} label="Sala">
+                {event.room}
+              </Info>
+            )}
+            {event.platform && (
+              <Info icon={Link2} label="Plataforma">
+                {event.platform}
+              </Info>
+            )}
             {event.description && (
               <Info icon={CalendarDays} label="Descrição e observações" className="sm:col-span-2">
                 <span className="whitespace-pre-wrap">{event.description}</span>
