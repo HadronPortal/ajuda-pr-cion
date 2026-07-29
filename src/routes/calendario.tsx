@@ -393,10 +393,10 @@ function CalendarPage() {
             <section>
               <p className="mb-3 text-xs uppercase text-muted-foreground">Resumo do mês</p>
               <div className="grid grid-cols-2 gap-3">
-                <Metric value={filtered.filter((e) => e.type === "Visita presencial").length} label="Visitas" color="text-emerald-500" />
-                <Metric value={filtered.filter((e) => e.type.includes("Reunião")).length} label="Reuniões" color="text-sky-500" />
-                <Metric value={new Set(filtered.map((e) => e.operator)).size} label="Operadores" color="text-violet-500" />
-                <Metric value={filtered.filter((e) => e.type === "Pessoal").length} label="Pessoais" color="text-amber-500" />
+                <Metric value={filtered.filter((e) => getEventTone(e) === "done").length} label="Concluídos" color="text-emerald-600 dark:text-emerald-400" />
+                <Metric value={filtered.filter((e) => getEventTone(e) === "upcoming").length} label="Agendados" color="text-orange-600 dark:text-orange-400" />
+                <Metric value={filtered.filter((e) => getEventTone(e) === "cancelled").length} label="Cancelados" color="text-rose-600 dark:text-rose-400" />
+                <Metric value={filtered.filter((e) => getEventTone(e) === "other").length} label="Outros" color="text-sky-600 dark:text-sky-400" />
               </div>
             </section>
           </div>
