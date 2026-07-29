@@ -100,7 +100,7 @@ function FleetPage() {
 // -----------------------------------------------------------------------------
 function DeparturesView({ query }: { query: string }) {
   const usages = useUsages();
-  const today = new Date().toISOString().slice(0, 10) || "2026-07-20";
+  const today = fleetDayKey(new Date().toISOString());
   // Mantém os dados demonstrativos e inclui futuras retiradas já agendadas.
   const day = "2026-07-20";
   const rows = useMemo(
@@ -108,16 +108,15 @@ function DeparturesView({ query }: { query: string }) {
       usages
         .filter((u) => {
           if (u.status === "cancelado") return false;
-          const ref = (u.departureAt ?? u.expectedReturnAt ?? u.createdAt).slice(0, 10);
+          const ref = fleetDayKey(getUsageDepartureRef(u));
+          if (!ref) return false;
           return (
             ref === day || ref === today || (u.status === "aguardando_retirada" && ref > today)
           );
         })
         .filter((u) => matchesQuery(u, query))
         .sort((a, b) =>
-          (a.expectedReturnAt ?? a.departureAt ?? "").localeCompare(
-            b.expectedReturnAt ?? b.departureAt ?? "",
-          ),
+          (getUsageDepartureRef(a) ?? "").localeCompare(getUsageDepartureRef(b) ?? ""),
         ),
     [usages, query, today],
   );
@@ -125,32 +124,36 @@ function DeparturesView({ query }: { query: string }) {
   return (
     <Card className="overflow-hidden p-0">
       <TableHeader
-        cols={["Horário", "Operador", "Cliente/Destino", "Veículo", "Status", "Ações"]}
-        widths={["120px", "120px", "1fr", "180px", "160px", "220px"]}
+        cols={["Saída", "Devolução", "Operador", "Cliente/Destino", "Veículo", "Status", "Ações"]}
+        widths={["150px", "150px", "120px", "1fr", "180px", "150px", "200px"]}
       />
       {rows.length === 0 && <EmptyRow label="Nenhuma saída registrada." />}
       {rows.map((u) => {
         const vehicle = getVehicleById(u.vehicleId);
+        const departureLabel = formatFleetDateTime(getUsageDepartureRef(u));
+        const returnLabel = formatFleetDateTime(getUsageReturnRef(u));
+        const pending = u.status === "aguardando_retirada";
         return (
           <div
             key={u.id}
             className="grid items-center gap-3 border-t border-border px-4 py-2.5 text-[13px]"
-            style={{ gridTemplateColumns: "120px 120px 1fr 180px 160px 220px" }}
+            style={{ gridTemplateColumns: "150px 150px 120px 1fr 180px 150px 200px" }}
           >
             <span className="tabular-nums text-foreground">
-              {u.departureAt
-                ? new Date(u.departureAt).toLocaleTimeString("pt-BR", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })
-                : "—"}
-              {" → "}
-              {u.expectedReturnAt
-                ? new Date(u.expectedReturnAt).toLocaleTimeString("pt-BR", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })
-                : "—"}
+              {departureLabel}
+              {pending && (
+                <span className="block text-[10.5px] uppercase tracking-wide text-muted-foreground">
+                  Prevista
+                </span>
+              )}
+            </span>
+            <span className="tabular-nums text-muted-foreground">
+              {returnLabel}
+              {u.status !== "devolvido" && (
+                <span className="block text-[10.5px] uppercase tracking-wide text-muted-foreground">
+                  Prevista
+                </span>
+              )}
             </span>
             <span className="text-foreground">{u.operatorId}</span>
             <span className="min-w-0 truncate text-muted-foreground">{u.destination}</span>
@@ -158,6 +161,7 @@ function DeparturesView({ query }: { query: string }) {
               {vehicle ? `${vehicle.model} · ${vehicle.plate}` : "—"}
             </span>
             <UsageBadge status={u.status} />
+
             <div className="flex justify-end gap-1.5">
               {u.status === "aguardando_retirada" && (
                 <Button
