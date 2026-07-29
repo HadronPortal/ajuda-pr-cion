@@ -92,12 +92,10 @@ import { TicketDetailSheet } from "@/components/tickets/TicketDetailSheet";
 import { TicketHistoryModal } from "@/components/tickets/TicketHistoryModal";
 
 import {
-  addMonths,
   currentMonthKey,
   isMonthKey,
   isTicketMonthView,
   monthKeyFromDate,
-  monthLabel,
   monthRange,
   ticketMatchesMonthView,
 } from "@/lib/tickets-month";
@@ -241,28 +239,9 @@ const initialFilters: Filters = {
   dateEnd: undefined,
 };
 
-/** Filtros pré-preenchidos com o mês inteiro (do primeiro ao último dia). */
-function monthRange2(monthKey: string): { dateStart: Date; dateEnd: Date } {
-  const { start, end } = monthRange(monthKey);
-  return { dateStart: start, dateEnd: end };
-}
-
 function monthFilters(monthKey: string): Filters {
   const { start, end } = monthRange(monthKey);
   return { ...initialFilters, dateStart: start, dateEnd: end };
-}
-
-/** Retorna a chave YYYY-MM quando o período selecionado cobre um mês inteiro. */
-function activeMonthKey(f: Filters): string | null {
-  if (!f.dateStart || !f.dateEnd) return null;
-  const key = monthKeyFromDate(f.dateStart);
-  const { start, end } = monthRange(key);
-  const sameStart = f.dateStart.getDate() === start.getDate();
-  const sameEnd =
-    f.dateEnd.getFullYear() === end.getFullYear() &&
-    f.dateEnd.getMonth() === end.getMonth() &&
-    f.dateEnd.getDate() === end.getDate();
-  return sameStart && sameEnd ? key : null;
 }
 
 function normalizeFilterText(value: string) {
@@ -423,7 +402,6 @@ function QuickFiltersBar({
   }, [tickets]);
 
   const anyActive = hasAnyActive(filters);
-  const monthApplied = activeMonthKey(filters);
 
 
   const clearAll = () => {
@@ -621,7 +599,6 @@ function TicketsPage() {
 
 
 
-  const appliedMonth = activeMonthKey(filters);
   const monthView = isTicketMonthView(search.visao) ? search.visao : null;
 
   const filteredTickets = useMemo(() => {
