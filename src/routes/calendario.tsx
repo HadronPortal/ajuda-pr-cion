@@ -38,11 +38,22 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import { cn } from "@/lib/utils";
-import { useUsages, createUsageForAppointment, getUsageByAppointment } from "@/lib/fleet-store";
+import {
+  useUsages,
+  createUsageForAppointment,
+  getUsageByAppointment,
+  cancelReservationByEvent,
+} from "@/lib/fleet-store";
 import { fleetActions } from "@/lib/fleet-action-store";
 import { listCrmCalendarEvents } from "@/lib/calendar-api";
 import { CreateEventDialog } from "@/components/calendar/CreateEventDialog";
-import { useLocalEvents, addLocalEvent } from "@/lib/local-events-store";
+import { EventDetailsModal } from "@/components/calendar/EventDetailsModal";
+import {
+  useLocalEvents,
+  addLocalEvent,
+  updateLocalEvent,
+  isLocalEvent,
+} from "@/lib/local-events-store";
 import { useOperatorAcronyms } from "@/lib/collaborators-store";
 import {
   TYPE_ICON,
