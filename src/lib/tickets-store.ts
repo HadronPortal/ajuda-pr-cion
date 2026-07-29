@@ -436,7 +436,11 @@ export const ticketsStore = {
 
   updateTicketStatus(id: string, status: TicketStatus) {
     const op = operator();
-    updateTicket(id, { status });
+    const existing = tickets.find((t) => t.id === id);
+    // Ao finalizar pelo seletor de status, congela o SLA na hora exata.
+    const patch: Partial<SupportTicket> =
+      status === "Finalizado" ? { status, closedAt: existing?.closedAt ?? nowIso() } : { status };
+    updateTicket(id, patch);
     pushEvent(id, {
       kind: "status",
       when: nowIso(),
@@ -447,7 +451,8 @@ export const ticketsStore = {
     emit();
     persistUpdate(
       id,
-      { status },
+      patch,
+
       {
         kind: "status",
         actor: op,
