@@ -32,7 +32,7 @@ const preventOutsideClose = (event: Event) => event.preventDefault();
 
 type VehicleAvailability =
   | { key: "disponivel"; label: "Disponível"; conflict?: undefined }
-  | { key: "em_uso"; label: "Em uso"; conflict?: undefined }
+  | { key: "em_uso"; label: "Em uso" | "Em uso no período"; conflict?: undefined }
   | { key: "indisponivel"; label: "Indisponível"; conflict?: undefined }
   | { key: "pre_agendado"; label: "Pré-agendado"; conflict?: boolean };
 

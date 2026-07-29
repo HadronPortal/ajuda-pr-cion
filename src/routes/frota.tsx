@@ -25,11 +25,11 @@ export const Route = createFileRoute("/frota")({
   component: FleetPage,
 });
 
-type TabKey = "hoje" | "veiculos" | "em_uso" | "historico";
+type TabKey = "saidas" | "veiculos" | "em_uso" | "historico";
 
 const TABS: { key: TabKey; label: string; icon: typeof KeyRound }[] = [
   { key: "veiculos", label: "Veículos", icon: Truck },
-  { key: "hoje", label: "Saídas de hoje", icon: KeyRound },
+  { key: "saidas", label: "Saídas", icon: KeyRound },
   { key: "em_uso", label: "Em uso", icon: Undo2 },
   { key: "historico", label: "Histórico", icon: History },
 ];
@@ -87,7 +87,7 @@ function FleetPage() {
         </div>
       </div>
 
-      {tab === "hoje" && <TodayView query={query} />}
+      {tab === "saidas" && <DeparturesView query={query} />}
       {tab === "veiculos" && <VehiclesView query={query} />}
       {tab === "em_uso" && <InUseView query={query} />}
       {tab === "historico" && <HistoryView query={query} />}
@@ -96,9 +96,9 @@ function FleetPage() {
 }
 
 // -----------------------------------------------------------------------------
-// SAÍDAS DE HOJE
+// SAÍDAS
 // -----------------------------------------------------------------------------
-function TodayView({ query }: { query: string }) {
+function DeparturesView({ query }: { query: string }) {
   const usages = useUsages();
   const today = new Date().toISOString().slice(0, 10) || "2026-07-20";
   // Mantém os dados demonstrativos e inclui futuras retiradas já agendadas.
@@ -128,7 +128,7 @@ function TodayView({ query }: { query: string }) {
         cols={["Horário", "Operador", "Cliente/Destino", "Veículo", "Status", "Ações"]}
         widths={["120px", "120px", "1fr", "180px", "160px", "220px"]}
       />
-      {rows.length === 0 && <EmptyRow label="Nenhuma saída registrada hoje." />}
+      {rows.length === 0 && <EmptyRow label="Nenhuma saída registrada." />}
       {rows.map((u) => {
         const vehicle = getVehicleById(u.vehicleId);
         return (
