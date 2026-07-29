@@ -18,6 +18,7 @@ import {
   ticketsStore,
 } from "@/lib/tickets-store";
 import { cn } from "@/lib/utils";
+import { computeSla } from "@/lib/ticket-sla";
 import {
   type SupportTicket,
   type TicketPriority,

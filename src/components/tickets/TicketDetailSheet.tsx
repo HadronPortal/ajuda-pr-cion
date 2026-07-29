@@ -237,6 +237,7 @@ const TicketForwardIcon = createMaskedActionIcon(specialistIconUrl);
 const TicketTimelineIcon = History;
 
 import { getModuleIcon } from "@/lib/ticket-icons";
+import { computeSla } from "@/lib/ticket-sla";
 
 export function TicketDetailSheet({
   ticketId,
