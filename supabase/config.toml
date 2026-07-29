@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.fiscal-news]
 verify_jwt = false
+
+[functions.ticket-summary]
+verify_jwt = false

@@ -78,6 +78,7 @@ import { TicketHistoryList } from "./TicketHistoryList";
 import { PastAttendanceDetailModal } from "./PastAttendanceDetailModal";
 import type { PastAttendance } from "@/lib/tickets-store";
 import { TicketNotesModal } from "./TicketNotesModal";
+import { useTicketSummary } from "@/lib/ticket-summary";
 import { TicketTimelineModal } from "./TicketTimelineModal";
 import { TicketTimelineList } from "./TicketTimelineList";
 import { TicketFloatingChat } from "./TicketFloatingChat";
@@ -270,6 +271,7 @@ export function TicketDetailSheet({
   const [historyOpen, setHistoryOpen] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
   const [timelineOpen, setTimelineOpen] = useState(false);
+  const [descriptionOpen, setDescriptionOpen] = useState(false);
   const [navCollapsed, setNavCollapsed] = useState(true);
   const [selectedHistory, setSelectedHistory] = useState<PastAttendance | null>(null);
   const [activeAction, setActiveAction] = useState<
@@ -283,6 +285,12 @@ export function TicketDetailSheet({
     const raw = ticket?.description;
     return typeof raw === "string" ? raw.replace(/\r\n/g, "\n").trim() : "";
   }, [ticket?.id, ticket?.description]);
+  const summaryState = useTicketSummary(
+    ticket?.id,
+    ticketDescription,
+    ticket?.descriptionSummary ?? null,
+  );
+
 
 
   if (!ticket || !mock || !sla) return null;
@@ -578,20 +586,33 @@ export function TicketDetailSheet({
                   </div>
                 </Section>
 
-                <Section title="Descrição do problema" icon={FileText}>
+                <Section title="Resumo do problema" icon={FileText}>
                   {ticketDescription ? (
-                    <p
-                      key={ticket.id}
-                      className="whitespace-pre-wrap break-words text-[13px] leading-relaxed text-foreground"
-                    >
-                      {ticketDescription}
-                    </p>
+                    <div key={ticket.id} className="space-y-2">
+                      {summaryState.status === "loading" ? (
+                        <p className="text-[13px] leading-relaxed text-muted-foreground">
+                          Gerando resumo da descrição...
+                        </p>
+                      ) : (
+                        <p className="whitespace-pre-wrap break-words text-[13px] leading-relaxed text-foreground">
+                          {summaryState.summary ?? ticketDescription}
+                        </p>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setDescriptionOpen(true)}
+                        className="text-[12px] font-medium text-primary underline-offset-2 hover:underline"
+                      >
+                        Ver descrição original
+                      </button>
+                    </div>
                   ) : (
                     <p className="text-[13px] leading-relaxed text-muted-foreground">
                       Descrição não informada
                     </p>
                   )}
                 </Section>
+
 
 
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
@@ -760,6 +781,27 @@ export function TicketDetailSheet({
         notes={notes}
         protocol={ticket.protocol}
       />
+
+      <Dialog open={descriptionOpen} onOpenChange={setDescriptionOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-sm">
+              Descrição original — {ticket.protocol}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="max-h-[60vh] overflow-y-auto">
+            <p className="whitespace-pre-wrap break-words text-[13px] leading-relaxed text-foreground">
+              {ticketDescription || "Descrição não informada"}
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" size="sm" onClick={() => setDescriptionOpen(false)}>
+              Fechar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
 
       <TicketTimelineModal
         open={timelineOpen}

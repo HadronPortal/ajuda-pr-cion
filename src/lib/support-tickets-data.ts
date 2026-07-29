@@ -28,6 +28,8 @@ export type SupportTicket = {
   source: "Telefone" | "Portal do cliente" | "WhatsApp" | "Email";
   lockedBy?: string;
   description?: string;
+  /** Resumo técnico da descrição gerado por IA no backend (nunca substitui a descrição). */
+  descriptionSummary?: string | null;
   // Empresa/subempresa escolhida no momento da abertura.
   companyId?: string | null;
   companyNumber?: number | null;
