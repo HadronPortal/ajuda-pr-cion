@@ -567,7 +567,6 @@ function NewTicketPage() {
                           : "Selecione um telefone"
                   }
                   onChange={handleSelectPhone}
-                  onAdd={() => openAddContact("phone")}
                 />
               </Field>
             </div>
