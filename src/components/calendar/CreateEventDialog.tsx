@@ -21,8 +21,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
 import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import { EventDateTimeFields } from "@/components/calendar/EventDateTimeFields";
 
@@ -72,7 +70,6 @@ export function CreateEventDialog({
     (editingEvent?.guestList as CollaboratorGuest[] | undefined) ?? [],
   );
   const [date, setDate] = useState(editingEvent?.date ?? initialDate);
-  const [dateOpen, setDateOpen] = useState(false);
   const [startTime, setStartTime] = useState(editingEvent?.time ?? "09:00");
   const [endTime, setEndTime] = useState(editingEvent?.end ?? "10:00");
   const [client, setClient] = useState(editingEvent?.client ?? "");
