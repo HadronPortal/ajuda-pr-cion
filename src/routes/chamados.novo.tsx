@@ -546,7 +546,6 @@ function NewTicketPage() {
                           : "Selecione um e-mail"
                   }
                   onChange={handleSelectEmail}
-                  onAdd={() => openAddContact("email")}
                 />
               </Field>
 
