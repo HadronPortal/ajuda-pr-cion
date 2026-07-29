@@ -91,6 +91,7 @@ import { kbArticlesFull } from "@/lib/kb-data";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
 import { Link } from "@tanstack/react-router";
 import { clientRows } from "@/routes/clientes.index";
+import { useClients } from "@/lib/clients-store";
 import { snapshotCurrentChamadosForTicket } from "@/lib/return-to-ticket";
 
 const statusTone: Record<TicketStatus, string> = {
@@ -290,6 +291,27 @@ export function TicketDetailSheet({
     ticketDescription,
     ticket?.descriptionSummary ?? null,
   );
+  const { clients: loadedClients } = useClients({ onlyActive: false });
+  // Resolve o cliente pela sigla real do chamado (ou da empresa/subempresa),
+  // nunca apenas por UUID/companyId — chamados importados podem não tê-los.
+  const clientSlug = useMemo(() => {
+    const candidates = [ticket?.clientCode, ticket?.clientName]
+      .map((v) => (typeof v === "string" ? v.trim().toLowerCase() : ""))
+      .filter(Boolean);
+    if (!candidates.length) return null;
+    const pool: Array<{ id: string; acronym: string }> = [
+      ...loadedClients,
+      ...clientRows,
+    ];
+    for (const code of candidates) {
+      const found = pool.find(
+        (c) => c.id?.toLowerCase() === code || c.acronym?.toLowerCase() === code,
+      );
+      if (found) return found.id;
+    }
+    return null;
+  }, [ticket?.clientCode, ticket?.clientName, loadedClients]);
+
 
 
 
@@ -376,11 +398,35 @@ export function TicketDetailSheet({
               }
               meta={
                 <span className="inline-flex flex-wrap items-center gap-x-1 gap-y-0.5">
-                  <span className="font-semibold text-primary">{ticket.clientCode || "—"}</span>
-                  <span aria-hidden className="text-border">
-                    ·
-                  </span>
-                  <span className="truncate text-foreground">{ticket.clientName || "Cliente não vinculado"}</span>
+                  {clientSlug ? (
+                    <Link
+                      to="/clientes/$clienteId"
+                      params={{ clienteId: clientSlug }}
+                      search={{ tab: "cliente", from: "chamado", ticketId: ticket.id }}
+                      onClick={() => snapshotCurrentChamadosForTicket(ticket.id)}
+                      className="inline-flex cursor-pointer items-center gap-1 rounded-sm hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      title="Ver detalhes do cliente"
+                    >
+                      <span className="font-semibold text-primary">{ticket.clientCode || "—"}</span>
+                      <span aria-hidden className="text-border">
+                        ·
+                      </span>
+                      <span className="truncate text-foreground">
+                        {ticket.clientName || "Cliente não vinculado"}
+                      </span>
+                    </Link>
+                  ) : (
+                    <>
+                      <span className="font-semibold text-primary">{ticket.clientCode || "—"}</span>
+                      <span aria-hidden className="text-border">
+                        ·
+                      </span>
+                      <span className="truncate text-foreground">
+                        {ticket.clientName || "Cliente não vinculado"}
+                      </span>
+                    </>
+                  )}
+
                   {(ticket.companyName || ticket.companyNumber || ticket.companyDocument) && (
                     <>
                       <span aria-hidden className="text-border">
@@ -601,7 +647,7 @@ export function TicketDetailSheet({
                       <button
                         type="button"
                         onClick={() => setDescriptionOpen(true)}
-                        className="text-[12px] font-medium text-primary underline-offset-2 hover:underline"
+                        className="cursor-default text-[12px] font-medium text-primary underline-offset-2 hover:underline"
                       >
                         Ver descrição original
                       </button>
@@ -618,14 +664,12 @@ export function TicketDetailSheet({
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                   <Section title="Cliente" icon={Building2} compact>
                     {(() => {
-                      const clientSlug = ticket.clientCode.toLowerCase();
-                      const clientExists = clientRows.some((c) => c.id === clientSlug);
                       const nameNode = (
                         <p className="text-[13.5px] font-semibold text-foreground truncate">
                           {ticket.clientName || "Cliente não vinculado"}
                         </p>
                       );
-                      return clientExists ? (
+                      return clientSlug ? (
                         <Link
                           to="/clientes/$clienteId"
                           params={{ clienteId: clientSlug }}
@@ -641,6 +685,7 @@ export function TicketDetailSheet({
                         nameNode
                       );
                     })()}
+
                     <p className="mt-0.5 text-[11.5px] text-muted-foreground">
                       <MapPin className="mr-1 inline h-3 w-3" />
                       {mock.city} - {mock.uf}
