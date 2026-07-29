@@ -11,7 +11,6 @@ import {
   MessageSquarePlus,
   Minus,
   Phone,
-  Plus,
   Send,
   Sparkles,
   UserRound,
