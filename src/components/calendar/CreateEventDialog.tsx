@@ -24,6 +24,8 @@ import { Switch } from "@/components/ui/switch";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
+import { EventDateTimeFields } from "@/components/calendar/EventDateTimeFields";
+
 import { cn } from "@/lib/utils";
 import {
   CollaboratorMultiSelect,
