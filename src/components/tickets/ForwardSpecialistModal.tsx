@@ -426,18 +426,21 @@ function RelatedPicker({
         )}
       </div>
       {selected.length > 0 && (
-        <div className="mt-2 flex flex-wrap gap-1.5">
-          {selected.map((item) => (
-            <button
-              type="button"
-              key={item}
-              onClick={() => onSelected(selected.filter((value) => value !== item))}
-              className="inline-flex max-w-full cursor-pointer items-center gap-1 rounded-full border border-primary/20 bg-primary/10 px-2.5 py-1 text-[11px] text-primary"
-            >
-              <span className="truncate">{item}</span>
-              <X className="h-3 w-3 shrink-0" />
-            </button>
-          ))}
+        <div className="mt-1.5 max-h-[64px] overflow-y-auto rounded-md pr-0.5">
+          <div className="flex flex-wrap gap-1">
+            {selected.map((item) => (
+              <button
+                type="button"
+                key={item}
+                title={item}
+                onClick={() => onSelected(selected.filter((value) => value !== item))}
+                className="inline-flex max-w-[220px] cursor-pointer items-center gap-1 rounded-full border border-primary/20 bg-primary/10 px-2 py-0.5 text-[10.5px] leading-tight text-primary"
+              >
+                <span className="truncate">{item}</span>
+                <X className="h-2.5 w-2.5 shrink-0" />
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </div>
