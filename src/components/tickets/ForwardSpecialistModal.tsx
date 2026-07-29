@@ -124,7 +124,27 @@ const selectClass =
   "h-9 w-full cursor-pointer rounded-md border border-input bg-background px-3 text-[13px] outline-none focus:ring-2 focus:ring-ring";
 const preventOutsideClose = (event: Event) => event.preventDefault();
 
-export function ForwardSpecialistModal({
+type ForwardSpecialistModalProps = {
+  open: boolean;
+  onOpenChange: (value: boolean) => void;
+  ticket: SupportTicket;
+};
+
+/**
+ * Wrapper que garante formulário novo a cada abertura e a cada troca de
+ * chamado/cliente: o conteúdo é desmontado ao fechar e remontado por `key`.
+ */
+export function ForwardSpecialistModal(props: ForwardSpecialistModalProps) {
+  if (!props.open) return null;
+  return (
+    <ForwardSpecialistModalContent
+      key={`${props.ticket.id}:${props.ticket.clientCode}`}
+      {...props}
+    />
+  );
+}
+
+function ForwardSpecialistModalContent({
   open,
   onOpenChange,
   ticket,
