@@ -1,8 +1,8 @@
 import { useSyncExternalStore } from "react";
-import corollaImg from "@/assets/vehicles/gol-g4.jpg";
-import trackerImg from "@/assets/vehicles/celta.jpg";
-import onixImg from "@/assets/vehicles/argo.jpg";
-import stradaImg from "@/assets/vehicles/saveiro-g5.jpg";
+import corollaImg from "@/assets/vehicles/gol-g4.png";
+import trackerImg from "@/assets/vehicles/celta.png";
+import onixImg from "@/assets/vehicles/mobi.png";
+import stradaImg from "@/assets/vehicles/saveiro-g5.png";
 
 // -----------------------------------------------------------------------------
 // Tipos alinhados a um futuro backend / API
@@ -110,7 +110,7 @@ let vehicles: Vehicle[] = [
   },
   {
     id: "onix",
-    model: "Fiat Argo",
+    model: "Fiat Mobi",
     plate: "HAD-1908",
     category: "Hatch",
     color: "Branco",
