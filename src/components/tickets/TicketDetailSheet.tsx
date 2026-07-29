@@ -398,11 +398,35 @@ export function TicketDetailSheet({
               }
               meta={
                 <span className="inline-flex flex-wrap items-center gap-x-1 gap-y-0.5">
-                  <span className="font-semibold text-primary">{ticket.clientCode || "—"}</span>
-                  <span aria-hidden className="text-border">
-                    ·
-                  </span>
-                  <span className="truncate text-foreground">{ticket.clientName || "Cliente não vinculado"}</span>
+                  {clientSlug ? (
+                    <Link
+                      to="/clientes/$clienteId"
+                      params={{ clienteId: clientSlug }}
+                      search={{ tab: "cliente", from: "chamado", ticketId: ticket.id }}
+                      onClick={() => snapshotCurrentChamadosForTicket(ticket.id)}
+                      className="inline-flex cursor-pointer items-center gap-1 rounded-sm hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      title="Ver detalhes do cliente"
+                    >
+                      <span className="font-semibold text-primary">{ticket.clientCode || "—"}</span>
+                      <span aria-hidden className="text-border">
+                        ·
+                      </span>
+                      <span className="truncate text-foreground">
+                        {ticket.clientName || "Cliente não vinculado"}
+                      </span>
+                    </Link>
+                  ) : (
+                    <>
+                      <span className="font-semibold text-primary">{ticket.clientCode || "—"}</span>
+                      <span aria-hidden className="text-border">
+                        ·
+                      </span>
+                      <span className="truncate text-foreground">
+                        {ticket.clientName || "Cliente não vinculado"}
+                      </span>
+                    </>
+                  )}
+
                   {(ticket.companyName || ticket.companyNumber || ticket.companyDocument) && (
                     <>
                       <span aria-hidden className="text-border">
