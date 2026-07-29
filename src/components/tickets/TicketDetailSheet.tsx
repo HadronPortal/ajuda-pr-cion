@@ -64,6 +64,8 @@ import {
   type TicketStatus,
 } from "@/lib/support-tickets-data";
 import {
+  canTransferTicket,
+  TRANSFER_BLOCKED_MESSAGE,
   ticketsStore,
   useTicket,
   useTicketEvents,
@@ -269,6 +271,14 @@ export function TicketDetailSheet({
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [forwardOpen, setForwardOpen] = useState(false);
   const [transferOpen, setTransferOpen] = useState(false);
+  const canTransfer = canTransferTicket(ticket);
+  const openTransfer = () => {
+    if (!canTransferTicket(ticket)) {
+      toast.error(TRANSFER_BLOCKED_MESSAGE);
+      return;
+    }
+    setTransferOpen(true);
+  };
   const [historyOpen, setHistoryOpen] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
   const [timelineOpen, setTimelineOpen] = useState(false);
@@ -491,9 +501,11 @@ export function TicketDetailSheet({
                     label="Transferir chamado"
                     collapsed={navCollapsed}
                     active={activeAction === "assumir"}
+                    disabled={!canTransfer}
+                    title={!canTransfer ? TRANSFER_BLOCKED_MESSAGE : undefined}
                     onClick={() => {
                       setActiveAction("assumir");
-                      setTransferOpen(true);
+                      openTransfer();
                     }}
                   />
                   <SideItem
@@ -554,7 +566,13 @@ export function TicketDetailSheet({
                   label="Finalizar"
                   onClick={() => setCloseOpen(true)}
                 />
-                <MobileAction icon={TicketAssumeIcon} label="Transferir" onClick={() => setTransferOpen(true)} />
+                <MobileAction
+                  icon={TicketAssumeIcon}
+                  label="Transferir"
+                  disabled={!canTransfer}
+                  title={!canTransfer ? TRANSFER_BLOCKED_MESSAGE : undefined}
+                  onClick={openTransfer}
+                />
                 <MobileAction
                   icon={TicketScheduleIcon}
                   label="Agendar"
@@ -647,7 +665,7 @@ export function TicketDetailSheet({
                       <button
                         type="button"
                         onClick={() => setDescriptionOpen(true)}
-                        className="w-fit cursor-pointer text-[12px] font-medium text-primary underline underline-offset-2 hover:opacity-80"
+                        className="w-fit cursor-pointer text-[12px] font-medium text-primary no-underline hover:opacity-80"
                       >
                         Ver descrição original
                       </button>
@@ -1311,6 +1329,8 @@ function SideItem({
   active,
   className,
   nowrap,
+  disabled,
+  title,
 }: {
   icon: IconComponent;
   label: string;
@@ -1319,15 +1339,23 @@ function SideItem({
   active?: boolean;
   className?: string;
   nowrap?: boolean;
+  disabled?: boolean;
+  title?: string;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      title={collapsed ? label : undefined}
+      disabled={disabled}
+      title={title ?? (collapsed ? label : undefined)}
       aria-label={label}
       aria-pressed={!!active}
-      className={cn(sideItemClasses(!!active), collapsed && "md:justify-center md:px-0", className)}
+      className={cn(
+        sideItemClasses(!!active),
+        collapsed && "md:justify-center md:px-0",
+        disabled && "cursor-not-allowed opacity-50 hover:bg-transparent",
+        className,
+      )}
     >
       <Icon
         className={cn(
@@ -1351,19 +1379,26 @@ function MobileAction({
   label,
   onClick,
   highlight,
+  disabled,
+  title,
 }: {
   icon: IconComponent;
   label: string;
   onClick: () => void;
   highlight?: boolean;
+  disabled?: boolean;
+  title?: string;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
+      disabled={disabled}
+      title={title}
       aria-label={label}
       className={cn(
         "inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11.5px] font-medium transition",
+        disabled && "cursor-not-allowed opacity-50",
         highlight
           ? "border-primary bg-primary text-primary-foreground hover:bg-primary/90"
           : "border-border bg-card text-foreground hover:bg-accent",
