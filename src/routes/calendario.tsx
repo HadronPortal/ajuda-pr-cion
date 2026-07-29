@@ -50,6 +50,9 @@ import { useLocalEvents, addLocalEvent } from "@/lib/local-events-store";
 import {
   PRC_OPERATORS,
   TYPE_ICON,
+  EVENT_TONE_LABEL,
+  EVENT_TONE_STYLES,
+  getEventTone,
   type CalendarEvent,
   type EventStatus,
   type EventType,
