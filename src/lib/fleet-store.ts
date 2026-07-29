@@ -1,8 +1,8 @@
 import { useSyncExternalStore } from "react";
-import corollaImg from "@/assets/vehicles/corolla.jpg";
-import trackerImg from "@/assets/vehicles/tracker.jpg";
-import onixImg from "@/assets/vehicles/onix.jpg";
-import stradaImg from "@/assets/vehicles/strada.jpg";
+import corollaImg from "@/assets/vehicles/gol-g4.jpg";
+import trackerImg from "@/assets/vehicles/celta.jpg";
+import onixImg from "@/assets/vehicles/argo.jpg";
+import stradaImg from "@/assets/vehicles/saveiro-g5.jpg";
 
 // -----------------------------------------------------------------------------
 // Tipos alinhados a um futuro backend / API
@@ -82,10 +82,10 @@ const nowISO = () => new Date().toISOString();
 let vehicles: Vehicle[] = [
   {
     id: "corolla",
-    model: "Toyota Corolla",
+    model: "Volkswagen Gol G4",
     plate: "ABC-1234",
-    category: "Sedan",
-    color: "Branco",
+    category: "Hatch",
+    color: "Prata",
     yearModel: "2022 / 2023",
     currentMileage: 45678,
     fuelLevel: "1/2",
@@ -96,9 +96,9 @@ let vehicles: Vehicle[] = [
   },
   {
     id: "tracker",
-    model: "Chevrolet Tracker",
+    model: "Chevrolet Celta",
     plate: "PRC-2026",
-    category: "SUV",
+    category: "Hatch",
     color: "Prata",
     yearModel: "2023 / 2024",
     currentMileage: 31420,
@@ -110,10 +110,10 @@ let vehicles: Vehicle[] = [
   },
   {
     id: "onix",
-    model: "Chevrolet Onix",
+    model: "Fiat Argo",
     plate: "HAD-1908",
     category: "Hatch",
-    color: "Cinza",
+    color: "Branco",
     yearModel: "2021 / 2022",
     currentMileage: 62150,
     fuelLevel: "1/4",
@@ -124,10 +124,10 @@ let vehicles: Vehicle[] = [
   },
   {
     id: "strada",
-    model: "Fiat Strada",
+    model: "Volkswagen Saveiro G5",
     plate: "WEB-4580",
     category: "Utilitário",
-    color: "Branco",
+    color: "Prata",
     yearModel: "2022 / 2022",
     currentMileage: 54802,
     fuelLevel: "Cheio",
