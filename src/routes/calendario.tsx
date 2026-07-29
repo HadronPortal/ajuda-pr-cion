@@ -605,9 +605,23 @@ function AgendaItem({ event }: { event: CalendarEvent }) {
   };
 
   return (
-    <div className="rounded-md border border-border p-3 transition-colors hover:border-primary/25">
+    <div
+      className={cn(
+        "rounded-md border border-l-[3px] border-border p-3 transition-colors hover:border-primary/25",
+        tone === "done" && "border-l-emerald-500",
+        tone === "cancelled" && "border-l-rose-500",
+        tone === "upcoming" && "border-l-orange-500",
+        tone === "other" && "border-l-sky-500",
+      )}
+    >
       <div className="flex items-start gap-3">
-        <span className={cn("grid h-9 w-9 shrink-0 place-items-center rounded-md", style.soft, style.text)}>
+        <span
+          className={cn(
+            "grid h-9 w-9 shrink-0 place-items-center rounded-md",
+            toneStyle.soft,
+            toneStyle.text,
+          )}
+        >
           <Icon className="h-4 w-4" />
         </span>
         <div className="min-w-0 flex-1">
@@ -619,7 +633,9 @@ function AgendaItem({ event }: { event: CalendarEvent }) {
           <div className="mt-2 flex items-center gap-3 text-[11px] text-muted-foreground">
             <span>{event.operator}</span>
             <span>{event.type}</span>
+            <span className={toneStyle.text}>{EVENT_TONE_LABEL[tone]}</span>
           </div>
+
           {needsFleet && (
             <div className="mt-3 flex flex-wrap items-center gap-2">
               {(!usage || usage.status === "aguardando_retirada") && (
