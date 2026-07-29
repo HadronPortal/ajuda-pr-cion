@@ -283,7 +283,7 @@ export function ForwardSpecialistModal({
               <PrioritySegmented value={priority} onChange={setPriority} />
             </Field>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-2.5 sm:grid-cols-2">
             <Field label="Módulo" required>
               <select
                 value={module}
@@ -329,13 +329,13 @@ export function ForwardSpecialistModal({
             <textarea
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              rows={3}
+              rows={2}
               maxLength={1000}
               placeholder="Descreva o diagnóstico, testes realizados e o que precisa ser analisado..."
-              className="min-h-[84px] w-full resize-none rounded-md border border-input bg-background p-3 text-[13px] outline-none focus:ring-2 focus:ring-ring"
+              className="min-h-[60px] w-full resize-none rounded-md border border-input bg-background p-2.5 text-[13px] outline-none focus:ring-2 focus:ring-ring"
             />
           </Field>
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-3 md:grid-cols-2">
             <RelatedPicker
               label="Artigos relacionados"
               query={articleQuery}
