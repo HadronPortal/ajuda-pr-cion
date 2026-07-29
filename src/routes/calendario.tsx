@@ -43,8 +43,8 @@ import { fleetActions } from "@/lib/fleet-action-store";
 import { listCrmCalendarEvents } from "@/lib/calendar-api";
 import { CreateEventDialog } from "@/components/calendar/CreateEventDialog";
 import { useLocalEvents, addLocalEvent } from "@/lib/local-events-store";
+import { useOperatorAcronyms } from "@/lib/collaborators-store";
 import {
-  PRC_OPERATORS,
   TYPE_ICON,
   EVENT_TONE_LABEL,
   EVENT_TONE_STYLES,
@@ -205,7 +205,6 @@ const initialEvents: CalendarEvent[] = [
   },
 ];
 
-const operators = ["Todos", "PRCGGC", "PRCGIN", "PRCJAC", "PRCREN", "PRCROG", "PRCSUZ"];
 const typeOptions = [
   "Todos",
   "Visita presencial",
@@ -684,6 +683,8 @@ function FiltersPanel({
 }) {
   const update = <K extends keyof Filters>(k: K, v: Filters[K]) =>
     setDraft((p) => ({ ...p, [k]: v }));
+
+  const operators = ["Todos", ...useOperatorAcronyms()];
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
