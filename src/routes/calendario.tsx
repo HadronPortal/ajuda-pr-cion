@@ -281,6 +281,8 @@ function CalendarPage() {
   const allEvents = useMemo(() => [...events, ...localEvents], [events, localEvents]);
   const [createOpen, setCreateOpen] = useState(false);
   const [agendaOpen, setAgendaOpen] = useState(false);
+  const [detailEvent, setDetailEvent] = useState<CalendarEvent | null>(null);
+  const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
 
   const [filters, setFilters] = useState<Filters>(emptyFilters);
   const [filtersOpen, setFiltersOpen] = useState(false);
