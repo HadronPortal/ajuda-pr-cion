@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { CalendarClock, Car, Clock3, Users } from "lucide-react";
 import { toast } from "sonner";
+import {
+  CollaboratorMultiSelect,
+  CollaboratorSelect,
+  type CollaboratorGuest,
+} from "@/components/portal/CollaboratorPicker";
 import { Dialog, DialogContent, DialogFooter, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,7 +29,6 @@ import {
 } from "@/lib/fleet-store";
 
 const EVENT_TYPES = ["Visita", "Reunião remota", "Reunião PRC"];
-const RESPONSIBLES = ["PRCSUZ", "PRCROG", "PRCMAR", "PRCLCZ", "PRCPED", "PRCGGC"];
 const NO_VEHICLE = "__none__";
 const selectClass =
   "h-9 w-full cursor-pointer rounded-md border border-input bg-background px-3 text-[13px] outline-none focus:ring-2 focus:ring-ring";
@@ -78,8 +82,8 @@ export function ScheduleEventModal({
   const [date, setDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
-  const [responsible, setResponsible] = useState(ticket.owner || RESPONSIBLES[0]);
-  const [guests, setGuests] = useState("");
+  const [responsible, setResponsible] = useState(ticket.owner || "");
+  const [guests, setGuests] = useState<CollaboratorGuest[]>([]);
   const [vehicleId, setVehicleId] = useState(NO_VEHICLE);
   const [module, setModule] = useState(defaults.module);
   const [submodule, setSubmodule] = useState(defaults.submodule);
@@ -128,7 +132,7 @@ export function ScheduleEventModal({
     setDate("");
     setStartTime("");
     setEndTime("");
-    setResponsible(ticket.owner || RESPONSIBLES[0]);
+    setResponsible(ticket.owner || "");
     setGuests("");
     setVehicleId(NO_VEHICLE);
     setModule(defaults.module);
@@ -192,7 +196,7 @@ export function ScheduleEventModal({
       startTime,
       endTime,
       responsible,
-      guests: guests.trim() || undefined,
+      guests: guests.length ? guests.map((g) => g.acronym ?? g.name).join(", ") : undefined,
       vehicle: vehicleLabel,
       module,
       submodule,
@@ -220,10 +224,8 @@ export function ScheduleEventModal({
       title: `${ticket.protocol} - ${ticket.subject}`,
       client: clientLabel || undefined,
       description: description.trim() || undefined,
-      guests: guests
-        .split(",")
-        .map((guest) => guest.trim())
-        .filter(Boolean),
+      guests: guests.map((guest) => guest.acronym ?? guest.name),
+      guestList: guests.length ? guests : undefined,
       needsDisplacement: calendarType === "Visita presencial",
       vehicleId: vehicleId !== NO_VEHICLE ? vehicleId : undefined,
     });
@@ -272,15 +274,7 @@ export function ScheduleEventModal({
               </select>
             </Field>
             <Field label="Responsável" required>
-              <select
-                value={responsible}
-                onChange={(e) => setResponsible(e.target.value)}
-                className={selectClass}
-              >
-                {RESPONSIBLES.map((item) => (
-                  <option key={item}>{item}</option>
-                ))}
-              </select>
+              <CollaboratorSelect value={responsible} onChange={setResponsible} />
             </Field>
           </div>
           <div className="grid gap-2.5 sm:grid-cols-3">
@@ -351,15 +345,7 @@ export function ScheduleEventModal({
           </div>
           <div className={type === "Visita" ? "grid gap-2.5 sm:grid-cols-2" : "grid gap-2.5"}>
             <Field label="Convidados">
-              <div className="relative">
-                <Users className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  className="pl-8"
-                  value={guests}
-                  onChange={(e) => setGuests(e.target.value)}
-                  placeholder="Nomes ou e-mails, separados por vírgula"
-                />
-              </div>
+              <CollaboratorMultiSelect value={guests} onChange={setGuests} />
             </Field>
             {type === "Visita" && (
               <Field label="Veículo">
