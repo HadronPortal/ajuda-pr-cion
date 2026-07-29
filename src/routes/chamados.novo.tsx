@@ -196,7 +196,7 @@ function NewTicketPage() {
   const [phones, setPhones] = useState<ClientContact[]>([]);
   const [companies, setCompanies] = useState<ClientCompanySummary[]>([]);
   const [contactsLoading, setContactsLoading] = useState(false);
-  const [addContact, setAddContact] = useState<AddContactState>(initialAddContact);
+  
 
   // Garante que a fonte única de clientes esteja carregada.
   useEffect(() => {
