@@ -36,7 +36,7 @@ import type { SupportTicket, TicketPriority } from "@/lib/support-tickets-data";
 import type { ClosurePayload } from "@/lib/tickets-store";
 import { loadClients } from "@/lib/clients-store";
 import {
-  fetchClientContacts,
+  fetchClientGroupCompanies,
   formatPhoneDisplay,
   type ClientContact,
   type ClientCompanySummary,
@@ -228,9 +228,8 @@ function NewTicketPage() {
     setPhones([]);
     setCompanies([]);
     setClientUuid(null);
-    // Subempresas: apenas empresas vinculadas ao próprio cliente (client_id).
-    // Não misturar com empresas de outros clientes do mesmo grupo.
-    fetchClientContacts(client.acronym)
+    // Exibe todas as empresas do grupo, mantendo os contatos do cliente selecionado.
+    fetchClientGroupCompanies(client)
       .then((bundle) => {
         if (cancelled) return;
         setClientUuid(bundle.clientId);
