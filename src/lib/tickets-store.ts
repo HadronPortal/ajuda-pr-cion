@@ -618,8 +618,9 @@ export const ticketsStore = {
     },
   ) {
     const current = tickets.find((t) => t.id === id) ?? null;
-    if (!canTransferTicket(current)) {
-      throw new Error(TRANSFER_BLOCKED_MESSAGE);
+    const blockReason = getTransferBlockReason(current);
+    if (blockReason) {
+      throw new Error(blockReason);
     }
     const from = operator();
     const nextStatus: TicketStatus =

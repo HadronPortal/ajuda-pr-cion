@@ -64,8 +64,7 @@ import {
   type TicketStatus,
 } from "@/lib/support-tickets-data";
 import {
-  canTransferTicket,
-  TRANSFER_BLOCKED_MESSAGE,
+  getTransferBlockReason,
   ticketsStore,
   useTicket,
   useTicketEvents,
@@ -271,10 +270,12 @@ export function TicketDetailSheet({
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [forwardOpen, setForwardOpen] = useState(false);
   const [transferOpen, setTransferOpen] = useState(false);
-  const canTransfer = canTransferTicket(ticket);
+  const transferBlockReason = getTransferBlockReason(ticket);
+  const canTransfer = !transferBlockReason;
   const openTransfer = () => {
-    if (!canTransferTicket(ticket)) {
-      toast.error(TRANSFER_BLOCKED_MESSAGE);
+    const reason = getTransferBlockReason(ticket);
+    if (reason) {
+      toast.error(reason);
       return;
     }
     setTransferOpen(true);
@@ -502,7 +503,7 @@ export function TicketDetailSheet({
                     collapsed={navCollapsed}
                     active={activeAction === "assumir"}
                     disabled={!canTransfer}
-                    title={!canTransfer ? TRANSFER_BLOCKED_MESSAGE : undefined}
+                    title={transferBlockReason ?? undefined}
                     onClick={() => {
                       setActiveAction("assumir");
                       openTransfer();
@@ -570,7 +571,7 @@ export function TicketDetailSheet({
                   icon={TicketAssumeIcon}
                   label="Transferir"
                   disabled={!canTransfer}
-                  title={!canTransfer ? TRANSFER_BLOCKED_MESSAGE : undefined}
+                  title={transferBlockReason ?? undefined}
                   onClick={openTransfer}
                 />
                 <MobileAction
