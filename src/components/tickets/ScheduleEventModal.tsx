@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { CalendarClock, Car, Clock3, Users } from "lucide-react";
+import { CalendarClock, Car, Users } from "lucide-react";
 import { toast } from "sonner";
 import {
   CollaboratorMultiSelect,
@@ -12,6 +12,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
+import { EventDateTimeFields } from "@/components/calendar/EventDateTimeFields";
+
 import { ticketsStore } from "@/lib/tickets-store";
 import type { SupportTicket } from "@/lib/support-tickets-data";
 import { modulesMap, moduleOptions, splitModule } from "@/lib/modules-map";
@@ -279,43 +281,16 @@ export function ScheduleEventModal({
               <CollaboratorSelect value={responsible} onChange={setResponsible} />
             </Field>
           </div>
-          <div className="grid gap-2.5 sm:grid-cols-3">
-            <Field label="Data" required>
-              <Input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                onClick={(e) => (e.currentTarget as HTMLInputElement).showPicker?.()}
-                className="cursor-pointer [&::-webkit-calendar-picker-indicator]:cursor-pointer"
-              />
-            </Field>
-            <Field label="Início" required>
-              <div
-                className="relative cursor-pointer"
-                onClick={(e) => {
-                  const input = e.currentTarget.querySelector("input") as HTMLInputElement | null;
-                  input?.showPicker?.();
-                }}
-              >
-                <Clock3 className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  className="cursor-pointer pl-8 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
-                  type="time"
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                />
-              </div>
-            </Field>
-            <Field label="Término" required>
-              <Input
-                type="time"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                onClick={(e) => (e.currentTarget as HTMLInputElement).showPicker?.()}
-                className="cursor-pointer [&::-webkit-calendar-picker-indicator]:cursor-pointer"
-              />
-            </Field>
-          </div>
+          <EventDateTimeFields
+            className="gap-2.5"
+            date={date}
+            onDateChange={setDate}
+            startTime={startTime}
+            onStartTimeChange={setStartTime}
+            endTime={endTime}
+            onEndTimeChange={setEndTime}
+          />
+
           <div className="grid gap-2.5 sm:grid-cols-2">
             <Field label="Módulo" required>
               <select
