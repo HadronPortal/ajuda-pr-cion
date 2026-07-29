@@ -574,8 +574,20 @@ export function TicketDetailSheet({
                 </Section>
 
                 <Section title="Descrição do problema" icon={FileText}>
-                  <p className="text-[13px] leading-relaxed text-foreground">{mock.description}</p>
+                  {ticketDescription ? (
+                    <p
+                      key={ticket.id}
+                      className="whitespace-pre-wrap break-words text-[13px] leading-relaxed text-foreground"
+                    >
+                      {ticketDescription}
+                    </p>
+                  ) : (
+                    <p className="text-[13px] leading-relaxed text-muted-foreground">
+                      Descrição não informada
+                    </p>
+                  )}
                 </Section>
+
 
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                   <Section title="Cliente" icon={Building2} compact>
