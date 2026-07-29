@@ -63,6 +63,26 @@ export function addLocalEvent(event: Omit<CalendarEvent, "id"> & { id?: string |
   return created;
 }
 
+/** Atualiza um evento local existente (não afeta eventos vindos do CRM). */
+export function updateLocalEvent(
+  id: string | number,
+  patch: Partial<CalendarEvent>,
+): CalendarEvent | null {
+  const current = read();
+  const index = current.findIndex((event) => String(event.id) === String(id));
+  if (index < 0) return null;
+  const updated = { ...current[index], ...patch, id: current[index].id };
+  const next = [...current];
+  next[index] = updated;
+  write(next);
+  return updated;
+}
+
+/** Indica se o evento é local (editável/cancelável pelo usuário). */
+export function isLocalEvent(id: string | number): boolean {
+  return read().some((event) => String(event.id) === String(id));
+}
+
 function subscribe(listener: () => void) {
   listeners.add(listener);
   const onStorage = (e: StorageEvent) => {
