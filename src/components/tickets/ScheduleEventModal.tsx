@@ -16,6 +16,7 @@ import {
   useVehicles,
   useReservations,
   hasReservationConflict,
+  hasConflict,
   createReservation,
   getActiveReservationsByVehicle,
   VEHICLE_STATUS_LABEL,
@@ -46,7 +47,11 @@ function evaluateVehicle(
   windowEnd: string | null,
 ): VehicleAvailability {
   if (vehicle.status === "manutencao") return { key: "indisponivel", label: "Indisponível" };
-  if (vehicle.status === "em_uso") return { key: "em_uso", label: "Em uso" };
+  if (!windowStart || !windowEnd) {
+    if (vehicle.status === "em_uso") return { key: "em_uso", label: "Em uso" };
+  } else if (hasConflict(vehicle.id, windowStart, windowEnd)) {
+    return { key: "em_uso", label: "Em uso no período" };
+  }
   const reservations = getActiveReservationsByVehicle(vehicle.id);
   if (reservations.length === 0) return { key: "disponivel", label: "Disponível" };
   if (!windowStart || !windowEnd) {
@@ -220,6 +225,7 @@ export function ScheduleEventModal({
         .map((guest) => guest.trim())
         .filter(Boolean),
       needsDisplacement: calendarType === "Visita presencial",
+      vehicleId: vehicleId !== NO_VEHICLE ? vehicleId : undefined,
     });
 
     toast.success("Evento agendado", {

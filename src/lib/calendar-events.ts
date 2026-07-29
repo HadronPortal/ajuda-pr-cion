@@ -1,10 +1,6 @@
 import { Car, CalendarDays, Laptop, UsersRound } from "lucide-react";
 
-export type EventType =
-  | "Visita presencial"
-  | "Reunião remota"
-  | "Reunião na Prócion"
-  | "Pessoal";
+export type EventType = "Visita presencial" | "Reunião remota" | "Reunião na Prócion" | "Pessoal";
 
 export type EventStatus = "Agendado" | "Concluído" | "Cancelado";
 
@@ -25,6 +21,7 @@ export type CalendarEvent = {
   description?: string;
   guests?: string[];
   needsDisplacement?: boolean;
+  vehicleId?: string;
   address?: string;
   responsible?: string;
   meetingLink?: string;

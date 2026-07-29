@@ -409,6 +409,7 @@ export function getUsagesHistory() {
 export function createUsageForAppointment(input: {
   appointmentId: number | string;
   operatorId: string;
+  vehicleId?: string;
   client?: string;
   destination: string;
   expectedReturnAt?: string;
@@ -416,6 +417,7 @@ export function createUsageForAppointment(input: {
   const usage: VehicleUsage = {
     id: `u-${input.appointmentId}-${Date.now()}`,
     appointmentId: input.appointmentId,
+    vehicleId: input.vehicleId,
     operatorId: input.operatorId,
     client: input.client,
     destination: input.destination,

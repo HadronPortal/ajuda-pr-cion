@@ -52,6 +52,7 @@ export function addLocalEvent(event: Omit<CalendarEvent, "id"> & { id?: string |
     createUsageForAppointment({
       appointmentId: created.id,
       operatorId: created.responsible ?? created.operator,
+      vehicleId: created.vehicleId,
       client: created.client,
       destination,
       expectedReturnAt: `${created.date}T${created.end}:00`,

@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { getUsageById } from "@/lib/fleet-store";
 
 export type FleetActionState =
   | { kind: "picker"; usageId: string }
@@ -25,7 +26,10 @@ export function useFleetAction() {
 
 export const fleetActions = {
   openPickup(usageId: string) {
-    state = { kind: "picker", usageId };
+    const usage = getUsageById(usageId);
+    state = usage?.vehicleId
+      ? { kind: "departure", usageId, vehicleId: usage.vehicleId }
+      : { kind: "picker", usageId };
     emit();
   },
   openDeparture(usageId: string, vehicleId: string) {
