@@ -129,7 +129,7 @@ $$;
 update public.tickets
 set finished_at = updated_at
 where finished_at is null
-  and status in ('finalizado', 'closed', 'done', 'resolved');
+  and status = 'finished'::public.ticket_status;
 
 revoke all on function public.support_load() from public;
 revoke all on function public.support_update_ticket(text, jsonb, jsonb) from public;
