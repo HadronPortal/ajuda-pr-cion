@@ -183,21 +183,6 @@ const initialForm: FormState = {
   source: "Portal do cliente",
 };
 
-type AddContactState = {
-  open: boolean;
-  kind: "email" | "phone";
-  value: string;
-  name: string;
-  saving: boolean;
-};
-
-const initialAddContact: AddContactState = {
-  open: false,
-  kind: "email",
-  value: "",
-  name: "",
-  saving: false,
-};
 
 function NewTicketPage() {
   const navigate = useNavigate();
