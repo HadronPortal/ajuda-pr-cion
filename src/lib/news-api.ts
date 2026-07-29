@@ -7,6 +7,9 @@ export type BrazilNewsArticle = {
   imageUrl: string;
   source: string;
   publishedAt: string;
+  category?: string;
+  categories?: string[];
+  relevanceScore?: number;
 };
 
 export async function getBrazilFiscalNews(): Promise<BrazilNewsArticle[]> {

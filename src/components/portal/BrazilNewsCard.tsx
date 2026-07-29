@@ -1,10 +1,7 @@
 import { useEffect, useState } from "react";
 import { ExternalLink, Newspaper } from "lucide-react";
 
-import {
-  getBrazilFiscalNews,
-  type BrazilNewsArticle,
-} from "@/lib/news-api";
+import { getBrazilFiscalNews, type BrazilNewsArticle } from "@/lib/news-api";
 
 const formatPublishedAt = (value: string) => {
   if (!value) return "";
@@ -84,9 +81,7 @@ export function BrazilNewsCard() {
           <Newspaper className="h-4 w-4 text-primary" />
           <h2 className="text-[17px] font-semibold leading-tight">Notícias fiscais</h2>
         </div>
-        <p className="mt-0.5 text-xs text-muted-foreground">
-          Receita Federal, tributação e ICMS
-        </p>
+        <p className="mt-0.5 text-xs text-muted-foreground">Receita Federal, tributação e ICMS</p>
       </header>
 
       <div className="min-h-0 flex-1 overflow-y-auto">
@@ -95,9 +90,7 @@ export function BrazilNewsCard() {
         ) : error ? (
           <p className="px-5 py-6 text-sm text-muted-foreground">{error}</p>
         ) : articles.length === 0 ? (
-          <p className="px-5 py-6 text-sm text-muted-foreground">
-            Nenhuma notícia encontrada.
-          </p>
+          <p className="px-5 py-6 text-sm text-muted-foreground">Nenhuma notícia encontrada.</p>
         ) : (
           <ul className="divide-y divide-border/60">
             {articles.map((article) => (
@@ -114,6 +107,11 @@ export function BrazilNewsCard() {
                       {article.title}
                     </span>
                     <span className="mt-1 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                      {article.category ? (
+                        <span className="shrink-0 rounded bg-primary/10 px-1.5 py-0.5 text-primary">
+                          {article.category}
+                        </span>
+                      ) : null}
                       <span className="truncate">{article.source}</span>
                       {article.publishedAt ? (
                         <>
