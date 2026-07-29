@@ -1,8 +1,8 @@
 import { useSyncExternalStore } from "react";
-import corollaImg from "@/assets/vehicles/corolla.jpg";
-import trackerImg from "@/assets/vehicles/tracker.jpg";
-import onixImg from "@/assets/vehicles/onix.jpg";
-import stradaImg from "@/assets/vehicles/strada.jpg";
+import corollaImg from "@/assets/vehicles/gol-g4.jpg";
+import trackerImg from "@/assets/vehicles/celta.jpg";
+import onixImg from "@/assets/vehicles/argo.jpg";
+import stradaImg from "@/assets/vehicles/saveiro-g5.jpg";
 
 // -----------------------------------------------------------------------------
 // Tipos alinhados a um futuro backend / API
