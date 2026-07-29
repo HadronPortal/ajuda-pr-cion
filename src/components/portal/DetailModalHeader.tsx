@@ -27,6 +27,8 @@ export function DetailModalHeader({
   meta?: ReactNode;
   chips?: ReactNode;
   onClose: () => void;
+  /** Versão ainda mais compacta (menos padding vertical). */
+  dense?: boolean;
   /** Classe da faixa vertical à esquerda. */
   accentClassName?: string;
   /** Classe do círculo sólido do ícone (fundo + cor). */
@@ -35,7 +37,12 @@ export function DetailModalHeader({
   decorativeIconClassName?: string;
 }) {
   return (
-    <header className="relative shrink-0 border-b border-border bg-card px-3 pb-2 pt-2 md:px-5 md:pb-3 md:pt-3">
+    <header
+      className={cn(
+        "relative shrink-0 border-b border-border bg-card px-3 pb-2 pt-2 md:px-5 md:pb-3 md:pt-3",
+        dense && "pb-1.5 pt-1.5 md:pb-2 md:pt-2",
+      )}
+    >
       <div className="relative overflow-hidden rounded-xl border border-border bg-card shadow-[0_1px_2px_rgba(15,23,42,0.04),0_4px_12px_rgba(15,23,42,0.05)]">
         <span aria-hidden className={cn("absolute left-0 top-0 h-full w-1", accentClassName)} />
 
