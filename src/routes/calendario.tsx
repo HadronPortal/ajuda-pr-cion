@@ -299,10 +299,10 @@ function CalendarPage() {
           </div>
           <h2 className="capitalize text-lg font-medium">{monthTitle}</h2>
           <div className="flex flex-wrap gap-3">
-            {Object.entries(typeStyles).map(([name, style]) => (
-              <span key={name} className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <span className={cn("h-2 w-2 rounded-full", style.dot)} />
-                {name}
+            {(Object.keys(EVENT_TONE_STYLES) as (keyof typeof EVENT_TONE_STYLES)[]).map((tone) => (
+              <span key={tone} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <span className={cn("h-2 w-2 rounded-full", EVENT_TONE_STYLES[tone].dot)} />
+                {EVENT_TONE_LABEL[tone]}
               </span>
             ))}
           </div>
