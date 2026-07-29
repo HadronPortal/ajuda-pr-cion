@@ -100,9 +100,14 @@ export function CollaboratorSelect({
     onlyActive: !includeInactive,
   });
 
-  const options = includeInactive ? allCollaborators : collaborators;
-  const filtered = useFiltered(options, term);
   const current = findCollaborator(allCollaborators, value);
+  // Somente ativos são selecionáveis; o vínculo histórico já salvo continua visível.
+  const options = useMemo(() => {
+    const base = includeInactive ? allCollaborators : collaborators;
+    if (current && !base.some((item) => item.id === current.id)) return [current, ...base];
+    return base;
+  }, [includeInactive, allCollaborators, collaborators, current]);
+  const filtered = useFiltered(options, term);
 
   return (
     <Popover open={open} onOpenChange={(next) => { setOpen(next); if (!next) setTerm(""); }}>
