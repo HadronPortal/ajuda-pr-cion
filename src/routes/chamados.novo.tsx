@@ -11,7 +11,6 @@ import {
   MessageSquarePlus,
   Minus,
   Phone,
-  Plus,
   Send,
   Sparkles,
   UserRound,
@@ -22,14 +21,6 @@ import { ClientPicker } from "@/components/portal/ClientPicker";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -45,7 +36,6 @@ import type { SupportTicket, TicketPriority } from "@/lib/support-tickets-data";
 import type { ClosurePayload } from "@/lib/tickets-store";
 import { loadClients } from "@/lib/clients-store";
 import {
-  addClientContact,
   fetchClientContacts,
   formatPhoneDisplay,
   type ClientContact,
@@ -193,21 +183,6 @@ const initialForm: FormState = {
   source: "Portal do cliente",
 };
 
-type AddContactState = {
-  open: boolean;
-  kind: "email" | "phone";
-  value: string;
-  name: string;
-  saving: boolean;
-};
-
-const initialAddContact: AddContactState = {
-  open: false,
-  kind: "email",
-  value: "",
-  name: "",
-  saving: false,
-};
 
 function NewTicketPage() {
   const navigate = useNavigate();
@@ -221,7 +196,7 @@ function NewTicketPage() {
   const [phones, setPhones] = useState<ClientContact[]>([]);
   const [companies, setCompanies] = useState<ClientCompanySummary[]>([]);
   const [contactsLoading, setContactsLoading] = useState(false);
-  const [addContact, setAddContact] = useState<AddContactState>(initialAddContact);
+  
 
   // Garante que a fonte única de clientes esteja carregada.
   useEffect(() => {
@@ -322,50 +297,6 @@ function NewTicketPage() {
       contactName: prev.contactName || found?.name || "",
     }));
   };
-
-  const openAddContact = (kind: "email" | "phone") => {
-    setAddContact({ ...initialAddContact, open: true, kind });
-  };
-
-  const handleSaveNewContact = async () => {
-    if (!clientUuid) {
-      toast.error("Selecione uma empresa antes de cadastrar um contato.");
-      return;
-    }
-    const value = addContact.value.trim();
-    if (!value) return;
-    setAddContact((prev) => ({ ...prev, saving: true }));
-    try {
-      const created = await addClientContact(
-        clientUuid,
-        addContact.kind,
-        value,
-        addContact.name.trim(),
-      );
-      if (addContact.kind === "email") {
-        setEmails((prev) =>
-          [...prev.filter((e) => e.id !== created.id), created].sort((a, b) =>
-            a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" }),
-          ),
-        );
-        handleSelectEmail(created.id);
-      } else {
-        setPhones((prev) =>
-          [...prev.filter((p) => p.id !== created.id), created].sort((a, b) =>
-            a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" }),
-          ),
-        );
-        handleSelectPhone(created.id);
-      }
-      toast.success("Contato cadastrado.");
-      setAddContact(initialAddContact);
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "Não foi possível cadastrar o contato.";
-      toast.error(msg);
-      setAddContact((prev) => ({ ...prev, saving: false }));
-    }
-  };
-
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -547,7 +478,6 @@ function NewTicketPage() {
                           : "Selecione um e-mail"
                   }
                   onChange={handleSelectEmail}
-                  onAdd={() => openAddContact("email")}
                 />
               </Field>
 
@@ -569,7 +499,6 @@ function NewTicketPage() {
                           : "Selecione um telefone"
                   }
                   onChange={handleSelectPhone}
-                  onAdd={() => openAddContact("phone")}
                 />
               </Field>
             </div>
@@ -865,69 +794,6 @@ function NewTicketPage() {
         </aside>
       </form>
 
-      <Dialog
-        open={addContact.open}
-        onOpenChange={(open) => {
-          if (!open && !addContact.saving) setAddContact(initialAddContact);
-        }}
-      >
-        <DialogContent className="sm:max-w-[420px]">
-          <DialogHeader>
-            <DialogTitle>
-              {addContact.kind === "email" ? "Novo e-mail" : "Novo telefone"}
-            </DialogTitle>
-            <DialogDescription>
-              O contato será vinculado a {client?.fantasia || client?.razaoSocial || "esta empresa"}.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="grid gap-3 py-2">
-            <div>
-              <Label className="mb-1.5 block text-[12px] font-medium">Nome do contato</Label>
-              <Input
-                value={addContact.name}
-                onChange={(e) => setAddContact((prev) => ({ ...prev, name: e.target.value }))}
-                placeholder="Nome ou descrição"
-                className="h-10 rounded-xl"
-              />
-            </div>
-            <div>
-              <Label className="mb-1.5 block text-[12px] font-medium">
-                {addContact.kind === "email" ? "E-mail" : "Telefone"}
-              </Label>
-              <Input
-                type={addContact.kind === "email" ? "email" : "tel"}
-                value={addContact.value}
-                onChange={(e) => setAddContact((prev) => ({ ...prev, value: e.target.value }))}
-                placeholder={
-                  addContact.kind === "email" ? "email@empresa.com" : "(00) 00000-0000"
-                }
-                className="h-10 rounded-xl"
-              />
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              className="rounded-xl cursor-pointer"
-              onClick={() => setAddContact(initialAddContact)}
-              disabled={addContact.saving}
-            >
-              Cancelar
-            </Button>
-            <Button
-              type="button"
-              className="rounded-xl cursor-pointer"
-              onClick={handleSaveNewContact}
-              disabled={addContact.saving || !addContact.value.trim()}
-            >
-              {addContact.saving ? "Salvando..." : "Salvar"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </AppShell>
   );
 }
@@ -1007,7 +873,6 @@ function ContactSelectField({
   value,
   placeholder,
   onChange,
-  onAdd,
 }: {
   icon: typeof Mail;
   kind: "email" | "phone";
@@ -1017,43 +882,29 @@ function ContactSelectField({
   value: string;
   placeholder: string;
   onChange: (id: string) => void;
-  onAdd: () => void;
 }) {
   const hasOptions = options.length > 0;
   return (
-    <div className="flex items-center gap-2">
-      <div className="relative flex-1">
-        <Icon className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Select
-          value={value}
-          onValueChange={onChange}
-          disabled={disabled || loading || !hasOptions}
-        >
-          <SelectTrigger className="h-11 rounded-xl pl-9 cursor-pointer">
-            <SelectValue placeholder={placeholder} />
-          </SelectTrigger>
-          <SelectContent>
-            {options.map((opt) => (
-              <SelectItem key={opt.id} value={opt.id} className="cursor-pointer">
-                {kind === "email"
-                  ? `${opt.value} - ${opt.name}`
-                  : `${formatPhoneDisplay(opt.value)} | ${opt.name}`}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <Button
-        type="button"
-        variant="default"
-        size="icon"
-        onClick={onAdd}
-        disabled={disabled}
-        aria-label={kind === "email" ? "Adicionar e-mail" : "Adicionar telefone"}
-        className="h-11 w-11 shrink-0 rounded-xl cursor-pointer"
+    <div className="relative w-full">
+      <Icon className="pointer-events-none absolute left-3 top-1/2 z-10 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+      <Select
+        value={value}
+        onValueChange={onChange}
+        disabled={disabled || loading || !hasOptions}
       >
-        <Plus className="h-4 w-4" />
-      </Button>
+        <SelectTrigger className="h-11 w-full rounded-xl pl-9 cursor-pointer">
+          <SelectValue placeholder={placeholder} />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map((opt) => (
+            <SelectItem key={opt.id} value={opt.id} className="cursor-pointer">
+              {kind === "email"
+                ? `${opt.value} - ${opt.name}`
+                : `${formatPhoneDisplay(opt.value)} | ${opt.name}`}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 }
