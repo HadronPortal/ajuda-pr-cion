@@ -26,13 +26,19 @@ import { Calendar } from "@/components/ui/calendar";
 import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import { cn } from "@/lib/utils";
 import {
+  CollaboratorMultiSelect,
+  CollaboratorSelect,
+  type CollaboratorGuest,
+} from "@/components/portal/CollaboratorPicker";
+import { useCollaborators } from "@/lib/collaborators-store";
+import {
   PLATFORM_OPTIONS,
-  PRC_OPERATORS,
   ROOM_OPTIONS,
   TYPE_ICON,
   type CalendarEvent,
   type EventType,
 } from "@/lib/calendar-events";
+
 
 const preventOutsideClose = (event: Event) => event.preventDefault();
 
