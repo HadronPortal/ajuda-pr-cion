@@ -279,6 +279,12 @@ export function TicketDetailSheet({
 
   const mock = useMemo(() => (ticket ? buildMock(ticket) : null), [ticket]);
   const sla = useMemo(() => (ticket ? computeSla(ticket) : null), [ticket]);
+  // Descrição real informada na abertura do chamado (sem texto padrão).
+  const ticketDescription = useMemo(() => {
+    const raw = ticket?.description;
+    return typeof raw === "string" ? raw.replace(/\r\n/g, "\n").trim() : "";
+  }, [ticket?.id, ticket?.description]);
+
 
   if (!ticket || !mock || !sla) return null;
 
