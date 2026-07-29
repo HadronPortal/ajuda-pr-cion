@@ -105,26 +105,28 @@ export function ticketMatchesMonthView(
   key: string,
   view: TicketMonthView,
 ): boolean {
+  const openedInMonth = isTicketInMonth(ticket, key, "openedAt");
+
   if (view === "open") {
     return (
       OPEN_TICKET_STATUSES.includes(ticket.status) &&
-      isTicketInMonth(ticket, key, "openedAt")
+      openedInMonth
     );
   }
   if (view === "in-progress") {
     return (
       IN_PROGRESS_STATUSES.includes(ticket.status) &&
-      isTicketInMonth(ticket, key)
+      openedInMonth
     );
   }
   if (view === "overdue") {
-    return ticket.status === "Atrasado" && isTicketInMonth(ticket, key);
+    return ticket.status === "Atrasado" && openedInMonth;
   }
-  return ticket.status === "Finalizado" && isTicketInMonth(ticket, key, "updatedAt");
+  return ticket.status === "Finalizado" && openedInMonth;
 }
 
 export function computeMonthMetrics(tickets: SupportTicket[], key: string): MonthMetrics {
-  const touched = tickets.filter((t) => isTicketInMonth(t, key));
+  const opened = tickets.filter((ticket) => isTicketInMonth(ticket, key, "openedAt"));
   return {
     open: tickets.filter((ticket) => ticketMatchesMonthView(ticket, key, "open")).length,
     inProgress: tickets.filter((ticket) =>
@@ -136,7 +138,7 @@ export function computeMonthMetrics(tickets: SupportTicket[], key: string): Mont
     finished: tickets.filter((ticket) =>
       ticketMatchesMonthView(ticket, key, "finished"),
     ).length,
-    total: touched.length,
+    total: opened.length,
   };
 }
 
@@ -180,9 +182,7 @@ export function availableMonthKeys(tickets: SupportTicket[]): string[] {
   const set = new Set<string>();
   tickets.forEach((t) => {
     const opened = keyOf(t.openedAt);
-    const updated = keyOf(t.updatedAt);
     if (opened) set.add(opened);
-    if (updated) set.add(updated);
   });
   set.add(currentMonthKey());
   return Array.from(set).sort().reverse();
