@@ -529,7 +529,11 @@ export function TransferTicketModal({
           >
             Cancelar
           </Button>
-          <Button onClick={submit} disabled={!allowed} className="h-9 cursor-pointer rounded-lg">
+          <Button
+            onClick={submit}
+            disabled={Boolean(blockReason)}
+            className="h-9 cursor-pointer rounded-lg"
+          >
             <Repeat className="mr-1.5 h-4 w-4" />
             Transferir chamado
           </Button>
