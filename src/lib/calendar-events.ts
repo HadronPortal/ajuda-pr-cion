@@ -31,6 +31,10 @@ export type CalendarEvent = {
   platform?: string;
   room?: string;
   isPrivate?: boolean;
+  /** Chamado vinculado (quando o evento nasceu de um chamado). */
+  ticketId?: string;
+  /** Protocolo do chamado vinculado. */
+  protocol?: string;
 };
 
 /** Convidado do agendamento, sempre originado de tab_colaboradores. */

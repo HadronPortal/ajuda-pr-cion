@@ -49,6 +49,7 @@ export function CreateEventDialog({
   existingEvents,
   onCreate,
   lockedClient,
+  editingEvent,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -57,33 +58,42 @@ export function CreateEventDialog({
   onCreate: (event: Omit<CalendarEvent, "id">) => void;
   /** Cliente fixo (vindo dos detalhes do cliente), vinculado pelo ID real. */
   lockedClient?: { id: string; label: string };
+  /** Quando informado, o diálogo funciona em modo de edição. */
+  editingEvent?: CalendarEvent;
 }) {
   const { collaborators } = useCollaborators();
   const defaultResponsible = collaborators[0]?.acronym ?? "";
-  const [type, setType] = useState<EventType>("Visita presencial");
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [guests, setGuests] = useState<CollaboratorGuest[]>([]);
-  const [date, setDate] = useState(initialDate);
+  const [type, setType] = useState<EventType>(editingEvent?.type ?? "Visita presencial");
+  const [title, setTitle] = useState(editingEvent?.title ?? "");
+  const [description, setDescription] = useState(editingEvent?.description ?? "");
+  const [guests, setGuests] = useState<CollaboratorGuest[]>(
+    (editingEvent?.guestList as CollaboratorGuest[] | undefined) ?? [],
+  );
+  const [date, setDate] = useState(editingEvent?.date ?? initialDate);
   const [dateOpen, setDateOpen] = useState(false);
-  const [startTime, setStartTime] = useState("09:00");
-  const [endTime, setEndTime] = useState("10:00");
-  const [client, setClient] = useState("");
-  const [needsDisplacement, setNeedsDisplacement] = useState(false);
-  const [address, setAddress] = useState("");
-  const [responsible, setResponsible] = useState("");
-  const [meetingLink, setMeetingLink] = useState("");
-  const [platform, setPlatform] = useState(PLATFORM_OPTIONS[0]);
-  const [room, setRoom] = useState(ROOM_OPTIONS[0]);
-  const [isPrivate, setIsPrivate] = useState(false);
+  const [startTime, setStartTime] = useState(editingEvent?.time ?? "09:00");
+  const [endTime, setEndTime] = useState(editingEvent?.end ?? "10:00");
+  const [client, setClient] = useState(editingEvent?.client ?? "");
+  const [needsDisplacement, setNeedsDisplacement] = useState(
+    editingEvent?.needsDisplacement ?? false,
+  );
+  const [address, setAddress] = useState(editingEvent?.address ?? "");
+  const [responsible, setResponsible] = useState(
+    editingEvent?.responsible ?? editingEvent?.operator ?? "",
+  );
+  const [meetingLink, setMeetingLink] = useState(editingEvent?.meetingLink ?? "");
+  const [platform, setPlatform] = useState(editingEvent?.platform ?? PLATFORM_OPTIONS[0]);
+  const [room, setRoom] = useState(editingEvent?.room ?? ROOM_OPTIONS[0]);
+  const [isPrivate, setIsPrivate] = useState(editingEvent?.isPrivate ?? false);
 
   useEffect(() => {
-    if (open) setDate(initialDate);
-  }, [open, initialDate]);
+    if (open && !editingEvent) setDate(initialDate);
+  }, [open, initialDate, editingEvent]);
 
   useEffect(() => {
     if (!responsible && defaultResponsible) setResponsible(defaultResponsible);
   }, [responsible, defaultResponsible]);
+
 
   const reset = () => {
     setType("Visita presencial"); setTitle(""); setDescription("");
@@ -151,8 +161,16 @@ export function CreateEventDialog({
         style={{ maxHeight: "calc(100vh - 2rem)" }}
         className="flex w-[calc(100vw-2rem)] max-w-[880px] flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-card p-0 shadow-[0_30px_80px_rgba(0,0,0,0.35)] [&>button]:hidden"
       >
-        <DialogTitle className="sr-only">Novo agendamento</DialogTitle>
-        <DetailModalHeader icon={CalendarDays} title="Novo agendamento" protocol={dateLabel} onClose={() => onOpenChange(false)} />
+        <DialogTitle className="sr-only">
+          {editingEvent ? "Editar agendamento" : "Novo agendamento"}
+        </DialogTitle>
+        <DetailModalHeader
+          dense
+          icon={CalendarDays}
+          title={editingEvent ? "Editar agendamento" : "Novo agendamento"}
+          protocol={dateLabel}
+          onClose={() => onOpenChange(false)}
+        />
 
         <div className="flex-1 min-h-0 space-y-4 overflow-y-auto bg-card px-5 py-4 md:px-6">
           <NewField label="Título" required>

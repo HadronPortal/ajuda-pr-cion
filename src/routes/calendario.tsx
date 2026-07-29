@@ -38,11 +38,22 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import { cn } from "@/lib/utils";
-import { useUsages, createUsageForAppointment, getUsageByAppointment } from "@/lib/fleet-store";
+import {
+  useUsages,
+  createUsageForAppointment,
+  getUsageByAppointment,
+  cancelReservationByEvent,
+} from "@/lib/fleet-store";
 import { fleetActions } from "@/lib/fleet-action-store";
 import { listCrmCalendarEvents } from "@/lib/calendar-api";
 import { CreateEventDialog } from "@/components/calendar/CreateEventDialog";
-import { useLocalEvents, addLocalEvent } from "@/lib/local-events-store";
+import { EventDetailsModal } from "@/components/calendar/EventDetailsModal";
+import {
+  useLocalEvents,
+  addLocalEvent,
+  updateLocalEvent,
+  isLocalEvent,
+} from "@/lib/local-events-store";
 import { useOperatorAcronyms } from "@/lib/collaborators-store";
 import {
   TYPE_ICON,
@@ -281,6 +292,8 @@ function CalendarPage() {
   const allEvents = useMemo(() => [...events, ...localEvents], [events, localEvents]);
   const [createOpen, setCreateOpen] = useState(false);
   const [agendaOpen, setAgendaOpen] = useState(false);
+  const [detailEvent, setDetailEvent] = useState<CalendarEvent | null>(null);
+  const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
 
   const [filters, setFilters] = useState<Filters>(emptyFilters);
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -420,6 +433,35 @@ function CalendarPage() {
     setCursor(next);
     setSelectedDate(dateKey(next.getFullYear(), next.getMonth(), 1));
   };
+
+  const detailIsLocal = detailEvent ? isLocalEvent(detailEvent.id) : false;
+  const detailTone = detailEvent ? getEventTone(detailEvent) : null;
+
+  const handleCancelEvent = (event: CalendarEvent) => {
+    updateLocalEvent(event.id, { status: "Cancelado" });
+    cancelReservationByEvent(event.id);
+    setDetailEvent(null);
+    toast.success("Agendamento cancelado");
+  };
+
+  const handlePickupFromDetail = (event: CalendarEvent) => {
+    const usage =
+      getUsageByAppointment(event.id) ??
+      createUsageForAppointment({
+        appointmentId: event.id,
+        operatorId: event.responsible ?? event.operator,
+        vehicleId: event.vehicleId,
+        client: event.client,
+        destination: event.address
+          ? `${event.client ?? ""} — ${event.address}`.trim().replace(/^—\s+/, "")
+          : (event.client ?? event.title),
+        scheduledStartAt: `${event.date}T${event.time}:00`,
+        expectedReturnAt: `${event.date}T${event.end}:00`,
+      });
+    setDetailEvent(null);
+    fleetActions.openPickup(usage.id);
+  };
+
 
   return (
     <AppShell>
@@ -584,15 +626,17 @@ function CalendarPage() {
               }).format(new Date(`${selectedDate}T12:00:00`))}
             </SheetTitle>
           </SheetHeader>
-          <div className="flex-1 min-h-0 overflow-y-auto px-5 py-5 space-y-6">
-            <section>
+          <div className="flex-1 min-h-0 overflow-y-auto px-5 py-5">
+            <section className="flex h-full flex-col">
               <div className="mb-3 flex items-center justify-between">
                 <p className="text-xs uppercase text-muted-foreground">Agenda do dia</p>
                 <Badge variant="secondary">{selectedEvents.length}</Badge>
               </div>
               <div className="space-y-3">
                 {selectedEvents.length ? (
-                  selectedEvents.map((event) => <AgendaItem key={event.id} event={event} />)
+                  selectedEvents.map((event) => (
+                    <AgendaItem key={event.id} event={event} onOpen={setDetailEvent} />
+                  ))
                 ) : (
                   <div className="rounded-md border border-dashed border-border px-4 py-10 text-center">
                     <CalendarDays className="mx-auto h-8 w-8 text-muted-foreground/45" />
@@ -610,32 +654,8 @@ function CalendarPage() {
                 )}
               </div>
             </section>
-            <section>
-              <p className="mb-3 text-xs uppercase text-muted-foreground">Resumo do mês</p>
-              <div className="grid grid-cols-2 gap-3">
-                <Metric
-                  value={filtered.filter((e) => getEventTone(e) === "done").length}
-                  label="Concluídos"
-                  color="text-emerald-600 dark:text-emerald-400"
-                />
-                <Metric
-                  value={filtered.filter((e) => getEventTone(e) === "upcoming").length}
-                  label="Agendados"
-                  color="text-orange-600 dark:text-orange-400"
-                />
-                <Metric
-                  value={filtered.filter((e) => getEventTone(e) === "cancelled").length}
-                  label="Cancelados"
-                  color="text-rose-600 dark:text-rose-400"
-                />
-                <Metric
-                  value={filtered.filter((e) => getEventTone(e) === "other").length}
-                  label="Outros"
-                  color="text-sky-600 dark:text-sky-400"
-                />
-              </div>
-            </section>
           </div>
+
         </SheetContent>
       </Sheet>
 
@@ -649,6 +669,41 @@ function CalendarPage() {
           setSelectedDate(event.date);
           toast.success("Evento adicionado ao calendário");
         }}
+      />
+
+      {editingEvent && (
+        <CreateEventDialog
+          key={`edit-${editingEvent.id}`}
+          open
+          onOpenChange={(next) => {
+            if (!next) setEditingEvent(null);
+          }}
+          initialDate={editingEvent.date}
+          existingEvents={allEvents}
+          editingEvent={editingEvent}
+          onCreate={(payload) => {
+            updateLocalEvent(editingEvent.id, payload);
+            setSelectedDate(payload.date);
+            setEditingEvent(null);
+            toast.success("Agendamento atualizado");
+          }}
+        />
+      )}
+
+      <EventDetailsModal
+        event={detailEvent}
+        open={Boolean(detailEvent)}
+        onOpenChange={(next) => {
+          if (!next) setDetailEvent(null);
+        }}
+        canEdit={detailIsLocal}
+        canCancel={detailIsLocal && detailTone !== "cancelled" && detailTone !== "done"}
+        onEdit={(event) => {
+          setDetailEvent(null);
+          setEditingEvent(event);
+        }}
+        onCancelEvent={handleCancelEvent}
+        onPickupVehicle={handlePickupFromDetail}
       />
 
       <FiltersPanel
@@ -902,7 +957,7 @@ function CalendarEventPill({ event }: { event: CalendarEvent }) {
   );
 }
 
-function AgendaItem({ event }: { event: CalendarEvent }) {
+function AgendaItem({ event, onOpen }: { event: CalendarEvent; onOpen: (e: CalendarEvent) => void }) {
   const tone = getEventTone(event);
   const toneStyle = EVENT_TONE_STYLES[tone];
   const Icon = typeStyles[event.type].icon;
@@ -933,8 +988,17 @@ function AgendaItem({ event }: { event: CalendarEvent }) {
 
   return (
     <div
+      role="button"
+      tabIndex={0}
+      onClick={() => onOpen(event)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onOpen(event);
+        }
+      }}
       className={cn(
-        "rounded-md border border-l-[3px] border-border p-3 transition-colors hover:border-primary/25",
+        "cursor-pointer rounded-md border border-l-[3px] border-border p-3 text-left transition-colors hover:border-primary/25 hover:bg-accent/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40",
         tone === "done" && "border-l-emerald-500",
         tone === "cancelled" && "border-l-rose-500",
         tone === "upcoming" && "border-l-orange-500",
@@ -971,7 +1035,10 @@ function AgendaItem({ event }: { event: CalendarEvent }) {
                 <Button
                   size="sm"
                   className="h-8 cursor-pointer bg-blue-600 text-white hover:bg-blue-700"
-                  onClick={openPickup}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openPickup();
+                  }}
                 >
                   <KeyRound className="mr-1.5 h-3.5 w-3.5" />
                   Retirar veículo
@@ -982,7 +1049,10 @@ function AgendaItem({ event }: { event: CalendarEvent }) {
                   size="sm"
                   variant="outline"
                   className="h-8 cursor-pointer"
-                  onClick={openReturn}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openReturn();
+                  }}
                 >
                   <Undo2 className="mr-1.5 h-3.5 w-3.5" />
                   Devolver veículo
@@ -1001,14 +1071,6 @@ function AgendaItem({ event }: { event: CalendarEvent }) {
   );
 }
 
-function Metric({ value, label, color }: { value: number; label: string; color: string }) {
-  return (
-    <div className="rounded-md bg-muted/35 p-3">
-      <p className={cn("text-xl font-medium", color)}>{value}</p>
-      <p className="mt-0.5 text-xs text-muted-foreground">{label}</p>
-    </div>
-  );
-}
 
 // ---------------------------------------------------------------------------
 // Create event dialog
