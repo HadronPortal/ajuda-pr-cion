@@ -556,16 +556,17 @@ function DateField({ label, value, onChange }: { label: string; value?: Date; on
 }
 
 function CalendarEventPill({ event }: { event: CalendarEvent }) {
-  const style = typeStyles[event.type];
-  const Icon = style.icon;
+  const tone = getEventTone(event);
+  const toneStyle = EVENT_TONE_STYLES[tone];
+  const Icon = typeStyles[event.type].icon;
   const operator = event.operator?.trim() ? event.operator : "SEM OPERADOR";
   const label = event.client || event.title;
   return (
     <span
-      title={`${event.type} · ${event.time} ${operator} - ${label}`}
+      title={`${EVENT_TONE_LABEL[tone]} · ${event.type} · ${event.time} ${operator} - ${label}`}
       className={cn(
-        "flex items-center gap-2 overflow-hidden rounded px-2 py-1 text-[10px] text-white",
-        style.dot,
+        "flex items-center gap-2 overflow-hidden rounded px-2 py-1 text-[10px]",
+        toneStyle.solid,
       )}
     >
       <span className="shrink-0 tabular-nums">{event.time}</span>
@@ -579,8 +580,9 @@ function CalendarEventPill({ event }: { event: CalendarEvent }) {
 }
 
 function AgendaItem({ event }: { event: CalendarEvent }) {
-  const style = typeStyles[event.type];
-  const Icon = style.icon;
+  const tone = getEventTone(event);
+  const toneStyle = EVENT_TONE_STYLES[tone];
+  const Icon = typeStyles[event.type].icon;
   // Reactively read usage tied to this appointment
   const usages = useUsages();
   const usage = usages.find((u) => u.appointmentId === event.id && u.status !== "cancelado");
