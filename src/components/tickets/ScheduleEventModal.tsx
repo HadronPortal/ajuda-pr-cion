@@ -279,43 +279,16 @@ export function ScheduleEventModal({
               <CollaboratorSelect value={responsible} onChange={setResponsible} />
             </Field>
           </div>
-          <div className="grid gap-2.5 sm:grid-cols-3">
-            <Field label="Data" required>
-              <Input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                onClick={(e) => (e.currentTarget as HTMLInputElement).showPicker?.()}
-                className="cursor-pointer [&::-webkit-calendar-picker-indicator]:cursor-pointer"
-              />
-            </Field>
-            <Field label="Início" required>
-              <div
-                className="relative cursor-pointer"
-                onClick={(e) => {
-                  const input = e.currentTarget.querySelector("input") as HTMLInputElement | null;
-                  input?.showPicker?.();
-                }}
-              >
-                <Clock3 className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  className="cursor-pointer pl-8 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
-                  type="time"
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                />
-              </div>
-            </Field>
-            <Field label="Término" required>
-              <Input
-                type="time"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                onClick={(e) => (e.currentTarget as HTMLInputElement).showPicker?.()}
-                className="cursor-pointer [&::-webkit-calendar-picker-indicator]:cursor-pointer"
-              />
-            </Field>
-          </div>
+          <EventDateTimeFields
+            className="gap-2.5"
+            date={date}
+            onDateChange={setDate}
+            startTime={startTime}
+            onStartTimeChange={setStartTime}
+            endTime={endTime}
+            onEndTimeChange={setEndTime}
+          />
+
           <div className="grid gap-2.5 sm:grid-cols-2">
             <Field label="Módulo" required>
               <select
