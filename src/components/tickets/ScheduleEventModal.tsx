@@ -222,6 +222,8 @@ export function ScheduleEventModal({
       operator: responsible,
       responsible,
       title: `${ticket.protocol} - ${ticket.subject}`,
+      ticketId: ticket.id,
+      protocol: ticket.protocol,
       client: clientLabel || undefined,
       description: description.trim() || undefined,
       guests: guests.map((guest) => guest.acronym ?? guest.name),
