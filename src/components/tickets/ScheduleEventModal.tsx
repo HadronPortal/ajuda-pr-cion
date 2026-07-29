@@ -133,7 +133,7 @@ export function ScheduleEventModal({
     setStartTime("");
     setEndTime("");
     setResponsible(ticket.owner || "");
-    setGuests("");
+    setGuests([]);
     setVehicleId(NO_VEHICLE);
     setModule(defaults.module);
     setSubmodule(defaults.submodule);
