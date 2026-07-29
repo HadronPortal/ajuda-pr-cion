@@ -148,11 +148,7 @@ function ForwardSpecialistModalContent({
   open,
   onOpenChange,
   ticket,
-}: {
-  open: boolean;
-  onOpenChange: (value: boolean) => void;
-  ticket: SupportTicket;
-}) {
+}: ForwardSpecialistModalProps) {
   const defaults = useMemo(() => splitModule(ticket.module), [ticket.module]);
   const [permission, setPermission] = useState("Clientes");
   const [priority, setPriority] = useState<TicketPriority>(ticket.priority);
