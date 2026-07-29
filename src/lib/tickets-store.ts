@@ -347,12 +347,16 @@ export const ticketsStore = {
       description: `Chamado assumido por ${op}.`,
     });
     emit();
-    persistUpdate(id, { owner: op, lockedBy: undefined }, {
-      kind: "assumed",
-      actor: op,
-      actorType: "suporte",
-      description: `Chamado assumido por ${op}.`,
-    });
+    persistUpdate(
+      id,
+      { owner: op, lockedBy: undefined },
+      {
+        kind: "assumed",
+        actor: op,
+        actorType: "suporte",
+        description: `Chamado assumido por ${op}.`,
+      },
+    );
   },
 
   attendTicket(id: string) {
@@ -370,12 +374,16 @@ export const ticketsStore = {
       description: `${op} iniciou atendimento.`,
     });
     emit();
-    persistUpdate(id, { owner: op, status: "Ocupado", lockedBy: op }, {
-      kind: "attend",
-      actor: op,
-      actorType: "suporte",
-      description: `${op} iniciou atendimento.`,
-    });
+    persistUpdate(
+      id,
+      { owner: op, status: "Ocupado", lockedBy: op },
+      {
+        kind: "attend",
+        actor: op,
+        actorType: "suporte",
+        description: `${op} iniciou atendimento.`,
+      },
+    );
   },
 
   updateTicketStatus(id: string, status: TicketStatus) {
@@ -389,12 +397,16 @@ export const ticketsStore = {
       description: `Status alterado para "${status}" por ${op}.`,
     });
     emit();
-    persistUpdate(id, { status }, {
-      kind: "status",
-      actor: op,
-      actorType: "suporte",
-      description: `Status alterado para "${status}" por ${op}.`,
-    });
+    persistUpdate(
+      id,
+      { status },
+      {
+        kind: "status",
+        actor: op,
+        actorType: "suporte",
+        description: `Status alterado para "${status}" por ${op}.`,
+      },
+    );
   },
 
   closeTicket(id: string, payload: ClosurePayload) {
@@ -408,12 +420,16 @@ export const ticketsStore = {
       description: `Chamado finalizado por ${op} — ${payload.type}. ${payload.solution}`.trim(),
     });
     emit();
-    persistUpdate(id, { status: "Finalizado", lockedBy: undefined }, {
-      kind: "closed",
-      actor: op,
-      actorType: "suporte",
-      description: `Chamado finalizado por ${op} — ${payload.type}. ${payload.solution}`.trim(),
-    });
+    persistUpdate(
+      id,
+      { status: "Finalizado", lockedBy: undefined },
+      {
+        kind: "closed",
+        actor: op,
+        actorType: "suporte",
+        description: `Chamado finalizado por ${op} — ${payload.type}. ${payload.solution}`.trim(),
+      },
+    );
   },
 
   addInternalNote(id: string, note: string) {
@@ -473,14 +489,18 @@ export const ticketsStore = {
     });
     updateTicket(id, { status: "Agendamento", owner: input.responsible });
     emit();
-    persistUpdate(id, { status: "Agendamento", owner: input.responsible }, {
-      kind: "scheduled",
-      actor: op,
-      actorType: "suporte",
-      description:
-        `Evento agendado para ${input.date}, das ${input.startTime} às ${input.endTime} — ${input.type}. ` +
-        `Responsável: ${input.responsible}. Módulo: ${input.module} / ${input.submodule}.`,
-    });
+    persistUpdate(
+      id,
+      { status: "Agendamento", owner: input.responsible },
+      {
+        kind: "scheduled",
+        actor: op,
+        actorType: "suporte",
+        description:
+          `Evento agendado para ${input.date}, das ${input.startTime} às ${input.endTime} — ${input.type}. ` +
+          `Responsável: ${input.responsible}. Módulo: ${input.module} / ${input.submodule}.`,
+      },
+    );
   },
 
   forwardToSpecialist(
@@ -493,6 +513,7 @@ export const ticketsStore = {
       type: string;
       module: string;
       submodule: string;
+      hadronOption: string;
       relatedArticles: string[];
       relatedForms: string[];
     },
@@ -511,21 +532,28 @@ export const ticketsStore = {
       description:
         `Encaminhado para a fila de especialistas — ${input.waitingArea}. ` +
         `Tipo: ${input.type}. Módulo: ${input.module} / ${input.submodule}. Permissão: ${input.permission}. ` +
+        (input.hadronOption ? `Opção Hádron: ${input.hadronOption}. ` : "") +
         (input.relatedArticles.length ? `Artigos: ${input.relatedArticles.join(", ")}. ` : "") +
-        (input.relatedForms.length ? `Opções/Formulários: ${input.relatedForms.join(", ")}. ` : "") +
+        (input.relatedForms.length
+          ? `Opções/Formulários: ${input.relatedForms.join(", ")}. `
+          : "") +
         `Mensagem: ${input.reason}`,
     });
     emit();
-    persistUpdate(id, {
-      status: "Com especialista",
-      priority: input.priority,
-      lockedBy: undefined,
-    }, {
-      kind: "forwarded",
-      actor: op,
-      actorType: "suporte",
-      description: `Encaminhado para especialistas — ${input.waitingArea}. ${input.reason}`,
-    });
+    persistUpdate(
+      id,
+      {
+        status: "Com especialista",
+        priority: input.priority,
+        lockedBy: undefined,
+      },
+      {
+        kind: "forwarded",
+        actor: op,
+        actorType: "suporte",
+        description: `Encaminhado para especialistas — ${input.waitingArea}. ${input.reason}`,
+      },
+    );
   },
 
   transferTicket(
@@ -561,23 +589,28 @@ export const ticketsStore = {
         `Prioridade: ${input.priority}. Permissão: ${input.permission}.` +
         (input.hadronOption ? ` Opção Hádron: ${input.hadronOption}.` : "") +
         (input.relatedArticles.length ? ` Artigos: ${input.relatedArticles.join(", ")}.` : "") +
-        (input.relatedForms.length ? ` Opções/Formulários: ${input.relatedForms.join(", ")}.` : "") +
+        (input.relatedForms.length
+          ? ` Opções/Formulários: ${input.relatedForms.join(", ")}.`
+          : "") +
         ` Mensagem: ${input.message}`,
     });
     emit();
-    persistUpdate(id, {
-      owner: nextOwner,
-      status: nextStatus,
-      priority: input.priority,
-      lockedBy: undefined,
-    }, {
-      kind: "forwarded",
-      actor: from,
-      actorType: "suporte",
-      description: `${input.type} — de ${from} para ${nextOwner}. ${input.message}`,
-    });
+    persistUpdate(
+      id,
+      {
+        owner: nextOwner,
+        status: nextStatus,
+        priority: input.priority,
+        lockedBy: undefined,
+      },
+      {
+        kind: "forwarded",
+        actor: from,
+        actorType: "suporte",
+        description: `${input.type} — de ${from} para ${nextOwner}. ${input.message}`,
+      },
+    );
   },
-
 
   addNote(id: string, note: string) {
     this.addInternalNote(id, note);
@@ -622,9 +655,7 @@ export function useTicketHistory(id: string | null | undefined): PastAttendance[
 export function getTicketsByClient(clientCode: string): SupportTicket[] {
   const code = clientCode.trim().toUpperCase();
   if (!code) return [];
-  return ticketsStore
-    .getTickets()
-    .filter((t) => t.clientCode.toUpperCase() === code);
+  return ticketsStore.getTickets().filter((t) => t.clientCode.toUpperCase() === code);
 }
 
 /** Converte um SupportTicket em PastAttendance para reuso da timeline. */
@@ -641,4 +672,3 @@ export function ticketToPastAttendance(t: SupportTicket): PastAttendance {
     description: t.subject,
   };
 }
-
