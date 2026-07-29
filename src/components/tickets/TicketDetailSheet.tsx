@@ -782,6 +782,27 @@ export function TicketDetailSheet({
         protocol={ticket.protocol}
       />
 
+      <Dialog open={descriptionOpen} onOpenChange={setDescriptionOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-sm">
+              Descrição original — {ticket.protocol}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="max-h-[60vh] overflow-y-auto">
+            <p className="whitespace-pre-wrap break-words text-[13px] leading-relaxed text-foreground">
+              {ticketDescription || "Descrição não informada"}
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" size="sm" onClick={() => setDescriptionOpen(false)}>
+              Fechar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+
       <TicketTimelineModal
         open={timelineOpen}
         onOpenChange={setTimelineOpen}
