@@ -290,6 +290,27 @@ export function TicketDetailSheet({
     ticketDescription,
     ticket?.descriptionSummary ?? null,
   );
+  const { clients: loadedClients } = useClients({ onlyActive: false });
+  // Resolve o cliente pela sigla real do chamado (ou da empresa/subempresa),
+  // nunca apenas por UUID/companyId — chamados importados podem não tê-los.
+  const clientSlug = useMemo(() => {
+    const candidates = [ticket?.clientCode, ticket?.clientName]
+      .map((v) => (typeof v === "string" ? v.trim().toLowerCase() : ""))
+      .filter(Boolean);
+    if (!candidates.length) return null;
+    const pool: Array<{ id: string; acronym: string }> = [
+      ...loadedClients,
+      ...clientRows,
+    ];
+    for (const code of candidates) {
+      const found = pool.find(
+        (c) => c.id?.toLowerCase() === code || c.acronym?.toLowerCase() === code,
+      );
+      if (found) return found.id;
+    }
+    return null;
+  }, [ticket?.clientCode, ticket?.clientName, loadedClients]);
+
 
 
 
