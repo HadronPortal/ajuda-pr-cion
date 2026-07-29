@@ -485,36 +485,8 @@ function QuickFiltersBar({
         </datalist>
       </div>
 
-      {/* Mês aplicado */}
-      {monthApplied && (
-        <div className="flex h-9 shrink-0 items-center gap-1 rounded-lg border border-primary/30 bg-primary/10 px-2 text-xs font-medium text-primary">
-          <span className="whitespace-nowrap capitalize">{monthLabel(monthApplied)}</span>
-          <button
-            type="button"
-            aria-label="Mês anterior"
-            onClick={() => setFilters((p) => ({ ...p, ...monthFilters(addMonths(monthApplied, -1)) , status: p.status, priority: p.priority, query: p.query, sigla: p.sigla, operator: p.operator, operatorType: p.operatorType, dateType: p.dateType }))}
-            className="cursor-pointer rounded px-1 hover:bg-primary/20"
-          >
-            ‹
-          </button>
-          <button
-            type="button"
-            aria-label="Próximo mês"
-            onClick={() => setFilters((p) => ({ ...p, ...monthFilters(addMonths(monthApplied, 1)), status: p.status, priority: p.priority, query: p.query, sigla: p.sigla, operator: p.operator, operatorType: p.operatorType, dateType: p.dateType }))}
-            className="cursor-pointer rounded px-1 hover:bg-primary/20"
-          >
-            ›
-          </button>
-          <button
-            type="button"
-            aria-label="Remover filtro de mês"
-            onClick={() => setFilters((p) => ({ ...p, dateStart: undefined, dateEnd: undefined }))}
-            className="cursor-pointer rounded px-1 hover:bg-primary/20"
-          >
-            ×
-          </button>
-        </div>
-      )}
+
+
 
       {/* Período */}
       <div className="min-w-[180px] flex-[1.4]">
