@@ -359,8 +359,9 @@ function HistoryView({ query }: { query: string }) {
             style={{ gridTemplateColumns: "160px 180px 120px 1fr 120px 140px" }}
           >
             <span className="tabular-nums text-muted-foreground">
-              {u.returnedAt ? new Date(u.returnedAt).toLocaleString("pt-BR") : "—"}
+              {formatFleetDateTime(u.returnedAt ?? getUsageDepartureRef(u))}
             </span>
+
             <span className="text-foreground">
               {vehicle ? `${vehicle.model} · ${vehicle.plate}` : "—"}
             </span>
