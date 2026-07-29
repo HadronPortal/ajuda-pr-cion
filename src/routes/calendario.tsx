@@ -421,6 +421,35 @@ function CalendarPage() {
     setSelectedDate(dateKey(next.getFullYear(), next.getMonth(), 1));
   };
 
+  const detailIsLocal = detailEvent ? isLocalEvent(detailEvent.id) : false;
+  const detailTone = detailEvent ? getEventTone(detailEvent) : null;
+
+  const handleCancelEvent = (event: CalendarEvent) => {
+    updateLocalEvent(event.id, { status: "Cancelado" });
+    cancelReservationByEvent(event.id);
+    setDetailEvent(null);
+    toast.success("Agendamento cancelado");
+  };
+
+  const handlePickupFromDetail = (event: CalendarEvent) => {
+    const usage =
+      getUsageByAppointment(event.id) ??
+      createUsageForAppointment({
+        appointmentId: event.id,
+        operatorId: event.responsible ?? event.operator,
+        vehicleId: event.vehicleId,
+        client: event.client,
+        destination: event.address
+          ? `${event.client ?? ""} — ${event.address}`.trim().replace(/^—\s+/, "")
+          : (event.client ?? event.title),
+        scheduledStartAt: `${event.date}T${event.time}:00`,
+        expectedReturnAt: `${event.date}T${event.end}:00`,
+      });
+    setDetailEvent(null);
+    fleetActions.openPickup(usage.id);
+  };
+
+
   return (
     <AppShell>
       <PageHeader
