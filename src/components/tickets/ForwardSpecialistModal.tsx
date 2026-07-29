@@ -358,7 +358,7 @@ export function ForwardSpecialistModal({
             posteriormente pelo backend.
           </p>
         </div>
-        <DialogFooter className="shrink-0 gap-2 border-t border-border bg-card px-5 py-3 sm:gap-2">
+        <DialogFooter className="shrink-0 gap-2 border-t border-border bg-card px-5 py-2.5 sm:gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)} className="cursor-pointer">
             Cancelar
           </Button>
@@ -394,7 +394,7 @@ function RelatedPicker({
   };
   return (
     <div>
-      <Label className="mb-1.5 block text-[12.5px] font-medium">{label}</Label>
+      <Label className="mb-1 block text-[12.5px] font-medium">{label}</Label>
       <div className="relative">
         <Search className="pointer-events-none absolute left-3 top-2.5 z-10 h-4 w-4 text-muted-foreground" />
         <Input
@@ -511,7 +511,7 @@ function Field({
 }) {
   return (
     <div>
-      <Label className="mb-1.5 block text-[12.5px] font-medium">
+      <Label className="mb-1 block text-[12.5px] font-medium">
         {label}
         {required && <span className="text-destructive"> *</span>}
       </Label>
