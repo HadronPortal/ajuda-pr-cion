@@ -51,3 +51,70 @@ export const TYPE_ICON: Record<EventType, typeof Car> = {
   "Reunião na Prócion": UsersRound,
   Pessoal: CalendarDays,
 };
+
+/** Tonalidade do evento derivada do status salvo + data/hora real. */
+export type EventTone = "done" | "cancelled" | "upcoming" | "other";
+
+export const EVENT_TONE_LABEL: Record<EventTone, string> = {
+  done: "Concluído",
+  cancelled: "Cancelado",
+  upcoming: "Agendado",
+  other: "Outros",
+};
+
+export const EVENT_TONE_STYLES: Record<
+  EventTone,
+  { dot: string; soft: string; text: string; solid: string }
+> = {
+  done: {
+    dot: "bg-emerald-500",
+    soft: "bg-emerald-500/12",
+    text: "text-emerald-700 dark:text-emerald-300",
+    solid: "bg-emerald-600 text-white dark:bg-emerald-500 dark:text-emerald-950",
+  },
+  cancelled: {
+    dot: "bg-rose-500",
+    soft: "bg-rose-500/12",
+    text: "text-rose-700 dark:text-rose-300",
+    solid: "bg-rose-600 text-white dark:bg-rose-500 dark:text-rose-950",
+  },
+  upcoming: {
+    dot: "bg-orange-500",
+    soft: "bg-orange-500/12",
+    text: "text-orange-700 dark:text-orange-300",
+    solid: "bg-orange-600 text-white dark:bg-orange-500 dark:text-orange-950",
+  },
+  other: {
+    dot: "bg-sky-500",
+    soft: "bg-sky-500/12",
+    text: "text-sky-700 dark:text-sky-300",
+    solid: "bg-sky-600 text-white dark:bg-sky-500 dark:text-sky-950",
+  },
+};
+
+/** Instante final (ou inicial) real do evento. */
+function eventInstant(event: Pick<CalendarEvent, "date" | "time" | "end">) {
+  const clock = (event.end || event.time || "00:00").slice(0, 5);
+  const parsed = new Date(`${event.date}T${clock}:00`);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+/**
+ * Regras de cor:
+ * - Concluído → verde; Cancelado → vermelho.
+ * - Agendado que ainda não aconteceu → laranja.
+ * - Demais casos (ex.: agendado com data/hora já passada) → azul.
+ * O status salvo sempre prevalece: data passada não conclui evento.
+ */
+export function getEventTone(
+  event: Pick<CalendarEvent, "date" | "time" | "end" | "status">,
+  now: Date = new Date(),
+): EventTone {
+  const status = event.status ?? "Agendado";
+  if (status === "Concluído") return "done";
+  if (status === "Cancelado") return "cancelled";
+  const instant = eventInstant(event);
+  if (status === "Agendado" && instant && instant.getTime() >= now.getTime()) return "upcoming";
+  return "other";
+}
+
