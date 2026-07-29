@@ -182,9 +182,16 @@ export function CollaboratorMultiSelect({
     onlyActive: !includeInactive,
   });
 
-  const options = includeInactive ? allCollaborators : collaborators;
-  const filtered = useFiltered(options, term);
   const selectedIds = useMemo(() => new Set(value.map((item) => item.id)), [value]);
+  // Somente ativos entram na lista; inativos já convidados permanecem visíveis.
+  const options = useMemo(() => {
+    const base = includeInactive ? allCollaborators : collaborators;
+    const extras = allCollaborators.filter(
+      (item) => selectedIds.has(item.id) && !base.some((row) => row.id === item.id),
+    );
+    return [...extras, ...base];
+  }, [includeInactive, allCollaborators, collaborators, selectedIds]);
+  const filtered = useFiltered(options, term);
 
   const toggle = (collaborator: Collaborator) => {
     if (selectedIds.has(collaborator.id)) {
