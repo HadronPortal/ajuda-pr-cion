@@ -23,6 +23,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import { EventDateTimeFields } from "@/components/calendar/EventDateTimeFields";
+import {
+  NO_VEHICLE,
+  VehicleAvailabilitySelect,
+} from "@/components/fleet/VehicleAvailabilitySelect";
+
 
 import { cn } from "@/lib/utils";
 import {
