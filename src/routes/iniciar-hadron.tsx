@@ -69,7 +69,7 @@ const options = [
   },
   {
     id: "1398",
-    title: "Emissao de Nota Fiscal Eletronica",
+    title: "Emissão de Nota Fiscal Eletrônica",
     description: "Validacoes e retorno da SEFAZ.",
     owner: "PRCJUL",
     priority: "Baixa",
@@ -87,11 +87,11 @@ const occurrences = [
     date: "18/07/2026",
   },
   {
-    type: "Configuracao",
+    type: "Configuração",
     option: "1116 - Cadastro de Operadores",
-    title: "Permissao de acesso ao financeiro",
+    title: "Permissão de acesso ao financeiro",
     owner: "PRCJUL",
-    state: "Em analise",
+    state: "Em análise",
     date: "17/07/2026",
   },
   {
@@ -103,7 +103,7 @@ const occurrences = [
     date: "16/07/2026",
   },
   {
-    type: "Solicitacao/Sugestao",
+    type: "Solicitação/Sugestão",
     option: "1243 - Complementos N.C.M.",
     title: "Novo filtro por classificacao",
     owner: "PRCGUI",
@@ -115,7 +115,7 @@ const occurrences = [
 const releases = [
   {
     version: "2.0.2026.07.18",
-    title: "Ajustes na emissao de NF-e",
+    title: "Ajustes na emissão de NF-e",
     module: "Vendas / NFE",
     owner: "PRCEDU",
     published: "18/07/2026",
@@ -228,7 +228,7 @@ function HadronPage() {
             {[
               ["visao-geral", "Visao geral", Rocket],
               ["opcoes", "Opcoes", ListChecks],
-              ["ocorrencias", "Ocorrencias", ClipboardCheck],
+              ["ocorrencias", "Ocorrências", ClipboardCheck],
               ["releases", "Releases", GitBranch],
               ["versoes", "Versões", History],
               ["artigos", "Artigos", BookOpenText],
@@ -350,7 +350,7 @@ function Overview({ onOpen }: { onOpen: (d: Detail) => void }) {
         <section className="rounded-lg border bg-card p-5 shadow-sm">
           <SectionTitle
             icon={UserRound}
-            title="Ocorrencias por operador"
+            title="Ocorrências por operador"
             subtitle="Distribuicao atual da fila Hadron."
           />
           <div className="mt-5 space-y-3">
@@ -406,7 +406,7 @@ function OccurrencesTable({ query, onOpen }: TableProps) {
   const rows = useFiltered(occurrences, query);
   return (
     <DataCard
-      title="Ocorrencias"
+      title="Ocorrências"
       subtitle="Fila geral, revisoes e solucoes registradas."
       headers={["Tipo", "Opção / formulário", "Ocorrência", "Operador", "Situação", "Data"]}
     >
@@ -454,7 +454,7 @@ function ReleasesTable({ query, onOpen }: TableProps) {
             onOpen({
               title: o.title,
               subtitle: `Release ${o.version}`,
-              body: "Pacote de atualizacao com correcoes, melhorias e orientacoes de implantacao.",
+              body: "Pacote de atualização com correções, melhorias e orientações de implantação.",
               meta: [
                 `Módulo: ${o.module}`,
                 `Responsável: ${o.owner}`,
@@ -536,7 +536,7 @@ function ArticlesTable({ query, onOpen }: TableProps) {
             onOpen({
               title: o.title,
               subtitle: `${o.category} - Opção ${o.option}`,
-              body: "Conteudo tecnico com orientacoes de configuracao, validacao e resolucao do processo no Hadron.",
+              body: "Conteúdo técnico com orientações de configuração, validação e resolução do processo no Hádron.",
               meta: [
                 `Autor: ${o.author}`,
                 `Atualizado: ${o.updated}`,

@@ -19,7 +19,7 @@ const defaultTemplates: KanbanCardTemplate[] = [
   {
     id: "template-bug-fiscal",
     name: "Erro fiscal",
-    title: "Erro na emissao de documento fiscal",
+    title: "Erro na emissão de documento fiscal",
     summary: "Validar rejeicao, ambiente, XML e retorno da SEFAZ.",
     description: "Descreva a mensagem apresentada, o documento afetado e os passos para reproduzir.",
     module: "NF-e / SPED",
@@ -58,8 +58,8 @@ const defaultTemplates: KanbanCardTemplate[] = [
     type: "Melhoria",
     tags: ["melhoria"],
     checklist: [
-      { id: "tpl-melh-1", text: "Mapear comportamento atual", done: false, checklistTitle: "Analise" },
-      { id: "tpl-melh-2", text: "Definir criterio de aceite", done: false, checklistTitle: "Analise" },
+      { id: "tpl-melh-1", text: "Mapear comportamento atual", done: false, checklistTitle: "Análise" },
+      { id: "tpl-melh-2", text: "Definir critério de aceite", done: false, checklistTitle: "Análise" },
     ],
   },
 ];

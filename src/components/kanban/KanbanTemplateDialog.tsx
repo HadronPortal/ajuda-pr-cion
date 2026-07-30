@@ -79,7 +79,7 @@ export function KanbanTemplateDialog({ open, onOpenChange, onUse }: Props) {
 
         {creating ? (
           <div className="grid gap-4 py-2 sm:grid-cols-2">
-            <div className="space-y-2"><Label>Nome do template</Label><Input value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} placeholder="Ex.: Erro de emissao fiscal" /></div>
+            <div className="space-y-2"><Label>Nome do template</Label><Input value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} placeholder="Ex.: Erro de emissão fiscal" /></div>
             <div className="space-y-2"><Label>Título inicial</Label><Input value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} placeholder="Título exibido no novo cartão" /></div>
             <div className="space-y-2"><Label>Módulo</Label><Select value={draft.module} onValueChange={(module) => setDraft({ ...draft, module })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{kanbanModules.map((module) => <SelectItem key={module} value={module}>{module}</SelectItem>)}</SelectContent></Select></div>
             <div className="grid grid-cols-2 gap-3">

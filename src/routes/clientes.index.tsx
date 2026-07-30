@@ -2566,7 +2566,7 @@ export function HadronTab() {
         <div className="grid gap-5 md:grid-cols-3">
           <Field label="Serial" value="AVC - 00000000415 - 19723520" />
           <Field label="Responsável" value="PRCCRIS / PRCCRIS" />
-          <Field label="Tempo de instalacao" value="8 horas" />
+          <Field label="Tempo de instalação" value="8 horas" />
           <Field label="Rede" value="5 terminais · Cabo" />
           <Field label="Boleto bancário" value="Não" />
           <Field label="Homologação conjunta NF-e" value="Não" />
@@ -2630,7 +2630,7 @@ export function UsersTab() {
   return (
     <Section title="Usuários do portal" icon={UsersRound}>
       <DataTable
-        headers={["Nome", "E-mail", "Operador", "Perfil", "Status", "Cadastro / atualizacao"]}
+        headers={["Nome", "E-mail", "Operador", "Perfil", "Status", "Cadastro / atualização"]}
         rows={[
           [
             "MAURO",
