@@ -92,7 +92,16 @@ export function useClients(options?: { onlyActive?: boolean }): UseClientsState 
 export function matchClient(client: ClientRow, query: string): boolean {
   const q = query.trim().toLowerCase();
   if (!q) return true;
-  return [client.acronym, client.fantasia, client.razaoSocial, client.name, client.cnpj, client.city]
+  return [
+    client.acronym,
+    client.fantasia,
+    client.razaoSocial,
+    client.name,
+    client.cnpj,
+    (client.cnpj ?? "").replace(/\D/g, ""),
+    client.group,
+    client.city,
+  ]
     .filter(Boolean)
     .join(" ")
     .toLowerCase()

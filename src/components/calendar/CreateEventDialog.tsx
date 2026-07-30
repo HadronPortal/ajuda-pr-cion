@@ -34,6 +34,14 @@ import {
   type CollaboratorGuest,
 } from "@/components/portal/CollaboratorPicker";
 import { useCollaborators } from "@/lib/collaborators-store";
+import { ClientPicker } from "@/components/portal/ClientPicker";
+import {
+  getClientById,
+  getGroupMembers,
+  resolveGroupCode,
+  useClients,
+} from "@/lib/clients-store";
+import type { ClientRow } from "@/routes/clientes.index";
 import {
   PLATFORM_OPTIONS,
   ROOM_OPTIONS,
@@ -65,6 +73,7 @@ export function CreateEventDialog({
   editingEvent?: CalendarEvent;
 }) {
   const { collaborators } = useCollaborators();
+  const { clients } = useClients({ onlyActive: true });
   const defaultResponsible = collaborators[0]?.acronym ?? "";
   const [type, setType] = useState<EventType>(editingEvent?.type ?? "Visita presencial");
   const [title, setTitle] = useState(editingEvent?.title ?? "");
@@ -75,7 +84,9 @@ export function CreateEventDialog({
   const [date, setDate] = useState(editingEvent?.date ?? initialDate);
   const [startTime, setStartTime] = useState(editingEvent?.time ?? "09:00");
   const [endTime, setEndTime] = useState(editingEvent?.end ?? "10:00");
-  const [client, setClient] = useState(editingEvent?.client ?? "");
+  const [client, setClient] = useState<ClientRow | null>(
+    editingEvent?.clientId ? getClientById(editingEvent.clientId) : null,
+  );
   const [vehicleId, setVehicleId] = useState(editingEvent?.vehicleId ?? NO_VEHICLE);
 
   const [responsible, setResponsible] = useState(
@@ -94,12 +105,27 @@ export function CreateEventDialog({
     if (!responsible && defaultResponsible) setResponsible(defaultResponsible);
   }, [responsible, defaultResponsible]);
 
+  // Resolve o cliente do evento em edição assim que a lista do CRM estiver carregada.
+  useEffect(() => {
+    if (client || !editingEvent?.clientId || clients.length === 0) return;
+    const found = getClientById(editingEvent.clientId);
+    if (found) setClient(found);
+  }, [client, editingEvent?.clientId, clients.length]);
+
+  // Empresas do mesmo grupo do cliente selecionado (quando aplicável).
+  const groupCompanies = useMemo(() => {
+    if (!client) return [] as ClientRow[];
+    const code = resolveGroupCode(client, clients);
+    if (!code) return [] as ClientRow[];
+    return getGroupMembers(code, clients).filter((c) => c.id !== client.id);
+  }, [client, clients]);
+
 
   const reset = () => {
     setType("Visita presencial"); setTitle(""); setDescription("");
     setGuests([]);
     setStartTime("09:00"); setEndTime("10:00");
-    setClient(""); setVehicleId(NO_VEHICLE);
+    setClient(null); setVehicleId(NO_VEHICLE);
     setResponsible(defaultResponsible);
     setMeetingLink(""); setPlatform(PLATFORM_OPTIONS[0]);
     setRoom(ROOM_OPTIONS[0]); setIsPrivate(false);
@@ -126,10 +152,10 @@ export function CreateEventDialog({
       title: title.trim(),
       client: lockedClient
         ? lockedClient.label
-        : type === "Visita presencial"
-          ? (client.trim() || undefined)
+        : type === "Visita presencial" && client
+          ? (client.fantasia || client.name || client.razaoSocial || client.acronym)
           : undefined,
-      clientId: lockedClient?.id,
+      clientId: lockedClient?.id ?? (type === "Visita presencial" ? client?.id : undefined),
       description: description.trim() || undefined,
       guests: guests.length ? guests.map((g) => g.acronym ?? g.name) : undefined,
       guestList: guests.length ? guests : undefined,
@@ -236,8 +262,34 @@ export function CreateEventDialog({
           {type === "Visita presencial" && (
             <div className="grid gap-3 sm:grid-cols-2">
               {!lockedClient && (
-                <NewField label="Cliente">
-                  <Input value={client} onChange={(e) => setClient(e.target.value)} placeholder="Sigla ou razão social" />
+                <NewField label="Cliente" className="sm:col-span-2">
+                  <ClientPicker
+                    compact
+                    label=""
+                    value={client}
+                    onSelect={setClient}
+                    placeholder="Buscar por sigla, razão social, fantasia, CNPJ ou grupo..."
+                  />
+                  {groupCompanies.length > 0 && (
+                    <div className="mt-2 rounded-md border border-border bg-background/40 p-2">
+                      <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                        Empresas do grupo {resolveGroupCode(client, clients)}
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {groupCompanies.map((company) => (
+                          <button
+                            key={company.id}
+                            type="button"
+                            onClick={() => setClient(company)}
+                            className="cursor-pointer rounded-full border border-input bg-background px-2.5 py-1 text-[11.5px] text-foreground transition hover:border-primary/40 hover:bg-accent"
+                          >
+                            <span className="font-mono text-muted-foreground">{company.acronym}</span>{" "}
+                            {company.fantasia || company.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </NewField>
               )}
               <NewField label="Responsável">
