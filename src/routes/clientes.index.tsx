@@ -3938,17 +3938,15 @@ export function ClientInternetTab({
       </Section>
 
       <Dialog open={configOpen} onOpenChange={setConfigOpen}>
-        <DialogContent className="max-h-[92vh] max-w-6xl overflow-y-auto p-0">
-          <DialogHeader className="border-b border-border bg-muted/30 px-6 py-5">
-            <DialogTitle className="flex items-center gap-3 text-xl">
-              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground">
-                <HadronMenuIcon className="h-6 w-6" />
-              </span>
-              <span className="min-w-0 truncate">
-                {client.acronym} - {client.razaoSocial || client.name}
-              </span>
-            </DialogTitle>
-          </DialogHeader>
+        <DialogContent className="max-h-[92vh] max-w-6xl gap-0 overflow-y-auto p-0 [&>button]:hidden">
+          <DialogTitle className="sr-only">Configuração do Hádron Web</DialogTitle>
+          <DetailModalHeader
+            icon={HadronMenuIcon}
+            title={client.razaoSocial || client.name}
+            protocol={client.acronym}
+            onClose={() => setConfigOpen(false)}
+          />
+
 
           <div className="space-y-6 px-6 pb-7">
             <div>
