@@ -341,14 +341,33 @@ export function CompanyLeadsTab() {
     [visibleColumns],
   );
 
+  const cellTitle = (column: ColumnDefinition, lead: CompanyLead) => {
+    switch (column.key) {
+      case "company":
+        return [lead.trade_name, lead.legal_name].filter(Boolean).join(" — ");
+      case "address":
+        return lead.address || undefined;
+      case "cnae_description":
+        return lead.cnae_description || undefined;
+      case "legal_nature":
+        return lead.legal_nature || undefined;
+      case "email":
+        return lead.email || undefined;
+      case "source":
+        return lead.source;
+      default:
+        return undefined;
+    }
+  };
+
   const renderCell = (column: ColumnDefinition, lead: CompanyLead) => {
     switch (column.key) {
       case "company":
         return (
           <>
-            <div className="font-medium">{lead.trade_name || lead.legal_name}</div>
+            <div className="truncate font-medium">{lead.trade_name || lead.legal_name}</div>
             {lead.trade_name && (
-              <div className="mt-0.5 text-xs text-muted-foreground">{lead.legal_name}</div>
+              <div className="truncate text-xs text-muted-foreground">{lead.legal_name}</div>
             )}
           </>
         );
@@ -356,36 +375,35 @@ export function CompanyLeadsTab() {
         return <span className="whitespace-nowrap">{formatCnpj(lead.cnpj)}</span>;
       case "opened_at":
         return (
-          <div className="whitespace-nowrap">
-            <div className="inline-flex items-center gap-1.5">
-              <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
-              {formatDate(lead.opened_at)}
-            </div>
+          <div className="inline-flex items-center gap-1.5 whitespace-nowrap">
+            <CalendarDays className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            {formatDate(lead.opened_at)}
           </div>
         );
       case "registration_status":
-        return <span className="text-emerald-600">{lead.registration_status}</span>;
+        return <span className="whitespace-nowrap text-emerald-600">{lead.registration_status}</span>;
       case "city":
         return (
           <div className="inline-flex items-center gap-1.5 whitespace-nowrap">
-            <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
+            <MapPin className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
             {lead.city} - {lead.state}
           </div>
         );
       case "address":
-        return <span className="text-muted-foreground">{lead.address || "—"}</span>;
+        return <div className="truncate text-xs text-muted-foreground">{lead.address || "—"}</div>;
       case "cnae":
         return <span className="whitespace-nowrap">{lead.cnae_code || "—"}</span>;
       case "cnae_description":
-        return <span>{lead.cnae_description || "—"}</span>;
+        return <div className="truncate text-xs">{lead.cnae_description || "—"}</div>;
       case "company_size":
         return <span className="whitespace-nowrap">{lead.company_size || "—"}</span>;
       case "legal_nature":
-        return <span>{lead.legal_nature || "—"}</span>;
+        return <div className="truncate text-xs">{lead.legal_nature || "—"}</div>;
       case "phone":
         return <span className="whitespace-nowrap">{formatPhone(lead.phone)}</span>;
       case "email":
-        return <span className="lowercase">{lead.email?.toLowerCase() || "—"}</span>;
+        return <div className="truncate lowercase">{lead.email?.toLowerCase() || "—"}</div>;
+
       case "mei":
         return lead.mei ? (
           <Badge className="bg-primary/10 text-primary">MEI</Badge>
