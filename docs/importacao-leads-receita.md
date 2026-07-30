@@ -32,9 +32,17 @@ Para validar os arquivos e contar os registros sem gravar:
 npm run import:company-leads -- --dry-run
 ```
 
-Quando o repositório oficial oferecer novamente listagem direta de arquivos,
-também é possível usar `CNPJ_BASE_URL` e `CNPJ_COMPETENCE`. Os downloads ficam
-em `.cache/cnpj` e são reaproveitados nas execuções seguintes.
+Sem `CNPJ_SOURCE_DIR`, o importador consulta o espelho público da Casa dos Dados,
+descobre automaticamente a competência mais recente e baixa os arquivos
+necessários. Os downloads ficam em `.cache/cnpj` e são reaproveitados nas
+execuções seguintes:
+
+```powershell
+npm run import:company-leads
+```
+
+Para fixar uma competência específica, defina `CNPJ_COMPETENCE` no formato
+`AAAA-MM-DD`.
 
 ## Regras
 

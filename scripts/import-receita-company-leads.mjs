@@ -9,8 +9,10 @@ import { TARGET_CITY_NAMES, TARGET_CITIES, normalizeCity } from "./company-leads
 
 const DATABASE_URL = process.env.DATABASE_URL;
 const SOURCE_DIR = process.env.CNPJ_SOURCE_DIR ? path.resolve(process.env.CNPJ_SOURCE_DIR) : null;
-const BASE_URL = (process.env.CNPJ_BASE_URL || "").replace(/\/$/, "");
-const COMPETENCE = process.env.CNPJ_COMPETENCE || "";
+const BASE_URL = (
+  process.env.CNPJ_BASE_URL || "https://dados-abertos-rf-cnpj.casadosdados.com.br/arquivos"
+).replace(/\/$/, "");
+let competence = process.env.CNPJ_COMPETENCE || "";
 const CACHE_DIR = path.resolve(process.env.CNPJ_CACHE_DIR || ".cache/cnpj");
 const BATCH_SIZE = Math.max(100, Number(process.env.CNPJ_IMPORT_BATCH || 1000));
 const DRY_RUN = process.argv.includes("--dry-run");
@@ -18,12 +20,6 @@ const DRY_RUN = process.argv.includes("--dry-run");
 if (!DATABASE_URL && !DRY_RUN) {
   throw new Error("Defina DATABASE_URL ou execute com --dry-run.");
 }
-if (!SOURCE_DIR && !(BASE_URL && COMPETENCE)) {
-  throw new Error(
-    "Defina CNPJ_SOURCE_DIR com os ZIPs da Receita ou CNPJ_BASE_URL e CNPJ_COMPETENCE.",
-  );
-}
-
 const normalize = (value) => String(value ?? "").trim();
 const nullable = (value) => normalize(value) || null;
 const digits = (value) => normalize(value).replace(/\D/g, "");
@@ -71,21 +67,48 @@ async function listZipFiles(directory) {
 async function download(url, destination) {
   if (fs.existsSync(destination)) return destination;
   await fs.promises.mkdir(path.dirname(destination), { recursive: true });
-  const response = await fetch(url, { signal: AbortSignal.timeout(120_000) });
+  const partial = `${destination}.part`;
+  const downloadedBytes = fs.existsSync(partial) ? fs.statSync(partial).size : 0;
+  const response = await fetch(url, {
+    headers: downloadedBytes ? { range: `bytes=${downloadedBytes}-` } : undefined,
+    signal: AbortSignal.timeout(7_200_000),
+  });
+  if (response.status === 416 && downloadedBytes) {
+    await fs.promises.rename(partial, destination);
+    return destination;
+  }
   if (!response.ok || !response.body) {
     throw new Error(`Falha ao baixar ${url}: HTTP ${response.status}.`);
   }
-  const partial = `${destination}.part`;
-  await pipeline(Readable.fromWeb(response.body), fs.createWriteStream(partial));
+  const canResume = downloadedBytes > 0 && response.status === 206;
+  await pipeline(
+    Readable.fromWeb(response.body),
+    fs.createWriteStream(partial, { flags: canResume ? "a" : "w" }),
+  );
   await fs.promises.rename(partial, destination);
   return destination;
 }
 
 async function remoteFiles() {
-  const directoryUrl = `${BASE_URL}/${COMPETENCE}/`;
+  if (!competence) {
+    const rootResponse = await fetch(`${BASE_URL}/`, {
+      signal: AbortSignal.timeout(30_000),
+    });
+    if (!rootResponse.ok) {
+      throw new Error(`Não foi possível consultar as competências: HTTP ${rootResponse.status}.`);
+    }
+    const rootHtml = await rootResponse.text();
+    const available = [...rootHtml.matchAll(/href=["'](\d{4}-\d{2}-\d{2})\/?["']/gi)]
+      .map((match) => match[1])
+      .sort();
+    competence = available.at(-1) || "";
+    if (!competence) throw new Error("Nenhuma competência foi encontrada no repositório.");
+  }
+
+  const directoryUrl = `${BASE_URL}/${competence}/`;
   const response = await fetch(directoryUrl, { signal: AbortSignal.timeout(30_000) });
   if (!response.ok) {
-    throw new Error(`A competência ${COMPETENCE} não está acessível: HTTP ${response.status}.`);
+    throw new Error(`A competência ${competence} não está acessível: HTTP ${response.status}.`);
   }
   const html = await response.text();
   const names = [...html.matchAll(/href=["']([^"']+\.zip)["']/gi)]
@@ -95,11 +118,17 @@ async function remoteFiles() {
   const wanted = names.filter((name) =>
     /(Estabelecimentos|Empresas|Municipios|Cnaes|Naturezas|Simples)/i.test(name),
   );
-  return Promise.all(
-    wanted.map((name) =>
-      download(new URL(name, directoryUrl).toString(), path.join(CACHE_DIR, COMPETENCE, name)),
-    ),
-  );
+  const downloaded = [];
+  for (const [index, name] of wanted.entries()) {
+    console.log(`Baixando arquivo ${index + 1}/${wanted.length}: ${name}`);
+    downloaded.push(
+      await download(
+        new URL(name, directoryUrl).toString(),
+        path.join(CACHE_DIR, competence, name),
+      ),
+    );
+  }
+  return downloaded;
 }
 
 async function sourceFiles() {
@@ -229,7 +258,7 @@ async function upsertBatch(client, rows) {
 }
 
 const files = await sourceFiles();
-console.log(`Fonte: ${SOURCE_DIR || `${BASE_URL}/${COMPETENCE}`}`);
+console.log(`Fonte: ${SOURCE_DIR || `${BASE_URL}/${competence}`}`);
 console.log(`Municípios-alvo: ${TARGET_CITIES.length}`);
 
 const municipalityLookup = await loadLookup(files.municipalities);
@@ -326,7 +355,7 @@ const leads = establishments.flatMap((establishment) => {
     mei: taxOptions.mei,
     phone: establishment.phone || null,
     email: establishment.email,
-    competence: COMPETENCE || null,
+    competence: competence || null,
   };
   const lead = {
     cnpj: establishment.cnpj,
