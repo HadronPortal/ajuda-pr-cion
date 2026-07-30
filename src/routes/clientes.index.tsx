@@ -2461,7 +2461,9 @@ function SupportRowsCompact({
               </li>
             ))}
           </ul>
+          </div>
         </DialogContent>
+
       </Dialog>
     </>
   );
