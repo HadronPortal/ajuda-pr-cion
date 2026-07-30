@@ -1,7 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Building2,
   CalendarDays,
+  ChevronLeft,
+  ChevronRight,
   ExternalLink,
   LoaderCircle,
   MapPin,
@@ -30,6 +32,8 @@ const initialFilters: CompanyLeadFilters = {
   limit: 50,
 };
 
+const PAGE_SIZE = 50;
+
 const stageLabels: Record<CompanyLeadStage, string> = {
   novo: "Novo",
   em_analise: "Em análise",
@@ -57,46 +61,32 @@ const formatDate = (value: string | null) => {
 export function CompanyLeadsTab() {
   const [filters, setFilters] = useState(initialFilters);
   const [leads, setLeads] = useState<CompanyLead[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [searching, setSearching] = useState(false);
-  const providerConfigured = true;
-
-  const loadCached = async () => {
-    setLoading(true);
-    try {
-      const result = await companyLeadsApi.list(filters);
-      setLeads(result.leads);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Não foi possível carregar os leads.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    void loadCached();
-    // A carga inicial deve acontecer apenas ao abrir a aba.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const searchLeads = async () => {
-    if (!providerConfigured) {
-      toast.info("O coletor externo de CNPJ ainda não está configurado no servidor.");
-      return;
-    }
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(0);
+  const searchLeads = async (nextPage = 0) => {
     if (!filters.city.trim() || filters.state.trim().length !== 2) {
       toast.error("Informe a cidade e uma UF válida.");
       return;
     }
     setSearching(true);
+    setLoading(true);
     try {
-      const result = await companyLeadsApi.list(filters);
+      const result = await companyLeadsApi.list({
+        ...filters,
+        limit: PAGE_SIZE,
+        offset: nextPage * PAGE_SIZE,
+      });
       setLeads(result.leads);
-      toast.success(`${result.leads.length} lead(s) encontrado(s).`);
+      setTotal(result.total);
+      setPage(nextPage);
+      toast.success(`${result.total} lead(s) encontrado(s).`);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Falha ao procurar empresas.");
     } finally {
       setSearching(false);
+      setLoading(false);
     }
   };
 
@@ -165,13 +155,9 @@ export function CompanyLeadsTab() {
           />
         </label>
         <Button
-          onClick={searchLeads}
-          disabled={searching || !providerConfigured}
-          title={
-            providerConfigured
-              ? "Procurar empresas"
-              : "Configure o coletor externo no servidor para pesquisar"
-          }
+          onClick={() => void searchLeads(0)}
+          disabled={searching}
+          title="Procurar empresas"
           className="h-9 gap-2"
         >
           {searching ? (
@@ -179,24 +165,19 @@ export function CompanyLeadsTab() {
           ) : (
             <Search className="h-4 w-4" />
           )}
-          {providerConfigured ? "Procurar empresas" : "Coletor não configurado"}
+          Procurar empresas
         </Button>
       </div>
 
       <div className="flex flex-wrap items-center gap-4 border-y border-border py-3 text-sm">
         <span className="inline-flex items-center gap-2">
           <Building2 className="h-4 w-4 text-primary" />
-          <strong>{leads.length}</strong> leads encontrados
+          <strong>{total}</strong> leads encontrados
         </span>
         <span className="inline-flex items-center gap-2">
           <Target className="h-4 w-4 text-emerald-600" />
           <strong>{qualified}</strong> qualificados
         </span>
-        {!providerConfigured && (
-          <span className="text-xs text-amber-700 dark:text-amber-300">
-            Coleta externa aguardando configuração no servidor.
-          </span>
-        )}
       </div>
 
       <Card className="overflow-hidden p-0">
@@ -297,6 +278,38 @@ export function CompanyLeadsTab() {
           </table>
         </div>
       </Card>
+      {total > 0 && (
+        <div className="flex items-center justify-between text-sm text-muted-foreground">
+          <span>
+            Mostrando {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, total)} de {total}
+          </span>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              disabled={searching || page === 0}
+              onClick={() => void searchLeads(page - 1)}
+              title="Página anterior"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <span className="min-w-20 text-center">
+              Página {page + 1} de {Math.ceil(total / PAGE_SIZE)}
+            </span>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              disabled={searching || (page + 1) * PAGE_SIZE >= total}
+              onClick={() => void searchLeads(page + 1)}
+              title="Próxima página"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

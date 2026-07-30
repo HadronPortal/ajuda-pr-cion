@@ -28,6 +28,7 @@ export type CompanyLeadFilters = {
   cnae: string;
   companySize: string;
   limit?: number;
+  offset?: number;
 };
 
 type LeadsResponse = {
@@ -35,6 +36,7 @@ type LeadsResponse = {
   collected: number;
   providerConfigured: boolean;
   source: string;
+  total: number;
 };
 
 function openedAfter(days: number) {
@@ -42,20 +44,29 @@ function openedAfter(days: number) {
 }
 
 async function listFromDatabase(filters: CompanyLeadFilters): Promise<LeadsResponse> {
-  const { data, error } = await supabase.rpc("company_leads_list", {
+  const parameters = {
     p_city: filters.city || null,
     p_state: filters.state || null,
     p_opened_after: filters.openedWithinDays ? openedAfter(filters.openedWithinDays) : null,
     p_cnae: filters.cnae || null,
     p_company_size: filters.companySize || null,
-    p_limit: filters.limit || 50,
-  });
-  if (error) throw error;
+  };
+  const [listResult, countResult] = await Promise.all([
+    supabase.rpc("company_leads_list", {
+      ...parameters,
+      p_limit: filters.limit || 50,
+      p_offset: filters.offset || 0,
+    }),
+    supabase.rpc("company_leads_count", parameters),
+  ]);
+  if (listResult.error) throw listResult.error;
+  if (countResult.error) throw countResult.error;
   return {
-    leads: (data || []) as CompanyLead[],
+    leads: (listResult.data || []) as CompanyLead[],
     collected: 0,
     providerConfigured: false,
     source: "Dados públicos do CNPJ/Receita Federal",
+    total: Number(countResult.data || 0),
   };
 }
 
