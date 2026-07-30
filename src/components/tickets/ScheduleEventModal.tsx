@@ -42,8 +42,6 @@ export function ScheduleEventModal({
   onOpenChange: (value: boolean) => void;
   ticket: SupportTicket;
 }) {
-  const vehicles = useVehicles();
-  useReservations(); // re-render on reservation changes
   const defaults = useMemo(() => splitModule(ticket.module), [ticket.module]);
   const [type, setType] = useState(EVENT_TYPES[1]);
   const [date, setDate] = useState("");
@@ -58,35 +56,13 @@ export function ScheduleEventModal({
   const [reminder, setReminder] = useState(true);
 
   const availableSubs = modulesMap[module] ?? [];
-  const windowStart = combineDateTime(date, startTime);
-  const windowEnd = combineDateTime(date, endTime);
-  const windowValid = !!(windowStart && windowEnd && windowEnd > windowStart);
+  const {
+    vehicles,
+    availability: vehicleAvailability,
+    windowStart,
+    windowEnd,
+  } = useVehicleAvailability(date, startTime, endTime);
 
-  const vehicleAvailability = useMemo(() => {
-    const map = new Map<string, VehicleAvailability>();
-    for (const v of vehicles) {
-      map.set(
-        v.id,
-        evaluateVehicle(v, windowValid ? windowStart : null, windowValid ? windowEnd : null),
-      );
-    }
-    return map;
-  }, [vehicles, windowStart, windowEnd, windowValid]);
-
-  useEffect(() => {
-    // Se o veículo escolhido virou incompatível (conflito ou indisponível), limpa.
-    if (vehicleId === NO_VEHICLE) return;
-    const info = vehicleAvailability.get(vehicleId);
-    if (!info) return;
-    if (
-      info.key === "em_uso" ||
-      info.key === "indisponivel" ||
-      (info.key === "pre_agendado" && info.conflict)
-    ) {
-      setVehicleId(NO_VEHICLE);
-      toast.info("Veículo indisponível no período selecionado. Escolha outro.");
-    }
-  }, [vehicleAvailability, vehicleId]);
 
   const changeModule = (value: string) => {
     setModule(value);
