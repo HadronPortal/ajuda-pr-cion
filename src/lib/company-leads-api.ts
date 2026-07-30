@@ -12,8 +12,16 @@ export type CompanyLead = {
   cnae_code: string | null;
   cnae_description: string | null;
   company_size: string | null;
+  legal_nature: string | null;
   city: string;
   state: string;
+  address: string | null;
+  neighborhood: string | null;
+  postal_code: string | null;
+  phone: string | null;
+  email: string | null;
+  mei: boolean;
+  simples: boolean;
   relevance_score: number;
   stage: CompanyLeadStage;
   source: string;
@@ -21,57 +29,92 @@ export type CompanyLead = {
   discovered_at: string;
 };
 
+export type CompanyLeadSort =
+  | "company"
+  | "cnpj"
+  | "opened_at"
+  | "registration_status"
+  | "city"
+  | "cnae"
+  | "company_size"
+  | "phone"
+  | "score"
+  | "stage";
+
 export type CompanyLeadFilters = {
   city: string;
   state: string;
   openedWithinDays: number;
   cnae: string;
   companySize: string;
-  limit?: number;
-  offset?: number;
+  registrationStatus?: string;
+  stage?: string;
+  minScore?: string;
+  openedFrom?: string;
+  openedTo?: string;
+  hasPhone?: boolean;
+  hasEmail?: boolean;
+  onlyMei?: boolean;
+  onlySimples?: boolean;
+};
+
+export type CompanyLeadsQuery = {
+  filters: CompanyLeadFilters;
+  sort: CompanyLeadSort;
+  direction: "asc" | "desc";
+  limit: number;
+  offset: number;
 };
 
 type LeadsResponse = {
   leads: CompanyLead[];
-  collected: number;
-  providerConfigured: boolean;
-  source: string;
   total: number;
+  source: string;
 };
 
-function openedAfter(days: number) {
+function daysAgo(days: number) {
   return new Date(Date.now() - days * 86400000).toISOString().slice(0, 10);
 }
 
-async function listFromDatabase(filters: CompanyLeadFilters): Promise<LeadsResponse> {
-  const parameters = {
-    p_city: filters.city || null,
-    p_state: filters.state || null,
-    p_opened_after: filters.openedWithinDays ? openedAfter(filters.openedWithinDays) : null,
-    p_cnae: filters.cnae || null,
-    p_company_size: filters.companySize || null,
-  };
-  const [listResult, countResult] = await Promise.all([
-    supabase.rpc("company_leads_list", {
-      ...parameters,
-      p_limit: filters.limit || 50,
-      p_offset: filters.offset || 0,
-    }),
-    supabase.rpc("company_leads_count", parameters),
-  ]);
-  if (listResult.error) throw listResult.error;
-  if (countResult.error) throw countResult.error;
+function buildFilterPayload(filters: CompanyLeadFilters) {
+  const openedFrom =
+    filters.openedFrom?.trim() ||
+    (filters.openedWithinDays ? daysAgo(filters.openedWithinDays) : "");
+
   return {
-    leads: (listResult.data || []) as CompanyLead[],
-    collected: 0,
-    providerConfigured: false,
-    source: "Dados públicos do CNPJ/Receita Federal",
-    total: Number(countResult.data || 0),
+    city: filters.city.trim(),
+    state: filters.state.trim().toUpperCase(),
+    openedFrom: openedFrom || null,
+    openedTo: filters.openedTo?.trim() || null,
+    cnae: filters.cnae?.trim() || null,
+    companySize: filters.companySize?.trim() || null,
+    registrationStatus: filters.registrationStatus?.trim() || null,
+    stage: filters.stage?.trim() || null,
+    minScore: filters.minScore?.toString().trim() || null,
+    hasPhone: Boolean(filters.hasPhone),
+    hasEmail: Boolean(filters.hasEmail),
+    onlyMei: Boolean(filters.onlyMei),
+    onlySimples: Boolean(filters.onlySimples),
   };
 }
 
 export const companyLeadsApi = {
-  list: listFromDatabase,
+  async list(query: CompanyLeadsQuery): Promise<LeadsResponse> {
+    const { data, error } = await supabase.rpc("company_leads_search", {
+      p_filters: buildFilterPayload(query.filters),
+      p_sort: query.sort,
+      p_direction: query.direction,
+      p_limit: query.limit,
+      p_offset: query.offset,
+    });
+    if (error) throw error;
+    const payload = (data || {}) as { rows?: CompanyLead[]; total?: number };
+    return {
+      leads: payload.rows || [],
+      total: Number(payload.total || 0),
+      source: "Dados públicos do CNPJ/Receita Federal",
+    };
+  },
 
   async updateStage(id: string, stage: CompanyLeadStage) {
     const { error } = await supabase.rpc("company_leads_update_stage", {
