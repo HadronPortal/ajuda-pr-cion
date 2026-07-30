@@ -7,7 +7,6 @@ import {
   Laptop,
   Link2,
   Lock,
-  MapPin,
   X,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -20,7 +19,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Switch } from "@/components/ui/switch";
 import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import { EventDateTimeFields } from "@/components/calendar/EventDateTimeFields";
 import {
