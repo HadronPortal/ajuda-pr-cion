@@ -2209,7 +2209,9 @@ function RecentActivityCard({
                   </li>
                 ))}
               </ul>
+              </div>
             </DialogContent>
+
           </Dialog>
         </>
       ) : (
