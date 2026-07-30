@@ -730,12 +730,20 @@ export function CompanyLeadsTab() {
       </div>
 
       <Card className="overflow-hidden p-0">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[980px] text-sm">
+        <div className="hide-scrollbar overflow-x-auto">
+          <table
+            className={cn(
+              "w-full min-w-[980px] table-auto",
+              columns.length > 10 ? "text-[13px]" : "text-sm",
+            )}
+          >
             <thead className="bg-muted/35 text-left text-xs uppercase text-muted-foreground">
               <tr>
                 {columns.map((column) => (
-                  <th key={column.key} className="px-4 py-3 font-medium">
+                  <th
+                    key={column.key}
+                    className={cn("px-2.5 py-2 font-medium whitespace-nowrap", column.className)}
+                  >
                     {column.sort ? (
                       <button
                         type="button"
@@ -759,7 +767,7 @@ export function CompanyLeadsTab() {
                     )}
                   </th>
                 ))}
-                <th className="w-12 px-4 py-3">
+                <th className="w-10 px-2.5 py-2">
                   <span className="sr-only">Fonte</span>
                 </th>
               </tr>
@@ -769,11 +777,16 @@ export function CompanyLeadsTab() {
                 leads.map((lead) => (
                   <tr key={lead.id} className="hover:bg-primary/[0.03]">
                     {columns.map((column) => (
-                      <td key={column.key} className="px-4 py-3 align-top">
+                      <td
+                        key={column.key}
+                        title={cellTitle(column, lead)}
+                        className={cn("px-2.5 py-1.5 align-middle", column.className)}
+                      >
                         {renderCell(column, lead)}
                       </td>
                     ))}
-                    <td className="px-4 py-3">
+                    <td className="px-2.5 py-1.5">
+
                       {lead.source_url && (
                         <a
                           href={lead.source_url}
