@@ -46,10 +46,7 @@ const scoreTone = (score: number) =>
       : "bg-muted text-muted-foreground";
 
 const formatCnpj = (value: string) =>
-  value.replace(
-    /^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,
-    "$1.$2.$3/$4-$5",
-  );
+  value.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
 
 const formatDate = (value: string | null) => {
   if (!value) return "Não informada";
@@ -62,14 +59,13 @@ export function CompanyLeadsTab() {
   const [leads, setLeads] = useState<CompanyLead[]>([]);
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
-  const [providerConfigured, setProviderConfigured] = useState(true);
+  const providerConfigured = true;
 
   const loadCached = async () => {
     setLoading(true);
     try {
       const result = await companyLeadsApi.list(filters);
       setLeads(result.leads);
-      setProviderConfigured(result.providerConfigured);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Não foi possível carregar os leads.");
     } finally {
@@ -94,18 +90,9 @@ export function CompanyLeadsTab() {
     }
     setSearching(true);
     try {
-      const result = await companyLeadsApi.search(filters);
+      const result = await companyLeadsApi.list(filters);
       setLeads(result.leads);
-      setProviderConfigured(result.providerConfigured);
-      if (!result.providerConfigured) {
-        toast.info("A fonte externa ainda não foi configurada; exibindo leads já coletados.");
-      } else {
-        toast.success(
-          result.collected
-            ? `${result.collected} empresa(s) nova(s) encontrada(s).`
-            : "Consulta concluída sem novos CNPJs.",
-        );
-      }
+      toast.success(`${result.leads.length} lead(s) encontrado(s).`);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Falha ao procurar empresas.");
     } finally {
@@ -223,7 +210,9 @@ export function CompanyLeadsTab() {
                 <th className="px-4 py-3 font-medium">CNAE / porte</th>
                 <th className="px-4 py-3 font-medium">Score</th>
                 <th className="px-4 py-3 font-medium">Etapa</th>
-                <th className="w-12 px-4 py-3"><span className="sr-only">Fonte</span></th>
+                <th className="w-12 px-4 py-3">
+                  <span className="sr-only">Fonte</span>
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -240,9 +229,7 @@ export function CompanyLeadsTab() {
                       <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
                       {formatDate(lead.opened_at)}
                     </div>
-                    <div className="mt-1 text-xs text-emerald-600">
-                      {lead.registration_status}
-                    </div>
+                    <div className="mt-1 text-xs text-emerald-600">{lead.registration_status}</div>
                   </td>
                   <td className="px-4 py-3">
                     <div className="inline-flex items-center gap-1.5">
