@@ -997,15 +997,17 @@ function KanbanPage() {
       </Dialog>
 
       <Dialog open={!!archiveTarget} onOpenChange={(open) => !open && setArchiveTarget(null)}>
-        <DialogContent className="sm:max-w-[440px]">
-          <DialogHeader>
-            <DialogTitle>Arquivar todos os cartões?</DialogTitle>
-            <DialogDescription>
-              Todos os cartões de {archiveTarget ? `"${archiveTarget.title}"` : "esta lista"} serão
-              removidos do quadro e continuarão disponíveis no arquivo para restauração.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
+        <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-[440px] [&>button]:hidden">
+          <DialogTitle className="sr-only">Arquivar todos os cartões</DialogTitle>
+          <DetailModalHeader
+            icon={ArchiveIcon}
+            title="Arquivar todos os cartões?"
+            protocol={archiveTarget?.title}
+            meta="Os cartões serão removidos do quadro e continuarão disponíveis no arquivo para restauração."
+            onClose={() => setArchiveTarget(null)}
+          />
+          <DialogFooter className="border-t border-border bg-card px-5 py-3">
+
             <Button variant="outline" className="cursor-pointer" onClick={() => setArchiveTarget(null)}>
               Cancelar
             </Button>
