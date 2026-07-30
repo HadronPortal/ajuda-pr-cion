@@ -267,43 +267,15 @@ export function ScheduleEventModal({
             </Field>
             {type === "Visita" && (
               <Field label="Veículo">
-                <div className="relative">
-                  <Car className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <select
-                    value={vehicleId}
-                    onChange={(e) => setVehicleId(e.target.value)}
-                    className={`${selectClass} pl-8`}
-                  >
-                    <option value={NO_VEHICLE}>Não definido</option>
-                    {vehicles.map((vehicle) => {
-                      const info = vehicleAvailability.get(vehicle.id);
-                      const label = info?.label ?? VEHICLE_STATUS_LABEL[vehicle.status];
-                      const disabled =
-                        info?.key === "em_uso" ||
-                        info?.key === "indisponivel" ||
-                        (info?.key === "pre_agendado" && info.conflict === true);
-                      return (
-                        <option key={vehicle.id} value={vehicle.id} disabled={disabled}>
-                          {vehicle.model} · {vehicle.plate} — {label}
-                          {disabled ? " (indisponível)" : ""}
-                        </option>
-                      );
-                    })}
-                  </select>
-                </div>
-                {vehicleId !== NO_VEHICLE &&
-                  (() => {
-                    const info = vehicleAvailability.get(vehicleId);
-                    if (info?.key === "pre_agendado" && info.conflict) {
-                      return (
-                        <p className="mt-1 text-[11px] text-destructive">
-                          Conflito com outra pré-reserva no período informado.
-                        </p>
-                      );
-                    }
-                    return null;
-                  })()}
+                <VehicleAvailabilitySelect
+                  date={date}
+                  startTime={startTime}
+                  endTime={endTime}
+                  value={vehicleId}
+                  onChange={setVehicleId}
+                />
               </Field>
+
             )}
           </div>
           <Field label="Observações">
