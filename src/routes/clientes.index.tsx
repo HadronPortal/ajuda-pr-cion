@@ -1838,20 +1838,16 @@ function AllContactsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[85vh] w-full max-w-3xl flex-col gap-0 overflow-hidden bg-card p-0">
-        <DialogHeader className="border-b border-border p-5 text-left">
-          <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-md bg-primary/10 text-primary">
-              <UsersRound className="h-5 w-5" />
-            </span>
-            <div className="min-w-0">
-              <DialogTitle className="text-base font-medium">Contatos</DialogTitle>
-              <p className="truncate text-xs text-muted-foreground">
-                {client.acronym} · {client.fantasia || client.razaoSocial || client.name}
-              </p>
-            </div>
-          </div>
-        </DialogHeader>
+      <DialogContent className="flex max-h-[85vh] w-full max-w-3xl flex-col gap-0 overflow-hidden bg-card p-0 [&>button]:hidden">
+        <DialogTitle className="sr-only">Contatos</DialogTitle>
+        <DetailModalHeader
+          icon={UsersRound}
+          title="Contatos"
+          protocol={client.acronym}
+          meta={client.fantasia || client.razaoSocial || client.name}
+          onClose={() => onOpenChange(false)}
+        />
+
 
         <div className="flex flex-col gap-3 border-b border-border px-5 py-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="inline-flex rounded-lg border border-border bg-muted/40 p-0.5 text-xs">
