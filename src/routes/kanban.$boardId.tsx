@@ -14,14 +14,14 @@ import {
   type DragStartEvent,
   type DragOverEvent,
 } from "@dnd-kit/core";
+import { Columns3, Trash2 as TrashIcon, Archive as ArchiveIcon } from "lucide-react";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import { Input } from "@/components/ui/input";
 import {
   ArrowLeft,
