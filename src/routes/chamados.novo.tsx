@@ -572,6 +572,10 @@ function NewTicketPage() {
               <div className="space-y-3">
                 <Field label="Assunto" required>
                   <Input
+                    lang="pt-BR"
+                    spellCheck
+                    autoCorrect="on"
+                    autoCapitalize="sentences"
                     value={form.subject}
                     onChange={(e) =>
                       setForm((prev) => ({ ...prev, subject: e.target.value }))

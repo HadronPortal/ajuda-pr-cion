@@ -747,7 +747,7 @@ function exportHistory(vehicle: Vehicle, usages: VehicleUsage[]) {
   const header = [
     "Data",
     "Saida",
-    "Devolucao",
+    "Devolução",
     "Operador",
     "Cliente",
     "Destino",

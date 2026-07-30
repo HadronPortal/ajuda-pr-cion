@@ -49,7 +49,7 @@ export function KanbanTemplateDialog({ open, onOpenChange, onUse }: Props) {
 
   const createTemplate = () => {
     if (!draft.name.trim() || !draft.title.trim()) {
-      toast.error("Informe o nome do modelo e o titulo do cartao.");
+      toast.error("Informe o nome do modelo e o título do cartão.");
       return;
     }
     const next = [
@@ -74,20 +74,20 @@ export function KanbanTemplateDialog({ open, onOpenChange, onUse }: Props) {
           <DialogTitle className="flex items-center gap-2 text-lg font-semibold">
             <FileStack className="h-5 w-5 text-primary" /> Templates de cartoes
           </DialogTitle>
-          <DialogDescription>Padronize demandas recorrentes sem prender cliente, responsavel ou prazo.</DialogDescription>
+          <DialogDescription>Padronize demandas recorrentes sem prender cliente, responsável ou prazo.</DialogDescription>
         </DialogHeader>
 
         {creating ? (
           <div className="grid gap-4 py-2 sm:grid-cols-2">
-            <div className="space-y-2"><Label>Nome do template</Label><Input value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} placeholder="Ex.: Erro de emissao fiscal" /></div>
-            <div className="space-y-2"><Label>Titulo inicial</Label><Input value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} placeholder="Titulo exibido no novo cartao" /></div>
-            <div className="space-y-2"><Label>Modulo</Label><Select value={draft.module} onValueChange={(module) => setDraft({ ...draft, module })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{kanbanModules.map((module) => <SelectItem key={module} value={module}>{module}</SelectItem>)}</SelectContent></Select></div>
+            <div className="space-y-2"><Label>Nome do template</Label><Input value={draft.name} onChange={(e) => setDraft({ ...draft, name: e.target.value })} placeholder="Ex.: Erro de emissão fiscal" /></div>
+            <div className="space-y-2"><Label>Título inicial</Label><Input value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} placeholder="Título exibido no novo cartão" /></div>
+            <div className="space-y-2"><Label>Módulo</Label><Select value={draft.module} onValueChange={(module) => setDraft({ ...draft, module })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{kanbanModules.map((module) => <SelectItem key={module} value={module}>{module}</SelectItem>)}</SelectContent></Select></div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2"><Label>Prioridade</Label><Select value={draft.priority} onValueChange={(priority) => setDraft({ ...draft, priority: priority as KanbanCard["priority"] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{priorities.map((priority) => <SelectItem key={priority} value={priority}>{priority}</SelectItem>)}</SelectContent></Select></div>
               <div className="space-y-2"><Label>Tipo</Label><Select value={draft.type} onValueChange={(type) => setDraft({ ...draft, type: type as KanbanCard["type"] })}><SelectTrigger><SelectValue /></SelectTrigger><SelectContent>{cardTypes.map((type) => <SelectItem key={type} value={type}>{type}</SelectItem>)}</SelectContent></Select></div>
             </div>
             <div className="space-y-2 sm:col-span-2"><Label>Resumo</Label><Input value={draft.summary} onChange={(e) => setDraft({ ...draft, summary: e.target.value })} placeholder="Contexto curto para orientar o preenchimento" /></div>
-            <div className="space-y-2 sm:col-span-2"><Label>Descricao orientativa</Label><Textarea value={draft.description} onChange={(e) => setDraft({ ...draft, description: e.target.value })} placeholder="O que deve ser informado neste tipo de demanda" /></div>
+            <div className="space-y-2 sm:col-span-2"><Label>Descrição orientativa</Label><Textarea value={draft.description} onChange={(e) => setDraft({ ...draft, description: e.target.value })} placeholder="O que deve ser informado neste tipo de demanda" /></div>
             <div className="space-y-2 sm:col-span-2"><Label>Etiquetas</Label><Input value={draft.tags.join(", ")} onChange={(e) => setDraft({ ...draft, tags: e.target.value.split(",") })} placeholder="fiscal, nf-e, urgente" /></div>
             <div className="flex justify-end gap-2 sm:col-span-2"><Button variant="outline" onClick={() => setCreating(false)}>Cancelar</Button><Button onClick={createTemplate}>Salvar template</Button></div>
           </div>

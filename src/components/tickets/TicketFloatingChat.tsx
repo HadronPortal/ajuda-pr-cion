@@ -474,6 +474,10 @@ function Composer({
         <Paperclip className="h-4 w-4" />
       </button>
       <textarea
+        lang="pt-BR"
+        spellCheck
+        autoCorrect="on"
+        autoCapitalize="sentences"
         value={draft}
         onChange={(e) => setDraft(e.target.value)}
         onKeyDown={(e) => {

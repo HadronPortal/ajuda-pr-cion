@@ -525,6 +525,10 @@ export function KanbanCardDrawer({
                 Título do cartão <span className="text-destructive">*</span>
               </Label>
               <Input
+                lang="pt-BR"
+                spellCheck
+                autoCorrect="on"
+                autoCapitalize="sentences"
                 id="kanban-card-title"
                 value={draft.title}
                 onChange={(e) => update("title", e.target.value)}
