@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ChangeEvent } from "react";
 import { supabase } from "@/lib/supabase";
 import { correctWord } from "@/lib/ptbr-dictionary";
 
@@ -101,7 +101,7 @@ export type SpellCorrectionState = {
    * Deve ser chamado a cada digitação. Quando o evento é informado, aplica a
    * correção instantânea da palavra recém-fechada preservando o cursor.
    */
-  notifyTyping: (event?: React.ChangeEvent<Field> | Field | null) => void;
+  notifyTyping: (event?: ChangeEvent<Field> | Field | null) => void;
 };
 
 /** Tempo (ms) que a indicação de "corrigido" permanece visível. */
@@ -167,12 +167,12 @@ export function useSpellCorrection({
   }, [enabled, flashHint, onChange]);
 
   const notifyTyping = useCallback(
-    (input?: React.ChangeEvent<Field> | Field | null) => {
+    (input?: ChangeEvent<Field> | Field | null) => {
       if (!enabled) return;
 
       // 1) Correção instantânea da palavra recém-fechada.
       const el = input
-        ? ((input as React.ChangeEvent<Field>).target ?? (input as Field))
+        ? ((input as ChangeEvent<Field>).target ?? (input as Field))
         : null;
       if (el && typeof el.selectionStart === "number") {
         const caret = el.selectionStart;
