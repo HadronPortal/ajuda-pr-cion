@@ -774,8 +774,12 @@ function NewTicketPage() {
                 />
                 <PreviewItem
                   icon={UserRound}
-                  label="Operador"
-                  value={operatorObj ? operatorObj.code : "-"}
+                  label="Responsável"
+                  value={
+                    selectedOwner
+                      ? `${selectedOwner.acronym ?? ""}${selectedOwner.acronym ? " · " : ""}${selectedOwner.name}`
+                      : operatorObj?.code || "-"
+                  }
                 />
                 <PreviewItem icon={FileText} label="Tipo" value={form.type} />
                 <PreviewItem icon={Phone} label="Origem" value={form.source} />
