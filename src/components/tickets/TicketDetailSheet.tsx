@@ -1617,58 +1617,6 @@ function sideItemClasses(highlight: boolean) {
   );
 }
 
-function SideItem({
-  icon: Icon,
-  label,
-  collapsed,
-  onClick,
-  active,
-  className,
-  nowrap,
-  disabled,
-  title,
-}: {
-  icon: IconComponent;
-  label: string;
-  collapsed: boolean;
-  onClick: () => void;
-  active?: boolean;
-  className?: string;
-  nowrap?: boolean;
-  disabled?: boolean;
-  title?: string;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      title={title ?? (collapsed ? label : undefined)}
-      aria-label={label}
-      aria-pressed={!!active}
-      className={cn(
-        sideItemClasses(!!active),
-        collapsed && "md:justify-center md:px-0",
-        disabled && "cursor-not-allowed opacity-50 hover:bg-transparent",
-        className,
-      )}
-    >
-      <Icon
-        className={cn(
-          "h-5 w-5 shrink-0 transition-colors group-hover:text-primary",
-          active ? "text-primary-foreground" : "text-slate-500 dark:text-slate-300",
-        )}
-        strokeWidth={2.35}
-      />
-      <span
-        className={cn(collapsed && "md:hidden", nowrap ? "min-w-0 whitespace-nowrap" : "truncate")}
-        style={nowrap ? { overflow: "visible", textOverflow: "clip" } : undefined}
-      >
-        {label}
-      </span>
-    </button>
-  );
-}
 
 function MobileAction({
   icon: Icon,
@@ -1712,47 +1660,6 @@ function MobileAction({
   );
 }
 
-function TicketTimelineInline({ events }: { events: TicketEvent[] }) {
-  if (events.length === 0) {
-    return (
-      <div className="rounded-xl border border-border bg-card px-3 py-6 text-center text-[12px] text-muted-foreground">
-        Nenhum evento registrado ainda.
-      </div>
-    );
-  }
-  return (
-    <ol className="relative space-y-3 rounded-xl border border-border bg-card px-3 py-3">
-      {events.map((ev, i) => {
-        const Icon = timelineIcon[ev.kind];
-        const isLast = i === events.length - 1;
-        return (
-          <li key={ev.id} className="relative flex gap-3">
-            <div className="flex flex-col items-center">
-              <span
-                className={cn(
-                  "grid h-8 w-8 shrink-0 place-items-center rounded-full",
-                  timelineTone[ev.kind],
-                )}
-              >
-                <Icon className="h-4 w-4" />
-              </span>
-              {!isLast && <span className="mt-1 w-px flex-1 bg-border" aria-hidden />}
-            </div>
-            <div className="min-w-0 flex-1 pb-2">
-              <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                <span className="text-[12.5px] font-medium text-foreground">{ev.actor}</span>
-                <span className="text-[11px] text-muted-foreground">{formatDateTime(ev.when)}</span>
-              </div>
-              <p className="mt-0.5 text-[12.5px] leading-relaxed text-muted-foreground">
-                {ev.description}
-              </p>
-            </div>
-          </li>
-        );
-      })}
-    </ol>
-  );
-}
 
 function TicketPastAttendancesSidePanel({
   ticket,
