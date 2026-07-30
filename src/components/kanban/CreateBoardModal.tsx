@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { createKanbanBoard } from "@/lib/kanban-api";
+import { SmartTextarea } from "@/components/ui/smart-text";
 
 const COLORS: { id: string; className: string; label: string }[] = [
   { id: "blue", className: "from-sky-500 to-blue-600", label: "Azul" },
@@ -106,10 +107,10 @@ export function CreateBoardModal({
           </div>
           <div className="grid gap-2">
             <Label htmlFor="board-desc">Descrição</Label>
-            <Textarea
+            <SmartTextarea
               id="board-desc"
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onValueChange={setDescription}
               placeholder="Descrição curta"
               rows={3}
             />

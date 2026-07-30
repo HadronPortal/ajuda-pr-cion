@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { updateKanbanBoard, type BoardSummary } from "@/lib/kanban-api";
+import { SmartTextarea } from "@/components/ui/smart-text";
 
 const COLORS = [
   { id: "blue", className: "from-sky-500 to-blue-600" },
@@ -97,10 +98,10 @@ export function EditBoardModal({
           </div>
           <div className="grid gap-2">
             <Label htmlFor="edit-board-desc">Descrição</Label>
-            <Textarea
+            <SmartTextarea
               id="edit-board-desc"
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onValueChange={setDescription}
               rows={3}
             />
           </div>
