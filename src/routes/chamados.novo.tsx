@@ -201,9 +201,23 @@ function NewTicketPage() {
   }, []);
 
   const submodules = modulesMap[form.module] ?? [];
-  // Somente colaboradores ativos (sem rescisão) podem ser escolhidos como operador.
-  const operatorAcronyms = useOperatorAcronyms();
+  // Somente colaboradores ativos (sem rescisão) podem ser escolhidos como responsável.
+  const { collaborators: activeCollaborators } = useCollaborators();
+  const selectedOwner = findCollaborator(activeCollaborators, form.operator);
   const operatorObj = form.operator ? { code: form.operator } : null;
+
+  // Pré-seleciona o operador autenticado, quando ele estiver ativo.
+  useEffect(() => {
+    if (form.operator || activeCollaborators.length === 0) return;
+    const me = findCollaborator(activeCollaborators, currentUser.operator);
+    if (me) {
+      setForm((prev) =>
+        prev.operator
+          ? prev
+          : { ...prev, operator: me.acronym ?? me.name, operatorId: me.id },
+      );
+    }
+  }, [activeCollaborators, form.operator]);
   const selectedCompany = companies.find((c) => c.id === form.companyId) ?? null;
 
   useEffect(() => {
