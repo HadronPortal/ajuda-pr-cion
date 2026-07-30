@@ -109,7 +109,7 @@ export function ScheduleEventModal({
         return;
       }
       const info = vehicleAvailability.get(vehicleId);
-      if (info && (info.key === "em_uso" || info.key === "indisponivel")) {
+      if (isUnavailable(info)) {
         toast.error("Veículo indisponível para reserva.");
         return;
       }
