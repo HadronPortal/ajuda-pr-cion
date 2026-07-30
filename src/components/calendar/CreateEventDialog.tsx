@@ -203,7 +203,7 @@ export function CreateEventDialog({
 
         <div className="flex-1 min-h-0 space-y-4 overflow-y-auto bg-card px-5 py-4 md:px-6">
           <NewField label="Título" required>
-            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Informe o título do agendamento" maxLength={140} />
+            <Input lang="pt-BR" spellCheck autoCorrect="on" autoCapitalize="sentences" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Informe o título do agendamento" maxLength={140} />
           </NewField>
 
           <NewField label="Descrição">
