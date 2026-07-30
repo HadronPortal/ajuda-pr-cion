@@ -96,7 +96,7 @@ export function CreateEventDialog({
     setType("Visita presencial"); setTitle(""); setDescription("");
     setGuests([]);
     setStartTime("09:00"); setEndTime("10:00");
-    setClient(""); setNeedsDisplacement(false); setAddress("");
+    setClient(""); setVehicleId(NO_VEHICLE);
     setResponsible(defaultResponsible);
     setMeetingLink(""); setPlatform(PLATFORM_OPTIONS[0]);
     setRoom(ROOM_OPTIONS[0]); setIsPrivate(false);
