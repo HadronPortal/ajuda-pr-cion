@@ -2181,10 +2181,15 @@ function RecentActivityCard({
             </Button>
           )}
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogContent className="max-h-[80vh] max-w-2xl overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Atividade recente</DialogTitle>
-              </DialogHeader>
+            <DialogContent className="max-h-[80vh] max-w-2xl gap-0 overflow-y-auto p-0 [&>button]:hidden">
+              <DialogTitle className="sr-only">Atividade recente</DialogTitle>
+              <DetailModalHeader
+                icon={History}
+                title="Atividade recente"
+                onClose={() => setDialogOpen(false)}
+              />
+              <div className="px-5 py-4">
+
               <ul className="space-y-3">
                 {items.map((item) => (
                   <li
