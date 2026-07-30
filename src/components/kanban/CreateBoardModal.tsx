@@ -85,17 +85,20 @@ export function CreateBoardModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="sm:max-w-lg"
+        className="gap-0 overflow-hidden p-0 sm:max-w-lg [&>button]:hidden"
         onInteractOutside={(e) => e.preventDefault()}
       >
-        <DialogHeader>
-          <DialogTitle>Criar quadro</DialogTitle>
-          <DialogDescription>
-            Organize suas demandas em um novo quadro Kanban.
-          </DialogDescription>
-        </DialogHeader>
+        <DialogTitle className="sr-only">Criar quadro</DialogTitle>
 
-        <div className="grid gap-4">
+        <DetailModalHeader
+          icon={LayoutGrid}
+          title="Criar quadro"
+          meta="Organize suas demandas em um novo quadro Kanban."
+          onClose={() => onOpenChange(false)}
+        />
+
+        <div className="grid gap-4 px-5 py-4">
+
           <div className="grid gap-2">
             <Label htmlFor="board-name">Nome</Label>
             <Input
