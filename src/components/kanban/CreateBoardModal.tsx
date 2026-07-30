@@ -157,7 +157,7 @@ export function CreateBoardModal({
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="border-t border-border bg-card px-5 py-3">
           <Button
             variant="outline"
             className="cursor-pointer"
