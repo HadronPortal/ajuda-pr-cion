@@ -73,10 +73,8 @@ export function CreateEventDialog({
   const [startTime, setStartTime] = useState(editingEvent?.time ?? "09:00");
   const [endTime, setEndTime] = useState(editingEvent?.end ?? "10:00");
   const [client, setClient] = useState(editingEvent?.client ?? "");
-  const [needsDisplacement, setNeedsDisplacement] = useState(
-    editingEvent?.needsDisplacement ?? false,
-  );
-  const [address, setAddress] = useState(editingEvent?.address ?? "");
+  const [vehicleId, setVehicleId] = useState(editingEvent?.vehicleId ?? NO_VEHICLE);
+
   const [responsible, setResponsible] = useState(
     editingEvent?.responsible ?? editingEvent?.operator ?? "",
   );
