@@ -126,18 +126,21 @@ export function ManageMembersModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="sm:max-w-2xl"
+        className="gap-0 overflow-hidden p-0 sm:max-w-2xl [&>button]:hidden"
         onInteractOutside={(e) => e.preventDefault()}
       >
-        <DialogHeader>
-          <DialogTitle>Gerenciar membros</DialogTitle>
-          <DialogDescription>
-            Adicione, remova ou altere a função dos membros do quadro{" "}
-            <strong>{boardName}</strong>.
-          </DialogDescription>
-        </DialogHeader>
+        <DialogTitle className="sr-only">Gerenciar membros</DialogTitle>
 
-        <div className="grid gap-5">
+        <DetailModalHeader
+          icon={Users}
+          title="Gerenciar membros"
+          protocol={boardName}
+          meta="Adicione, remova ou altere a função dos membros do quadro."
+          onClose={() => onOpenChange(false)}
+        />
+
+        <div className="grid gap-5 px-5 py-4">
+
           <div>
             <div className="relative">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
