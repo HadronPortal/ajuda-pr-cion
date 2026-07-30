@@ -111,6 +111,8 @@ export function KanbanTemplateDialog({ open, onOpenChange, onUse }: Props) {
             <Button variant="outline" className="w-full border-dashed" onClick={() => { setDraft(blankTemplate()); setCreating(true); }}><Plus className="mr-2 h-4 w-4" />Criar novo template</Button>
           </>
         )}
+        </div>
+
       </DialogContent>
     </Dialog>
   );
