@@ -49,16 +49,33 @@ export function addLocalEvent(event: Omit<CalendarEvent, "id"> & { id?: string |
       ? `${created.client ?? created.title} - ${created.address}`
       : (created.client ?? created.title);
 
+    const scheduledStartAt = `${created.date}T${created.time}:00`;
+    const expectedReturnAt = `${created.date}T${created.end}:00`;
+
     createUsageForAppointment({
       appointmentId: created.id,
       operatorId: created.responsible ?? created.operator,
       vehicleId: created.vehicleId,
       client: created.client,
       destination,
-      scheduledStartAt: `${created.date}T${created.time}:00`,
-      expectedReturnAt: `${created.date}T${created.end}:00`,
+      scheduledStartAt,
+      expectedReturnAt,
     });
+
+    // Pré-reserva na Frota usando a data/horário reais do evento (nunca a data de criação).
+    if (created.vehicleId) {
+      createReservation({
+        vehicleId: created.vehicleId,
+        operatorId: created.responsible ?? created.operator ?? "",
+        startAt: scheduledStartAt,
+        endAt: expectedReturnAt,
+        eventId: created.id,
+        customerId: created.clientId,
+        destination,
+      });
+    }
   }
+
 
   return created;
 }
