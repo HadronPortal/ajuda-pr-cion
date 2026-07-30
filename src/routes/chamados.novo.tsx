@@ -18,7 +18,9 @@ import {
 import { toast } from "sonner";
 import { AppShell, PageHeader } from "@/components/portal/AppShell";
 import { ClientPicker } from "@/components/portal/ClientPicker";
-import { useOperatorAcronyms } from "@/lib/collaborators-store";
+import { CollaboratorSelect } from "@/components/portal/CollaboratorPicker";
+import { findCollaborator, useCollaborators } from "@/lib/collaborators-store";
+import { currentUser } from "@/lib/mock-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
