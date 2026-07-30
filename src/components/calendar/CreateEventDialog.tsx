@@ -239,23 +239,18 @@ export function CreateEventDialog({
               <NewField label="Responsável">
                 <CollaboratorSelect value={responsible} onChange={setResponsible} />
               </NewField>
-              <NewField label="Endereço" className="sm:col-span-2">
-                <div className="relative">
-                  <MapPin className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input className="pl-8" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Rua, número, cidade" />
-                </div>
+              <NewField label="Veículo" className={lockedClient ? undefined : "sm:col-span-2"}>
+                <VehicleAvailabilitySelect
+                  date={date}
+                  startTime={startTime}
+                  endTime={endTime}
+                  value={vehicleId}
+                  onChange={setVehicleId}
+                />
               </NewField>
-              <div className="sm:col-span-2 flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/25 px-3 py-2.5">
-                <div className="min-w-0">
-                  <p className="text-[13px] font-medium">Deslocamento necessário</p>
-                  <p className="mt-0.5 text-[12px] text-muted-foreground">
-                    Ative para reservar um veículo da frota. A retirada é feita na Frota ou na Agenda do dia.
-                  </p>
-                </div>
-                <Switch checked={needsDisplacement} onCheckedChange={setNeedsDisplacement} className="cursor-pointer" />
-              </div>
             </div>
           )}
+
 
           {type === "Reunião remota" && (
             <div className="grid gap-3 sm:grid-cols-2">
