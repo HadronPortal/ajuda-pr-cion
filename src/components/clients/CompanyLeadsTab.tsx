@@ -341,7 +341,9 @@ export function CompanyLeadsTab() {
         return (
           <>
             <div className="font-medium">{lead.trade_name || lead.legal_name}</div>
-            <div className="mt-0.5 text-xs text-muted-foreground">{lead.legal_name}</div>
+            {lead.trade_name && (
+              <div className="mt-0.5 text-xs text-muted-foreground">{lead.legal_name}</div>
+            )}
           </>
         );
       case "cnpj":
