@@ -279,7 +279,9 @@ function NewTicketPage() {
     !form.emailValue.trim() ||
     !form.phoneValue.trim() ||
     !form.subject.trim() ||
-    !form.description.trim();
+    !form.description.trim() ||
+    // Responsável válido é obrigatório: precisa ser um colaborador ativo.
+    !selectedOwner;
 
   const handleClientSelect = (c: ClientRow) => {
     setClient(c);
