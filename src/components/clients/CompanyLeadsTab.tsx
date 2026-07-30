@@ -23,7 +23,7 @@ import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ScrollArea } from "@/components/ui/scroll-area";
+
 import { Separator } from "@/components/ui/separator";
 import {
   companyLeadsApi,
@@ -89,24 +89,30 @@ type ColumnDefinition = {
 };
 
 const columnDefinitions: ColumnDefinition[] = [
-  { key: "company", label: "Empresa", sort: "company" },
-  { key: "cnpj", label: "CNPJ", sort: "cnpj" },
-  { key: "opened_at", label: "Data de abertura", sort: "opened_at" },
-  { key: "registration_status", label: "Situação cadastral", sort: "registration_status" },
-  { key: "city", label: "Cidade/UF", sort: "city" },
-  { key: "address", label: "Endereço" },
-  { key: "cnae", label: "CNAE", sort: "cnae" },
-  { key: "cnae_description", label: "Descrição do CNAE" },
-  { key: "company_size", label: "Porte", sort: "company_size" },
-  { key: "legal_nature", label: "Natureza jurídica" },
-  { key: "phone", label: "Telefone", sort: "phone" },
-  { key: "email", label: "E-mail" },
-  { key: "mei", label: "MEI" },
-  { key: "simples", label: "Simples Nacional" },
-  { key: "score", label: "Score", sort: "score" },
-  { key: "stage", label: "Etapa", sort: "stage" },
-  { key: "source", label: "Fonte" },
+  { key: "company", label: "Empresa", sort: "company", className: "max-w-[220px]" },
+  { key: "cnpj", label: "CNPJ", sort: "cnpj", className: "whitespace-nowrap" },
+  { key: "opened_at", label: "Data de abertura", sort: "opened_at", className: "whitespace-nowrap" },
+  {
+    key: "registration_status",
+    label: "Situação cadastral",
+    sort: "registration_status",
+    className: "whitespace-nowrap",
+  },
+  { key: "city", label: "Cidade/UF", sort: "city", className: "whitespace-nowrap" },
+  { key: "address", label: "Endereço", className: "max-w-[200px]" },
+  { key: "cnae", label: "CNAE", sort: "cnae", className: "whitespace-nowrap" },
+  { key: "cnae_description", label: "Descrição do CNAE", className: "max-w-[220px]" },
+  { key: "company_size", label: "Porte", sort: "company_size", className: "whitespace-nowrap" },
+  { key: "legal_nature", label: "Natureza jurídica", className: "max-w-[180px]" },
+  { key: "phone", label: "Telefone", sort: "phone", className: "whitespace-nowrap" },
+  { key: "email", label: "E-mail", className: "max-w-[180px]" },
+  { key: "mei", label: "MEI", className: "whitespace-nowrap" },
+  { key: "simples", label: "Simples Nacional", className: "whitespace-nowrap" },
+  { key: "score", label: "Score", sort: "score", className: "whitespace-nowrap" },
+  { key: "stage", label: "Etapa", sort: "stage", className: "whitespace-nowrap" },
+  { key: "source", label: "Fonte", className: "max-w-[160px]" },
 ];
+
 
 const defaultColumns: ColumnKey[] = [
   "company",
@@ -335,14 +341,33 @@ export function CompanyLeadsTab() {
     [visibleColumns],
   );
 
+  const cellTitle = (column: ColumnDefinition, lead: CompanyLead) => {
+    switch (column.key) {
+      case "company":
+        return [lead.trade_name, lead.legal_name].filter(Boolean).join(" — ");
+      case "address":
+        return lead.address || undefined;
+      case "cnae_description":
+        return lead.cnae_description || undefined;
+      case "legal_nature":
+        return lead.legal_nature || undefined;
+      case "email":
+        return lead.email || undefined;
+      case "source":
+        return lead.source;
+      default:
+        return undefined;
+    }
+  };
+
   const renderCell = (column: ColumnDefinition, lead: CompanyLead) => {
     switch (column.key) {
       case "company":
         return (
           <>
-            <div className="font-medium">{lead.trade_name || lead.legal_name}</div>
+            <div className="truncate font-medium">{lead.trade_name || lead.legal_name}</div>
             {lead.trade_name && (
-              <div className="mt-0.5 text-xs text-muted-foreground">{lead.legal_name}</div>
+              <div className="truncate text-xs text-muted-foreground">{lead.legal_name}</div>
             )}
           </>
         );
@@ -350,36 +375,35 @@ export function CompanyLeadsTab() {
         return <span className="whitespace-nowrap">{formatCnpj(lead.cnpj)}</span>;
       case "opened_at":
         return (
-          <div className="whitespace-nowrap">
-            <div className="inline-flex items-center gap-1.5">
-              <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
-              {formatDate(lead.opened_at)}
-            </div>
+          <div className="inline-flex items-center gap-1.5 whitespace-nowrap">
+            <CalendarDays className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            {formatDate(lead.opened_at)}
           </div>
         );
       case "registration_status":
-        return <span className="text-emerald-600">{lead.registration_status}</span>;
+        return <span className="whitespace-nowrap text-emerald-600">{lead.registration_status}</span>;
       case "city":
         return (
           <div className="inline-flex items-center gap-1.5 whitespace-nowrap">
-            <MapPin className="h-3.5 w-3.5 text-muted-foreground" />
+            <MapPin className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
             {lead.city} - {lead.state}
           </div>
         );
       case "address":
-        return <span className="text-muted-foreground">{lead.address || "—"}</span>;
+        return <div className="truncate text-xs text-muted-foreground">{lead.address || "—"}</div>;
       case "cnae":
         return <span className="whitespace-nowrap">{lead.cnae_code || "—"}</span>;
       case "cnae_description":
-        return <span>{lead.cnae_description || "—"}</span>;
+        return <div className="truncate text-xs">{lead.cnae_description || "—"}</div>;
       case "company_size":
         return <span className="whitespace-nowrap">{lead.company_size || "—"}</span>;
       case "legal_nature":
-        return <span>{lead.legal_nature || "—"}</span>;
+        return <div className="truncate text-xs">{lead.legal_nature || "—"}</div>;
       case "phone":
         return <span className="whitespace-nowrap">{formatPhone(lead.phone)}</span>;
       case "email":
-        return <span className="lowercase">{lead.email?.toLowerCase() || "—"}</span>;
+        return <div className="truncate lowercase">{lead.email?.toLowerCase() || "—"}</div>;
+
       case "mei":
         return lead.mei ? (
           <Badge className="bg-primary/10 text-primary">MEI</Badge>
@@ -403,7 +427,7 @@ export function CompanyLeadsTab() {
           <select
             value={lead.stage}
             onChange={(event) => void updateStage(lead, event.target.value as CompanyLeadStage)}
-            className="h-8 cursor-pointer rounded-md border border-input bg-background px-2 text-xs"
+            className="h-7 cursor-pointer rounded-md border border-input bg-background px-1.5 text-xs"
           >
             {Object.entries(stageLabels).map(([value, label]) => (
               <option key={value} value={value}>
@@ -413,7 +437,7 @@ export function CompanyLeadsTab() {
           </select>
         );
       case "source":
-        return <span className="text-xs text-muted-foreground">{lead.source}</span>;
+        return <div className="truncate text-xs text-muted-foreground">{lead.source}</div>;
       default:
         return null;
     }
@@ -479,9 +503,20 @@ export function CompanyLeadsTab() {
               )}
             </Button>
           </PopoverTrigger>
-          <PopoverContent align="end" className="w-[320px] p-0">
-            <ScrollArea className="max-h-[420px]">
+          <PopoverContent
+            align="end"
+            side="bottom"
+            sideOffset={8}
+            collisionPadding={16}
+            avoidCollisions
+            className="flex max-h-[calc(100vh-120px)] w-[min(320px,calc(100vw-32px))] flex-col p-0"
+          >
+            <div className="shrink-0 border-b border-border px-4 py-2.5">
+              <p className="text-sm font-semibold">Filtros adicionais</p>
+            </div>
+            <div className="hide-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain">
               <div className="space-y-3 p-4">
+
                 <label className="block space-y-1.5">
                   <span className="text-xs font-medium text-muted-foreground">
                     Situação cadastral
@@ -600,18 +635,20 @@ export function CompanyLeadsTab() {
                     {label}
                   </label>
                 ))}
-                <Button
-                  type="button"
-                  className="w-full"
-                  onClick={() => {
-                    setFiltersOpen(false);
-                    searchLeads(0);
-                  }}
-                >
-                  Aplicar filtros
-                </Button>
               </div>
-            </ScrollArea>
+            </div>
+            <div className="shrink-0 border-t border-border p-3">
+              <Button
+                type="button"
+                className="w-full"
+                onClick={() => {
+                  setFiltersOpen(false);
+                  searchLeads(0);
+                }}
+              >
+                Aplicar filtros
+              </Button>
+            </div>
           </PopoverContent>
         </Popover>
 
@@ -622,9 +659,19 @@ export function CompanyLeadsTab() {
               Colunas
             </Button>
           </PopoverTrigger>
-          <PopoverContent align="end" className="w-[260px] p-0">
-            <ScrollArea className="max-h-[380px]">
-              <div className="space-y-2 p-3">
+          <PopoverContent
+            align="end"
+            side="bottom"
+            sideOffset={8}
+            collisionPadding={16}
+            avoidCollisions
+            className="flex max-h-[calc(100vh-120px)] w-[min(260px,calc(100vw-32px))] flex-col p-0"
+          >
+            <div className="shrink-0 border-b border-border px-3 py-2.5">
+              <p className="text-sm font-semibold">Colunas visíveis</p>
+            </div>
+            <div className="hide-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain">
+              <div className="space-y-1 p-3">
                 {columnDefinitions.map((column) => (
                   <label
                     key={column.key}
@@ -648,9 +695,10 @@ export function CompanyLeadsTab() {
                   </label>
                 ))}
               </div>
-            </ScrollArea>
+            </div>
           </PopoverContent>
         </Popover>
+
 
         <Button
           onClick={() => searchLeads(0)}
@@ -700,12 +748,20 @@ export function CompanyLeadsTab() {
       </div>
 
       <Card className="overflow-hidden p-0">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[980px] text-sm">
+        <div className="hide-scrollbar overflow-x-auto">
+          <table
+            className={cn(
+              "w-full min-w-[980px] table-auto",
+              columns.length > 10 ? "text-[13px]" : "text-sm",
+            )}
+          >
             <thead className="bg-muted/35 text-left text-xs uppercase text-muted-foreground">
               <tr>
                 {columns.map((column) => (
-                  <th key={column.key} className="px-4 py-3 font-medium">
+                  <th
+                    key={column.key}
+                    className={cn("px-2.5 py-2 font-medium whitespace-nowrap", column.className)}
+                  >
                     {column.sort ? (
                       <button
                         type="button"
@@ -729,7 +785,7 @@ export function CompanyLeadsTab() {
                     )}
                   </th>
                 ))}
-                <th className="w-12 px-4 py-3">
+                <th className="w-10 px-2.5 py-2">
                   <span className="sr-only">Fonte</span>
                 </th>
               </tr>
@@ -739,11 +795,16 @@ export function CompanyLeadsTab() {
                 leads.map((lead) => (
                   <tr key={lead.id} className="hover:bg-primary/[0.03]">
                     {columns.map((column) => (
-                      <td key={column.key} className="px-4 py-3 align-top">
+                      <td
+                        key={column.key}
+                        title={cellTitle(column, lead)}
+                        className={cn("px-2.5 py-1.5 align-middle", column.className)}
+                      >
                         {renderCell(column, lead)}
                       </td>
                     ))}
-                    <td className="px-4 py-3">
+                    <td className="px-2.5 py-1.5">
+
                       {lead.source_url && (
                         <a
                           href={lead.source_url}
