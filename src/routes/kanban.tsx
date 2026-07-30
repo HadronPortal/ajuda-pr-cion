@@ -40,10 +40,9 @@ import {
   Dialog,
   DialogContent,
   DialogFooter,
-  DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@/components/ui/dialog";
+import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import { cn } from "@/lib/utils";
 import {
   listKanbanBoards,
