@@ -480,6 +480,10 @@ export function RichTextEditor({
           aria-multiline="true"
           contentEditable
           suppressContentEditableWarning
+          lang="pt-BR"
+          spellCheck
+          autoCorrect="on"
+          autoCapitalize="sentences"
           onInput={() => {
             emit();
             updateFromSelection();
