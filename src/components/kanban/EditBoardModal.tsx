@@ -85,13 +85,18 @@ export function EditBoardModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg" onInteractOutside={(e) => e.preventDefault()}>
-        <DialogHeader>
-          <DialogTitle>Editar quadro</DialogTitle>
-          <DialogDescription>Atualize nome, descrição, cor e visibilidade.</DialogDescription>
-        </DialogHeader>
+      <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-lg [&>button]:hidden" onInteractOutside={(e) => e.preventDefault()}>
+        <DialogTitle className="sr-only">Editar quadro</DialogTitle>
 
-        <div className="grid gap-4">
+        <DetailModalHeader
+          icon={Pencil}
+          title="Editar quadro"
+          meta="Atualize nome, descrição, cor e visibilidade."
+          onClose={() => onOpenChange(false)}
+        />
+
+        <div className="grid gap-4 px-5 py-4">
+
           <div className="grid gap-2">
             <Label htmlFor="edit-board-name">Nome</Label>
             <Input id="edit-board-name" value={name} onChange={(e) => setName(e.target.value)} />
