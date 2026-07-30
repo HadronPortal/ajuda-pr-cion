@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { toast } from "sonner";
+import { LayoutGrid } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
-  DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@/components/ui/dialog";
+import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
