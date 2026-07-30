@@ -9,7 +9,7 @@ import {
   MapPin,
   Truck,
   UserRound,
-  X,
+  
 } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
