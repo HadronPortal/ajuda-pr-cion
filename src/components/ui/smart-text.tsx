@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Loader2, SpellCheck2, Undo2 } from "lucide-react";
+import { SpellCheck2, Undo2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,48 +13,42 @@ type Common = {
   hintClassName?: string;
 };
 
+/**
+ * Indicação discreta e temporária de que houve correção automática.
+ * Some sozinha; enquanto visível, permite desfazer.
+ */
 export function CorrectionHint({
-  correcting,
   corrected,
   onUndo,
   className,
 }: {
-  correcting: boolean;
+  correcting?: boolean;
   corrected: boolean;
   onUndo: () => void;
   className?: string;
 }) {
-  if (!correcting && !corrected) return null;
+  if (!corrected) return null;
   return (
     <div
       className={cn(
-        "mt-1 flex items-center gap-2 text-[11px] text-muted-foreground",
+        "mt-1 flex items-center gap-1.5 text-[11px] text-muted-foreground transition-opacity duration-200",
         className,
       )}
       aria-live="polite"
     >
-      {correcting ? (
-        <>
-          <Loader2 className="h-3 w-3 animate-spin" />
-          <span>Revisando ortografia…</span>
-        </>
-      ) : (
-        <>
-          <SpellCheck2 className="h-3 w-3 text-primary" />
-          <span>Ortografia corrigida.</span>
-          <button
-            type="button"
-            onClick={onUndo}
-            className="inline-flex cursor-pointer items-center gap-1 font-medium text-primary hover:underline"
-          >
-            <Undo2 className="h-3 w-3" />
-            Desfazer correção
-          </button>
-        </>
-      )}
+      <SpellCheck2 className="h-3 w-3 text-primary" />
+      <button
+        type="button"
+        onClick={onUndo}
+        className="inline-flex cursor-pointer items-center gap-1 font-medium text-primary hover:underline"
+      >
+        <Undo2 className="h-3 w-3" />
+        Desfazer correção
+      </button>
     </div>
   );
 }
+
 
 export const SmartTextarea = React.forwardRef<
   HTMLTextAreaElement,
