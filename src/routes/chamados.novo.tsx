@@ -18,6 +18,9 @@ import {
 import { toast } from "sonner";
 import { AppShell, PageHeader } from "@/components/portal/AppShell";
 import { ClientPicker } from "@/components/portal/ClientPicker";
+import { CollaboratorSelect } from "@/components/portal/CollaboratorPicker";
+import { findCollaborator, useCollaborators } from "@/lib/collaborators-store";
+import { currentUser } from "@/lib/mock-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -31,6 +34,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { SmartInput, SmartTextarea } from "@/components/ui/smart-text";
 import { ticketsStore } from "@/lib/tickets-store";
 import type { SupportTicket, TicketPriority } from "@/lib/support-tickets-data";
 import type { ClosurePayload } from "@/lib/tickets-store";
@@ -71,13 +75,6 @@ const modulesMap: Record<string, string[]> = {
   "Impressoras": ["Configuração", "Etiquetas"],
 };
 
-const operators = [
-  { code: "PRCMAR", name: "Marina Souza" },
-  { code: "PRCSUZ", name: "Suzana Ribeiro" },
-  { code: "PRCROG", name: "Rogério Lima" },
-  { code: "PRCLCZ", name: "Lucas Zaboti" },
-  { code: "PRCPED", name: "Pedro Antunes" },
-];
 
 const ticketTypes: ClosurePayload["type"][] = [
   "Não definido",
@@ -157,7 +154,10 @@ type FormState = {
   phoneValue: string;
   module: string;
   submodule: string;
+  /** Sigla real do colaborador responsável. */
   operator: string;
+  /** ID real do colaborador responsável. */
+  operatorId: string;
   type: ClosurePayload["type"];
   priority: TicketPriority;
   subject: string;
@@ -175,7 +175,8 @@ const initialForm: FormState = {
   phoneValue: "",
   module: "Vendas",
   submodule: "NFE",
-  operator: operators[0].code,
+  operator: "",
+  operatorId: "",
   type: "Não definido",
   priority: "Media",
   subject: "",
@@ -204,7 +205,23 @@ function NewTicketPage() {
   }, []);
 
   const submodules = modulesMap[form.module] ?? [];
-  const operatorObj = operators.find((o) => o.code === form.operator);
+  // Somente colaboradores ativos (sem rescisão) podem ser escolhidos como responsável.
+  const { collaborators: activeCollaborators } = useCollaborators();
+  const selectedOwner = findCollaborator(activeCollaborators, form.operator);
+  const operatorObj = form.operator ? { code: form.operator } : null;
+
+  // Pré-seleciona o operador autenticado, quando ele estiver ativo.
+  useEffect(() => {
+    if (form.operator || activeCollaborators.length === 0) return;
+    const me = findCollaborator(activeCollaborators, currentUser.operator);
+    if (me) {
+      setForm((prev) =>
+        prev.operator
+          ? prev
+          : { ...prev, operator: me.acronym ?? me.name, operatorId: me.id },
+      );
+    }
+  }, [activeCollaborators, form.operator]);
   const selectedCompany = companies.find((c) => c.id === form.companyId) ?? null;
 
   useEffect(() => {
@@ -262,7 +279,9 @@ function NewTicketPage() {
     !form.emailValue.trim() ||
     !form.phoneValue.trim() ||
     !form.subject.trim() ||
-    !form.description.trim();
+    !form.description.trim() ||
+    // Responsável válido é obrigatório: precisa ser um colaborador ativo.
+    !selectedOwner;
 
   const handleClientSelect = (c: ClientRow) => {
     setClient(c);
@@ -303,6 +322,10 @@ function NewTicketPage() {
       toast.error("Preencha os campos obrigatórios para abrir o chamado.");
       return;
     }
+    if (!selectedOwner) {
+      toast.error("Selecione um responsável ativo para o chamado.");
+      return;
+    }
 
     setSubmitting(true);
     // Se a subempresa selecionada pertence a outro cliente do grupo, o chamado
@@ -316,6 +339,8 @@ function NewTicketPage() {
       client.name;
     const ticket = ticketsStore.createTicket({
       priority: form.priority,
+      owner: selectedOwner.acronym ?? selectedOwner.name,
+      ownerId: selectedOwner.id,
       clientCode: effectiveClientCode,
       clientName: effectiveClientName,
       contact: form.contactName,
@@ -545,22 +570,19 @@ function NewTicketPage() {
                   </SelectContent>
                 </Select>
               </Field>
-              <Field label="Operador">
-                <Select
+              <Field label="Responsável" required>
+                <CollaboratorSelect
                   value={form.operator}
-                  onValueChange={(v) => setForm((prev) => ({ ...prev, operator: v }))}
-                >
-                  <SelectTrigger className="h-11 rounded-xl cursor-pointer">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {operators.map((op) => (
-                      <SelectItem key={op.code} value={op.code}>
-                        {op.code}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  onChange={(acronym, collaborator) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      operator: acronym,
+                      operatorId: collaborator?.id ?? "",
+                    }))
+                  }
+                  placeholder="Selecione o responsável"
+                  className="h-11 rounded-xl"
+                />
               </Field>
             </div>
           </Card>
@@ -575,26 +597,25 @@ function NewTicketPage() {
             <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,1fr)_240px]">
               <div className="space-y-3">
                 <Field label="Assunto" required>
-                  <Input
+                  <SmartInput
                     value={form.subject}
-                    onChange={(e) =>
-                      setForm((prev) => ({ ...prev, subject: e.target.value }))
-                    }
+                    onValueChange={(subject) => setForm((prev) => ({ ...prev, subject }))}
                     placeholder="Ex.: Nota em processamento"
                     className="h-11 rounded-xl"
                   />
                 </Field>
                 <Field label="Descrição" required>
-                  <Textarea
+                  <SmartTextarea
                     value={form.description}
-                    onChange={(e) =>
-                      setForm((prev) => ({ ...prev, description: e.target.value }))
+                    onValueChange={(description) =>
+                      setForm((prev) => ({ ...prev, description }))
                     }
                     rows={7}
                     placeholder="Descreva o que o cliente relatou, mensagens de erro, tela onde ocorreu e o que já foi conferido..."
                     className="min-h-[180px] resize-none rounded-xl"
                   />
                 </Field>
+
               </div>
 
               <div className="space-y-3">
@@ -753,8 +774,12 @@ function NewTicketPage() {
                 />
                 <PreviewItem
                   icon={UserRound}
-                  label="Operador"
-                  value={operatorObj ? operatorObj.code : "-"}
+                  label="Responsável"
+                  value={
+                    selectedOwner
+                      ? `${selectedOwner.acronym ?? ""}${selectedOwner.acronym ? " · " : ""}${selectedOwner.name}`
+                      : operatorObj?.code || "-"
+                  }
                 />
                 <PreviewItem icon={FileText} label="Tipo" value={form.type} />
                 <PreviewItem icon={Phone} label="Origem" value={form.source} />

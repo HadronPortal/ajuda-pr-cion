@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import { getUsageById, getVehicleById, registerReturn } from "@/lib/fleet-store";
 import { fleetActions } from "@/lib/fleet-action-store";
+import { SmartTextarea } from "@/components/ui/smart-text";
 
 const preventClose = (e: Event) => e.preventDefault();
 const FUEL_OPTIONS = ["Cheio", "3/4", "1/2", "1/4", "Reserva"] as const;
@@ -104,9 +105,9 @@ export function ReturnVehicleModal({ usageId }: { usageId: string }) {
 
           <div>
             <Label className="mb-1.5 block text-[12.5px] font-medium">Observações da devolução</Label>
-            <Textarea
+            <SmartTextarea
               value={notes}
-              onChange={(e) => setNotes(e.target.value)}
+              onValueChange={setNotes}
               rows={3}
               className="resize-none"
               placeholder="Condições, ocorrências, avarias..."

@@ -298,7 +298,7 @@ function ClientDetailPage() {
                 ...(showInternet ? [["internet", "Internet", Wifi]] : []),
                 ...(showDevices ? [["dispositivos", "Dispositivos", Monitor]] : []),
                 ...(showParameters ? [["parametros", "Parâmetros", SlidersHorizontal]] : []),
-                ["usuarios", "Usuarios", UsersRound],
+                ["usuarios", "Usuários", UsersRound],
                 ["logs", "Logs", ScrollText],
                 ["logs-externos", "Logs externos", History],
                 ["terminais", "Terminais", Monitor],

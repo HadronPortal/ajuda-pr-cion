@@ -180,6 +180,16 @@
   .kanban-scrollbar::-webkit-scrollbar-track {
     background: transparent;
   }
+
+  /* Hide scrollbar visually while preserving scroll functionality */
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 /* Remove Lovable badge */

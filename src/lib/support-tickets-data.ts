@@ -18,8 +18,13 @@ export type SupportTicket = {
   priority: TicketPriority;
   openedAt: string;
   updatedAt: string;
+  /** Data/hora exata da finalização. Congela o cálculo de SLA. */
+  closedAt?: string | null;
+
   attendant: string;
   owner: string;
+  /** ID real do colaborador responsável (tab_colaboradores). */
+  ownerId?: string | null;
   clientCode: string;
   clientName: string;
   contact: string;
@@ -127,7 +132,7 @@ export const supportTickets: SupportTicket[] = [
     clientCode: "",
     clientName: "",
     contact: "Vanderley",
-    subject: "Nota fiscal nao autorizada",
+    subject: "Nota fiscal não autorizada",
     module: "Vendas - NFE",
     source: "Portal do cliente",
   },
@@ -143,7 +148,7 @@ export const supportTickets: SupportTicket[] = [
     clientCode: "",
     clientName: "",
     contact: "Carla",
-    subject: "Cupom nao apareceu no financeiro",
+    subject: "Cupom não apareceu no financeiro",
     module: "Basico - Terceiros",
     source: "WhatsApp",
   },
@@ -159,7 +164,7 @@ export const supportTickets: SupportTicket[] = [
     clientCode: "",
     clientName: "",
     contact: "Elisangela",
-    subject: "Alterar endereco do terceiro",
+    subject: "Alterar endereço do terceiro",
     module: "Basico - Terceiros",
     source: "Telefone",
   },
@@ -240,7 +245,7 @@ export const supportTickets: SupportTicket[] = [
     clientCode: "",
     clientName: "",
     contact: "Marcos",
-    subject: "Duvida sobre relatorio de estoque",
+    subject: "Dúvida sobre relatório de estoque",
     module: "Estoque",
     source: "Portal do cliente",
   },

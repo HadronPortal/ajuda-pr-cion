@@ -172,24 +172,6 @@ function formatDateTime(iso: string) {
   });
 }
 
-function computeSla(ticket: SupportTicket) {
-  const target = 24;
-  const openedAt = new Date(ticket.openedAt).getTime();
-  const now = Date.now();
-  const hours = Math.max(0, (now - openedAt) / 36e5);
-  const rawPct = ticket.status === "Atrasado" ? 100 : Math.min(100, (hours / target) * 100);
-  const pct = Math.round(rawPct);
-  let tone: "ok" | "warn" | "late" = "ok";
-  if (ticket.status === "Atrasado" || pct >= 90) tone = "late";
-  else if (pct >= 60) tone = "warn";
-  return { pct, tone, hours: Math.round(hours) };
-}
-
-const slaBarTone: Record<"ok" | "warn" | "late", string> = {
-  ok: "bg-success",
-  warn: "bg-warning",
-  late: "bg-destructive",
-};
 
 const slaTextTone: Record<"ok" | "warn" | "late", string> = {
   ok: "text-success",
@@ -250,6 +232,7 @@ const TicketForwardIcon = createMaskedActionIcon(specialistIconUrl);
 const TicketTimelineIcon = History;
 
 import { getModuleIcon } from "@/lib/ticket-icons";
+import { computeSla } from "@/lib/ticket-sla";
 
 export function TicketDetailSheet({
   ticketId,
@@ -395,10 +378,6 @@ export function TicketDetailSheet({
                   >
                     Prioridade {ticket.priority}
                   </Badge>
-                  <span className="inline-flex shrink-0 items-center gap-1 rounded-md border border-border bg-muted/50 px-2 py-0.5 text-[10.5px] font-medium text-muted-foreground">
-                    <CalendarClock className="h-3 w-3" />
-                    SLA {sla.pct}% · {sla.hours}h
-                  </span>
                   {ticket.lockedBy && (
                     <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-warning/15 px-2 py-0.5 text-[10.5px] font-medium text-warning-foreground">
                       <LockKeyhole className="h-3 w-3" />
@@ -407,6 +386,24 @@ export function TicketDetailSheet({
                   )}
                 </>
               }
+              trailing={
+                <div
+                  className={cn(
+                    "inline-flex max-w-full items-center gap-2 rounded-lg border px-2.5 py-1.5",
+                    statusTone[ticket.status],
+                  )}
+                  title={`Situação atual: ${ticket.status}`}
+                >
+                  <CalendarClock className="h-3.5 w-3.5 shrink-0" />
+                  <span className="flex min-w-0 flex-col leading-tight">
+                    <span className="truncate text-[11px] font-semibold">{ticket.status}</span>
+                    <span className="truncate text-[10px] font-normal opacity-80">
+                      Atualizado em {formatDateTime(ticket.updatedAt)}
+                    </span>
+                  </span>
+                </div>
+              }
+
               meta={
                 <span className="inline-flex flex-wrap items-center gap-x-1 gap-y-0.5">
                   {clientSlug ? (
@@ -598,7 +595,7 @@ export function TicketDetailSheet({
               </div>
 
               {/* Main content */}
-              <div className="flex-1 min-w-0 overflow-y-auto rounded-2xl border border-border bg-card px-5 py-5 md:px-6">
+              <div className="hide-scrollbar flex-1 min-w-0 overflow-y-auto rounded-2xl border border-border bg-card px-5 py-5 md:px-6">
                 {/* Resumo */}
                 <Section title="Resumo do chamado" icon={LayoutGrid}>
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -623,28 +620,48 @@ export function TicketDetailSheet({
                       </Badge>
                     </MiniStat>
                     <MiniStat label="SLA">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={cn(
-                            "text-[22px] font-bold leading-none",
-                            slaTextTone[sla.tone],
-                          )}
-                        >
-                          {sla.pct}%
-                        </span>
-                        <div className="flex-1">
-                          <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                            <div
-                              className={cn(
-                                "h-full rounded-full transition-all",
-                                slaBarTone[sla.tone],
-                              )}
-                              style={{ width: `${sla.pct}%` }}
-                            />
-                          </div>
-                          <p className="mt-1 text-[10.5px] text-muted-foreground">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex min-w-0 flex-col">
+                          <span
+                            className={cn(
+                              "text-[18px] font-bold leading-none sm:text-[20px]",
+                              slaTextTone[sla.tone],
+                            )}
+                          >
+                            {sla.pct}%
+                          </span>
+                          <span className="mt-1 text-[10px] text-muted-foreground">
                             {sla.hours}h decorridas
-                          </p>
+                          </span>
+                          <span
+                            className={cn(
+                              "mt-0.5 text-[9px] font-medium leading-tight",
+                              sla.tone === "ok"
+                                ? "text-success"
+                                : sla.tone === "warn"
+                                  ? "text-warning-foreground"
+                                  : "text-destructive",
+                            )}
+                          >
+                            {sla.tone === "ok"
+                              ? "Dentro do prazo"
+                              : sla.tone === "warn"
+                                ? "Próximo do limite"
+                                : "Fora do prazo"}
+                          </span>
+                        </div>
+                        <div
+                          className={cn(
+                            "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border sm:h-9 sm:w-9",
+                            sla.tone === "ok"
+                              ? "border-success/25 bg-success/10 text-success"
+                              : sla.tone === "warn"
+                                ? "border-warning/25 bg-warning/15 text-warning-foreground"
+                                : "border-destructive/25 bg-destructive/10 text-destructive",
+                          )}
+                          aria-hidden
+                        >
+                          <Clock3 className="h-4 w-4 sm:h-[18px] sm:w-[18px]" />
                         </div>
                       </div>
                     </MiniStat>

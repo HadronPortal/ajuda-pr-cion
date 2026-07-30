@@ -14,6 +14,8 @@ type Props = {
   placeholder?: string;
   className?: string;
   disabled?: boolean;
+  /** Variante compacta (altura 9, cantos md) para uso dentro de modais densos. */
+  compact?: boolean;
 };
 
 /**
@@ -29,6 +31,7 @@ export function ClientPicker({
   placeholder = "Buscar por sigla, fantasia, razão social, CNPJ ou cidade...",
   className,
   disabled,
+  compact,
 }: Props) {
   const { clients, loading, error } = useClients({ onlyActive: true });
   const [open, setOpen] = useState(false);
@@ -57,7 +60,10 @@ export function ClientPicker({
         type="button"
         disabled={disabled}
         onClick={() => setOpen((v) => !v)}
-        className="flex h-11 w-full items-center gap-2 rounded-xl border border-border bg-card px-3 text-left text-sm transition hover:bg-accent/40 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
+        className={cn(
+          "flex w-full items-center gap-2 border border-input bg-background px-3 text-left transition hover:bg-accent/40 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer",
+          compact ? "h-9 rounded-md text-[13px]" : "h-11 rounded-xl bg-card text-sm",
+        )}
       >
         <Search className="h-4 w-4 text-muted-foreground" />
         {value ? (

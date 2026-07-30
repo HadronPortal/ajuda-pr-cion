@@ -34,7 +34,12 @@ function OptionRow({
       className="flex w-full cursor-pointer items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left hover:bg-accent"
     >
       <span className="min-w-0">
-        <span className="block truncate text-[13px] text-foreground">{collaborator.name}</span>
+        <span className="block truncate text-[13px] text-foreground">
+          {collaborator.name}
+          {!collaborator.active && (
+            <span className="ml-1.5 text-[10.5px] uppercase tracking-wide text-muted-foreground">inativo</span>
+          )}
+        </span>
         <span className="block truncate text-[11.5px] text-muted-foreground">
           {[collaborator.acronym, departmentLabel(collaborator.department)].filter(Boolean).join(" · ")}
         </span>
@@ -100,9 +105,14 @@ export function CollaboratorSelect({
     onlyActive: !includeInactive,
   });
 
-  const options = includeInactive ? allCollaborators : collaborators;
-  const filtered = useFiltered(options, term);
   const current = findCollaborator(allCollaborators, value);
+  // Somente ativos são selecionáveis; o vínculo histórico já salvo continua visível.
+  const options = useMemo(() => {
+    const base = includeInactive ? allCollaborators : collaborators;
+    if (current && !base.some((item) => item.id === current.id)) return [current, ...base];
+    return base;
+  }, [includeInactive, allCollaborators, collaborators, current]);
+  const filtered = useFiltered(options, term);
 
   return (
     <Popover open={open} onOpenChange={(next) => { setOpen(next); if (!next) setTerm(""); }}>
@@ -172,9 +182,16 @@ export function CollaboratorMultiSelect({
     onlyActive: !includeInactive,
   });
 
-  const options = includeInactive ? allCollaborators : collaborators;
-  const filtered = useFiltered(options, term);
   const selectedIds = useMemo(() => new Set(value.map((item) => item.id)), [value]);
+  // Somente ativos entram na lista; inativos já convidados permanecem visíveis.
+  const options = useMemo(() => {
+    const base = includeInactive ? allCollaborators : collaborators;
+    const extras = allCollaborators.filter(
+      (item) => selectedIds.has(item.id) && !base.some((row) => row.id === item.id),
+    );
+    return [...extras, ...base];
+  }, [includeInactive, allCollaborators, collaborators, selectedIds]);
+  const filtered = useFiltered(options, term);
 
   const toggle = (collaborator: Collaborator) => {
     if (selectedIds.has(collaborator.id)) {

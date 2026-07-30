@@ -7,7 +7,6 @@ import {
   Laptop,
   Link2,
   Lock,
-  MapPin,
   X,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -19,11 +18,16 @@ import { Dialog, DialogContent, DialogFooter, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { SmartTextarea } from "@/components/ui/smart-text";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Switch } from "@/components/ui/switch";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
 import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
+import { EventDateTimeFields } from "@/components/calendar/EventDateTimeFields";
+import {
+  NO_VEHICLE,
+  VehicleAvailabilitySelect,
+} from "@/components/fleet/VehicleAvailabilitySelect";
+
+
 import { cn } from "@/lib/utils";
 import {
   CollaboratorMultiSelect,
@@ -31,6 +35,14 @@ import {
   type CollaboratorGuest,
 } from "@/components/portal/CollaboratorPicker";
 import { useCollaborators } from "@/lib/collaborators-store";
+import { ClientPicker } from "@/components/portal/ClientPicker";
+import {
+  getClientById,
+  getGroupMembers,
+  resolveGroupCode,
+  useClients,
+} from "@/lib/clients-store";
+import type { ClientRow } from "@/routes/clientes.index";
 import {
   PLATFORM_OPTIONS,
   ROOM_OPTIONS,
@@ -62,6 +74,7 @@ export function CreateEventDialog({
   editingEvent?: CalendarEvent;
 }) {
   const { collaborators } = useCollaborators();
+  const { clients } = useClients({ onlyActive: true });
   const defaultResponsible = collaborators[0]?.acronym ?? "";
   const [type, setType] = useState<EventType>(editingEvent?.type ?? "Visita presencial");
   const [title, setTitle] = useState(editingEvent?.title ?? "");
@@ -70,14 +83,13 @@ export function CreateEventDialog({
     (editingEvent?.guestList as CollaboratorGuest[] | undefined) ?? [],
   );
   const [date, setDate] = useState(editingEvent?.date ?? initialDate);
-  const [dateOpen, setDateOpen] = useState(false);
   const [startTime, setStartTime] = useState(editingEvent?.time ?? "09:00");
   const [endTime, setEndTime] = useState(editingEvent?.end ?? "10:00");
-  const [client, setClient] = useState(editingEvent?.client ?? "");
-  const [needsDisplacement, setNeedsDisplacement] = useState(
-    editingEvent?.needsDisplacement ?? false,
+  const [client, setClient] = useState<ClientRow | null>(
+    editingEvent?.clientId ? getClientById(editingEvent.clientId) : null,
   );
-  const [address, setAddress] = useState(editingEvent?.address ?? "");
+  const [vehicleId, setVehicleId] = useState(editingEvent?.vehicleId ?? NO_VEHICLE);
+
   const [responsible, setResponsible] = useState(
     editingEvent?.responsible ?? editingEvent?.operator ?? "",
   );
@@ -94,12 +106,27 @@ export function CreateEventDialog({
     if (!responsible && defaultResponsible) setResponsible(defaultResponsible);
   }, [responsible, defaultResponsible]);
 
+  // Resolve o cliente do evento em edição assim que a lista do CRM estiver carregada.
+  useEffect(() => {
+    if (client || !editingEvent?.clientId || clients.length === 0) return;
+    const found = getClientById(editingEvent.clientId);
+    if (found) setClient(found);
+  }, [client, editingEvent?.clientId, clients.length]);
+
+  // Empresas do mesmo grupo do cliente selecionado (quando aplicável).
+  const groupCompanies = useMemo(() => {
+    if (!client) return [] as ClientRow[];
+    const code = resolveGroupCode(client, clients);
+    if (!code) return [] as ClientRow[];
+    return getGroupMembers(code, clients).filter((c) => c.id !== client.id);
+  }, [client, clients]);
+
 
   const reset = () => {
     setType("Visita presencial"); setTitle(""); setDescription("");
     setGuests([]);
     setStartTime("09:00"); setEndTime("10:00");
-    setClient(""); setNeedsDisplacement(false); setAddress("");
+    setClient(null); setVehicleId(NO_VEHICLE);
     setResponsible(defaultResponsible);
     setMeetingLink(""); setPlatform(PLATFORM_OPTIONS[0]);
     setRoom(ROOM_OPTIONS[0]); setIsPrivate(false);
@@ -126,15 +153,18 @@ export function CreateEventDialog({
       title: title.trim(),
       client: lockedClient
         ? lockedClient.label
-        : type === "Visita presencial"
-          ? (client.trim() || undefined)
+        : type === "Visita presencial" && client
+          ? (client.fantasia || client.name || client.razaoSocial || client.acronym)
           : undefined,
-      clientId: lockedClient?.id,
+      clientId: lockedClient?.id ?? (type === "Visita presencial" ? client?.id : undefined),
       description: description.trim() || undefined,
       guests: guests.length ? guests.map((g) => g.acronym ?? g.name) : undefined,
       guestList: guests.length ? guests : undefined,
-      needsDisplacement: type === "Visita presencial" ? needsDisplacement : undefined,
-      address: type === "Visita presencial" ? (address.trim() || undefined) : undefined,
+      needsDisplacement:
+        type === "Visita presencial" ? vehicleId !== NO_VEHICLE : undefined,
+      vehicleId:
+        type === "Visita presencial" && vehicleId !== NO_VEHICLE ? vehicleId : undefined,
+
       responsible,
       meetingLink: type === "Reunião remota" ? (meetingLink.trim() || undefined) : undefined,
       platform: type === "Reunião remota" ? platform : undefined,
@@ -174,11 +204,11 @@ export function CreateEventDialog({
 
         <div className="flex-1 min-h-0 space-y-4 overflow-y-auto bg-card px-5 py-4 md:px-6">
           <NewField label="Título" required>
-            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Informe o título do agendamento" maxLength={140} />
+            <Input lang="pt-BR" spellCheck autoCorrect="on" autoCapitalize="sentences" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Informe o título do agendamento" maxLength={140} />
           </NewField>
 
           <NewField label="Descrição">
-            <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} maxLength={700} placeholder="Descreva o objetivo ou as informações do agendamento" className="min-h-[80px] resize-none" />
+            <SmartTextarea value={description} onValueChange={setDescription} rows={3} maxLength={700} placeholder="Descreva o objetivo ou as informações do agendamento" className="min-h-[80px] resize-none" />
           </NewField>
 
           <NewField label="Convidados">
@@ -186,36 +216,15 @@ export function CreateEventDialog({
           </NewField>
 
 
-          <div className="grid gap-3 sm:grid-cols-3">
-            <NewField label="Data" required>
-              <Popover open={dateOpen} onOpenChange={setDateOpen}>
-                <PopoverTrigger asChild>
-                  <button type="button" className="inline-flex h-9 w-full cursor-pointer items-center gap-2 rounded-md border border-input bg-background px-3 text-[13px] outline-none focus:ring-2 focus:ring-ring">
-                    <CalendarDays className="h-4 w-4 opacity-70" />
-                    <span>{date ? format(new Date(`${date}T12:00:00`), "dd/MM/yyyy") : "dd/mm/aaaa"}</span>
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent align="start" className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={date ? new Date(`${date}T12:00:00`) : undefined}
-                    onSelect={(d) => {
-                      if (d) setDate(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`);
-                      setDateOpen(false);
-                    }}
-                    initialFocus
-                    className={cn("p-3 pointer-events-auto")}
-                  />
-                </PopoverContent>
-              </Popover>
-            </NewField>
-            <NewField label="Início" required>
-              <Input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} className="cursor-pointer" />
-            </NewField>
-            <NewField label="Término" required>
-              <Input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="cursor-pointer" />
-            </NewField>
-          </div>
+          <EventDateTimeFields
+            date={date}
+            onDateChange={setDate}
+            startTime={startTime}
+            onStartTimeChange={setStartTime}
+            endTime={endTime}
+            onEndTimeChange={setEndTime}
+          />
+
 
           <NewField label="Tipo de agendamento" required>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -254,30 +263,51 @@ export function CreateEventDialog({
           {type === "Visita presencial" && (
             <div className="grid gap-3 sm:grid-cols-2">
               {!lockedClient && (
-                <NewField label="Cliente">
-                  <Input value={client} onChange={(e) => setClient(e.target.value)} placeholder="Sigla ou razão social" />
+                <NewField label="Cliente" className="sm:col-span-2">
+                  <ClientPicker
+                    compact
+                    label=""
+                    value={client}
+                    onSelect={setClient}
+                    placeholder="Buscar por sigla, razão social, fantasia, CNPJ ou grupo..."
+                  />
+                  {groupCompanies.length > 0 && (
+                    <div className="mt-2 rounded-md border border-border bg-background/40 p-2">
+                      <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                        Empresas do grupo {resolveGroupCode(client, clients)}
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {groupCompanies.map((company) => (
+                          <button
+                            key={company.id}
+                            type="button"
+                            onClick={() => setClient(company)}
+                            className="cursor-pointer rounded-full border border-input bg-background px-2.5 py-1 text-[11.5px] text-foreground transition hover:border-primary/40 hover:bg-accent"
+                          >
+                            <span className="font-mono text-muted-foreground">{company.acronym}</span>{" "}
+                            {company.fantasia || company.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </NewField>
               )}
               <NewField label="Responsável">
                 <CollaboratorSelect value={responsible} onChange={setResponsible} />
               </NewField>
-              <NewField label="Endereço" className="sm:col-span-2">
-                <div className="relative">
-                  <MapPin className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input className="pl-8" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Rua, número, cidade" />
-                </div>
+              <NewField label="Veículo" className={lockedClient ? undefined : "sm:col-span-2"}>
+                <VehicleAvailabilitySelect
+                  date={date}
+                  startTime={startTime}
+                  endTime={endTime}
+                  value={vehicleId}
+                  onChange={setVehicleId}
+                />
               </NewField>
-              <div className="sm:col-span-2 flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/25 px-3 py-2.5">
-                <div className="min-w-0">
-                  <p className="text-[13px] font-medium">Deslocamento necessário</p>
-                  <p className="mt-0.5 text-[12px] text-muted-foreground">
-                    Ative para reservar um veículo da frota. A retirada é feita na Frota ou na Agenda do dia.
-                  </p>
-                </div>
-                <Switch checked={needsDisplacement} onCheckedChange={setNeedsDisplacement} className="cursor-pointer" />
-              </div>
             </div>
           )}
+
 
           {type === "Reunião remota" && (
             <div className="grid gap-3 sm:grid-cols-2">

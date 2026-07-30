@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { CalendarClock, Car, Clock3, Users } from "lucide-react";
+import { useMemo, useState, type ReactNode } from "react";
+import { CalendarClock, Users } from "lucide-react";
 import { toast } from "sonner";
 import {
   CollaboratorMultiSelect,
@@ -12,59 +12,28 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
+import { EventDateTimeFields } from "@/components/calendar/EventDateTimeFields";
+import {
+  NO_VEHICLE,
+  VehicleAvailabilitySelect,
+  useVehicleAvailability,
+  isUnavailable,
+} from "@/components/fleet/VehicleAvailabilitySelect";
+
 import { ticketsStore } from "@/lib/tickets-store";
 import type { SupportTicket } from "@/lib/support-tickets-data";
 import { modulesMap, moduleOptions, splitModule } from "@/lib/modules-map";
 import { addLocalEvent } from "@/lib/local-events-store";
 import type { EventType } from "@/lib/calendar-events";
-import {
-  useVehicles,
-  useReservations,
-  hasReservationConflict,
-  hasConflict,
-  createReservation,
-  getActiveReservationsByVehicle,
-  VEHICLE_STATUS_LABEL,
-  type Vehicle,
-} from "@/lib/fleet-store";
+import { createReservation } from "@/lib/fleet-store";
+import { CorrectionHint } from "@/components/ui/smart-text";
+import { useSpellCorrection } from "@/lib/spellcheck";
 
 const EVENT_TYPES = ["Visita", "Reunião remota", "Reunião PRC"];
-const NO_VEHICLE = "__none__";
 const selectClass =
   "h-9 w-full cursor-pointer rounded-md border border-input bg-background px-3 text-[13px] outline-none focus:ring-2 focus:ring-ring";
 const preventOutsideClose = (event: Event) => event.preventDefault();
 
-type VehicleAvailability =
-  | { key: "disponivel"; label: "Disponível"; conflict?: undefined }
-  | { key: "em_uso"; label: "Em uso" | "Em uso no período"; conflict?: undefined }
-  | { key: "indisponivel"; label: "Indisponível"; conflict?: undefined }
-  | { key: "pre_agendado"; label: "Pré-agendado"; conflict?: boolean };
-
-function combineDateTime(date: string, time: string): string | null {
-  if (!date || !time) return null;
-  return `${date}T${time}:00`;
-}
-
-function evaluateVehicle(
-  vehicle: Vehicle,
-  windowStart: string | null,
-  windowEnd: string | null,
-): VehicleAvailability {
-  if (vehicle.status === "manutencao") return { key: "indisponivel", label: "Indisponível" };
-  if (!windowStart || !windowEnd) {
-    if (vehicle.status === "em_uso") return { key: "em_uso", label: "Em uso" };
-  } else if (hasConflict(vehicle.id, windowStart, windowEnd)) {
-    return { key: "em_uso", label: "Em uso no período" };
-  }
-  const reservations = getActiveReservationsByVehicle(vehicle.id);
-  if (reservations.length === 0) return { key: "disponivel", label: "Disponível" };
-  if (!windowStart || !windowEnd) {
-    // Reservado em algum outro horário — deixamos como pré-agendado sem definir conflito.
-    return { key: "pre_agendado", label: "Pré-agendado", conflict: false };
-  }
-  const conflict = hasReservationConflict(vehicle.id, windowStart, windowEnd);
-  return { key: "pre_agendado", label: "Pré-agendado", conflict: !!conflict };
-}
 
 export function ScheduleEventModal({
   open,
@@ -75,8 +44,6 @@ export function ScheduleEventModal({
   onOpenChange: (value: boolean) => void;
   ticket: SupportTicket;
 }) {
-  const vehicles = useVehicles();
-  useReservations(); // re-render on reservation changes
   const defaults = useMemo(() => splitModule(ticket.module), [ticket.module]);
   const [type, setType] = useState(EVENT_TYPES[1]);
   const [date, setDate] = useState("");
@@ -88,38 +55,17 @@ export function ScheduleEventModal({
   const [module, setModule] = useState(defaults.module);
   const [submodule, setSubmodule] = useState(defaults.submodule);
   const [description, setDescription] = useState("");
+  const descriptionCorrection = useSpellCorrection({ value: description, onChange: setDescription });
   const [reminder, setReminder] = useState(true);
 
   const availableSubs = modulesMap[module] ?? [];
-  const windowStart = combineDateTime(date, startTime);
-  const windowEnd = combineDateTime(date, endTime);
-  const windowValid = !!(windowStart && windowEnd && windowEnd > windowStart);
+  const {
+    vehicles,
+    availability: vehicleAvailability,
+    windowStart,
+    windowEnd,
+  } = useVehicleAvailability(date, startTime, endTime);
 
-  const vehicleAvailability = useMemo(() => {
-    const map = new Map<string, VehicleAvailability>();
-    for (const v of vehicles) {
-      map.set(
-        v.id,
-        evaluateVehicle(v, windowValid ? windowStart : null, windowValid ? windowEnd : null),
-      );
-    }
-    return map;
-  }, [vehicles, windowStart, windowEnd, windowValid]);
-
-  useEffect(() => {
-    // Se o veículo escolhido virou incompatível (conflito ou indisponível), limpa.
-    if (vehicleId === NO_VEHICLE) return;
-    const info = vehicleAvailability.get(vehicleId);
-    if (!info) return;
-    if (
-      info.key === "em_uso" ||
-      info.key === "indisponivel" ||
-      (info.key === "pre_agendado" && info.conflict)
-    ) {
-      setVehicleId(NO_VEHICLE);
-      toast.info("Veículo indisponível no período selecionado. Escolha outro.");
-    }
-  }, [vehicleAvailability, vehicleId]);
 
   const changeModule = (value: string) => {
     setModule(value);
@@ -166,7 +112,7 @@ export function ScheduleEventModal({
         return;
       }
       const info = vehicleAvailability.get(vehicleId);
-      if (info && (info.key === "em_uso" || info.key === "indisponivel")) {
+      if (isUnavailable(info)) {
         toast.error("Veículo indisponível para reserva.");
         return;
       }
@@ -279,43 +225,16 @@ export function ScheduleEventModal({
               <CollaboratorSelect value={responsible} onChange={setResponsible} />
             </Field>
           </div>
-          <div className="grid gap-2.5 sm:grid-cols-3">
-            <Field label="Data" required>
-              <Input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                onClick={(e) => (e.currentTarget as HTMLInputElement).showPicker?.()}
-                className="cursor-pointer [&::-webkit-calendar-picker-indicator]:cursor-pointer"
-              />
-            </Field>
-            <Field label="Início" required>
-              <div
-                className="relative cursor-pointer"
-                onClick={(e) => {
-                  const input = e.currentTarget.querySelector("input") as HTMLInputElement | null;
-                  input?.showPicker?.();
-                }}
-              >
-                <Clock3 className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  className="cursor-pointer pl-8 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
-                  type="time"
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                />
-              </div>
-            </Field>
-            <Field label="Término" required>
-              <Input
-                type="time"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                onClick={(e) => (e.currentTarget as HTMLInputElement).showPicker?.()}
-                className="cursor-pointer [&::-webkit-calendar-picker-indicator]:cursor-pointer"
-              />
-            </Field>
-          </div>
+          <EventDateTimeFields
+            className="gap-2.5"
+            date={date}
+            onDateChange={setDate}
+            startTime={startTime}
+            onStartTimeChange={setStartTime}
+            endTime={endTime}
+            onEndTimeChange={setEndTime}
+          />
+
           <div className="grid gap-2.5 sm:grid-cols-2">
             <Field label="Módulo" required>
               <select
@@ -351,54 +270,32 @@ export function ScheduleEventModal({
             </Field>
             {type === "Visita" && (
               <Field label="Veículo">
-                <div className="relative">
-                  <Car className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <select
-                    value={vehicleId}
-                    onChange={(e) => setVehicleId(e.target.value)}
-                    className={`${selectClass} pl-8`}
-                  >
-                    <option value={NO_VEHICLE}>Não definido</option>
-                    {vehicles.map((vehicle) => {
-                      const info = vehicleAvailability.get(vehicle.id);
-                      const label = info?.label ?? VEHICLE_STATUS_LABEL[vehicle.status];
-                      const disabled =
-                        info?.key === "em_uso" ||
-                        info?.key === "indisponivel" ||
-                        (info?.key === "pre_agendado" && info.conflict === true);
-                      return (
-                        <option key={vehicle.id} value={vehicle.id} disabled={disabled}>
-                          {vehicle.model} · {vehicle.plate} — {label}
-                          {disabled ? " (indisponível)" : ""}
-                        </option>
-                      );
-                    })}
-                  </select>
-                </div>
-                {vehicleId !== NO_VEHICLE &&
-                  (() => {
-                    const info = vehicleAvailability.get(vehicleId);
-                    if (info?.key === "pre_agendado" && info.conflict) {
-                      return (
-                        <p className="mt-1 text-[11px] text-destructive">
-                          Conflito com outra pré-reserva no período informado.
-                        </p>
-                      );
-                    }
-                    return null;
-                  })()}
+                <VehicleAvailabilitySelect
+                  date={date}
+                  startTime={startTime}
+                  endTime={endTime}
+                  value={vehicleId}
+                  onChange={setVehicleId}
+                />
               </Field>
+
             )}
           </div>
           <Field label="Observações">
             <textarea
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={(e) => {
+                setDescription(e.target.value);
+                descriptionCorrection.notifyTyping(e);
+              }}
+              onBlur={() => descriptionCorrection.runNow()}
               rows={2}
               maxLength={700}
               placeholder="Objetivo, orientações e informações para o atendimento..."
               className="min-h-[64px] w-full resize-none rounded-md border border-input bg-background p-2.5 text-[13px] outline-none focus:ring-2 focus:ring-ring"
             />
+            <CorrectionHint correcting={descriptionCorrection.correcting} corrected={descriptionCorrection.corrected} onUndo={descriptionCorrection.undo} />
+
           </Field>
         </div>
         <DialogFooter className="flex shrink-0 items-center justify-between gap-3 border-t border-border bg-card px-5 py-2.5 sm:justify-between">

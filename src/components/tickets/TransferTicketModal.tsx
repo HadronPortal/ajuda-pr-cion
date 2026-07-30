@@ -18,6 +18,7 @@ import {
   ticketsStore,
 } from "@/lib/tickets-store";
 import { cn } from "@/lib/utils";
+import { computeSla } from "@/lib/ticket-sla";
 import {
   type SupportTicket,
   type TicketPriority,
@@ -25,6 +26,8 @@ import {
 } from "@/lib/support-tickets-data";
 import { kbArticlesFull } from "@/lib/kb-data";
 import { CalendarClock } from "lucide-react";
+import { CorrectionHint } from "@/components/ui/smart-text";
+import { useSpellCorrection } from "@/lib/spellcheck";
 
 const TYPE_OPTIONS = ["Transferir", "Encaminhar", "Devolver para fila"] as const;
 type TransferType = (typeof TYPE_OPTIONS)[number];
@@ -164,18 +167,6 @@ const selectClass =
 
 const preventOutsideClose = (event: Event) => event.preventDefault();
 
-function computeSla(ticket: SupportTicket) {
-  const target = 24;
-  const openedAt = new Date(ticket.openedAt).getTime();
-  const hours = Math.max(0, (Date.now() - openedAt) / 36e5);
-  const rawPct = ticket.status === "Atrasado" ? 100 : Math.min(100, (hours / target) * 100);
-  const pct = Math.round(rawPct);
-  let tone: "ok" | "warn" | "late" = "ok";
-  if (ticket.status === "Atrasado" || pct >= 90) tone = "late";
-  else if (pct >= 60) tone = "warn";
-  return { pct, tone, hours: Math.round(hours) };
-}
-
 export function TransferTicketModal({
   open,
   onOpenChange,
@@ -200,6 +191,7 @@ export function TransferTicketModal({
   const [permission, setPermission] = useState<(typeof PERMISSIONS)[number]>("Clientes");
   const [priority, setPriority] = useState<TicketPriority>(ticket.priority);
   const [message, setMessage] = useState("");
+  const messageCorrection = useSpellCorrection({ value: message, onChange: setMessage });
   const [type, setType] = useState<TransferType>("Transferir");
   const [operatorQuery, setOperatorQuery] = useState("");
   const [operator, setOperator] = useState("");
@@ -479,12 +471,18 @@ export function TransferTicketModal({
             </Label>
             <textarea
               value={message}
-              onChange={(e) => setMessage(e.target.value)}
+              onChange={(e) => {
+                setMessage(e.target.value);
+                messageCorrection.notifyTyping(e);
+              }}
+              onBlur={() => messageCorrection.runNow()}
               rows={3}
               maxLength={1000}
               placeholder="Registre o motivo da transferência e as orientações ao próximo operador..."
               className="min-h-[72px] w-full resize-y rounded-lg border border-input bg-card p-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
             />
+            <CorrectionHint correcting={messageCorrection.correcting} corrected={messageCorrection.corrected} onUndo={messageCorrection.undo} />
+
           </div>
 
           <RelatedPicker

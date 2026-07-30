@@ -66,14 +66,14 @@ export const kanbanStore = {
         cards = cards.map((item) => (item.id === withId.id ? { ...item, id } : item));
         emit();
       })
-      .catch(() => toast.error("Nao foi possivel salvar o cartao"));
+      .catch(() => toast.error("Não foi possível salvar o cartão"));
     return withId;
   },
   updateCard: (card: KanbanCard) => {
     cards = cards.map((c) => (c.id === card.id ? card : c));
     emit();
     void persistCard(card).catch(() =>
-      toast.error("Nao foi possivel salvar as alteracoes do cartao"),
+      toast.error("Não foi possível salvar as alterações do cartão"),
     );
   },
   deleteCard: (id: string) => {

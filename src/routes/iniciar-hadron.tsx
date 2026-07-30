@@ -54,7 +54,7 @@ const options = [
   {
     id: "1116",
     title: "Cadastro de Operadores",
-    description: "Permissoes e configuracoes dos usuarios.",
+    description: "Permissões e configurações dos usuários.",
     owner: "PRCEDU",
     priority: "Media",
     status: "Melhoria",
@@ -69,7 +69,7 @@ const options = [
   },
   {
     id: "1398",
-    title: "Emissao de Nota Fiscal Eletronica",
+    title: "Emissão de Nota Fiscal Eletrônica",
     description: "Validacoes e retorno da SEFAZ.",
     owner: "PRCJUL",
     priority: "Baixa",
@@ -81,17 +81,17 @@ const occurrences = [
   {
     type: "Problema Hadron",
     option: "1111 - Tabelas de Tributacoes",
-    title: "Aliquota nao aplicada na venda",
+    title: "Alíquota não aplicada na venda",
     owner: "PRCEDU",
     state: "Aguardando revisao",
     date: "18/07/2026",
   },
   {
-    type: "Configuracao",
+    type: "Configuração",
     option: "1116 - Cadastro de Operadores",
-    title: "Permissao de acesso ao financeiro",
+    title: "Permissão de acesso ao financeiro",
     owner: "PRCJUL",
-    state: "Em analise",
+    state: "Em análise",
     date: "17/07/2026",
   },
   {
@@ -103,7 +103,7 @@ const occurrences = [
     date: "16/07/2026",
   },
   {
-    type: "Solicitacao/Sugestao",
+    type: "Solicitação/Sugestão",
     option: "1243 - Complementos N.C.M.",
     title: "Novo filtro por classificacao",
     owner: "PRCGUI",
@@ -115,7 +115,7 @@ const occurrences = [
 const releases = [
   {
     version: "2.0.2026.07.18",
-    title: "Ajustes na emissao de NF-e",
+    title: "Ajustes na emissão de NF-e",
     module: "Vendas / NFE",
     owner: "PRCEDU",
     published: "18/07/2026",
@@ -228,7 +228,7 @@ function HadronPage() {
             {[
               ["visao-geral", "Visao geral", Rocket],
               ["opcoes", "Opcoes", ListChecks],
-              ["ocorrencias", "Ocorrencias", ClipboardCheck],
+              ["ocorrencias", "Ocorrências", ClipboardCheck],
               ["releases", "Releases", GitBranch],
               ["versoes", "Versões", History],
               ["artigos", "Artigos", BookOpenText],
@@ -299,10 +299,10 @@ function HadronPage() {
 
 function Overview({ onOpen }: { onOpen: (d: Detail) => void }) {
   const cards = [
-    ["Ag. revisao / ocorrencia", "1 / 1", ClipboardCheck, "text-amber-600 bg-amber-500/10"],
-    ["Opcoes com ocorrencia", "27 / 1.575", ListChecks, "text-primary bg-primary/10"],
+    ["Ag. revisão / ocorrência", "1 / 1", ClipboardCheck, "text-amber-600 bg-amber-500/10"],
+    ["Opções com ocorrência", "27 / 1.575", ListChecks, "text-primary bg-primary/10"],
     ["Releases", "1.011", PackageCheck, "text-violet-600 bg-violet-500/10"],
-    ["Versao Hadron", "2.0", Code2, "text-emerald-600 bg-emerald-500/10"],
+    ["Versão Hádron", "2.0", Code2, "text-emerald-600 bg-emerald-500/10"],
   ] as const;
   return (
     <div className="mt-5 space-y-5">
@@ -350,7 +350,7 @@ function Overview({ onOpen }: { onOpen: (d: Detail) => void }) {
         <section className="rounded-lg border bg-card p-5 shadow-sm">
           <SectionTitle
             icon={UserRound}
-            title="Ocorrencias por operador"
+            title="Ocorrências por operador"
             subtitle="Distribuicao atual da fila Hadron."
           />
           <div className="mt-5 space-y-3">
@@ -381,7 +381,7 @@ function OptionsTable({ query, onOpen }: TableProps) {
     <DataCard
       title="Opcoes"
       subtitle="Cadastros e funcionalidades monitoradas pelo time Hadron."
-      headers={["Status", "P", "Opcao", "Descricao", "Responsavel"]}
+      headers={["Status", "P", "Opção", "Descrição", "Responsável"]}
     >
       {rows.map((o) => (
         <DataRow
@@ -406,9 +406,9 @@ function OccurrencesTable({ query, onOpen }: TableProps) {
   const rows = useFiltered(occurrences, query);
   return (
     <DataCard
-      title="Ocorrencias"
+      title="Ocorrências"
       subtitle="Fila geral, revisoes e solucoes registradas."
-      headers={["Tipo", "Opcao / formulario", "Ocorrencia", "Operador", "Situacao", "Data"]}
+      headers={["Tipo", "Opção / formulário", "Ocorrência", "Operador", "Situação", "Data"]}
     >
       {rows.map((o) => (
         <DataRow
@@ -417,11 +417,11 @@ function OccurrencesTable({ query, onOpen }: TableProps) {
             onOpen({
               title: o.title,
               subtitle: o.option,
-              body: "Registro detalhado da ocorrencia, analise realizada e solucao proposta pelo operador.",
+              body: "Registro detalhado da ocorrência, análise realizada e solução proposta pelo operador.",
               meta: [
                 `Tipo: ${o.type}`,
                 `Operador: ${o.owner}`,
-                `Situacao: ${o.state}`,
+                `Situação: ${o.state}`,
                 `Data: ${o.date}`,
               ],
             })
@@ -444,8 +444,8 @@ function ReleasesTable({ query, onOpen }: TableProps) {
   return (
     <DataCard
       title="Releases"
-      subtitle="Historico de publicacoes e itens em homologacao."
-      headers={["Versao", "Descricao", "Modulo", "Responsavel", "Publicacao", "Status"]}
+      subtitle="Histórico de publicações e itens em homologação."
+      headers={["Versão", "Descrição", "Módulo", "Responsável", "Publicação", "Status"]}
     >
       {rows.map((o) => (
         <DataRow
@@ -454,10 +454,10 @@ function ReleasesTable({ query, onOpen }: TableProps) {
             onOpen({
               title: o.title,
               subtitle: `Release ${o.version}`,
-              body: "Pacote de atualizacao com correcoes, melhorias e orientacoes de implantacao.",
+              body: "Pacote de atualização com correções, melhorias e orientações de implantação.",
               meta: [
-                `Modulo: ${o.module}`,
-                `Responsavel: ${o.owner}`,
+                `Módulo: ${o.module}`,
+                `Responsável: ${o.owner}`,
                 `Publicacao: ${o.published}`,
                 `Status: ${o.status}`,
               ],
@@ -527,7 +527,7 @@ function ArticlesTable({ query, onOpen }: TableProps) {
     <DataCard
       title="Artigos"
       subtitle="Documentacao tecnica vinculada as opcoes do Hadron."
-      headers={["Artigo", "Categoria", "Opcao", "Autor", "Atualizado", "Visualizacoes"]}
+      headers={["Artigo", "Categoria", "Opção", "Autor", "Atualizado", "Visualizações"]}
     >
       {rows.map((o) => (
         <DataRow
@@ -535,13 +535,13 @@ function ArticlesTable({ query, onOpen }: TableProps) {
           onClick={() =>
             onOpen({
               title: o.title,
-              subtitle: `${o.category} - Opcao ${o.option}`,
-              body: "Conteudo tecnico com orientacoes de configuracao, validacao e resolucao do processo no Hadron.",
+              subtitle: `${o.category} - Opção ${o.option}`,
+              body: "Conteúdo técnico com orientações de configuração, validação e resolução do processo no Hádron.",
               meta: [
                 `Autor: ${o.author}`,
                 `Atualizado: ${o.updated}`,
                 `${o.views} visualizacoes`,
-                `Opcao: ${o.option}`,
+                `Opção: ${o.option}`,
               ],
             })
           }
@@ -562,12 +562,12 @@ function useFiltered<T>(rows: T[], query: string) {
 function optionDetail(o: (typeof options)[number]): Detail {
   return {
     title: o.title,
-    subtitle: `Opcao ${o.id}`,
+    subtitle: `Opção ${o.id}`,
     body: o.description,
     meta: [
       `Status: ${o.status}`,
       `Prioridade: ${o.priority}`,
-      `Responsavel: ${o.owner}`,
+      `Responsável: ${o.owner}`,
       "Origem: CRM Hadron",
     ],
   };

@@ -17,6 +17,9 @@ import {
   searchHadronOptions,
   type HadronOption,
 } from "@/lib/hadron-options";
+import { CorrectionHint } from "@/components/ui/smart-text";
+import { useSpellCorrection } from "@/lib/spellcheck";
+
 
 const PRIORITY_OPTIONS: {
   value: TicketPriority;
@@ -157,6 +160,7 @@ function ForwardSpecialistModalContent({
   const [module, setModule] = useState(defaults.module);
   const [submodule, setSubmodule] = useState(defaults.submodule);
   const [reason, setReason] = useState("");
+  const reasonCorrection = useSpellCorrection({ value: reason, onChange: setReason });
   const [hadronOptionQuery, setHadronOptionQuery] = useState("");
   const [hadronOption, setHadronOption] = useState<HadronOption | null>(null);
   const [articleQuery, setArticleQuery] = useState("");
@@ -344,12 +348,18 @@ function ForwardSpecialistModalContent({
           <Field label="Mensagem para o especialista" required>
             <textarea
               value={reason}
-              onChange={(e) => setReason(e.target.value)}
+              onChange={(e) => {
+                setReason(e.target.value);
+                reasonCorrection.notifyTyping(e);
+              }}
+              onBlur={() => reasonCorrection.runNow()}
               rows={2}
               maxLength={1000}
               placeholder="Descreva o diagnóstico, testes realizados e o que precisa ser analisado..."
               className="min-h-[60px] w-full resize-none rounded-md border border-input bg-background p-2.5 text-[13px] outline-none focus:ring-2 focus:ring-ring"
             />
+            <CorrectionHint correcting={reasonCorrection.correcting} corrected={reasonCorrection.corrected} onUndo={reasonCorrection.undo} />
+
           </Field>
           <div className="grid gap-3 md:grid-cols-2">
             <RelatedPicker

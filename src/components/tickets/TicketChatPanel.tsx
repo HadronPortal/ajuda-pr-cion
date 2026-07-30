@@ -8,6 +8,8 @@ import {
   type TicketMessage,
 } from "@/lib/ticket-messages-store";
 import type { SupportTicket } from "@/lib/support-tickets-data";
+import { CorrectionHint } from "@/components/ui/smart-text";
+import { useSpellCorrection } from "@/lib/spellcheck";
 
 function initials(name: string) {
   return name
@@ -82,6 +84,7 @@ export function TicketChatPanel({
 }) {
   const messages = useTicketMessages(ticket.id);
   const [draft, setDraft] = useState("");
+  const draftCorrection = useSpellCorrection({ value: draft, onChange: setDraft });
   const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -140,9 +143,18 @@ export function TicketChatPanel({
         onSubmit={submit}
         className="flex shrink-0 items-end gap-2 border-t border-border bg-card px-3 py-3"
       >
+        <div className="min-w-0 flex-1">
         <textarea
+          lang="pt-BR"
+          spellCheck
+          autoCorrect="on"
+          autoCapitalize="sentences"
           value={draft}
-          onChange={(e) => setDraft(e.target.value)}
+          onChange={(e) => {
+            setDraft(e.target.value);
+            draftCorrection.notifyTyping(e);
+          }}
+          onBlur={() => draftCorrection.runNow()}
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
               e.preventDefault();
@@ -153,6 +165,8 @@ export function TicketChatPanel({
           placeholder="Digite uma mensagem..."
           className="min-h-[38px] max-h-32 w-full resize-none rounded-xl border border-border bg-background px-3 py-2 text-[13px] outline-none focus:ring-2 focus:ring-ring"
         />
+        <CorrectionHint correcting={draftCorrection.correcting} corrected={draftCorrection.corrected} onUndo={draftCorrection.undo} />
+        </div>
         <Button
           type="submit"
           size="icon"

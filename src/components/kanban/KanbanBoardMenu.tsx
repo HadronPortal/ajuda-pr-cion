@@ -92,7 +92,7 @@ export function KanbanBoardMenu({
           id: `${card.id}-snapshot`,
           card,
           at: card.dueDate ? `${card.dueDate}T12:00:00` : new Date().toISOString(),
-          text: `Cartao em ${columns.find((column) => column.id === card.columnId)?.title ?? "lista"}`,
+          text: `Cartão em ${columns.find((column) => column.id === card.columnId)?.title ?? "lista"}`,
           authorId: card.assigneeId,
         },
       ];

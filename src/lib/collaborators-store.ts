@@ -71,7 +71,8 @@ function mapRow(row: RawCollaborator): Collaborator {
     jobTitle: row.job_title && row.job_title !== "funcao" ? row.job_title : null,
     acronym: row.operator_acronym,
     operatorCode: row.operator_code,
-    active: row.active !== false,
+    // Inativo quando o status vem falso OU quando há data de rescisão preenchida.
+    active: row.active !== false && !row.terminated_at,
     terminatedAt: row.terminated_at,
   };
 }

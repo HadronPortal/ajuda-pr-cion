@@ -68,6 +68,7 @@ import { kbArticlesFull, suggestArticlesForCard, getCategory } from "@/lib/kb-da
 import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { SmartTextarea } from "@/components/ui/smart-text";
 
 const kbArticles: RelatedArticle[] = kbArticlesFull.map((a) => ({
   id: a.id,
@@ -525,6 +526,10 @@ export function KanbanCardDrawer({
                 Título do cartão <span className="text-destructive">*</span>
               </Label>
               <Input
+                lang="pt-BR"
+                spellCheck
+                autoCorrect="on"
+                autoCapitalize="sentences"
                 id="kanban-card-title"
                 value={draft.title}
                 onChange={(e) => update("title", e.target.value)}
@@ -546,10 +551,10 @@ export function KanbanCardDrawer({
               {/* Descrição */}
               <section className="space-y-2">
                 <SectionHeader icon={FileText} title="Descrição" />
-                <Textarea
+                <SmartTextarea
                   rows={5}
                   value={draft.description ?? ""}
-                  onChange={(e) => update("description", e.target.value)}
+                  onValueChange={(next) => update("description", next)}
                   placeholder="Contexto, hipóteses, critérios de aceite e impacto no cliente."
                   className="resize-y"
                 />
@@ -892,9 +897,9 @@ export function KanbanCardDrawer({
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 space-y-2">
-                    <Textarea
+                    <SmartTextarea
                       value={newComment}
-                      onChange={(e) => setNewComment(e.target.value)}
+                      onValueChange={setNewComment}
                       placeholder="Escreva um comentário..."
                       rows={2}
                       className="resize-none text-sm"
