@@ -271,9 +271,11 @@ for (const [rfbCode, name] of municipalityLookup) {
   const target = TARGET_CITY_NAMES.get(normalizeCity(name));
   if (target) targetMunicipalities.set(rfbCode, target);
 }
-if (targetMunicipalities.size !== TARGET_CITIES.length) {
-  const found = new Set([...targetMunicipalities.values()].map(({ ibgeCode }) => ibgeCode));
-  const missing = TARGET_CITIES.filter(([ibgeCode]) => !found.has(ibgeCode)).map(
+const foundTargetCities = new Set(
+  [...targetMunicipalities.values()].map(({ ibgeCode }) => ibgeCode),
+);
+if (foundTargetCities.size !== TARGET_CITIES.length) {
+  const missing = TARGET_CITIES.filter(([ibgeCode]) => !foundTargetCities.has(ibgeCode)).map(
     ([, name]) => name,
   );
   throw new Error(`Municípios não encontrados na tabela da Receita: ${missing.join(", ")}.`);
@@ -286,7 +288,7 @@ for (const file of files.establishments) {
   await forEachZipLine(file, (row) => {
     scannedEstablishments += 1;
     const municipality = targetMunicipalities.get(normalize(row[20]));
-    if (!municipality || normalize(row[5]) !== "02") return;
+    if (!municipality || normalize(row[19]) !== "SP" || normalize(row[5]) !== "02") return;
     const root = digits(row[0]).padStart(8, "0");
     const order = digits(row[1]).padStart(4, "0");
     const verifier = digits(row[2]).padStart(2, "0");
