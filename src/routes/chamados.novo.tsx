@@ -322,6 +322,10 @@ function NewTicketPage() {
       toast.error("Preencha os campos obrigatórios para abrir o chamado.");
       return;
     }
+    if (!selectedOwner) {
+      toast.error("Selecione um responsável ativo para o chamado.");
+      return;
+    }
 
     setSubmitting(true);
     // Se a subempresa selecionada pertence a outro cliente do grupo, o chamado
