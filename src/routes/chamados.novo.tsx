@@ -176,6 +176,7 @@ const initialForm: FormState = {
   module: "Vendas",
   submodule: "NFE",
   operator: "",
+  operatorId: "",
   type: "Não definido",
   priority: "Media",
   subject: "",
