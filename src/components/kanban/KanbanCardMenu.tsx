@@ -368,15 +368,18 @@ function MembersDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[440px]">
-        <DialogHeader>
-          <DialogTitle>Alterar membros</DialogTitle>
-          <DialogDescription>
-            Defina o responsável e os participantes do cartão.
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-[440px] [&>button]:hidden">
+        <DialogTitle className="sr-only">Alterar membros</DialogTitle>
+        <DetailModalHeader
+          icon={Users}
+          title="Alterar membros"
+          meta="Defina o responsável e os participantes do cartão."
+          onClose={() => onOpenChange(false)}
+        />
 
+        <div className="space-y-4 px-5 py-4">
         <div>
+
           <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
             Responsável
           </p>
