@@ -141,6 +141,10 @@ export function TicketChatPanel({
         className="flex shrink-0 items-end gap-2 border-t border-border bg-card px-3 py-3"
       >
         <textarea
+          lang="pt-BR"
+          spellCheck
+          autoCorrect="on"
+          autoCapitalize="sentences"
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => {
