@@ -130,8 +130,11 @@ export function CreateEventDialog({
       description: description.trim() || undefined,
       guests: guests.length ? guests.map((g) => g.acronym ?? g.name) : undefined,
       guestList: guests.length ? guests : undefined,
-      needsDisplacement: type === "Visita presencial" ? needsDisplacement : undefined,
-      address: type === "Visita presencial" ? (address.trim() || undefined) : undefined,
+      needsDisplacement:
+        type === "Visita presencial" ? vehicleId !== NO_VEHICLE : undefined,
+      vehicleId:
+        type === "Visita presencial" && vehicleId !== NO_VEHICLE ? vehicleId : undefined,
+
       responsible,
       meetingLink: type === "Reunião remota" ? (meetingLink.trim() || undefined) : undefined,
       platform: type === "Reunião remota" ? platform : undefined,
