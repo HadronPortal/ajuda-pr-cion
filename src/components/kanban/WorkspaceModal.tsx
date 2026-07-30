@@ -216,11 +216,13 @@ export function WorkspaceModal({
             </TabsContent>
           )}
         </Tabs>
+        </div>
 
-        <DialogFooter>
+        <DialogFooter className="border-t border-border bg-card px-5 py-3">
           <Button variant="outline" className="cursor-pointer" onClick={() => onOpenChange(false)}>Cancelar</Button>
           {(!workspace || tab === "settings") && <Button className="cursor-pointer" disabled={saving} onClick={() => void save()}>{saving ? "Salvando..." : workspace ? "Salvar" : "Criar área"}</Button>}
         </DialogFooter>
+
       </DialogContent>
     </Dialog>
   );
