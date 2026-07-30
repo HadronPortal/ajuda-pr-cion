@@ -12,13 +12,14 @@ import type { SupportTicket, TicketPriority } from "@/lib/support-tickets-data";
 import { modulesMap, moduleOptions, splitModule } from "@/lib/modules-map";
 import { cvsArticles } from "@/lib/cvs-catalogs-imported";
 import {
-import { CorrectionHint } from "@/components/ui/smart-text";
-import { useSpellCorrection } from "@/lib/spellcheck";
   normalizeSearch,
   searchHadronForms,
   searchHadronOptions,
   type HadronOption,
 } from "@/lib/hadron-options";
+import { CorrectionHint } from "@/components/ui/smart-text";
+import { useSpellCorrection } from "@/lib/spellcheck";
+
 
 const PRIORITY_OPTIONS: {
   value: TicketPriority;
