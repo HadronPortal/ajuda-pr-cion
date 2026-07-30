@@ -172,11 +172,6 @@ function formatDateTime(iso: string) {
   });
 }
 
-const slaBarTone: Record<"ok" | "warn" | "late", string> = {
-  ok: "bg-success",
-  warn: "bg-warning",
-  late: "bg-destructive",
-};
 
 const slaTextTone: Record<"ok" | "warn" | "late", string> = {
   ok: "text-success",
