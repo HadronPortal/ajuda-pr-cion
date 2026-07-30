@@ -69,7 +69,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { CalendarClock } from "lucide-react";
+import { CalendarClock, type LucideIcon } from "lucide-react";
 import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
