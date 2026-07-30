@@ -82,9 +82,17 @@ export function BoardCollaborationDialog({ board, open, onOpenChange, initialTab
   };
 
   return <Dialog open={open} onOpenChange={onOpenChange}>
-    <DialogContent className="sm:max-w-2xl" onInteractOutside={(event) => event.preventDefault()}>
-      <DialogHeader><DialogTitle>Configurações do quadro</DialogTitle><DialogDescription>Compartilhe com a equipe e personalize o ambiente deste quadro.</DialogDescription></DialogHeader>
+    <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-2xl [&>button]:hidden" onInteractOutside={(event) => event.preventDefault()}>
+      <DialogTitle className="sr-only">Configurações do quadro</DialogTitle>
+      <DetailModalHeader
+        icon={Users}
+        title="Configurações do quadro"
+        meta="Compartilhe com a equipe e personalize o ambiente deste quadro."
+        onClose={() => onOpenChange(false)}
+      />
+      <div className="px-5 py-4">
       <Tabs key={`${initialTab}-${open}`} defaultValue={initialTab}>
+
         <TabsList className="grid w-full grid-cols-2"><TabsTrigger value="share" className="cursor-pointer gap-2"><Users className="h-4 w-4" />Compartilhar</TabsTrigger><TabsTrigger value="background" className="cursor-pointer gap-2"><Palette className="h-4 w-4" />Fundo</TabsTrigger></TabsList>
         <TabsContent value="share" className="space-y-5 pt-3">
           <div className="grid grid-cols-[1fr_130px_auto] gap-2"><Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Endereço de e-mail" /><RoleSelect value={role} onChange={setRole} /><Button className="cursor-pointer" disabled={busy} onClick={() => void invite()}><Mail className="mr-2 h-4 w-4" />Convidar</Button></div>
