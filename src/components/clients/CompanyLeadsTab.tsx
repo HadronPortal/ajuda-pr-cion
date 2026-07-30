@@ -427,7 +427,7 @@ export function CompanyLeadsTab() {
           <select
             value={lead.stage}
             onChange={(event) => void updateStage(lead, event.target.value as CompanyLeadStage)}
-            className="h-8 cursor-pointer rounded-md border border-input bg-background px-2 text-xs"
+            className="h-7 cursor-pointer rounded-md border border-input bg-background px-1.5 text-xs"
           >
             {Object.entries(stageLabels).map(([value, label]) => (
               <option key={value} value={value}>
