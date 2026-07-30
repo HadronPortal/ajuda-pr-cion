@@ -542,22 +542,19 @@ function NewTicketPage() {
                   </SelectContent>
                 </Select>
               </Field>
-              <Field label="Operador">
-                <Select
+              <Field label="Responsável" required>
+                <CollaboratorSelect
                   value={form.operator}
-                  onValueChange={(v) => setForm((prev) => ({ ...prev, operator: v }))}
-                >
-                  <SelectTrigger className="h-11 rounded-xl cursor-pointer">
-                    <SelectValue placeholder="Selecione o operador" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {operatorAcronyms.map((code) => (
-                      <SelectItem key={code} value={code}>
-                        {code}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  onChange={(acronym, collaborator) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      operator: acronym,
+                      operatorId: collaborator?.id ?? "",
+                    }))
+                  }
+                  placeholder="Selecione o responsável"
+                  className="h-11 rounded-xl"
+                />
               </Field>
             </div>
           </Card>
