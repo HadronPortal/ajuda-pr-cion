@@ -6,6 +6,7 @@ import {
   Building2,
   CalendarClock,
   CheckCircle2,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Clock3,
@@ -18,7 +19,9 @@ import {
   ListChecks,
   LockKeyhole,
   MapPin,
+  Mail,
   MessageSquare,
+  MoreHorizontal,
   NotebookText,
   Paperclip,
   Phone,
@@ -45,6 +48,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -116,6 +120,24 @@ const priorityTone: Record<TicketPriority, string> = {
   Alta: "bg-destructive/12 text-destructive border-destructive/20",
   Media: "bg-warning/16 text-warning-foreground border-warning/30",
   Baixa: "bg-muted text-muted-foreground border-border",
+};
+
+const statusTextTone: Record<TicketStatus, string> = {
+  Atrasado: "text-destructive",
+  "Em Aberto": "text-primary",
+  Ocupado: "text-[#b66a00] dark:text-[#ffd28a]",
+  "Em andamento": "text-[#246cb5] dark:text-[#9dcaff]",
+  "Aguardando cliente": "text-[#7253bd] dark:text-[#c7b8ff]",
+  "Com especialista": "text-[#1f9860] dark:text-[#8ee8be]",
+  Agendamento: "text-[#9c7610] dark:text-[#f3d66d]",
+  Finalizado: "text-success",
+  Cancelado: "text-muted-foreground",
+};
+
+const priorityTextTone: Record<TicketPriority, string> = {
+  Alta: "text-destructive",
+  Media: "text-warning-foreground",
+  Baixa: "text-muted-foreground",
 };
 
 const sourceLabels: Record<SupportTicket["source"], string> = {
@@ -272,7 +294,7 @@ export function TicketDetailSheet({
   const [notesOpen, setNotesOpen] = useState(false);
   const [timelineOpen, setTimelineOpen] = useState(false);
   const [descriptionOpen, setDescriptionOpen] = useState(false);
-  const [navCollapsed, setNavCollapsed] = useState(true);
+  const [activeTab, setActiveTab] = useState("resumo");
   const [selectedHistory, setSelectedHistory] = useState<PastAttendance | null>(null);
   const [activeAction, setActiveAction] = useState<
     "encerrar" | "assumir" | "agendar" | "encaminhar" | "atender" | "timeline"
@@ -338,6 +360,8 @@ export function TicketDetailSheet({
     toast.success("Chamado encerrado");
   };
 
+  const contactEmail = "";
+  const hadronOptionValue = "";
   const moduleParts = ticket.module
     .split(/\s+[-–]\s+/)
     .map((p) => p.trim())
