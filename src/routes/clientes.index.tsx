@@ -2432,10 +2432,15 @@ function SupportRowsCompact({
         </Button>
       )}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-h-[80vh] max-w-3xl overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Agendamentos e atendimentos</DialogTitle>
-          </DialogHeader>
+        <DialogContent className="max-h-[80vh] max-w-3xl gap-0 overflow-y-auto p-0 [&>button]:hidden">
+          <DialogTitle className="sr-only">Agendamentos e atendimentos</DialogTitle>
+          <DetailModalHeader
+            icon={CalendarClock}
+            title="Agendamentos e atendimentos"
+            onClose={() => setDialogOpen(false)}
+          />
+          <div className="px-5 py-4">
+
           <ul className="space-y-2">
             {rows.map((row) => (
               <li
