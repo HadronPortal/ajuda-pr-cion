@@ -486,15 +486,16 @@ function DateDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[380px]">
-        <DialogHeader>
-          <DialogTitle>Editar datas</DialogTitle>
-          <DialogDescription>
-            Defina a data de vencimento deste cartão.
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-[380px] [&>button]:hidden">
+        <DialogTitle className="sr-only">Editar datas</DialogTitle>
+        <DetailModalHeader
+          icon={CalendarIcon}
+          title="Editar datas"
+          meta="Defina a data de vencimento deste cartão."
+          onClose={() => onOpenChange(false)}
+        />
 
-        <div className="flex flex-col items-center gap-2">
+        <div className="flex flex-col items-center gap-2 px-5 py-4">
           <div className="text-[12px] text-muted-foreground">
             {date ? format(date, "PPP") : "Sem data definida"}
           </div>
@@ -516,7 +517,8 @@ function DateDialog({
           )}
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="border-t border-border bg-card px-5 py-3">
+
           <Button
             variant="outline"
             className="cursor-pointer"
