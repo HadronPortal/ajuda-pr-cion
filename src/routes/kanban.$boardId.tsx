@@ -961,18 +961,23 @@ function KanbanPage() {
       </Dialog>
 
       <Dialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
-        <DialogContent className="sm:max-w-[440px]">
-          <DialogHeader>
-            <DialogTitle>Excluir coluna {deleteTarget ? `"${deleteTarget.title}"` : ""}?</DialogTitle>
-            <DialogDescription>
-              Os cards desta coluna serão movidos para a primeira coluna disponível
-              {columns[0] && deleteTarget && columns[0].id !== deleteTarget.id
+        <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-[440px] [&>button]:hidden">
+          <DialogTitle className="sr-only">Excluir coluna</DialogTitle>
+          <DetailModalHeader
+            icon={TrashIcon}
+            title="Excluir coluna"
+            protocol={deleteTarget?.title}
+            meta={`Os cards desta coluna serão movidos para a primeira coluna disponível${
+              columns[0] && deleteTarget && columns[0].id !== deleteTarget.id
                 ? ` ("${columns[0].title}")`
-                : ""}
-              . Essa ação não pode ser desfeita.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
+                : ""
+            }. Essa ação não pode ser desfeita.`}
+            onClose={() => setDeleteTarget(null)}
+            accentClassName="bg-destructive"
+            iconWrapClassName="bg-destructive text-destructive-foreground"
+          />
+          <DialogFooter className="border-t border-border bg-card px-5 py-3">
+
             <Button
               variant="outline"
               className="cursor-pointer"
