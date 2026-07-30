@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.ticket-summary]
 verify_jwt = false
+
+[functions.spellcheck-ptbr]
+verify_jwt = false

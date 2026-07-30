@@ -26,6 +26,8 @@ import {
 } from "@/lib/support-tickets-data";
 import { kbArticlesFull } from "@/lib/kb-data";
 import { CalendarClock } from "lucide-react";
+import { CorrectionHint } from "@/components/ui/smart-text";
+import { useSpellCorrection } from "@/lib/spellcheck";
 
 const TYPE_OPTIONS = ["Transferir", "Encaminhar", "Devolver para fila"] as const;
 type TransferType = (typeof TYPE_OPTIONS)[number];
@@ -189,6 +191,7 @@ export function TransferTicketModal({
   const [permission, setPermission] = useState<(typeof PERMISSIONS)[number]>("Clientes");
   const [priority, setPriority] = useState<TicketPriority>(ticket.priority);
   const [message, setMessage] = useState("");
+  const messageCorrection = useSpellCorrection({ value: message, onChange: setMessage });
   const [type, setType] = useState<TransferType>("Transferir");
   const [operatorQuery, setOperatorQuery] = useState("");
   const [operator, setOperator] = useState("");
@@ -468,12 +471,18 @@ export function TransferTicketModal({
             </Label>
             <textarea
               value={message}
-              onChange={(e) => setMessage(e.target.value)}
+              onChange={(e) => {
+                setMessage(e.target.value);
+                messageCorrection.notifyTyping();
+              }}
+              onBlur={() => messageCorrection.runNow()}
               rows={3}
               maxLength={1000}
               placeholder="Registre o motivo da transferência e as orientações ao próximo operador..."
               className="min-h-[72px] w-full resize-y rounded-lg border border-input bg-card p-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
             />
+            <CorrectionHint correcting={messageCorrection.correcting} corrected={messageCorrection.corrected} onUndo={messageCorrection.undo} />
+
           </div>
 
           <RelatedPicker

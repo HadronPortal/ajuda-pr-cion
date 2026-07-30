@@ -17,6 +17,8 @@ import {
   type TicketMessage,
 } from "@/lib/ticket-messages-store";
 import type { SupportTicket } from "@/lib/support-tickets-data";
+import { CorrectionHint } from "@/components/ui/smart-text";
+import { useSpellCorrection } from "@/lib/spellcheck";
 
 const WIDTH = 380;
 const HEIGHT = 500;
@@ -458,6 +460,7 @@ function Composer({
   onAttach: () => void;
   fileInputRef: React.RefObject<HTMLInputElement | null>;
 }) {
+  const draftCorrection = useSpellCorrection({ value: draft, onChange: setDraft });
   return (
     <form
       onSubmit={onSubmit}
@@ -473,13 +476,18 @@ function Composer({
       >
         <Paperclip className="h-4 w-4" />
       </button>
+      <div className="min-w-0 flex-1">
       <textarea
         lang="pt-BR"
         spellCheck
         autoCorrect="on"
         autoCapitalize="sentences"
         value={draft}
-        onChange={(e) => setDraft(e.target.value)}
+        onChange={(e) => {
+          setDraft(e.target.value);
+          draftCorrection.notifyTyping();
+        }}
+        onBlur={() => draftCorrection.runNow()}
         onKeyDown={(e) => {
           if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
@@ -490,6 +498,8 @@ function Composer({
         placeholder="Digite uma mensagem..."
         className="min-h-[38px] max-h-32 w-full resize-none rounded-xl border border-border bg-background px-3 py-2 text-[13px] outline-none focus:ring-2 focus:ring-ring"
       />
+      <CorrectionHint correcting={draftCorrection.correcting} corrected={draftCorrection.corrected} onUndo={draftCorrection.undo} />
+      </div>
       <Button
         type="submit"
         size="icon"
