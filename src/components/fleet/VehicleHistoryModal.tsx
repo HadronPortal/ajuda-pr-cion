@@ -146,66 +146,35 @@ export function VehicleHistoryModal({
           Histórico do veículo {vehicle.model} {vehicle.plate}
         </DialogTitle>
 
-        {/* Cabeçalho */}
-        <header className="relative shrink-0 border-b border-border bg-card px-4 pb-4 pt-4 md:px-6 md:pb-5 md:pt-5">
-          <div className="relative overflow-hidden rounded-xl border border-border bg-card shadow-[0_1px_2px_rgba(15,23,42,0.04),0_4px_12px_rgba(15,23,42,0.05)]">
-            <span aria-hidden className="absolute left-0 top-0 h-full w-1 bg-primary" />
-            <button
-              type="button"
-              onClick={() => handleOpenChange(false)}
-              aria-label="Fechar"
-              className="absolute right-2 top-2 z-10 grid h-8 w-8 cursor-pointer place-items-center rounded-md text-muted-foreground transition hover:bg-accent hover:text-foreground"
-            >
-              <X className="h-4 w-4" />
-            </button>
+        <DetailModalHeader
+          icon={Truck}
+          title="Histórico do veículo"
+          protocol={vehicle.plate}
+          onClose={() => handleOpenChange(false)}
+          chips={<VehicleStatusChip status={vehicle.status} />}
+          meta={
+            <>
+              <span className="truncate text-foreground">{vehicle.model}</span>
+              <span aria-hidden className="hidden h-3 w-px bg-border sm:block" />
+              <span className="inline-flex items-center gap-1">
+                <Gauge className="h-3 w-3" />
+                <span className="font-medium text-foreground">{formatKm(vehicle.currentMileage)}</span>
+              </span>
+              <span aria-hidden className="hidden h-3 w-px bg-border sm:block" />
+              <span className="inline-flex items-center gap-1">
+                <Truck className="h-3 w-3" />
+                <span className="font-medium text-foreground">{vehicle.category}</span>
+              </span>
+              <span aria-hidden className="hidden h-3 w-px bg-border sm:block" />
+              <span className="inline-flex items-center gap-1">
+                <CalendarClock className="h-3 w-3" />
+                Próxima revisão{" "}
+                <span className="font-medium text-foreground">{vehicle.nextRevisionDate}</span>
+              </span>
+            </>
+          }
+        />
 
-            <div className="flex items-start gap-4 pl-5 pr-16 py-4 md:py-5">
-              <div className="grid h-16 w-24 shrink-0 place-items-center overflow-hidden rounded-lg border border-border bg-white">
-                <img
-                  src={vehicle.imageUrl}
-                  alt={vehicle.model}
-                  className="h-full w-full object-contain p-1"
-                />
-              </div>
-
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                  <span className="text-[15px] font-medium text-foreground">{vehicle.model}</span>
-                  <span aria-hidden className="text-border">
-                    ·
-                  </span>
-                  <span className="font-mono text-[12.5px] text-primary">{vehicle.plate}</span>
-                  <span aria-hidden className="text-border">
-                    ·
-                  </span>
-                  <VehicleStatusChip status={vehicle.status} />
-                </div>
-                <h2 className="mt-1 text-[13px] font-normal text-muted-foreground">
-                  Histórico do veículo
-                </h2>
-                <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11.5px] text-muted-foreground">
-                  <span className="inline-flex items-center gap-1">
-                    <Gauge className="h-3.5 w-3.5" />
-                    <span className="font-medium text-foreground">
-                      {formatKm(vehicle.currentMileage)}
-                    </span>
-                  </span>
-                  <span aria-hidden className="hidden h-3 w-px bg-border sm:block" />
-                  <span className="inline-flex items-center gap-1">
-                    <Truck className="h-3.5 w-3.5" />
-                    <span className="font-medium text-foreground">{vehicle.category}</span>
-                  </span>
-                  <span aria-hidden className="hidden h-3 w-px bg-border sm:block" />
-                  <span className="inline-flex items-center gap-1">
-                    <CalendarClock className="h-3.5 w-3.5" />
-                    Próxima revisão{" "}
-                    <span className="font-medium text-foreground">{vehicle.nextRevisionDate}</span>
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </header>
 
         {/* Conteúdo */}
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
