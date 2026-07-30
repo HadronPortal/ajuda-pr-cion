@@ -915,14 +915,16 @@ function KanbanPage() {
       />
 
       <Dialog open={newColumnOpen} onOpenChange={setNewColumnOpen}>
-        <DialogContent className="sm:max-w-[420px]">
-          <DialogHeader>
-            <DialogTitle>Nova coluna</DialogTitle>
-            <DialogDescription>
-              Adicione uma nova coluna ao seu quadro Kanban.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-2 py-2">
+        <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-[420px] [&>button]:hidden">
+          <DialogTitle className="sr-only">Nova coluna</DialogTitle>
+          <DetailModalHeader
+            icon={Columns3}
+            title="Nova coluna"
+            meta="Adicione uma nova coluna ao seu quadro Kanban."
+            onClose={() => setNewColumnOpen(false)}
+          />
+          <div className="space-y-2 px-5 py-4">
+
             <label htmlFor="new-column-name" className="text-xs font-medium text-muted-foreground">
               Nome da coluna
             </label>
