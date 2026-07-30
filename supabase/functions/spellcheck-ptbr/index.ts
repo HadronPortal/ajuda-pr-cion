@@ -65,7 +65,7 @@ async function correct(text: string) {
   const payload = await response.json();
   const out = payload?.choices?.[0]?.message?.content;
   if (typeof out !== "string" || !out.trim()) throw new Error("Resposta vazia");
-  return out.replace(/^["'`\s]+|["'`\s]+$/g, (m, offset) => (offset === 0 ? "" : ""));
+  return out.replace(/^\s*["'`]+|["'`]+\s*$/g, "").trim();
 }
 
 /** Descarta correções suspeitas (resumo, corte, expansão exagerada). */
