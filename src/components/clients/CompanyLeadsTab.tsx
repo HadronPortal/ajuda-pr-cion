@@ -89,24 +89,30 @@ type ColumnDefinition = {
 };
 
 const columnDefinitions: ColumnDefinition[] = [
-  { key: "company", label: "Empresa", sort: "company" },
-  { key: "cnpj", label: "CNPJ", sort: "cnpj" },
-  { key: "opened_at", label: "Data de abertura", sort: "opened_at" },
-  { key: "registration_status", label: "Situação cadastral", sort: "registration_status" },
-  { key: "city", label: "Cidade/UF", sort: "city" },
-  { key: "address", label: "Endereço" },
-  { key: "cnae", label: "CNAE", sort: "cnae" },
-  { key: "cnae_description", label: "Descrição do CNAE" },
-  { key: "company_size", label: "Porte", sort: "company_size" },
-  { key: "legal_nature", label: "Natureza jurídica" },
-  { key: "phone", label: "Telefone", sort: "phone" },
-  { key: "email", label: "E-mail" },
-  { key: "mei", label: "MEI" },
-  { key: "simples", label: "Simples Nacional" },
-  { key: "score", label: "Score", sort: "score" },
-  { key: "stage", label: "Etapa", sort: "stage" },
-  { key: "source", label: "Fonte" },
+  { key: "company", label: "Empresa", sort: "company", className: "max-w-[220px]" },
+  { key: "cnpj", label: "CNPJ", sort: "cnpj", className: "whitespace-nowrap" },
+  { key: "opened_at", label: "Data de abertura", sort: "opened_at", className: "whitespace-nowrap" },
+  {
+    key: "registration_status",
+    label: "Situação cadastral",
+    sort: "registration_status",
+    className: "whitespace-nowrap",
+  },
+  { key: "city", label: "Cidade/UF", sort: "city", className: "whitespace-nowrap" },
+  { key: "address", label: "Endereço", className: "max-w-[200px]" },
+  { key: "cnae", label: "CNAE", sort: "cnae", className: "whitespace-nowrap" },
+  { key: "cnae_description", label: "Descrição do CNAE", className: "max-w-[220px]" },
+  { key: "company_size", label: "Porte", sort: "company_size", className: "whitespace-nowrap" },
+  { key: "legal_nature", label: "Natureza jurídica", className: "max-w-[180px]" },
+  { key: "phone", label: "Telefone", sort: "phone", className: "whitespace-nowrap" },
+  { key: "email", label: "E-mail", className: "max-w-[180px]" },
+  { key: "mei", label: "MEI", className: "whitespace-nowrap" },
+  { key: "simples", label: "Simples Nacional", className: "whitespace-nowrap" },
+  { key: "score", label: "Score", sort: "score", className: "whitespace-nowrap" },
+  { key: "stage", label: "Etapa", sort: "stage", className: "whitespace-nowrap" },
+  { key: "source", label: "Fonte", className: "max-w-[160px]" },
 ];
+
 
 const defaultColumns: ColumnKey[] = [
   "company",
