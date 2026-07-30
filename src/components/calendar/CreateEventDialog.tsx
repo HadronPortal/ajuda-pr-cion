@@ -18,6 +18,7 @@ import { Dialog, DialogContent, DialogFooter, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { SmartTextarea } from "@/components/ui/smart-text";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import { EventDateTimeFields } from "@/components/calendar/EventDateTimeFields";
@@ -207,7 +208,7 @@ export function CreateEventDialog({
           </NewField>
 
           <NewField label="Descrição">
-            <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} maxLength={700} placeholder="Descreva o objetivo ou as informações do agendamento" className="min-h-[80px] resize-none" />
+            <SmartTextarea value={description} onValueChange={setDescription} rows={3} maxLength={700} placeholder="Descreva o objetivo ou as informações do agendamento" className="min-h-[80px] resize-none" />
           </NewField>
 
           <NewField label="Convidados">

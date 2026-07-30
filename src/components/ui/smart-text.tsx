@@ -13,7 +13,7 @@ type Common = {
   hintClassName?: string;
 };
 
-function CorrectionHint({
+export function CorrectionHint({
   correcting,
   corrected,
   onUndo,
