@@ -154,7 +154,10 @@ type FormState = {
   phoneValue: string;
   module: string;
   submodule: string;
+  /** Sigla real do colaborador responsável. */
   operator: string;
+  /** ID real do colaborador responsável. */
+  operatorId: string;
   type: ClosurePayload["type"];
   priority: TicketPriority;
   subject: string;
