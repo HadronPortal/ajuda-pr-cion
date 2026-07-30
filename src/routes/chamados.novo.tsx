@@ -571,30 +571,25 @@ function NewTicketPage() {
             <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-[minmax(0,1fr)_240px]">
               <div className="space-y-3">
                 <Field label="Assunto" required>
-                  <Input
-                    lang="pt-BR"
-                    spellCheck
-                    autoCorrect="on"
-                    autoCapitalize="sentences"
+                  <SmartInput
                     value={form.subject}
-                    onChange={(e) =>
-                      setForm((prev) => ({ ...prev, subject: e.target.value }))
-                    }
+                    onValueChange={(subject) => setForm((prev) => ({ ...prev, subject }))}
                     placeholder="Ex.: Nota em processamento"
                     className="h-11 rounded-xl"
                   />
                 </Field>
                 <Field label="Descrição" required>
-                  <Textarea
+                  <SmartTextarea
                     value={form.description}
-                    onChange={(e) =>
-                      setForm((prev) => ({ ...prev, description: e.target.value }))
+                    onValueChange={(description) =>
+                      setForm((prev) => ({ ...prev, description }))
                     }
                     rows={7}
                     placeholder="Descreva o que o cliente relatou, mensagens de erro, tela onde ocorreu e o que já foi conferido..."
                     className="min-h-[180px] resize-none rounded-xl"
                   />
                 </Field>
+
               </div>
 
               <div className="space-y-3">
