@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { CalendarClock, Car, Users } from "lucide-react";
+import { useMemo, useState, type ReactNode } from "react";
+import { CalendarClock, Users } from "lucide-react";
 import { toast } from "sonner";
 import {
   CollaboratorMultiSelect,
@@ -13,60 +13,25 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import { EventDateTimeFields } from "@/components/calendar/EventDateTimeFields";
+import {
+  NO_VEHICLE,
+  VehicleAvailabilitySelect,
+  useVehicleAvailability,
+  isUnavailable,
+} from "@/components/fleet/VehicleAvailabilitySelect";
 
 import { ticketsStore } from "@/lib/tickets-store";
 import type { SupportTicket } from "@/lib/support-tickets-data";
 import { modulesMap, moduleOptions, splitModule } from "@/lib/modules-map";
 import { addLocalEvent } from "@/lib/local-events-store";
 import type { EventType } from "@/lib/calendar-events";
-import {
-  useVehicles,
-  useReservations,
-  hasReservationConflict,
-  hasConflict,
-  createReservation,
-  getActiveReservationsByVehicle,
-  VEHICLE_STATUS_LABEL,
-  type Vehicle,
-} from "@/lib/fleet-store";
+import { createReservation } from "@/lib/fleet-store";
 
 const EVENT_TYPES = ["Visita", "Reunião remota", "Reunião PRC"];
-const NO_VEHICLE = "__none__";
 const selectClass =
   "h-9 w-full cursor-pointer rounded-md border border-input bg-background px-3 text-[13px] outline-none focus:ring-2 focus:ring-ring";
 const preventOutsideClose = (event: Event) => event.preventDefault();
 
-type VehicleAvailability =
-  | { key: "disponivel"; label: "Disponível"; conflict?: undefined }
-  | { key: "em_uso"; label: "Em uso" | "Em uso no período"; conflict?: undefined }
-  | { key: "indisponivel"; label: "Indisponível"; conflict?: undefined }
-  | { key: "pre_agendado"; label: "Pré-agendado"; conflict?: boolean };
-
-function combineDateTime(date: string, time: string): string | null {
-  if (!date || !time) return null;
-  return `${date}T${time}:00`;
-}
-
-function evaluateVehicle(
-  vehicle: Vehicle,
-  windowStart: string | null,
-  windowEnd: string | null,
-): VehicleAvailability {
-  if (vehicle.status === "manutencao") return { key: "indisponivel", label: "Indisponível" };
-  if (!windowStart || !windowEnd) {
-    if (vehicle.status === "em_uso") return { key: "em_uso", label: "Em uso" };
-  } else if (hasConflict(vehicle.id, windowStart, windowEnd)) {
-    return { key: "em_uso", label: "Em uso no período" };
-  }
-  const reservations = getActiveReservationsByVehicle(vehicle.id);
-  if (reservations.length === 0) return { key: "disponivel", label: "Disponível" };
-  if (!windowStart || !windowEnd) {
-    // Reservado em algum outro horário — deixamos como pré-agendado sem definir conflito.
-    return { key: "pre_agendado", label: "Pré-agendado", conflict: false };
-  }
-  const conflict = hasReservationConflict(vehicle.id, windowStart, windowEnd);
-  return { key: "pre_agendado", label: "Pré-agendado", conflict: !!conflict };
-}
 
 export function ScheduleEventModal({
   open,
