@@ -437,7 +437,7 @@ export function CompanyLeadsTab() {
           </select>
         );
       case "source":
-        return <span className="text-xs text-muted-foreground">{lead.source}</span>;
+        return <div className="truncate text-xs text-muted-foreground">{lead.source}</div>;
       default:
         return null;
     }
