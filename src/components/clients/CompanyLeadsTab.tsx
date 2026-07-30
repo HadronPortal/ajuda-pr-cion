@@ -611,18 +611,20 @@ export function CompanyLeadsTab() {
                     {label}
                   </label>
                 ))}
-                <Button
-                  type="button"
-                  className="w-full"
-                  onClick={() => {
-                    setFiltersOpen(false);
-                    searchLeads(0);
-                  }}
-                >
-                  Aplicar filtros
-                </Button>
               </div>
-            </ScrollArea>
+            </div>
+            <div className="shrink-0 border-t border-border p-3">
+              <Button
+                type="button"
+                className="w-full"
+                onClick={() => {
+                  setFiltersOpen(false);
+                  searchLeads(0);
+                }}
+              >
+                Aplicar filtros
+              </Button>
+            </div>
           </PopoverContent>
         </Popover>
 
@@ -633,9 +635,19 @@ export function CompanyLeadsTab() {
               Colunas
             </Button>
           </PopoverTrigger>
-          <PopoverContent align="end" className="w-[260px] p-0">
-            <ScrollArea className="max-h-[380px]">
-              <div className="space-y-2 p-3">
+          <PopoverContent
+            align="end"
+            side="bottom"
+            sideOffset={8}
+            collisionPadding={16}
+            avoidCollisions
+            className="flex max-h-[calc(100vh-120px)] w-[min(260px,calc(100vw-32px))] flex-col p-0"
+          >
+            <div className="shrink-0 border-b border-border px-3 py-2.5">
+              <p className="text-sm font-semibold">Colunas visíveis</p>
+            </div>
+            <div className="hide-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain">
+              <div className="space-y-1 p-3">
                 {columnDefinitions.map((column) => (
                   <label
                     key={column.key}
@@ -659,9 +671,10 @@ export function CompanyLeadsTab() {
                   </label>
                 ))}
               </div>
-            </ScrollArea>
+            </div>
           </PopoverContent>
         </Popover>
+
 
         <Button
           onClick={() => searchLeads(0)}
