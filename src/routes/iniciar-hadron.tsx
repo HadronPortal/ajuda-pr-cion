@@ -296,7 +296,9 @@ function HadronPage() {
               Concluir visualizacao
             </Button>
           </div>
+          </div>
         </DialogContent>
+
       </Dialog>
     </AppShell>
   );
