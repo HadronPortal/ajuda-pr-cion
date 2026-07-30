@@ -3555,16 +3555,17 @@ export function ClientParametersTab({ parameters }: { parameters: ClientParamete
         open={selectedParameter !== null}
         onOpenChange={(open) => !open && setSelectedParameter(null)}
       >
-        <DialogContent className="max-h-[85vh] max-w-4xl overflow-y-auto">
+        <DialogContent className="max-h-[85vh] max-w-4xl gap-0 overflow-y-auto p-0 [&>button]:hidden">
           {selectedParameter && (
             <>
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  Parâmetro
-                  <SlidersHorizontal className="h-5 w-5 text-muted-foreground" />
-                </DialogTitle>
-              </DialogHeader>
-              <div className="space-y-6">
+              <DialogTitle className="sr-only">Parâmetro</DialogTitle>
+              <DetailModalHeader
+                icon={SlidersHorizontal}
+                title="Parâmetro"
+                onClose={() => setSelectedParameter(null)}
+              />
+              <div className="space-y-6 px-5 py-4">
+
                 <div className="border-b border-border pb-4">
                   <p className="text-sm font-medium">{selectedParameter.signature || "-"}</p>
                   <p className="mt-1 text-sm text-muted-foreground">
