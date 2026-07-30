@@ -625,28 +625,48 @@ export function TicketDetailSheet({
                       </Badge>
                     </MiniStat>
                     <MiniStat label="SLA">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={cn(
-                            "text-[22px] font-bold leading-none",
-                            slaTextTone[sla.tone],
-                          )}
-                        >
-                          {sla.pct}%
-                        </span>
-                        <div className="flex-1">
-                          <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                            <div
-                              className={cn(
-                                "h-full rounded-full transition-all",
-                                slaBarTone[sla.tone],
-                              )}
-                              style={{ width: `${sla.pct}%` }}
-                            />
-                          </div>
-                          <p className="mt-1 text-[10.5px] text-muted-foreground">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex min-w-0 flex-col">
+                          <span
+                            className={cn(
+                              "text-[18px] font-bold leading-none sm:text-[20px]",
+                              slaTextTone[sla.tone],
+                            )}
+                          >
+                            {sla.pct}%
+                          </span>
+                          <span className="mt-1 text-[10px] text-muted-foreground">
                             {sla.hours}h decorridas
-                          </p>
+                          </span>
+                          <span
+                            className={cn(
+                              "mt-0.5 text-[9px] font-medium leading-tight",
+                              sla.tone === "ok"
+                                ? "text-success"
+                                : sla.tone === "warn"
+                                  ? "text-warning-foreground"
+                                  : "text-destructive",
+                            )}
+                          >
+                            {sla.tone === "ok"
+                              ? "Dentro do prazo"
+                              : sla.tone === "warn"
+                                ? "Próximo do limite"
+                                : "Fora do prazo"}
+                          </span>
+                        </div>
+                        <div
+                          className={cn(
+                            "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border sm:h-9 sm:w-9",
+                            sla.tone === "ok"
+                              ? "border-success/25 bg-success/10 text-success"
+                              : sla.tone === "warn"
+                                ? "border-warning/25 bg-warning/15 text-warning-foreground"
+                                : "border-destructive/25 bg-destructive/10 text-destructive",
+                          )}
+                          aria-hidden
+                        >
+                          <Clock3 className="h-4 w-4 sm:h-[18px] sm:w-[18px]" />
                         </div>
                       </div>
                     </MiniStat>
