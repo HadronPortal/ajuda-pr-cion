@@ -338,6 +338,90 @@ export function TicketDetailSheet({
     toast.success("Chamado encerrado");
   };
 
+  const moduleParts = ticket.module
+    .split(/\s+[-–]\s+/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+  const moduleMain = moduleParts[0] || ticket.module || "Não informado";
+  const moduleSub = moduleParts.slice(1).join(" - ");
+  const attachmentEvents = events.filter((e) => e.kind === "attached");
+  const ModuleIcon = getModuleIcon(ticket.module, ticket.source, ticket.subject);
+
+  const copyValue = async (label: string, value: string) => {
+    try {
+      await navigator.clipboard.writeText(value);
+      toast.success(`${label} copiado`);
+    } catch {
+      toast.error("Não foi possível copiar");
+    }
+  };
+
+  const actionItems: {
+    key: typeof activeAction;
+    icon: IconComponent;
+    label: string;
+    onClick: () => void;
+    disabled?: boolean;
+    title?: string;
+  }[] = [
+    {
+      key: "atender",
+      icon: TicketAttendIcon,
+      label: "Iniciar atendimento",
+      onClick: () => {
+        setActiveAction("atender");
+        handleAttend();
+      },
+    },
+    {
+      key: "encerrar",
+      icon: TicketCloseIcon,
+      label: "Finalizar",
+      onClick: () => {
+        setActiveAction("encerrar");
+        setCloseOpen(true);
+      },
+    },
+    {
+      key: "assumir",
+      icon: TicketAssumeIcon,
+      label: "Transferir chamado",
+      disabled: !canTransfer,
+      title: transferBlockReason ?? undefined,
+      onClick: () => {
+        setActiveAction("assumir");
+        openTransfer();
+      },
+    },
+    {
+      key: "agendar",
+      icon: TicketScheduleIcon,
+      label: "Agendar evento",
+      onClick: () => {
+        setActiveAction("agendar");
+        setScheduleOpen(true);
+      },
+    },
+    {
+      key: "encaminhar",
+      icon: TicketForwardIcon,
+      label: "Enviar a especialista",
+      onClick: () => {
+        setActiveAction("encaminhar");
+        setForwardOpen(true);
+      },
+    },
+  ];
+
+  const clientLinkProps = clientSlug
+    ? ({
+        to: "/clientes/$clienteId",
+        params: { clienteId: clientSlug },
+        search: { tab: "cliente", from: "chamado", ticketId: ticket.id },
+        onClick: () => snapshotCurrentChamadosForTicket(ticket.id),
+      } as const)
+    : null;
+
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange} modal={false}>
@@ -354,19 +438,25 @@ export function TicketDetailSheet({
               event.preventDefault();
             }
           }}
-          className="grid max-h-none w-[92vw] max-w-[1500px] gap-4 border-0 bg-transparent p-0 shadow-none xl:grid-cols-[minmax(0,1fr)_360px] xl:gap-6 [&>button]:hidden"
+          className="flex h-[92vh] max-h-[92vh] w-[94vw] max-w-[1400px] flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-card p-0 shadow-[0_30px_80px_rgba(0,0,0,0.35)] [&>button]:hidden"
         >
           <DialogTitle className="sr-only">Detalhes do chamado {ticket.protocol}</DialogTitle>
 
-          {/* Painel esquerdo — Chamado */}
-          <div className="relative flex max-h-[90vh] min-h-0 flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-[0_30px_80px_rgba(0,0,0,0.35)]">
-            <DetailModalHeader
-              icon={getModuleIcon(ticket.module, ticket.source, ticket.subject)}
-              title={ticket.subject}
-              protocol={ticket.protocol}
-              onClose={() => onOpenChange(false)}
-              chips={
-                <>
+          {/* 1. Cabeçalho */}
+          <header className="shrink-0 border-b border-border bg-card px-4 py-3 md:px-5">
+            <div className="flex items-start gap-3">
+              <span
+                aria-hidden
+                className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground shadow-sm"
+              >
+                <ModuleIcon className="h-5 w-5" strokeWidth={2.4} />
+              </span>
+
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    {ticket.protocol}
+                  </span>
                   <Badge
                     className={cn(
                       "shrink-0 rounded-md border px-2 py-0.5 text-[10.5px] font-medium uppercase tracking-wide",
@@ -383,9 +473,18 @@ export function TicketDetailSheet({
                   >
                     Prioridade {ticket.priority}
                   </Badge>
-                  <span className="inline-flex shrink-0 items-center gap-1 rounded-md border border-border bg-muted/50 px-2 py-0.5 text-[10.5px] font-medium text-muted-foreground">
+                  <span
+                    className={cn(
+                      "inline-flex shrink-0 items-center gap-1 rounded-md border px-2 py-0.5 text-[10.5px] font-medium",
+                      sla.tone === "late"
+                        ? "border-destructive/30 bg-destructive/10 text-destructive"
+                        : sla.tone === "warn"
+                          ? "border-warning/40 bg-warning/15 text-warning-foreground"
+                          : "border-success/25 bg-success/10 text-success",
+                    )}
+                  >
                     <CalendarClock className="h-3 w-3" />
-                    SLA {sla.pct}% · {sla.hours}h
+                    SLA {sla.pct}%
                   </span>
                   {ticket.lockedBy && (
                     <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-warning/15 px-2 py-0.5 text-[10.5px] font-medium text-warning-foreground">
@@ -393,45 +492,40 @@ export function TicketDetailSheet({
                       {ticket.lockedBy}
                     </span>
                   )}
-                </>
-              }
-              meta={
-                <span className="inline-flex flex-wrap items-center gap-x-1 gap-y-0.5">
-                  {clientSlug ? (
+                </div>
+
+                <h2 className="mt-0.5 truncate text-[17px] font-semibold leading-snug text-foreground">
+                  {ticket.subject}
+                </h2>
+
+                <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[12px] text-muted-foreground">
+                  {clientLinkProps ? (
                     <Link
-                      to="/clientes/$clienteId"
-                      params={{ clienteId: clientSlug }}
-                      search={{ tab: "cliente", from: "chamado", ticketId: ticket.id }}
-                      onClick={() => snapshotCurrentChamadosForTicket(ticket.id)}
-                      className="inline-flex cursor-pointer items-center gap-1 rounded-sm hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      {...clientLinkProps}
+                      className="inline-flex cursor-pointer items-center gap-1.5 rounded-sm hover:underline"
                       title="Ver detalhes do cliente"
                     >
-                      <span className="font-semibold text-primary">{ticket.clientCode || "—"}</span>
-                      <span aria-hidden className="text-border">
-                        ·
-                      </span>
                       <span className="truncate text-foreground">
                         {ticket.clientName || "Cliente não vinculado"}
+                      </span>
+                      <span className="rounded bg-muted px-1.5 py-0.5 text-[10.5px] font-semibold text-primary">
+                        {ticket.clientCode || "—"}
                       </span>
                     </Link>
                   ) : (
-                    <>
-                      <span className="font-semibold text-primary">{ticket.clientCode || "—"}</span>
-                      <span aria-hidden className="text-border">
-                        ·
-                      </span>
+                    <span className="inline-flex items-center gap-1.5">
                       <span className="truncate text-foreground">
                         {ticket.clientName || "Cliente não vinculado"}
                       </span>
-                    </>
+                      <span className="rounded bg-muted px-1.5 py-0.5 text-[10.5px] font-semibold text-primary">
+                        {ticket.clientCode || "—"}
+                      </span>
+                    </span>
                   )}
-
                   {(ticket.companyName || ticket.companyNumber || ticket.companyDocument) && (
                     <>
-                      <span aria-hidden className="text-border">
-                        ·
-                      </span>
-                      <span className="truncate text-[11px] text-muted-foreground">
+                      <span aria-hidden className="text-border">·</span>
+                      <span className="truncate text-[11px]">
                         {ticket.companyNumber
                           ? `${String(ticket.companyNumber).padStart(3, "0")} · `
                           : ""}
@@ -440,374 +534,500 @@ export function TicketDetailSheet({
                       </span>
                     </>
                   )}
-                </span>
-              }
-            />
-
-            {/* Body: sidebar (menu + ações) | conteúdo | chat */}
-            <div className="flex flex-1 min-h-0 flex-col bg-card md:flex-row md:gap-4 md:p-4 dark:bg-muted/30">
-              {/* Sidebar */}
-              <aside
-                className={cn(
-                  "hidden shrink-0 flex-col overflow-hidden rounded-2xl border border-border bg-card transition-[width] duration-200 md:flex",
-                  navCollapsed ? "md:w-[64px]" : "md:w-[210px]",
-                )}
-              >
-                <div className="flex items-center justify-end p-2">
-                  <button
-                    type="button"
-                    onClick={() => setNavCollapsed((v) => !v)}
-                    aria-label={navCollapsed ? "Expandir menu" : "Retrair menu"}
-                    title={navCollapsed ? "Expandir menu" : "Retrair menu"}
-                    className="grid h-7 w-7 cursor-pointer place-items-center rounded-md text-muted-foreground transition hover:bg-accent hover:text-foreground"
-                  >
-                    {navCollapsed ? (
-                      <ChevronRight className="h-4 w-4" />
-                    ) : (
-                      <ChevronLeft className="h-4 w-4" />
-                    )}
-                  </button>
                 </div>
+              </div>
 
-                <div className="flex-1 space-y-1 overflow-y-auto p-2">
-                  {!navCollapsed && (
-                    <p className="px-2 pb-1 pt-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                      Ações
-                    </p>
-                  )}
-                  <SideItem
-                    icon={TicketCloseIcon}
-                    label="Finalizar"
-                    collapsed={navCollapsed}
-                    active={activeAction === "encerrar"}
-                    onClick={() => {
-                      setActiveAction("encerrar");
-                      setCloseOpen(true);
-                    }}
-                  />
-                  <SideItem
-                    icon={TicketAssumeIcon}
-                    label="Transferir chamado"
-                    collapsed={navCollapsed}
-                    active={activeAction === "assumir"}
-                    disabled={!canTransfer}
-                    title={transferBlockReason ?? undefined}
-                    onClick={() => {
-                      setActiveAction("assumir");
-                      openTransfer();
-                    }}
-                  />
-                  <SideItem
-                    icon={TicketScheduleIcon}
-                    label="Agendar evento"
-                    collapsed={navCollapsed}
-                    active={activeAction === "agendar"}
-                    onClick={() => {
-                      setActiveAction("agendar");
-                      setScheduleOpen(true);
-                    }}
-                  />
-                  <SideItem
-                    icon={TicketForwardIcon}
-                    label="Enviar a especialista"
-                    nowrap
-                    collapsed={navCollapsed}
-                    active={activeAction === "encaminhar"}
-                    onClick={() => {
-                      setActiveAction("encaminhar");
-                      setForwardOpen(true);
-                    }}
-                  />
-                  <SideItem
-                    icon={TicketAttendIcon}
-                    label="Iniciar atendimento"
-                    collapsed={navCollapsed}
-                    active={activeAction === "atender"}
-                    onClick={() => {
-                      setActiveAction("atender");
-                      handleAttend();
-                    }}
-                  />
-                </div>
-
-                {isMine && (
-                  <div className="p-2">
-                    <span
-                      className={cn(
-                        "flex items-center gap-1.5 rounded-lg bg-primary/10 px-2 py-1.5 text-[10.5px] font-medium text-primary",
-                        navCollapsed && "md:justify-center md:px-0",
-                      )}
-                      title={`Atendendo: ${currentUser.operator}`}
+              <div className="flex shrink-0 items-center gap-1.5">
+                {/* Menu de mais opções */}
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8 cursor-pointer rounded-lg"
+                      aria-label="Mais opções"
                     >
-                      <UserCheck className="h-3.5 w-3.5 shrink-0" />
-                      <span className={cn("truncate", navCollapsed && "md:hidden")}>
-                        {currentUser.operator}
-                      </span>
-                    </span>
-                  </div>
-                )}
-              </aside>
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent align="end" className="w-56 p-1">
+                    <MenuRow
+                      icon={History}
+                      label="Timeline completa"
+                      onClick={() => setTimelineOpen(true)}
+                    />
+                    <MenuRow
+                      icon={ListChecks}
+                      label={`Histórico de atendimentos (${historyList.length})`}
+                      onClick={() => setHistoryOpen(true)}
+                    />
+                    <MenuRow
+                      icon={NotebookText}
+                      label={`Notas internas (${notes.length})`}
+                      onClick={() => setNotesOpen(true)}
+                    />
+                    <MenuRow
+                      icon={FileText}
+                      label="Ver descrição original"
+                      onClick={() => setDescriptionOpen(true)}
+                    />
+                  </PopoverContent>
+                </Popover>
 
-              {/* Mobile action bar (topo, rolável) */}
-              <div className="flex shrink-0 items-center gap-2 overflow-x-auto border-b border-border bg-card px-3 py-2 md:hidden">
-                <MobileAction
-                  icon={TicketCloseIcon}
-                  label="Finalizar"
-                  onClick={() => setCloseOpen(true)}
-                />
-                <MobileAction
-                  icon={TicketAssumeIcon}
-                  label="Transferir"
-                  disabled={!canTransfer}
-                  title={transferBlockReason ?? undefined}
-                  onClick={openTransfer}
-                />
-                <MobileAction
-                  icon={TicketScheduleIcon}
-                  label="Agendar"
-                  onClick={() => setScheduleOpen(true)}
-                />
-                <MobileAction
-                  icon={TicketForwardIcon}
-                  label="Enviar a especialista"
-                  onClick={() => setForwardOpen(true)}
-                />
-                <MobileAction
-                  icon={TicketAttendIcon}
-                  label="Iniciar atendimento"
-                  onClick={handleAttend}
-                  highlight
-                />
+                {/* Botão Ações */}
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button size="sm" className="h-8 cursor-pointer rounded-lg px-3 text-[12.5px]">
+                      Ações
+                      <ChevronDown className="ml-1 h-3.5 w-3.5" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent align="end" className="w-60 p-1">
+                    {actionItems.map((item) => (
+                      <MenuRow
+                        key={item.key}
+                        icon={item.icon}
+                        label={item.label}
+                        disabled={item.disabled}
+                        title={item.title}
+                        onClick={item.onClick}
+                      />
+                    ))}
+                  </PopoverContent>
+                </Popover>
+
+                <button
+                  type="button"
+                  onClick={() => onOpenChange(false)}
+                  aria-label="Fechar"
+                  className="grid h-8 w-8 cursor-pointer place-items-center rounded-lg text-muted-foreground transition hover:bg-accent hover:text-foreground"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          </header>
+
+          {/* Corpo: conteúdo + histórico lateral */}
+          <div className="grid min-h-0 flex-1 grid-cols-1 gap-0 overflow-hidden xl:grid-cols-[minmax(0,1fr)_340px]">
+            <div className="flex min-h-0 flex-col overflow-hidden">
+              {/* 2. Indicadores */}
+              <div className="shrink-0 border-b border-border bg-muted/20 px-4 py-3 md:px-5">
+                <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4">
+                  <IndicatorCard icon={ShieldCheck} label="Status" tone="primary">
+                    <span className={cn("text-[14px] font-semibold", statusTextTone[ticket.status])}>
+                      {ticket.status}
+                    </span>
+                  </IndicatorCard>
+                  <IndicatorCard icon={AlertCircle} label="Prioridade" tone="danger">
+                    <span
+                      className={cn("text-[14px] font-semibold", priorityTextTone[ticket.priority])}
+                    >
+                      {ticket.priority}
+                    </span>
+                  </IndicatorCard>
+                  <IndicatorCard icon={Clock3} label="SLA" tone="success">
+                    <div className="flex items-center gap-2">
+                      <span className={cn("text-[14px] font-semibold", slaTextTone[sla.tone])}>
+                        {sla.pct}%
+                      </span>
+                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+                        <div
+                          className={cn("h-full rounded-full", slaBarTone[sla.tone])}
+                          style={{ width: `${sla.pct}%` }}
+                        />
+                      </div>
+                    </div>
+                    <p className="mt-0.5 text-[10.5px] text-muted-foreground">
+                      {sla.hours}h decorridas{sla.stopped ? " · parado" : ""}
+                    </p>
+                  </IndicatorCard>
+                  <IndicatorCard icon={CalendarClock} label="Abertura" tone="primary">
+                    <span className="text-[13px] font-semibold text-foreground">
+                      {formatDateTime(ticket.openedAt)}
+                    </span>
+                  </IndicatorCard>
+                </div>
+              </div>
+
+              {/* Mobile action bar */}
+              <div className="flex shrink-0 items-center gap-2 overflow-x-auto border-b border-border bg-card px-3 py-2 xl:hidden">
+                {actionItems.map((item) => (
+                  <MobileAction
+                    key={item.key}
+                    icon={item.icon}
+                    label={item.label}
+                    disabled={item.disabled}
+                    title={item.title}
+                    highlight={item.key === "atender"}
+                    onClick={item.onClick}
+                  />
+                ))}
                 <MobileAction
                   icon={TicketTimelineIcon}
                   label="Timeline"
                   onClick={() => setTimelineOpen(true)}
                 />
+                <MobileAction
+                  icon={ListChecks}
+                  label="Histórico"
+                  onClick={() => setHistoryOpen(true)}
+                />
               </div>
 
-              {/* Main content */}
-              <div className="flex-1 min-w-0 overflow-y-auto rounded-2xl border border-border bg-card px-5 py-5 md:px-6">
-                {/* Resumo */}
-                <Section title="Resumo do chamado" icon={LayoutGrid}>
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                    <MiniStat label="Status">
-                      <Badge
-                        className={cn(
-                          "rounded-full border px-2.5 py-0.5 text-[11.5px] font-medium",
-                          statusTone[ticket.status],
-                        )}
+              {/* 3. Abas */}
+              <Tabs
+                value={activeTab}
+                onValueChange={setActiveTab}
+                className="flex min-h-0 flex-1 flex-col gap-0"
+              >
+                <div className="shrink-0 border-b border-border bg-card px-4 md:px-5">
+                  <TabsList className="h-auto w-full justify-start gap-1 overflow-x-auto rounded-none bg-transparent p-0">
+                    {[
+                      { value: "resumo", label: "Resumo" },
+                      { value: "detalhes", label: "Detalhes" },
+                      { value: "atividades", label: `Atividades (${timelineEvents.length})` },
+                      { value: "arquivos", label: `Arquivos (${attachmentEvents.length})` },
+                      { value: "notas", label: `Notas (${notes.length})` },
+                    ].map((tab) => (
+                      <TabsTrigger
+                        key={tab.value}
+                        value={tab.value}
+                        className="cursor-pointer rounded-none border-b-2 border-transparent bg-transparent px-3 py-2.5 text-[12.5px] font-medium text-muted-foreground shadow-none data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none"
                       >
-                        {ticket.status}
-                      </Badge>
-                    </MiniStat>
-                    <MiniStat label="Prioridade">
-                      <Badge
-                        className={cn(
-                          "rounded-full border px-2.5 py-0.5 text-[11.5px] font-medium",
-                          priorityTone[ticket.priority],
-                        )}
-                      >
-                        {ticket.priority}
-                      </Badge>
-                    </MiniStat>
-                    <MiniStat label="SLA">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={cn(
-                            "text-[22px] font-bold leading-none",
-                            slaTextTone[sla.tone],
+                        {tab.label}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                </div>
+
+                <div className="min-h-0 flex-1 overflow-y-auto bg-muted/10 px-4 py-4 md:px-5">
+                  {/* 4. Resumo */}
+                  <TabsContent value="resumo" className="mt-0 space-y-3">
+                    <Section title="Descrição do problema" icon={FileText}>
+                      {ticketDescription ? (
+                        <div key={ticket.id} className="space-y-2">
+                          {summaryState.status === "loading" ? (
+                            <p className="text-[13px] leading-relaxed text-muted-foreground">
+                              Gerando resumo da descrição...
+                            </p>
+                          ) : (
+                            <p className="whitespace-pre-wrap break-words text-[13px] leading-relaxed text-foreground">
+                              {summaryState.summary ?? ticketDescription}
+                            </p>
                           )}
-                        >
-                          {sla.pct}%
-                        </span>
-                        <div className="flex-1">
-                          <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
-                            <div
-                              className={cn(
-                                "h-full rounded-full transition-all",
-                                slaBarTone[sla.tone],
-                              )}
-                              style={{ width: `${sla.pct}%` }}
-                            />
-                          </div>
-                          <p className="mt-1 text-[10.5px] text-muted-foreground">
-                            {sla.hours}h decorridas
-                          </p>
+                          <button
+                            type="button"
+                            onClick={() => setDescriptionOpen(true)}
+                            className="w-fit cursor-pointer text-[12px] font-medium text-primary no-underline hover:opacity-80"
+                          >
+                            Ver descrição original
+                          </button>
                         </div>
-                      </div>
-                    </MiniStat>
-                  </div>
-                </Section>
-
-                <Section title="Resumo do problema" icon={FileText}>
-                  {ticketDescription ? (
-                    <div key={ticket.id} className="space-y-2">
-                      {summaryState.status === "loading" ? (
+                      ) : (
                         <p className="text-[13px] leading-relaxed text-muted-foreground">
-                          Gerando resumo da descrição...
-                        </p>
-                      ) : (
-                        <p className="whitespace-pre-wrap break-words text-[13px] leading-relaxed text-foreground">
-                          {summaryState.summary ?? ticketDescription}
+                          Descrição não informada
                         </p>
                       )}
-                      <button
-                        type="button"
-                        onClick={() => setDescriptionOpen(true)}
-                        className="w-fit cursor-pointer text-[12px] font-medium text-primary no-underline hover:opacity-80"
-                      >
-                        Ver descrição original
-                      </button>
-                    </div>
-                  ) : (
-                    <p className="text-[13px] leading-relaxed text-muted-foreground">
-                      Descrição não informada
-                    </p>
-                  )}
-                </Section>
+                    </Section>
 
-
-
-                <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-                  <Section title="Cliente" icon={Building2} compact>
-                    {(() => {
-                      const nameNode = (
-                        <p className="text-[13.5px] font-semibold text-foreground truncate">
-                          {ticket.clientName || "Cliente não vinculado"}
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                      <Section title="Cliente" icon={Building2} compact>
+                        {clientLinkProps ? (
+                          <Link
+                            {...clientLinkProps}
+                            className="block cursor-pointer rounded-sm transition-colors hover:text-primary"
+                            title="Ver detalhes do cliente"
+                          >
+                            <p className="truncate text-[13.5px] font-semibold text-foreground">
+                              {ticket.clientName || "Cliente não vinculado"}
+                            </p>
+                          </Link>
+                        ) : (
+                          <p className="truncate text-[13.5px] font-semibold text-foreground">
+                            {ticket.clientName || "Cliente não vinculado"}
+                          </p>
+                        )}
+                        <p className="mt-0.5 text-[11.5px] text-muted-foreground">
+                          <MapPin className="mr-1 inline h-3 w-3" />
+                          {mock.city} - {mock.uf}
                         </p>
-                      );
-                      return clientSlug ? (
-                        <Link
-                          to="/clientes/$clienteId"
-                          params={{ clienteId: clientSlug }}
-                          search={{ tab: "cliente", from: "chamado", ticketId: ticket.id }}
-                          onClick={() => snapshotCurrentChamadosForTicket(ticket.id)}
-                          className="block cursor-pointer rounded-sm transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                          title="Ver detalhes do cliente"
-                          aria-label={`Ver detalhes do cliente ${ticket.clientName || "Cliente não vinculado"}`}
+                        <p className="mt-0.5 text-[11px] text-muted-foreground">
+                          Código: {ticket.clientCode || "—"}
+                        </p>
+                      </Section>
+
+                      <Section title="Contato" icon={UserRound} compact>
+                        <p className="truncate text-[13.5px] font-semibold text-foreground">
+                          {ticket.contact || "Não informado"}
+                        </p>
+                        <p className="mt-0.5 text-[11.5px] text-muted-foreground">
+                          {mock.contactRole}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => copyValue("Telefone", mock.contactPhone)}
+                          title="Copiar telefone"
+                          className="mt-1 inline-flex cursor-pointer items-center gap-1 rounded-sm text-[11.5px] text-muted-foreground transition hover:text-primary"
                         >
-                          {nameNode}
-                        </Link>
-                      ) : (
-                        nameNode
-                      );
-                    })()}
+                          <Phone className="h-3 w-3" />
+                          {mock.contactPhone}
+                        </button>
+                        {contactEmail && (
+                          <button
+                            type="button"
+                            onClick={() => copyValue("E-mail", contactEmail)}
+                            title="Copiar e-mail"
+                            className="mt-0.5 flex w-full cursor-pointer items-center gap-1 truncate rounded-sm text-left text-[11.5px] text-muted-foreground transition hover:text-primary"
+                          >
+                            <Mail className="h-3 w-3 shrink-0" />
+                            <span className="truncate">{contactEmail}</span>
+                          </button>
+                        )}
+                      </Section>
 
-                    <p className="mt-0.5 text-[11.5px] text-muted-foreground">
-                      <MapPin className="mr-1 inline h-3 w-3" />
-                      {mock.city} - {mock.uf}
-                    </p>
-                    <p className="mt-0.5 text-[11px] text-muted-foreground">
-                      Código {ticket.clientCode || "—"}
-                    </p>
-                  </Section>
+                      <Section title="Módulo" icon={Folder} compact>
+                        <div className="flex items-center gap-1.5">
+                          <ModuleKnowledgeLink
+                            module={ticket.module}
+                            className="truncate text-[13.5px] font-semibold text-foreground"
+                            returnToTicketId={ticket.id}
+                            onBeforeNavigate={() => snapshotCurrentChamadosForTicket(ticket.id)}
+                          />
+                        </div>
+                        {moduleSub && (
+                          <p className="mt-0.5 text-[11.5px] text-muted-foreground">
+                            Submódulo: {moduleSub}
+                          </p>
+                        )}
+                        <p className="mt-0.5 text-[11.5px] text-muted-foreground">
+                          Origem: {sourceLabels[ticket.source]}
+                        </p>
+                        {hadronOptionValue && (
+                          <p className="mt-0.5 text-[11.5px] text-muted-foreground">
+                            Opção Hádron: {hadronOptionValue}
+                          </p>
+                        )}
+                      </Section>
+                    </div>
 
-                  <Section title="Contato" icon={UserRound} compact>
-                    <p className="text-[13.5px] font-semibold text-foreground truncate">
-                      {ticket.contact}
-                    </p>
-                    <p className="mt-0.5 text-[11.5px] text-muted-foreground">{mock.contactRole}</p>
-                    <p className="mt-0.5 inline-flex items-center gap-1 text-[11.5px] text-muted-foreground">
-                      <Phone className="h-3 w-3" />
-                      {mock.contactPhone}
-                    </p>
-                  </Section>
-
-                  <Section title="Módulo" icon={Folder} compact>
-                    <div className="flex items-center gap-1.5">
-                      <ModuleKnowledgeLink
-                        module={ticket.module}
-                        className="truncate text-[13.5px] font-semibold text-foreground"
-                        returnToTicketId={ticket.id}
-                        onBeforeNavigate={() => snapshotCurrentChamadosForTicket(ticket.id)}
+                    <div className="grid grid-cols-1 gap-3 rounded-2xl border border-border bg-card p-3 shadow-[0_6px_18px_rgba(25,29,51,0.04)] sm:grid-cols-2">
+                      <CompactInfo
+                        icon={Clock3}
+                        label="Última atualização"
+                        value={`${formatDateTime(ticket.updatedAt)}${ticket.owner ? ` · por ${ticket.owner}` : ""}`}
                       />
-                      {notes.length > 0 && (
-                        <button
-                          type="button"
-                          onClick={() => setNotesOpen(true)}
-                          title={`Ver ${notes.length} nota(s) interna(s)`}
-                          aria-label="Ver notas internas"
-                          className="grid h-5 w-5 shrink-0 cursor-pointer place-items-center rounded-md bg-primary/10 text-primary transition hover:bg-primary/20"
-                        >
-                          <NotebookText className="h-3 w-3" />
-                        </button>
-                      )}
+                      <CompactInfo
+                        icon={UserRound}
+                        label="Responsável atual"
+                        value={
+                          ticket.lockedBy ? `${ticket.owner} · ${ticket.lockedBy}` : ticket.owner
+                        }
+                      />
                     </div>
-                    <p className="mt-0.5 text-[11.5px] text-muted-foreground">
-                      Origem: {sourceLabels[ticket.source]}
-                    </p>
-                    {notes.length > 0 && (
-                      <p className="mt-0.5 text-[11px] text-primary">
-                        {notes.length} nota(s) interna(s)
-                      </p>
-                    )}
-                  </Section>
-                </div>
+                  </TabsContent>
 
-
-                {/* Datas e responsável — card próprio */}
-                <div className="mt-4 grid grid-cols-1 gap-3 rounded-2xl border border-border bg-card p-3 shadow-[0_6px_18px_rgba(25,29,51,0.04)] sm:grid-cols-3">
-                  <CompactInfo
-                    icon={CalendarClock}
-                    label="Abertura"
-                    value={formatDateTime(ticket.openedAt)}
-                  />
-                  <CompactInfo
-                    icon={Clock3}
-                    label="Última atualização"
-                    value={formatDateTime(ticket.updatedAt)}
-                  />
-                  <CompactInfo
-                    icon={UserRound}
-                    label="Responsável atual"
-                    value={ticket.lockedBy ? `${ticket.owner} · ${ticket.lockedBy}` : ticket.owner}
-                  />
-                </div>
-
-                {/* Timeline do chamado atual — embutida */}
-                <div className="mt-4">
-                  <Section title="Timeline do chamado" icon={History}>
-                    <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                      <div className="flex items-baseline gap-1.5">
-                        <span className="text-[12.5px] font-medium text-foreground">
-                          Eventos do atendimento
-                        </span>
-                        <span className="text-[11.5px] font-medium text-muted-foreground">
-                          ({timelineEvents.length})
-                        </span>
+                  {/* Detalhes */}
+                  <TabsContent value="detalhes" className="mt-0 space-y-3">
+                    <Section title="Dados do chamado" icon={Info}>
+                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                        <CompactInfo icon={TicketIcon} label="Protocolo" value={ticket.protocol} />
+                        <CompactInfo
+                          icon={CalendarClock}
+                          label="Abertura"
+                          value={formatDateTime(ticket.openedAt)}
+                        />
+                        <CompactInfo
+                          icon={Clock3}
+                          label="Última atualização"
+                          value={formatDateTime(ticket.updatedAt)}
+                        />
+                        <CompactInfo
+                          icon={CheckCircle2}
+                          label="Finalização"
+                          value={ticket.closedAt ? formatDateTime(ticket.closedAt) : "—"}
+                        />
+                        <CompactInfo
+                          icon={UserCheck}
+                          label="Atendente"
+                          value={ticket.attendant || "—"}
+                        />
+                        <CompactInfo
+                          icon={UserRound}
+                          label="Responsável"
+                          value={ticket.owner || "—"}
+                        />
+                        <CompactInfo icon={Folder} label="Módulo" value={moduleMain} />
+                        <CompactInfo icon={Boxes} label="Submódulo" value={moduleSub || "—"} />
+                        <CompactInfo
+                          icon={Globe}
+                          label="Origem"
+                          value={sourceLabels[ticket.source]}
+                        />
+                        <CompactInfo
+                          icon={Building2}
+                          label="Empresa"
+                          value={ticket.companyName || ticket.clientName || "—"}
+                        />
+                        <CompactInfo
+                          icon={ReceiptText}
+                          label="CNPJ"
+                          value={ticket.companyDocument || "—"}
+                        />
+                        <CompactInfo
+                          icon={LockKeyhole}
+                          label="Em atendimento por"
+                          value={ticket.lockedBy || "—"}
+                        />
                       </div>
-                      {timelineEvents.length > 0 && (
-                        <button
-                          type="button"
-                          onClick={() => setTimelineOpen(true)}
-                          className="inline-flex cursor-pointer items-center gap-1 text-[11.5px] font-medium text-primary hover:underline"
-                        >
-                          Ver completa
-                          <ChevronRight className="h-3.5 w-3.5" />
-                        </button>
+                    </Section>
+
+                    <Section title="Descrição original" icon={FileText}>
+                      <p className="whitespace-pre-wrap break-words text-[13px] leading-relaxed text-foreground">
+                        {ticketDescription || "Descrição não informada"}
+                      </p>
+                    </Section>
+                  </TabsContent>
+
+                  {/* Atividades */}
+                  <TabsContent value="atividades" className="mt-0">
+                    <Section title="Timeline do chamado" icon={History}>
+                      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                        <span className="text-[12.5px] font-medium text-foreground">
+                          Eventos do atendimento ({timelineEvents.length})
+                        </span>
+                        {timelineEvents.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => setTimelineOpen(true)}
+                            className="inline-flex cursor-pointer items-center gap-1 text-[11.5px] font-medium text-primary hover:underline"
+                          >
+                            Ver completa
+                            <ChevronRight className="h-3.5 w-3.5" />
+                          </button>
+                        )}
+                      </div>
+                      <div className="rounded-xl border border-border bg-card px-3 py-3">
+                        <TicketTimelineList events={timelineEvents} variant="compact" />
+                      </div>
+                    </Section>
+                  </TabsContent>
+
+                  {/* Arquivos */}
+                  <TabsContent value="arquivos" className="mt-0">
+                    <Section title="Arquivos do chamado" icon={Paperclip}>
+                      {attachmentEvents.length === 0 ? (
+                        <p className="py-6 text-center text-[12.5px] text-muted-foreground">
+                          Nenhum arquivo anexado a este chamado.
+                        </p>
+                      ) : (
+                        <ul className="space-y-2">
+                          {attachmentEvents.map((ev) => (
+                            <li
+                              key={ev.id}
+                              className="flex items-start gap-2.5 rounded-xl border border-border bg-card px-3 py-2.5"
+                            >
+                              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
+                                <Paperclip className="h-4 w-4" />
+                              </span>
+                              <div className="min-w-0">
+                                <p className="truncate text-[12.5px] font-medium text-foreground">
+                                  {ev.description}
+                                </p>
+                                <p className="text-[11px] text-muted-foreground">
+                                  {ev.actor} · {formatDateTime(ev.when)}
+                                </p>
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
                       )}
-                    </div>
-                    <div className="rounded-xl border border-border bg-card px-3 py-3">
-                      <TicketTimelineList events={timelineEvents} variant="compact" limit={5} />
-                    </div>
-                  </Section>
+                    </Section>
+                  </TabsContent>
+
+                  {/* Notas */}
+                  <TabsContent value="notas" className="mt-0">
+                    <Section title="Notas internas" icon={NotebookText}>
+                      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                        <span className="text-[12.5px] font-medium text-foreground">
+                          {notes.length} nota(s) registrada(s)
+                        </span>
+                        {notes.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => setNotesOpen(true)}
+                            className="inline-flex cursor-pointer items-center gap-1 text-[11.5px] font-medium text-primary hover:underline"
+                          >
+                            Ver todas
+                            <ChevronRight className="h-3.5 w-3.5" />
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="space-y-2">
+                        {notes.length === 0 ? (
+                          <p className="py-4 text-center text-[12.5px] text-muted-foreground">
+                            Nenhuma nota interna registrada.
+                          </p>
+                        ) : (
+                          notes.slice(0, 5).map((item) => (
+                            <div
+                              key={item.id}
+                              className="rounded-xl border border-border bg-card px-3 py-2.5"
+                            >
+                              <div className="flex flex-wrap items-baseline gap-x-2">
+                                <span className="text-[12px] font-medium text-foreground">
+                                  {item.operator}
+                                </span>
+                                <span className="text-[11px] text-muted-foreground">
+                                  {formatDateTime(item.createdAt)}
+                                </span>
+                              </div>
+                              <p className="mt-0.5 whitespace-pre-wrap break-words text-[12.5px] text-muted-foreground">
+                                {item.text}
+                              </p>
+                            </div>
+                          ))
+                        )}
+                      </div>
+
+                      <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+                        <Input
+                          value={note}
+                          onChange={(event) => setNote(event.target.value)}
+                          placeholder="Escreva uma nota interna..."
+                          className="h-10 rounded-lg bg-card"
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter") {
+                              event.preventDefault();
+                              handleSaveNote();
+                            }
+                          }}
+                        />
+                        <Button
+                          onClick={handleSaveNote}
+                          disabled={!note.trim()}
+                          className="h-10 shrink-0 cursor-pointer rounded-lg disabled:cursor-not-allowed"
+                        >
+                          <Plus className="mr-1 h-4 w-4" />
+                          Adicionar nota
+                        </Button>
+                      </div>
+                    </Section>
+                  </TabsContent>
                 </div>
-
-                <div className="h-2" />
-              </div>
+              </Tabs>
             </div>
-            {/* fim body wrapper */}
-          </div>
-          {/* fim painel esquerdo */}
 
-          {/* Painel direito — Histórico de atendimentos anteriores */}
-          <TicketPastAttendancesSidePanel
-            ticket={ticket}
-            items={historyList}
-            onSelect={setSelectedHistory}
-            onSeeAll={() => setHistoryOpen(true)}
-            className="hidden max-h-[90vh] overflow-hidden rounded-2xl border border-border bg-card shadow-[0_30px_80px_rgba(0,0,0,0.35)] xl:flex"
-          />
+            {/* 5. Histórico de atendimentos */}
+            <TicketPastAttendancesSidePanel
+              ticket={ticket}
+              items={historyList}
+              onSelect={setSelectedHistory}
+              onSeeAll={() => setHistoryOpen(true)}
+              className="hidden min-h-0 border-l border-border xl:flex"
+            />
+          </div>
 
           <TicketFloatingChat ticket={ticket} />
         </DialogContent>
@@ -877,6 +1097,69 @@ export function TicketDetailSheet({
     </>
   );
 }
+
+function MenuRow({
+  icon: Icon,
+  label,
+  onClick,
+  disabled,
+  title,
+}: {
+  icon: IconComponent;
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+  title?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      title={title}
+      className={cn(
+        "flex w-full cursor-pointer items-center gap-2 rounded-md px-2.5 py-2 text-left text-[12.5px] font-medium text-popover-foreground transition hover:bg-accent",
+        disabled && "cursor-not-allowed opacity-50 hover:bg-transparent",
+      )}
+    >
+      <Icon className="h-4 w-4 shrink-0 text-muted-foreground" strokeWidth={2.2} />
+      <span className="truncate">{label}</span>
+    </button>
+  );
+}
+
+function IndicatorCard({
+  icon: Icon,
+  label,
+  tone,
+  children,
+}: {
+  icon: IconComponent;
+  label: string;
+  tone: "primary" | "danger" | "success";
+  children: React.ReactNode;
+}) {
+  const toneClass =
+    tone === "danger"
+      ? "bg-destructive/10 text-destructive"
+      : tone === "success"
+        ? "bg-success/12 text-success"
+        : "bg-primary/10 text-primary";
+  return (
+    <div className="flex min-w-0 items-start gap-2.5 rounded-xl border border-border bg-card px-3 py-2.5 shadow-[0_4px_12px_rgba(25,29,51,0.04)]">
+      <span className={cn("grid h-8 w-8 shrink-0 place-items-center rounded-lg", toneClass)}>
+        <Icon className="h-4 w-4" strokeWidth={2.2} />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-[10.5px] font-medium uppercase tracking-wide text-muted-foreground">
+          {label}
+        </p>
+        {children}
+      </div>
+    </div>
+  );
+}
+
 
 function CloseTicketDialog({
   open,
