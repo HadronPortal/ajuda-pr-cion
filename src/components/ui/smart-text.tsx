@@ -68,7 +68,7 @@ export const SmartTextarea = React.forwardRef<
         value={value}
         onChange={(event) => {
           onValueChange(event.target.value);
-          correction.notifyTyping();
+          correction.notifyTyping(event);
         }}
         onBlur={(event) => {
           correction.runNow();
@@ -108,7 +108,7 @@ export const SmartInput = React.forwardRef<
         value={value}
         onChange={(event) => {
           onValueChange(event.target.value);
-          correction.notifyTyping();
+          correction.notifyTyping(event);
         }}
         onBlur={(event) => {
           correction.runNow();
