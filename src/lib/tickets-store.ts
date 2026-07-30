@@ -73,6 +73,10 @@ export type CreateTicketInput = {
   module: string;
   source: SupportTicket["source"];
   description: string;
+  /** Sigla real do colaborador responsável (obrigatória na abertura). */
+  owner: string;
+  /** ID real do colaborador responsável. */
+  ownerId?: string | null;
   companyId?: string | null;
   companyNumber?: number | null;
   companyName?: string;
