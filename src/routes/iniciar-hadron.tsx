@@ -24,7 +24,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Info } from "lucide-react";
+import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import {
   Select,
   SelectContent,
@@ -266,13 +268,18 @@ function HadronPage() {
 
       <Dialog open={!!detail} onOpenChange={(open) => !open && setDetail(null)}>
         <DialogContent
-          className="max-w-2xl bg-card"
+          className="max-w-2xl gap-0 overflow-hidden bg-card p-0 [&>button]:hidden"
           onPointerDownOutside={(e) => e.preventDefault()}
         >
-          <DialogHeader>
-            <DialogTitle className="pr-8 font-medium">{detail?.title}</DialogTitle>
-          </DialogHeader>
-          <p className="text-sm text-primary">{detail?.subtitle}</p>
+          <DialogTitle className="sr-only">{detail?.title}</DialogTitle>
+          <DetailModalHeader
+            icon={Info}
+            title={detail?.title ?? ""}
+            meta={detail?.subtitle}
+            onClose={() => setDetail(null)}
+          />
+          <div className="space-y-4 px-5 py-4">
+
           <div className="grid gap-2 sm:grid-cols-2">
             {detail?.meta.map((item) => (
               <div
@@ -291,7 +298,9 @@ function HadronPage() {
               Concluir visualizacao
             </Button>
           </div>
+          </div>
         </DialogContent>
+
       </Dialog>
     </AppShell>
   );

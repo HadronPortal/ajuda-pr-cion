@@ -14,14 +14,14 @@ import {
   type DragStartEvent,
   type DragOverEvent,
 } from "@dnd-kit/core";
+import { Columns3, Trash2 as TrashIcon, Archive as ArchiveIcon } from "lucide-react";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import { Input } from "@/components/ui/input";
 import {
   ArrowLeft,
@@ -915,14 +915,16 @@ function KanbanPage() {
       />
 
       <Dialog open={newColumnOpen} onOpenChange={setNewColumnOpen}>
-        <DialogContent className="sm:max-w-[420px]">
-          <DialogHeader>
-            <DialogTitle>Nova coluna</DialogTitle>
-            <DialogDescription>
-              Adicione uma nova coluna ao seu quadro Kanban.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-2 py-2">
+        <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-[420px] [&>button]:hidden">
+          <DialogTitle className="sr-only">Nova coluna</DialogTitle>
+          <DetailModalHeader
+            icon={Columns3}
+            title="Nova coluna"
+            meta="Adicione uma nova coluna ao seu quadro Kanban."
+            onClose={() => setNewColumnOpen(false)}
+          />
+          <div className="space-y-2 px-5 py-4">
+
             <label htmlFor="new-column-name" className="text-xs font-medium text-muted-foreground">
               Nome da coluna
             </label>
@@ -959,18 +961,23 @@ function KanbanPage() {
       </Dialog>
 
       <Dialog open={!!deleteTarget} onOpenChange={(o) => !o && setDeleteTarget(null)}>
-        <DialogContent className="sm:max-w-[440px]">
-          <DialogHeader>
-            <DialogTitle>Excluir coluna {deleteTarget ? `"${deleteTarget.title}"` : ""}?</DialogTitle>
-            <DialogDescription>
-              Os cards desta coluna serão movidos para a primeira coluna disponível
-              {columns[0] && deleteTarget && columns[0].id !== deleteTarget.id
+        <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-[440px] [&>button]:hidden">
+          <DialogTitle className="sr-only">Excluir coluna</DialogTitle>
+          <DetailModalHeader
+            icon={TrashIcon}
+            title="Excluir coluna"
+            protocol={deleteTarget?.title}
+            meta={`Os cards desta coluna serão movidos para a primeira coluna disponível${
+              columns[0] && deleteTarget && columns[0].id !== deleteTarget.id
                 ? ` ("${columns[0].title}")`
-                : ""}
-              . Essa ação não pode ser desfeita.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
+                : ""
+            }. Essa ação não pode ser desfeita.`}
+            onClose={() => setDeleteTarget(null)}
+            accentClassName="bg-destructive"
+            iconWrapClassName="bg-destructive text-destructive-foreground"
+          />
+          <DialogFooter className="border-t border-border bg-card px-5 py-3">
+
             <Button
               variant="outline"
               className="cursor-pointer"
@@ -990,15 +997,17 @@ function KanbanPage() {
       </Dialog>
 
       <Dialog open={!!archiveTarget} onOpenChange={(open) => !open && setArchiveTarget(null)}>
-        <DialogContent className="sm:max-w-[440px]">
-          <DialogHeader>
-            <DialogTitle>Arquivar todos os cartões?</DialogTitle>
-            <DialogDescription>
-              Todos os cartões de {archiveTarget ? `"${archiveTarget.title}"` : "esta lista"} serão
-              removidos do quadro e continuarão disponíveis no arquivo para restauração.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
+        <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-[440px] [&>button]:hidden">
+          <DialogTitle className="sr-only">Arquivar todos os cartões</DialogTitle>
+          <DetailModalHeader
+            icon={ArchiveIcon}
+            title="Arquivar todos os cartões?"
+            protocol={archiveTarget?.title}
+            meta="Os cartões serão removidos do quadro e continuarão disponíveis no arquivo para restauração."
+            onClose={() => setArchiveTarget(null)}
+          />
+          <DialogFooter className="border-t border-border bg-card px-5 py-3">
+
             <Button variant="outline" className="cursor-pointer" onClick={() => setArchiveTarget(null)}>
               Cancelar
             </Button>

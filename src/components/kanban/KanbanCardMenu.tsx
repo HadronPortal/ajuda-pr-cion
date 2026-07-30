@@ -17,11 +17,10 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
-  DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -237,15 +236,18 @@ function TagsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[420px]">
-        <DialogHeader>
-          <DialogTitle>Editar etiquetas</DialogTitle>
-          <DialogDescription>
-            Selecione ou crie etiquetas para este cartão.
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-[420px] [&>button]:hidden">
+        <DialogTitle className="sr-only">Editar etiquetas</DialogTitle>
+        <DetailModalHeader
+          icon={Tag}
+          title="Editar etiquetas"
+          meta="Selecione ou crie etiquetas para este cartão."
+          onClose={() => onOpenChange(false)}
+        />
 
+        <div className="space-y-4 px-5 py-4">
         {tags.length > 0 && (
+
           <div className="flex flex-wrap gap-1.5">
             {tags.map((t) => (
               <span
@@ -313,8 +315,10 @@ function TagsDialog({
             })}
           </div>
         </div>
+        </div>
 
-        <DialogFooter>
+        <DialogFooter className="border-t border-border bg-card px-5 py-3">
+
           <Button
             variant="outline"
             className="cursor-pointer"
@@ -368,15 +372,18 @@ function MembersDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[440px]">
-        <DialogHeader>
-          <DialogTitle>Alterar membros</DialogTitle>
-          <DialogDescription>
-            Defina o responsável e os participantes do cartão.
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-[440px] [&>button]:hidden">
+        <DialogTitle className="sr-only">Alterar membros</DialogTitle>
+        <DetailModalHeader
+          icon={Users}
+          title="Alterar membros"
+          meta="Defina o responsável e os participantes do cartão."
+          onClose={() => onOpenChange(false)}
+        />
 
+        <div className="space-y-4 px-5 py-4">
         <div>
+
           <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
             Responsável
           </p>
@@ -437,8 +444,10 @@ function MembersDialog({
             })}
           </div>
         </div>
+        </div>
 
-        <DialogFooter>
+        <DialogFooter className="border-t border-border bg-card px-5 py-3">
+
           <Button
             variant="outline"
             className="cursor-pointer"
@@ -486,15 +495,16 @@ function DateDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[380px]">
-        <DialogHeader>
-          <DialogTitle>Editar datas</DialogTitle>
-          <DialogDescription>
-            Defina a data de vencimento deste cartão.
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-[380px] [&>button]:hidden">
+        <DialogTitle className="sr-only">Editar datas</DialogTitle>
+        <DetailModalHeader
+          icon={CalendarIcon}
+          title="Editar datas"
+          meta="Defina a data de vencimento deste cartão."
+          onClose={() => onOpenChange(false)}
+        />
 
-        <div className="flex flex-col items-center gap-2">
+        <div className="flex flex-col items-center gap-2 px-5 py-4">
           <div className="text-[12px] text-muted-foreground">
             {date ? format(date, "PPP") : "Sem data definida"}
           </div>
@@ -516,7 +526,8 @@ function DateDialog({
           )}
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="border-t border-border bg-card px-5 py-3">
+
           <Button
             variant="outline"
             className="cursor-pointer"
@@ -563,13 +574,16 @@ function MoveDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[380px]">
-        <DialogHeader>
-          <DialogTitle>Mover cartão</DialogTitle>
-          <DialogDescription>Escolha a lista de destino.</DialogDescription>
-        </DialogHeader>
+      <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-[380px] [&>button]:hidden">
+        <DialogTitle className="sr-only">Mover cartão</DialogTitle>
+        <DetailModalHeader
+          icon={ArrowRightLeft}
+          title="Mover cartão"
+          meta="Escolha a lista de destino."
+          onClose={() => onOpenChange(false)}
+        />
 
-        <ul className="flex flex-col gap-1">
+        <ul className="flex flex-col gap-1 px-5 py-4">
           {columns.map((c) => {
             const active = c.id === card.columnId;
             return (
@@ -593,7 +607,7 @@ function MoveDialog({
           })}
         </ul>
 
-        <DialogFooter>
+        <DialogFooter className="border-t border-border bg-card px-5 py-3">
           <Button
             variant="outline"
             className="cursor-pointer"
@@ -602,6 +616,7 @@ function MoveDialog({
             Fechar
           </Button>
         </DialogFooter>
+
       </DialogContent>
     </Dialog>
   );

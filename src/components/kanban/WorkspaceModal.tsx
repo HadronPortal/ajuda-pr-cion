@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Building2, Globe2, LayoutGrid, LockKeyhole, Search, ShieldCheck, Trash2, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogTitle } from "@/components/ui/dialog";
+import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -129,14 +130,18 @@ export function WorkspaceModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[88vh] overflow-y-auto sm:max-w-3xl" onInteractOutside={(event) => event.preventDefault()}>
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-lg font-medium">
-            <Building2 className="h-5 w-5 text-primary" />
-            {workspace ? workspace.name : "Criar área de trabalho"}
-          </DialogTitle>
-          <DialogDescription>Organize quadros, pessoas e permissões em um único espaço.</DialogDescription>
-        </DialogHeader>
+      <DialogContent className="max-h-[88vh] gap-0 overflow-y-auto p-0 sm:max-w-3xl [&>button]:hidden" onInteractOutside={(event) => event.preventDefault()}>
+        <DialogTitle className="sr-only">{workspace ? workspace.name : "Criar área de trabalho"}</DialogTitle>
+
+        <DetailModalHeader
+          icon={Building2}
+          title={workspace ? workspace.name : "Criar área de trabalho"}
+          meta="Organize quadros, pessoas e permissões em um único espaço."
+          onClose={() => onOpenChange(false)}
+        />
+
+        <div className="px-5 py-4">
+
 
         <Tabs value={workspace ? tab : "settings"} onValueChange={(value) => setTab(value as typeof tab)}>
           {workspace && (
@@ -212,11 +217,13 @@ export function WorkspaceModal({
             </TabsContent>
           )}
         </Tabs>
+        </div>
 
-        <DialogFooter>
+        <DialogFooter className="border-t border-border bg-card px-5 py-3">
           <Button variant="outline" className="cursor-pointer" onClick={() => onOpenChange(false)}>Cancelar</Button>
           {(!workspace || tab === "settings") && <Button className="cursor-pointer" disabled={saving} onClick={() => void save()}>{saving ? "Salvando..." : workspace ? "Salvar" : "Criar área"}</Button>}
         </DialogFooter>
+
       </DialogContent>
     </Dialog>
   );

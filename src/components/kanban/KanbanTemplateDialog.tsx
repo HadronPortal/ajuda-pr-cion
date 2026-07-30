@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { CopyPlus, FileStack, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -69,13 +70,16 @@ export function KanbanTemplateDialog({ open, onOpenChange, onUse }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[86vh] max-w-3xl overflow-y-auto bg-white dark:bg-slate-950">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-lg font-semibold">
-            <FileStack className="h-5 w-5 text-primary" /> Templates de cartoes
-          </DialogTitle>
-          <DialogDescription>Padronize demandas recorrentes sem prender cliente, responsável ou prazo.</DialogDescription>
-        </DialogHeader>
+      <DialogContent className="max-h-[86vh] gap-0 overflow-y-auto p-0 sm:max-w-3xl [&>button]:hidden">
+        <DialogTitle className="sr-only">Templates de cartões</DialogTitle>
+        <DetailModalHeader
+          icon={FileStack}
+          title="Templates de cartões"
+          meta="Padronize demandas recorrentes sem prender cliente, responsável ou prazo."
+          onClose={() => onOpenChange(false)}
+        />
+        <div className="px-5 py-4">
+
 
         {creating ? (
           <div className="grid gap-4 py-2 sm:grid-cols-2">
@@ -108,6 +112,8 @@ export function KanbanTemplateDialog({ open, onOpenChange, onUse }: Props) {
             <Button variant="outline" className="w-full border-dashed" onClick={() => { setDraft(blankTemplate()); setCreating(true); }}><Plus className="mr-2 h-4 w-4" />Criar novo template</Button>
           </>
         )}
+        </div>
+
       </DialogContent>
     </Dialog>
   );

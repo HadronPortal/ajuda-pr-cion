@@ -5,12 +5,11 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
-  DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import { Input } from "@/components/ui/input";
 
 const SEFAZ_CONSULT_URL = "https://www.nfe.fazenda.gov.br/portal/consultaRecaptcha.aspx";
@@ -78,20 +77,16 @@ export function NfeConsultDialog() {
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="w-[calc(100vw-2rem)] max-w-[560px] rounded-2xl border-border bg-card p-0 shadow-2xl">
-        <DialogHeader className="border-b border-border px-6 py-5 pr-12">
-          <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
-              <FileSearch className="h-5 w-5" />
-            </span>
-            <div>
-              <DialogTitle className="text-base font-medium">Consultar NF-e</DialogTitle>
-              <DialogDescription className="mt-1 text-xs">
-                Consulte a situação da nota no Portal Nacional da NF-e.
-              </DialogDescription>
-            </div>
-          </div>
-        </DialogHeader>
+      <DialogContent className="w-[calc(100vw-2rem)] max-w-[560px] gap-0 overflow-hidden rounded-2xl border-border bg-card p-0 shadow-2xl [&>button]:hidden">
+        <DialogTitle className="sr-only">Consultar NF-e</DialogTitle>
+
+        <DetailModalHeader
+          icon={FileSearch}
+          title="Consultar NF-e"
+          meta="Consulte a situação da nota no Portal Nacional da NF-e."
+          onClose={() => setOpen(false)}
+        />
+
 
         <div className="space-y-4 px-6 py-5">
           <div className="space-y-2">

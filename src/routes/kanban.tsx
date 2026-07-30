@@ -40,10 +40,9 @@ import {
   Dialog,
   DialogContent,
   DialogFooter,
-  DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@/components/ui/dialog";
+import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import { cn } from "@/lib/utils";
 import {
   listKanbanBoards,
@@ -563,15 +562,19 @@ function BoardListPage() {
       )}
 
       <Dialog open={!!deleteFor} onOpenChange={(v) => !v && setDeleteFor(null)}>
-        <DialogContent onInteractOutside={(e) => e.preventDefault()}>
-          <DialogHeader>
-            <DialogTitle>Excluir quadro</DialogTitle>
-            <DialogDescription>
-              Esta ação não pode ser desfeita. O quadro{" "}
-              <strong>{deleteFor?.name}</strong> e todos os cartões serão removidos.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
+        <DialogContent className="gap-0 overflow-hidden p-0 [&>button]:hidden" onInteractOutside={(e) => e.preventDefault()}>
+          <DialogTitle className="sr-only">Excluir quadro</DialogTitle>
+          <DetailModalHeader
+            icon={Trash2}
+            title="Excluir quadro"
+            protocol={deleteFor?.name}
+            meta="Esta ação não pode ser desfeita. O quadro e todos os cartões serão removidos."
+            onClose={() => setDeleteFor(null)}
+            accentClassName="bg-destructive"
+            iconWrapClassName="bg-destructive text-destructive-foreground"
+          />
+          <DialogFooter className="border-t border-border bg-card px-5 py-3">
+
             <Button variant="outline" className="cursor-pointer" onClick={() => setDeleteFor(null)}>
               Cancelar
             </Button>

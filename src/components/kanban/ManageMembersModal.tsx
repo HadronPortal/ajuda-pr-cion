@@ -1,14 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Search, UserPlus, X } from "lucide-react";
+import { Search, UserPlus, Users, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogFooter,
-  DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@/components/ui/dialog";
+import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -126,18 +125,21 @@ export function ManageMembersModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className="sm:max-w-2xl"
+        className="gap-0 overflow-hidden p-0 sm:max-w-2xl [&>button]:hidden"
         onInteractOutside={(e) => e.preventDefault()}
       >
-        <DialogHeader>
-          <DialogTitle>Gerenciar membros</DialogTitle>
-          <DialogDescription>
-            Adicione, remova ou altere a função dos membros do quadro{" "}
-            <strong>{boardName}</strong>.
-          </DialogDescription>
-        </DialogHeader>
+        <DialogTitle className="sr-only">Gerenciar membros</DialogTitle>
 
-        <div className="grid gap-5">
+        <DetailModalHeader
+          icon={Users}
+          title="Gerenciar membros"
+          protocol={boardName}
+          meta="Adicione, remova ou altere a função dos membros do quadro."
+          onClose={() => onOpenChange(false)}
+        />
+
+        <div className="grid gap-5 px-5 py-4">
+
           <div>
             <div className="relative">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -244,7 +246,7 @@ export function ManageMembersModal({
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="border-t border-border bg-card px-5 py-3">
           <Button variant="outline" className="cursor-pointer" onClick={() => onOpenChange(false)}>
             Fechar
           </Button>

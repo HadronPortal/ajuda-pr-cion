@@ -41,7 +41,7 @@ import {
   Dialog,
   DialogContent,
   DialogFooter,
-  DialogHeader,
+  
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -864,18 +864,21 @@ export function TicketDetailSheet({
       />
 
       <Dialog open={descriptionOpen} onOpenChange={setDescriptionOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="text-sm">
-              Descrição original — {ticket.protocol}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="max-h-[60vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl gap-0 overflow-hidden p-0 [&>button]:hidden">
+          <DialogTitle className="sr-only">Descrição original {ticket.protocol}</DialogTitle>
+          <DetailModalHeader
+            icon={FileText}
+            title="Descrição original"
+            protocol={ticket.protocol}
+            onClose={() => setDescriptionOpen(false)}
+          />
+          <div className="max-h-[60vh] overflow-y-auto px-5 py-4">
             <p className="whitespace-pre-wrap break-words text-[13px] leading-relaxed text-foreground">
               {ticketDescription || "Descrição não informada"}
             </p>
           </div>
-          <DialogFooter>
+          <DialogFooter className="border-t border-border bg-card px-5 py-3">
+
             <Button variant="outline" size="sm" onClick={() => setDescriptionOpen(false)}>
               Fechar
             </Button>
