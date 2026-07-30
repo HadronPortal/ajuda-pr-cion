@@ -3954,7 +3954,7 @@ export function ClientInternetTab({
         <DialogContent className="max-h-[92vh] max-w-6xl gap-0 overflow-y-auto p-0 [&>button]:hidden">
           <DialogTitle className="sr-only">Configuração do Hádron Web</DialogTitle>
           <DetailModalHeader
-            icon={HadronMenuIcon}
+            icon={HadronMenuIcon as unknown as LucideIcon}
             title={client.razaoSocial || client.name}
             protocol={client.acronym}
             onClose={() => setConfigOpen(false)}
