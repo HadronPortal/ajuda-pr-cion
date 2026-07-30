@@ -23,6 +23,8 @@ export type SupportTicket = {
 
   attendant: string;
   owner: string;
+  /** ID real do colaborador responsável (tab_colaboradores). */
+  ownerId?: string | null;
   clientCode: string;
   clientName: string;
   contact: string;
