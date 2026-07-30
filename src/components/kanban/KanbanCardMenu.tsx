@@ -563,13 +563,16 @@ function MoveDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[380px]">
-        <DialogHeader>
-          <DialogTitle>Mover cartão</DialogTitle>
-          <DialogDescription>Escolha a lista de destino.</DialogDescription>
-        </DialogHeader>
+      <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-[380px] [&>button]:hidden">
+        <DialogTitle className="sr-only">Mover cartão</DialogTitle>
+        <DetailModalHeader
+          icon={ArrowRightLeft}
+          title="Mover cartão"
+          meta="Escolha a lista de destino."
+          onClose={() => onOpenChange(false)}
+        />
 
-        <ul className="flex flex-col gap-1">
+        <ul className="flex flex-col gap-1 px-5 py-4">
           {columns.map((c) => {
             const active = c.id === card.columnId;
             return (
@@ -593,7 +596,7 @@ function MoveDialog({
           })}
         </ul>
 
-        <DialogFooter>
+        <DialogFooter className="border-t border-border bg-card px-5 py-3">
           <Button
             variant="outline"
             className="cursor-pointer"
@@ -602,6 +605,7 @@ function MoveDialog({
             Fechar
           </Button>
         </DialogFooter>
+
       </DialogContent>
     </Dialog>
   );
