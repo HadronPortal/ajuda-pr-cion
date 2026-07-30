@@ -237,15 +237,18 @@ function TagsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[420px]">
-        <DialogHeader>
-          <DialogTitle>Editar etiquetas</DialogTitle>
-          <DialogDescription>
-            Selecione ou crie etiquetas para este cartão.
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-[420px] [&>button]:hidden">
+        <DialogTitle className="sr-only">Editar etiquetas</DialogTitle>
+        <DetailModalHeader
+          icon={Tag}
+          title="Editar etiquetas"
+          meta="Selecione ou crie etiquetas para este cartão."
+          onClose={() => onOpenChange(false)}
+        />
 
+        <div className="space-y-4 px-5 py-4">
         {tags.length > 0 && (
+
           <div className="flex flex-wrap gap-1.5">
             {tags.map((t) => (
               <span
