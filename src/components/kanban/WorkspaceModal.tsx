@@ -129,14 +129,18 @@ export function WorkspaceModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[88vh] overflow-y-auto sm:max-w-3xl" onInteractOutside={(event) => event.preventDefault()}>
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-lg font-medium">
-            <Building2 className="h-5 w-5 text-primary" />
-            {workspace ? workspace.name : "Criar área de trabalho"}
-          </DialogTitle>
-          <DialogDescription>Organize quadros, pessoas e permissões em um único espaço.</DialogDescription>
-        </DialogHeader>
+      <DialogContent className="max-h-[88vh] gap-0 overflow-y-auto p-0 sm:max-w-3xl [&>button]:hidden" onInteractOutside={(event) => event.preventDefault()}>
+        <DialogTitle className="sr-only">{workspace ? workspace.name : "Criar área de trabalho"}</DialogTitle>
+
+        <DetailModalHeader
+          icon={Building2}
+          title={workspace ? workspace.name : "Criar área de trabalho"}
+          meta="Organize quadros, pessoas e permissões em um único espaço."
+          onClose={() => onOpenChange(false)}
+        />
+
+        <div className="px-5 py-4">
+
 
         <Tabs value={workspace ? tab : "settings"} onValueChange={(value) => setTab(value as typeof tab)}>
           {workspace && (
