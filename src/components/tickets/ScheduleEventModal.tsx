@@ -286,7 +286,7 @@ export function ScheduleEventModal({
               value={description}
               onChange={(e) => {
                 setDescription(e.target.value);
-                descriptionCorrection.notifyTyping(event);
+                descriptionCorrection.notifyTyping(e);
               }}
               onBlur={() => descriptionCorrection.runNow()}
               rows={2}

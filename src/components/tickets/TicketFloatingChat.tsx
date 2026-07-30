@@ -485,7 +485,7 @@ function Composer({
         value={draft}
         onChange={(e) => {
           setDraft(e.target.value);
-          draftCorrection.notifyTyping(event);
+          draftCorrection.notifyTyping(e);
         }}
         onBlur={() => draftCorrection.runNow()}
         onKeyDown={(e) => {
