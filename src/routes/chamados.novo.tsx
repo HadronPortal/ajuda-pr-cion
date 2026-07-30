@@ -339,6 +339,8 @@ function NewTicketPage() {
       client.name;
     const ticket = ticketsStore.createTicket({
       priority: form.priority,
+      owner: selectedOwner.acronym ?? selectedOwner.name,
+      ownerId: selectedOwner.id,
       clientCode: effectiveClientCode,
       clientName: effectiveClientName,
       contact: form.contactName,
