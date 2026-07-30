@@ -479,9 +479,20 @@ export function CompanyLeadsTab() {
               )}
             </Button>
           </PopoverTrigger>
-          <PopoverContent align="end" className="w-[320px] p-0">
-            <ScrollArea className="max-h-[420px]">
+          <PopoverContent
+            align="end"
+            side="bottom"
+            sideOffset={8}
+            collisionPadding={16}
+            avoidCollisions
+            className="flex max-h-[calc(100vh-120px)] w-[min(320px,calc(100vw-32px))] flex-col p-0"
+          >
+            <div className="shrink-0 border-b border-border px-4 py-2.5">
+              <p className="text-sm font-semibold">Filtros adicionais</p>
+            </div>
+            <div className="hide-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain">
               <div className="space-y-3 p-4">
+
                 <label className="block space-y-1.5">
                   <span className="text-xs font-medium text-muted-foreground">
                     Situação cadastral
