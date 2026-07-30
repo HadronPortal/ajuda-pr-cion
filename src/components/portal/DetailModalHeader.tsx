@@ -15,6 +15,7 @@ export function DetailModalHeader({
   protocol,
   meta,
   chips,
+  trailing,
   onClose,
   dense = false,
   accentClassName = "bg-primary",
@@ -26,6 +27,8 @@ export function DetailModalHeader({
   protocol?: string;
   meta?: ReactNode;
   chips?: ReactNode;
+  /** Conteúdo alinhado à direita no desktop e quebrado para linha abaixo em telas menores. */
+  trailing?: ReactNode;
   onClose: () => void;
   /** Versão ainda mais compacta (menos padding vertical). */
   dense?: boolean;
@@ -59,7 +62,7 @@ export function DetailModalHeader({
 
         <div
           className={cn(
-            "flex items-start gap-2.5 pl-4 pr-14 py-2.5 md:gap-3 md:py-3",
+            "flex flex-wrap items-start gap-x-3 gap-y-2 pl-4 pr-14 py-2.5 md:gap-3 md:py-3",
             dense && "py-1.5 md:py-2",
           )}
         >
@@ -75,7 +78,7 @@ export function DetailModalHeader({
             <Icon className="h-4 w-4" strokeWidth={2.5} />
           </span>
 
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 flex-[1_1_100%] sm:flex-1">
             <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
               {protocol && (
                 <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-foreground">
@@ -95,6 +98,12 @@ export function DetailModalHeader({
               </div>
             )}
           </div>
+
+          {trailing && (
+            <div className="flex w-full flex-wrap items-center justify-start gap-2 sm:w-auto sm:flex-initial sm:justify-end">
+              {trailing}
+            </div>
+          )}
         </div>
       </div>
     </header>
