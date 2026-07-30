@@ -105,6 +105,8 @@ export function BoardCollaborationDialog({ board, open, onOpenChange, initialTab
           <section className="flex items-center justify-between rounded-lg border p-4"><div className="flex items-center gap-3"><Image className="h-5 w-5 text-primary" /><div><p className="text-sm">Imagem personalizada</p><p className="text-xs text-muted-foreground">JPG, PNG ou WebP de até 5 MB.</p></div></div><input ref={fileRef} hidden type="file" accept="image/png,image/jpeg,image/webp" onChange={(e) => void upload(e.target.files?.[0])} /><Button variant="outline" className="cursor-pointer" disabled={busy} onClick={() => fileRef.current?.click()}><Upload className="mr-2 h-4 w-4" />Escolher arquivo</Button></section>
         </TabsContent>
       </Tabs>
+      </div>
+
     </DialogContent>
   </Dialog>;
 }
