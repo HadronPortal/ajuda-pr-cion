@@ -5,12 +5,11 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
-  DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import { Input } from "@/components/ui/input";
 
 const SEFAZ_CONSULT_URL = "https://www.nfe.fazenda.gov.br/portal/consultaRecaptcha.aspx";
