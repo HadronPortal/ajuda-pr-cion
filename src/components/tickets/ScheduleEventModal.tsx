@@ -26,6 +26,8 @@ import { modulesMap, moduleOptions, splitModule } from "@/lib/modules-map";
 import { addLocalEvent } from "@/lib/local-events-store";
 import type { EventType } from "@/lib/calendar-events";
 import { createReservation } from "@/lib/fleet-store";
+import { CorrectionHint } from "@/components/ui/smart-text";
+import { useSpellCorrection } from "@/lib/spellcheck";
 
 const EVENT_TYPES = ["Visita", "Reunião remota", "Reunião PRC"];
 const selectClass =
@@ -53,6 +55,7 @@ export function ScheduleEventModal({
   const [module, setModule] = useState(defaults.module);
   const [submodule, setSubmodule] = useState(defaults.submodule);
   const [description, setDescription] = useState("");
+  const descriptionCorrection = useSpellCorrection({ value: description, onChange: setDescription });
   const [reminder, setReminder] = useState(true);
 
   const availableSubs = modulesMap[module] ?? [];
@@ -281,12 +284,18 @@ export function ScheduleEventModal({
           <Field label="Observações">
             <textarea
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={(e) => {
+                setDescription(e.target.value);
+                descriptionCorrection.notifyTyping();
+              }}
+              onBlur={() => descriptionCorrection.runNow()}
               rows={2}
               maxLength={700}
               placeholder="Objetivo, orientações e informações para o atendimento..."
               className="min-h-[64px] w-full resize-none rounded-md border border-input bg-background p-2.5 text-[13px] outline-none focus:ring-2 focus:ring-ring"
             />
+            <CorrectionHint correcting={descriptionCorrection.correcting} corrected={descriptionCorrection.corrected} onUndo={descriptionCorrection.undo} />
+
           </Field>
         </div>
         <DialogFooter className="flex shrink-0 items-center justify-between gap-3 border-t border-border bg-card px-5 py-2.5 sm:justify-between">
