@@ -365,7 +365,7 @@ export function TicketDetailSheet({
               title={ticket.subject}
               protocol={ticket.protocol}
               onClose={() => onOpenChange(false)}
-              chips={
+              trailing={
                 <>
                   <Badge
                     className={cn(
