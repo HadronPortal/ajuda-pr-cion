@@ -214,7 +214,7 @@ export const Route = createFileRoute("/clientes/")({
     try {
       return { clients: await listClients() };
     } catch (error) {
-      console.error("Nao foi possivel carregar clientes do Supabase", error);
+      console.error("Não foi possível carregar clientes do Supabase", error);
       return { clients: clientRows };
     }
   },
@@ -323,7 +323,7 @@ export const clientRows: ClientRow[] = [
     versionUpdatedAt: "09/07/2026 18:30",
     updated: "08/07/2026 08:40",
     updatedAt: "17/07/2026 08:47",
-    city: "Sao Paulo - SP",
+    city: "São Paulo - SP",
     uf: "SP",
     cep: "01310-100",
     cnpj: "47.510.982/0001-73",
@@ -337,7 +337,7 @@ const modules = [
   "Contas a Receber",
   "Contas a Pagar",
   "Estoque",
-  "Ordens de Servico",
+  "Ordens de Serviço",
   "Frente de Loja",
 ];
 const unavailableModules = [
@@ -1021,7 +1021,7 @@ function ClientsPage() {
                   { label: "Cadastro", key: "registered" as SortKey },
                   { label: "Sigla", key: "acronym" as SortKey },
                   { label: "Nome / perfil", key: "name" as SortKey },
-                  { label: "Versao / setup", key: "version" as SortKey },
+                  { label: "Versão / setup", key: "version" as SortKey },
                   { label: "Cidade / UF", key: "city" as SortKey },
                   { label: "CNPJ", key: "cnpj" as SortKey },
                   { label: "Status", key: "status" as SortKey },
@@ -2565,15 +2565,15 @@ export function HadronTab() {
       <Section title="Ambiente Hadron" icon={Database}>
         <div className="grid gap-5 md:grid-cols-3">
           <Field label="Serial" value="AVC - 00000000415 - 19723520" />
-          <Field label="Responsavel" value="PRCCRIS / PRCCRIS" />
+          <Field label="Responsável" value="PRCCRIS / PRCCRIS" />
           <Field label="Tempo de instalacao" value="8 horas" />
           <Field label="Rede" value="5 terminais · Cabo" />
-          <Field label="Boleto bancario" value="Nao" />
-          <Field label="Homologacao conjunta NF-e" value="Nao" />
+          <Field label="Boleto bancário" value="Não" />
+          <Field label="Homologação conjunta NF-e" value="Não" />
         </div>
       </Section>
       <div className="grid gap-5 xl:grid-cols-2">
-        <Section title="Modulos adquiridos" icon={CheckCircle2}>
+        <Section title="Módulos adquiridos" icon={CheckCircle2}>
           <div className="grid gap-1.5 sm:grid-cols-2">
             {modules.map((m) => (
               <div key={m} className="flex items-center gap-2 px-1 py-1.5 text-sm">
@@ -2583,7 +2583,7 @@ export function HadronTab() {
             ))}
           </div>
         </Section>
-        <Section title="Modulos nao contratados" icon={Database}>
+        <Section title="Módulos não contratados" icon={Database}>
           <div className="grid gap-1.5 sm:grid-cols-2">
             {unavailableModules.map((m) => (
               <div
@@ -2617,7 +2617,7 @@ export function HadronTab() {
               )}
             >
               {name as string}
-              <div className="mt-1 text-xs">{active ? "Habilitado" : "Nao habilitado"}</div>
+              <div className="mt-1 text-xs">{active ? "Habilitado" : "Não habilitado"}</div>
             </div>
           ))}
         </div>
@@ -2628,7 +2628,7 @@ export function HadronTab() {
 
 export function UsersTab() {
   return (
-    <Section title="Usuarios do portal" icon={UsersRound}>
+    <Section title="Usuários do portal" icon={UsersRound}>
       <DataTable
         headers={["Nome", "E-mail", "Operador", "Perfil", "Status", "Cadastro / atualizacao"]}
         rows={[
@@ -2649,7 +2649,7 @@ export function TerminalsTab() {
   return (
     <Section title="Terminais instalados" icon={Monitor}>
       <DataTable
-        headers={["Terminal", "IP", "Pasta", "Data da versao", "Atualizacao", "Acoes"]}
+        headers={["Terminal", "IP", "Pasta", "Data da versão", "Atualização", "Ações"]}
         rows={terminals.map((r) => [...r, "Ver log"])}
       />
     </Section>
@@ -2657,13 +2657,13 @@ export function TerminalsTab() {
 }
 export function CompaniesTab() {
   const rows: Array<{ icon: typeof Monitor; label: string; value: string }> = [
-    { icon: Building2, label: "Codigo / Empresa", value: "001 - CENTER GLASS ACESSORIOS" },
+    { icon: Building2, label: "Código / Empresa", value: "001 - CENTER GLASS ACESSORIOS" },
     { icon: FileText, label: "CNPJ", value: "66.613.387/0001-60" },
     { icon: Monitor, label: "Terminais", value: "3" },
     { icon: Server, label: "Filiais", value: "1" },
-    { icon: Database, label: "Versao", value: "2026-07-02" },
+    { icon: Database, label: "Versão", value: "2026-07-02" },
     { icon: Cpu, label: "Sistema operacional", value: "Windows 7" },
-    { icon: Cpu, label: "Versao do SO", value: "6.2" },
+    { icon: Cpu, label: "Versão do SO", value: "6.2" },
     { icon: FileText, label: "Emite NF-e", value: "Sim" },
     { icon: FileText, label: "Notas emitidas", value: "0" },
     { icon: Cpu, label: "Memoria usada / total", value: "0 / 2097151" },

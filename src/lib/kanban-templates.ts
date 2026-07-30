@@ -33,9 +33,9 @@ const defaultTemplates: KanbanCardTemplate[] = [
   },
   {
     id: "template-implantacao",
-    name: "Implantacao de modulo",
-    title: "Implantacao de modulo",
-    summary: "Planejar configuracao, validacao e entrega do modulo ao cliente.",
+    name: "Implantação de módulo",
+    title: "Implantação de módulo",
+    summary: "Planejar configuração, validação e entrega do módulo ao cliente.",
     description: "Registre o escopo, dependencias, responsaveis e criterio de aceite.",
     module: "ERP - Fiscal",
     priority: "Média",
@@ -44,7 +44,7 @@ const defaultTemplates: KanbanCardTemplate[] = [
     checklist: [
       { id: "tpl-impl-1", text: "Confirmar escopo com o cliente", done: false, checklistTitle: "Implantacao" },
       { id: "tpl-impl-2", text: "Configurar ambiente", done: false, checklistTitle: "Implantacao" },
-      { id: "tpl-impl-3", text: "Validar com usuario-chave", done: false, checklistTitle: "Implantacao" },
+      { id: "tpl-impl-3", text: "Validar com usuário-chave", done: false, checklistTitle: "Implantação" },
     ],
   },
   {
@@ -52,7 +52,7 @@ const defaultTemplates: KanbanCardTemplate[] = [
     name: "Solicitacao de melhoria",
     title: "Melhoria de processo",
     summary: "Analisar impacto e definir criterio de aceite para a melhoria.",
-    description: "Descreva o comportamento atual, o resultado esperado e o ganho para o usuario.",
+    description: "Descreva o comportamento atual, o resultado esperado e o ganho para o usuário.",
     module: "ERP - Financeiro",
     priority: "Média",
     type: "Melhoria",

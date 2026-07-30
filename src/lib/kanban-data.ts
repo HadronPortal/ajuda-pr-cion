@@ -71,7 +71,7 @@ export const kanbanColumnsDef: KanbanColumn[] = [
   { id: "a-fazer", title: "Novo chamado" },
   { id: "em-andamento", title: "Em atendimento" },
   { id: "concluido", title: "Aguardando cliente" },
-  { id: "homologacao", title: "Em homologacao" },
+  { id: "homologacao", title: "Em homologação" },
   { id: "arquivado", title: "Finalizado" },
 ];
 

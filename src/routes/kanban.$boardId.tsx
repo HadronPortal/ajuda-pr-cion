@@ -404,7 +404,7 @@ function KanbanPage() {
             overCardId && /^[0-9a-f-]{36}$/i.test(overCardId) ? overCardId : undefined,
         },
       }).catch(() => {
-        toast.error("Nao foi possivel salvar a movimentacao");
+        toast.error("Não foi possível salvar a movimentação");
         void loadKanbanBoard({ data: { boardId: boardIdParam } }).then((result) => kanbanStore.hydrate(result.cards as KanbanCard[]));
       });
     }
@@ -476,7 +476,7 @@ function KanbanPage() {
       return;
     }
     if (!boardId) {
-      toast.error("Quadro ainda nao carregado");
+      toast.error("Quadro ainda não carregado");
       return;
     }
     const result = await createKanbanColumn({ data: { boardId, title: cleanTitle } });
@@ -660,7 +660,7 @@ function KanbanPage() {
                     </div>
                   </div>
                   <FilterSelect label="Cliente" value={filters.client} onChange={(v) => setFilters({ ...filters, client: v })} options={[{ value: "all", label: "Todos" }, { value: "Interno", label: "Interno" }, ...kanbanClients.map((c) => ({ value: c, label: c }))]} />
-                  <FilterSelect label="Responsavel" value={filters.assignee} onChange={(v) => setFilters({ ...filters, assignee: v })} options={[{ value: "all", label: "Todos" }, ...kanbanMembers.map((m) => ({ value: m.id, label: m.name }))]} />
+                  <FilterSelect label="Responsável" value={filters.assignee} onChange={(v) => setFilters({ ...filters, assignee: v })} options={[{ value: "all", label: "Todos" }, ...kanbanMembers.map((m) => ({ value: m.id, label: m.name }))]} />
                   <FilterSelect label="Prioridade" value={filters.priority} onChange={(v) => setFilters({ ...filters, priority: v as Priority | "all" })} options={[{ value: "all", label: "Todas" }, ...priorities.map((p) => ({ value: p, label: p }))]} />
                   <FilterSelect label="Tipo" value={filters.type} onChange={(v) => setFilters({ ...filters, type: v as CardType | "all" })} options={[{ value: "all", label: "Todos" }, ...cardTypes.map((t) => ({ value: t, label: t }))]} />
                   <FilterSelect label="Status" value={filters.status} onChange={(v) => setFilters({ ...filters, status: v })} options={[{ value: "all", label: "Todos" }, ...columns.map((c) => ({ value: c.id, label: c.title }))]} />
@@ -698,7 +698,7 @@ function KanbanPage() {
             <button
               onClick={() => setTemplatesOpen(true)}
               className="inline-flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 dark:border-white/8 dark:bg-white/[0.035] dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white"
-              title="Criar cartao a partir de um template"
+              title="Criar cartão a partir de um template"
             >
               <FileStack className="h-4 w-4" />
               <span className="sr-only">Templates</span>
