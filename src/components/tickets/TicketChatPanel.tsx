@@ -152,7 +152,7 @@ export function TicketChatPanel({
           value={draft}
           onChange={(e) => {
             setDraft(e.target.value);
-            draftCorrection.notifyTyping();
+            draftCorrection.notifyTyping(e);
           }}
           onBlur={() => draftCorrection.runNow()}
           onKeyDown={(e) => {

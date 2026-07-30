@@ -473,7 +473,7 @@ export function TransferTicketModal({
               value={message}
               onChange={(e) => {
                 setMessage(e.target.value);
-                messageCorrection.notifyTyping();
+                messageCorrection.notifyTyping(e);
               }}
               onBlur={() => messageCorrection.runNow()}
               rows={3}

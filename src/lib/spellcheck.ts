@@ -1,12 +1,18 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ChangeEvent } from "react";
 import { supabase } from "@/lib/supabase";
+import { correctWord } from "@/lib/ptbr-dictionary";
 
 /**
  * Corretor ortográfico pt-BR para campos de texto livre.
  *
- * A correção é feita no servidor (Edge Function `spellcheck-ptbr`) — nenhuma
- * chave de IA fica exposta no frontend. O texto nunca é resumido nem apagado:
- * o backend descarta correções que alterem o tamanho/estrutura do conteúdo.
+ * Duas camadas:
+ * 1. Instantânea (local, sem rede): ao fechar uma palavra com espaço, vírgula,
+ *    ponto, Enter ou outra pontuação, apenas a palavra recém-digitada é
+ *    verificada em um dicionário local. A posição do cursor é preservada.
+ * 2. Contextual (servidor, em segundo plano): após uma pausa maior na digitação
+ *    — ou ao sair do campo — o texto completo é revisado pela Edge Function
+ *    `spellcheck-ptbr`. Nenhuma chave de IA fica exposta no frontend e o texto
+ *    nunca é resumido nem apagado.
  */
 
 const cache = new Map<string, string>();
@@ -46,11 +52,41 @@ export async function correctPtBr(text: string): Promise<string> {
   return result;
 }
 
+/** Caracteres que fecham uma palavra. */
+const BOUNDARY = /[\s.,;:!?)\]}"'\n\r\t/]/;
+const WORD_TAIL = /[\p{L}\p{M}]+$/u;
+
+type InstantResult = { value: string; caret: number } | null;
+
+/**
+ * Corrige a última palavra fechada, preservando a posição do cursor.
+ * Retorna `null` quando não há nada a corrigir.
+ */
+export function correctLastWord(value: string, caret: number): InstantResult {
+  if (caret <= 1 || caret > value.length) return null;
+  const boundaryChar = value[caret - 1];
+  if (!BOUNDARY.test(boundaryChar)) return null;
+
+  const head = value.slice(0, caret - 1);
+  const match = head.match(WORD_TAIL);
+  if (!match) return null;
+
+  const word = match[0];
+  const fixed = correctWord(word);
+  if (!fixed || fixed === word) return null;
+
+  const start = head.length - word.length;
+  const next = value.slice(0, start) + fixed + value.slice(start + word.length);
+  return { value: next, caret: caret + (fixed.length - word.length) };
+}
+
+type Field = HTMLInputElement | HTMLTextAreaElement;
+
 type Options = {
   value: string;
   onChange: (next: string) => void;
   enabled?: boolean;
-  /** Pausa (ms) na digitação antes de corrigir. */
+  /** Pausa (ms) na digitação antes da revisão contextual em segundo plano. */
   delay?: number;
 };
 
@@ -59,24 +95,54 @@ export type SpellCorrectionState = {
   corrected: boolean;
   undo: () => void;
   dismiss: () => void;
-  /** Dispara a correção manualmente (usado no onBlur). */
+  /** Dispara a revisão contextual manualmente (usado no onBlur). */
   runNow: () => void;
-  /** Deve ser chamado a cada digitação para reiniciar o debounce. */
-  notifyTyping: () => void;
+  /**
+   * Deve ser chamado a cada digitação. Quando o evento é informado, aplica a
+   * correção instantânea da palavra recém-fechada preservando o cursor.
+   */
+  notifyTyping: (event?: ChangeEvent<Field> | Field | null) => void;
 };
+
+/** Tempo (ms) que a indicação de "corrigido" permanece visível. */
+const HINT_TTL = 4000;
 
 export function useSpellCorrection({
   value,
   onChange,
   enabled = true,
-  delay = 1200,
+  delay = 2500,
 }: Options): SpellCorrectionState {
   const [correcting, setCorrecting] = useState(false);
-  const [previous, setPrevious] = useState<string | null>(null);
+  const [hintVisible, setHintVisible] = useState(false);
+  const previous = useRef<string | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const latest = useRef(value);
   const running = useRef(false);
+  /** Cursor a restaurar após uma correção instantânea. */
+  const pendingCaret = useRef<{ el: Field; pos: number } | null>(null);
   latest.current = value;
+
+  const flashHint = useCallback(() => {
+    setHintVisible(true);
+    if (hintTimer.current) clearTimeout(hintTimer.current);
+    hintTimer.current = setTimeout(() => setHintVisible(false), HINT_TTL);
+  }, []);
+
+  // Restaura o cursor no mesmo frame do commit do React (sem piscar).
+  useEffect(() => {
+    const pending = pendingCaret.current;
+    if (!pending) return;
+    pendingCaret.current = null;
+    const { el, pos } = pending;
+    if (document.activeElement !== el) return;
+    try {
+      el.setSelectionRange(pos, pos);
+    } catch {
+      // inputs sem suporte a seleção (ex.: type=email) — ignora.
+    }
+  });
 
   const run = useCallback(async () => {
     if (!enabled || running.current) return;
@@ -87,12 +153,10 @@ export function useSpellCorrection({
     setCorrecting(true);
     try {
       const corrected = await correctPtBr(source);
-      // Se o usuário continuou digitando, não sobrescreve.
-      if (corrected !== source || latest.current !== source) {
-        if (latest.current === source && corrected !== source) {
-          setPrevious(source);
-          onChange(corrected);
-        }
+      if (corrected !== source && latest.current === source) {
+        previous.current = source;
+        onChange(corrected);
+        flashHint();
       }
     } catch {
       // Falha no corretor nunca deve atrapalhar a digitação.
@@ -100,33 +164,63 @@ export function useSpellCorrection({
       running.current = false;
       setCorrecting(false);
     }
-  }, [enabled, onChange]);
+  }, [enabled, flashHint, onChange]);
 
-  const notifyTyping = useCallback(() => {
-    if (!enabled) return;
-    setPrevious(null);
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => void run(), delay);
-  }, [delay, enabled, run]);
+  const notifyTyping = useCallback(
+    (input?: ChangeEvent<Field> | Field | null) => {
+      if (!enabled) return;
+
+      // 1) Correção instantânea da palavra recém-fechada.
+      const el = input
+        ? ((input as ChangeEvent<Field>).target ?? (input as Field))
+        : null;
+      if (el && typeof el.selectionStart === "number") {
+        const caret = el.selectionStart;
+        // Só corrige quando não há seleção ativa.
+        if (el.selectionEnd === caret) {
+          const instant = correctLastWord(el.value, caret);
+          if (instant) {
+            previous.current = el.value;
+            latest.current = instant.value;
+            pendingCaret.current = { el, pos: instant.caret };
+            onChange(instant.value);
+            flashHint();
+          }
+        }
+      }
+
+      // 2) Revisão contextual completa depois de uma pausa maior.
+      if (timer.current) clearTimeout(timer.current);
+      timer.current = setTimeout(() => void run(), delay);
+    },
+    [delay, enabled, flashHint, onChange, run],
+  );
 
   const runNow = useCallback(() => {
     if (timer.current) clearTimeout(timer.current);
     void run();
   }, [run]);
 
-  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
+  useEffect(
+    () => () => {
+      if (timer.current) clearTimeout(timer.current);
+      if (hintTimer.current) clearTimeout(hintTimer.current);
+    },
+    [],
+  );
 
   const undo = useCallback(() => {
-    if (previous === null) return;
-    onChange(previous);
-    setPrevious(null);
-  }, [onChange, previous]);
+    if (previous.current === null) return;
+    onChange(previous.current);
+    previous.current = null;
+    setHintVisible(false);
+  }, [onChange]);
 
   return {
     correcting,
-    corrected: previous !== null,
+    corrected: hintVisible,
     undo,
-    dismiss: () => setPrevious(null),
+    dismiss: () => setHintVisible(false),
     runNow,
     notifyTyping,
   };

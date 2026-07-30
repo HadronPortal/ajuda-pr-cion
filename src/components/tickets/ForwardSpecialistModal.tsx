@@ -350,7 +350,7 @@ function ForwardSpecialistModalContent({
               value={reason}
               onChange={(e) => {
                 setReason(e.target.value);
-                reasonCorrection.notifyTyping();
+                reasonCorrection.notifyTyping(e);
               }}
               onBlur={() => reasonCorrection.runNow()}
               rows={2}
