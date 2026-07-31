@@ -9,7 +9,6 @@ import {
   ChevronRight,
   Columns3,
   Eye,
-  ExternalLink,
   LoaderCircle,
   MapPin,
   Search,
@@ -49,6 +48,8 @@ const initialFilters: CompanyLeadFilters = {
   state: "SP",
   openedWithinDays: 90,
   cnae: "",
+  cnaeDescription: "",
+  companyName: "",
   companySize: "",
   registrationStatus: "",
   stage: "",
@@ -336,6 +337,18 @@ export function CompanyLeadsTab() {
       });
     if (source.cnae)
       items.push({ key: "cnae", label: `CNAE: ${source.cnae}`, clear: { cnae: "" } });
+    if (source.companyName)
+      items.push({
+        key: "companyName",
+        label: `Nome: ${source.companyName}`,
+        clear: { companyName: "" },
+      });
+    if (source.cnaeDescription)
+      items.push({
+        key: "cnaeDescription",
+        label: `Descrição do CNAE: ${source.cnaeDescription}`,
+        clear: { cnaeDescription: "" },
+      });
     if (source.companySize)
       items.push({
         key: "companySize",
@@ -828,7 +841,7 @@ export function CompanyLeadsTab() {
                   </th>
                 ))}
                 <th className="w-10 px-2.5 py-2">
-                  <span className="sr-only">Fonte</span>
+                  <span className="sr-only">Ações</span>
                 </th>
               </tr>
             </thead>
@@ -857,17 +870,6 @@ export function CompanyLeadsTab() {
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
-                        {lead.source_url && (
-                          <a
-                            href={lead.source_url}
-                            target="_blank"
-                            rel="noreferrer"
-                            title="Consultar fonte"
-                            className="grid h-8 w-8 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                          </a>
-                        )}
                       </div>
                     </td>
                   </tr>

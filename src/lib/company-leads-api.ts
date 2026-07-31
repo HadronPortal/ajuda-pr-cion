@@ -72,6 +72,8 @@ export type CompanyLeadFilters = {
   state: string;
   openedWithinDays: number;
   cnae: string;
+  cnaeDescription?: string;
+  companyName?: string;
   companySize: string;
   registrationStatus?: string;
   stage?: string;
@@ -113,6 +115,8 @@ function buildFilterPayload(filters: CompanyLeadFilters) {
     openedFrom: openedFrom || null,
     openedTo: filters.openedTo?.trim() || null,
     cnae: filters.cnae?.trim() || null,
+    cnaeDescription: filters.cnaeDescription?.trim() || null,
+    companyName: filters.companyName?.trim() || null,
     companySize: filters.companySize?.trim() || null,
     registrationStatus: filters.registrationStatus?.trim() || null,
     stage: filters.stage?.trim() || null,
