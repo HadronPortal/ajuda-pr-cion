@@ -53,6 +53,7 @@ const initialFilters: CompanyLeadFilters = {
   companyName: "",
   cnpj: "",
   companySize: "",
+  taxRegime: "",
   registrationStatus: "",
   stage: "",
   minScore: "",
@@ -143,7 +144,27 @@ const defaultColumns: ColumnKey[] = [
   "stage",
 ];
 
-const companySizeOptions = ["Microempresa", "Empresa de pequeno porte", "Demais", "Não informado"];
+const companySizeOptions = [
+  { value: "Microempresa", label: "Microempresa" },
+  { value: "Pequeno", label: "Pequeno porte" },
+  { value: "Médio", label: "Médio porte" },
+  { value: "Grande", label: "Grande porte" },
+  { value: "Demais", label: "Demais" },
+];
+
+const taxRegimeLabels: Record<string, string> = {
+  "0": "Simples Nacional",
+  "1": "Lucro Presumido",
+  "2": "Lucro Real",
+  "3": "MEI",
+};
+
+const formatTaxRegime = (value: string | null, simples = false, mei = false) => {
+  if (value && taxRegimeLabels[value]) return taxRegimeLabels[value];
+  if (mei) return "MEI";
+  if (simples) return "Simples Nacional";
+  return "Não informado";
+};
 
 const registrationStatusOptions = ["ATIVA", "BAIXADA", "SUSPENSA", "INAPTA"];
 
@@ -368,6 +389,12 @@ export function CompanyLeadsTab() {
         key: "companySize",
         label: `Porte: ${source.companySize}`,
         clear: { companySize: "" },
+      });
+    if (source.taxRegime)
+      items.push({
+        key: "taxRegime",
+        label: `Regime: ${taxRegimeLabels[source.taxRegime] ?? source.taxRegime}`,
+        clear: { taxRegime: "" },
       });
     if (source.registrationStatus)
       items.push({
@@ -633,7 +660,7 @@ export function CompanyLeadsTab() {
                     ))}
                   </select>
                 </label>
-                <label className="block space-y-1.5 sm:col-span-2">
+                <label className="block space-y-1.5">
                   <span className="text-xs font-medium text-muted-foreground">Porte</span>
                   <select
                     value={filters.companySize}
@@ -644,8 +671,27 @@ export function CompanyLeadsTab() {
                   >
                     <option value="">Todos</option>
                     {companySizeOptions.map((option) => (
-                      <option key={option} value={option}>
-                        {option}
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="block space-y-1.5">
+                  <span className="text-xs font-medium text-muted-foreground">
+                    Regime tributário
+                  </span>
+                  <select
+                    value={filters.taxRegime ?? ""}
+                    onChange={(event) =>
+                      setFilters((value) => ({ ...value, taxRegime: event.target.value }))
+                    }
+                    className="h-9 w-full cursor-pointer rounded-md border border-input bg-background px-3 text-sm"
+                  >
+                    <option value="">Todos</option>
+                    {Object.entries(taxRegimeLabels).map(([value, label]) => (
+                      <option key={value} value={value}>
+                        {label}
                       </option>
                     ))}
                   </select>
@@ -1048,8 +1094,18 @@ export function CompanyLeadsTab() {
                   <h3 className="mb-3 text-sm font-semibold">Empresa</h3>
                   <div className="grid gap-x-8 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
                     {[
+                      ["Razão social", selectedLead.legal_name || "Não informado"],
+                      ["Nome fantasia", selectedLead.trade_name || "Não informado"],
                       ["Matriz/filial", selectedLead.branch_type || "Não informado"],
                       ["Porte", selectedLead.company_size || "Não informado"],
+                      [
+                        "Regime tributário",
+                        formatTaxRegime(
+                          selectedLead.tax_regime,
+                          selectedLead.simples,
+                          selectedLead.mei,
+                        ),
+                      ],
                       ["Capital social", formatCurrency(selectedLead.capital_social)],
                       ["Natureza jurídica", selectedLead.legal_nature || "Não informado"],
                       [

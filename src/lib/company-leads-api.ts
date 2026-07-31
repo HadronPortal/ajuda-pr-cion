@@ -27,6 +27,7 @@ export type CompanyLead = {
   email: string | null;
   mei: boolean;
   simples: boolean;
+  tax_regime: string | null;
   relevance_score: number;
   stage: CompanyLeadStage;
   source: string;
@@ -81,6 +82,7 @@ export type CompanyLeadFilters = {
   companyName?: string;
   cnpj?: string;
   companySize: string;
+  taxRegime?: string;
   registrationStatus?: string;
   stage?: string;
   minScore?: string;
@@ -126,6 +128,7 @@ function buildFilterPayload(filters: CompanyLeadFilters) {
     companyName: filters.companyName?.trim() || null,
     cnpj: filters.cnpj?.replace(/\D/g, "") || null,
     companySize: filters.companySize?.trim() || null,
+    taxRegime: filters.taxRegime?.trim() || null,
     registrationStatus: filters.registrationStatus?.trim() || null,
     stage: filters.stage?.trim() || null,
     minScore: filters.minScore?.toString().trim() || null,
