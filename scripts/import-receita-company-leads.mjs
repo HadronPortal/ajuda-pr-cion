@@ -241,6 +241,8 @@ async function upsertBatch(client, rows) {
     "mei_opted_at",
     "mei_excluded_at",
     "search_alias",
+    "existing_client_id",
+    "existing_client_company_id",
   ];
   const values = [];
   const placeholders = rows.map((row, rowIndex) => {
@@ -287,6 +289,8 @@ async function upsertBatch(client, rows) {
        mei_opted_at = excluded.mei_opted_at,
        mei_excluded_at = excluded.mei_excluded_at,
        search_alias = coalesce(excluded.search_alias, public.company_leads.search_alias),
+       existing_client_id = coalesce(excluded.existing_client_id, public.company_leads.existing_client_id),
+       existing_client_company_id = coalesce(excluded.existing_client_company_id, public.company_leads.existing_client_company_id),
        updated_at = now()`,
     values,
   );
@@ -467,17 +471,28 @@ const client = new pg.Client({
 });
 await client.connect();
 try {
+  await client.query("set default_transaction_read_only = off");
+  await client.query("set transaction_read_only = off");
   const clientAliases = await client.query(
-    `select regexp_replace(coalesce(document, ''), '\\D', '', 'g') cnpj,
+    `select id, client_id,
+            regexp_replace(coalesce(document, ''), '\\D', '', 'g') cnpj,
             nullif(trim(concat_ws(' ', legal_name, trade_name)), '') search_alias
        from public.client_companies`,
   );
   const aliasesByCnpj = new Map(
     clientAliases.rows
       .filter(({ cnpj }) => cnpj)
-      .map(({ cnpj, search_alias }) => [cnpj, search_alias]),
+      .map(({ cnpj, search_alias, client_id, id }) => [
+        cnpj,
+        { searchAlias: search_alias, clientId: client_id, companyId: id },
+      ]),
   );
-  for (const lead of leads) lead.search_alias = aliasesByCnpj.get(lead.cnpj) || null;
+  for (const lead of leads) {
+    const clientMatch = aliasesByCnpj.get(lead.cnpj);
+    lead.search_alias = clientMatch?.searchAlias || null;
+    lead.existing_client_id = clientMatch?.clientId || null;
+    lead.existing_client_company_id = clientMatch?.companyId || null;
+  }
 
   const cnaeRows = [...cnaeLookup.entries()].map(([code, description]) => ({ code, description }));
   for (const batch of splitBatches(cnaeRows, BATCH_SIZE)) {

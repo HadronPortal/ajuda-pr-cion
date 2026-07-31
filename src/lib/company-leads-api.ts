@@ -9,6 +9,9 @@ export type CompanyLead = {
   trade_name: string | null;
   search_alias?: string | null;
   matched_cnaes?: Array<{ code: string; description: string }>;
+  is_client?: boolean;
+  existing_client_id?: string | null;
+  existing_client_company_id?: string | null;
   opened_at: string | null;
   registration_status: string;
   cnae_code: string | null;

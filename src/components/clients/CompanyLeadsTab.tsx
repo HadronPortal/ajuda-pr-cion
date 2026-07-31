@@ -261,7 +261,13 @@ export function CompanyLeadsTab() {
     }
   };
 
-  const searchLeads = (nextPage = 0) => void runSearch(nextPage, filters, sort, direction);
+  const searchLeads = (nextPage = 0) => {
+    const nextFilters = filters.companyName?.trim()
+      ? { ...filters, openedWithinDays: 0, openedFrom: "", openedTo: "" }
+      : filters;
+    if (nextFilters !== filters) setFilters(nextFilters);
+    void runSearch(nextPage, nextFilters, sort, direction);
+  };
 
   const toggleSort = (column: CompanyLeadSort) => {
     if (!hasSearched) return;
@@ -418,7 +424,14 @@ export function CompanyLeadsTab() {
       case "company":
         return (
           <>
-            <div className="truncate font-medium">{lead.trade_name || lead.legal_name}</div>
+            <div className="flex items-center gap-2">
+              <div className="truncate font-medium">{lead.trade_name || lead.legal_name}</div>
+              {lead.is_client && (
+                <Badge className="shrink-0 bg-sky-500/12 text-sky-700 dark:text-sky-300">
+                  Cliente atual
+                </Badge>
+              )}
+            </div>
             {lead.trade_name && (
               <div className="truncate text-xs text-muted-foreground">{lead.legal_name}</div>
             )}
@@ -991,6 +1004,11 @@ export function CompanyLeadsTab() {
             </div>
           ) : selectedLead ? (
             <div className="space-y-6 px-6 pb-6">
+              {selectedLead.is_client && (
+                <Badge className="bg-sky-500/12 text-sky-700 dark:text-sky-300">
+                  Cliente atual do Prócion CRM
+                </Badge>
+              )}
               <section>
                 <h3 className="mb-3 text-sm font-semibold">Empresa</h3>
                 <div className="grid gap-x-8 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -1010,6 +1028,37 @@ export function CompanyLeadsTab() {
                       <div className="mt-1 text-sm">{value}</div>
                     </div>
                   ))}
+                </div>
+              </section>
+              <Separator />
+              <section>
+                <div className="mb-3 flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-primary" />
+                  <h3 className="text-sm font-semibold">Endereço</h3>
+                </div>
+                <div className="grid gap-x-8 gap-y-4 sm:grid-cols-2">
+                  <div className="sm:col-span-2">
+                    <div className="text-xs uppercase text-muted-foreground">Logradouro</div>
+                    <div className="mt-1 text-sm">{selectedLead.address || "Não informado"}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs uppercase text-muted-foreground">Bairro</div>
+                    <div className="mt-1 text-sm">
+                      {selectedLead.neighborhood || "Não informado"}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs uppercase text-muted-foreground">Cidade / UF</div>
+                    <div className="mt-1 text-sm">
+                      {selectedLead.city} - {selectedLead.state}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs uppercase text-muted-foreground">CEP</div>
+                    <div className="mt-1 text-sm">
+                      {selectedLead.postal_code || "Não informado"}
+                    </div>
+                  </div>
                 </div>
               </section>
               <Separator />

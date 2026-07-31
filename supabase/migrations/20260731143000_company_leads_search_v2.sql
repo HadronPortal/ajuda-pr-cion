@@ -8,7 +8,9 @@ create table if not exists public.cnae_labels (
 );
 
 alter table public.company_leads
-  add column if not exists search_alias text;
+  add column if not exists search_alias text,
+  add column if not exists existing_client_id uuid,
+  add column if not exists existing_client_company_id uuid;
 
 create extension if not exists pg_trgm;
 
@@ -25,11 +27,25 @@ create index if not exists company_leads_search_alias_idx
   on public.company_leads using gin (lower(search_alias) gin_trgm_ops);
 
 update public.company_leads lead
-   set search_alias = nullif(trim(concat_ws(' ', company.legal_name, company.trade_name)), '')
-  from public.client_companies company
- where regexp_replace(coalesce(company.document, ''), '\D', '', 'g') = lead.cnpj
-   and lead.search_alias is distinct from
-       nullif(trim(concat_ws(' ', company.legal_name, company.trade_name)), '');
+   set search_alias = company.search_alias,
+       existing_client_id = company.client_id,
+       existing_client_company_id = company.id
+  from (
+    select distinct on (regexp_replace(coalesce(document, ''), '\D', '', 'g'))
+      id,
+      client_id,
+      regexp_replace(coalesce(document, ''), '\D', '', 'g') cnpj,
+      nullif(trim(concat_ws(' ', legal_name, trade_name)), '') search_alias
+    from public.client_companies
+    where regexp_replace(coalesce(document, ''), '\D', '', 'g') <> ''
+    order by regexp_replace(coalesce(document, ''), '\D', '', 'g'), active desc, id
+  ) company
+ where company.cnpj = lead.cnpj
+   and (
+     lead.search_alias is distinct from company.search_alias
+     or lead.existing_client_id is distinct from company.client_id
+     or lead.existing_client_company_id is distinct from company.id
+   );
 
 -- Carga (executada por faixas de código para evitar statement timeout):
 -- insert into public.cnae_labels (cnae_code, cnae_description)
@@ -64,7 +80,7 @@ declare
   state_value text := upper(nullif(trim(coalesce(p_filters->>'state', '')), ''));
   cnae_value text;
   cnae_description_value text;
-  company_name_value text;
+  company_name_value text := nullif(trim(coalesce(p_filters->>'companyName', '')), '');
   size_value text;
   status_value text;
   stage_value text;
@@ -88,12 +104,12 @@ begin
   );
 
   opened_from := nullif(trim(coalesce(p_filters->>'openedFrom', '')), '');
-  if opened_from is not null then
+  if opened_from is not null and company_name_value is null then
     where_text := where_text || format(' and lead.opened_at >= %L::date', opened_from);
   end if;
 
   opened_to := nullif(trim(coalesce(p_filters->>'openedTo', '')), '');
-  if opened_to is not null then
+  if opened_to is not null and company_name_value is null then
     where_text := where_text || format(' and lead.opened_at <= %L::date', opened_to);
   end if;
 
@@ -118,7 +134,6 @@ begin
   end if;
 
   -- Nome da empresa: razão social ou nome fantasia, parcial e sem acentos.
-  company_name_value := nullif(trim(coalesce(p_filters->>'companyName', '')), '');
   if company_name_value is not null then
     where_text := where_text || format(
       ' and (lower(lead.legal_name) like %L or lower(lead.trade_name) like %L or lower(lead.search_alias) like %L)',
@@ -224,6 +239,9 @@ begin
             'legal_name', lead.legal_name,
             'trade_name', lead.trade_name,
             'search_alias', lead.search_alias,
+            'is_client', lead.existing_client_id is not null,
+            'existing_client_id', lead.existing_client_id,
+            'existing_client_company_id', lead.existing_client_company_id,
             'opened_at', lead.opened_at,
             'registration_status', lead.registration_status,
             'cnae_code', lead.cnae_code,
@@ -275,3 +293,36 @@ $$;
 revoke all on function public.company_leads_search(jsonb, text, text, integer, integer) from public;
 grant execute on function public.company_leads_search(jsonb, text, text, integer, integer)
   to anon, authenticated;
+
+create or replace function public.company_lead_details(p_id uuid)
+returns jsonb
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select to_jsonb(lead) || jsonb_build_object(
+    'is_client', lead.existing_client_id is not null,
+    'phone', nullif(lead.raw_payload->>'phone', ''),
+    'email', nullif(lead.raw_payload->>'email', ''),
+    'mei', coalesce((lead.raw_payload->>'mei')::boolean, false),
+    'simples', coalesce((lead.raw_payload->>'simple')::boolean, false),
+    'partners', coalesce((
+      select jsonb_agg(jsonb_build_object(
+        'id', partner.id,
+        'name', partner.partner_name,
+        'type', partner.partner_type,
+        'qualification', partner.qualification,
+        'joined_at', partner.joined_at,
+        'country', partner.country
+      ) order by partner.partner_name)
+      from public.company_lead_partners partner
+      where partner.company_root = coalesce(lead.company_root, left(lead.cnpj, 8))
+    ), '[]'::jsonb)
+  )
+  from public.company_leads lead
+  where lead.id = p_id;
+$$;
+
+revoke all on function public.company_lead_details(uuid) from public;
+grant execute on function public.company_lead_details(uuid) to anon, authenticated;
