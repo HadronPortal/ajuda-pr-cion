@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import crypto from "node:crypto";
 import path from "node:path";
 import readline from "node:readline";
 import { pipeline } from "node:stream/promises";
@@ -116,7 +117,9 @@ async function remoteFiles() {
     .filter(Boolean);
   if (!names.length) throw new Error(`Nenhum ZIP encontrado em ${directoryUrl}.`);
   const wanted = names.filter((name) =>
-    /(Estabelecimentos|Empresas|Municipios|Cnaes|Naturezas|Simples)/i.test(name),
+    /(Estabelecimentos|Empresas|Municipios|Cnaes|Naturezas|Simples|Socios|Qualificacoes|Paises)/i.test(
+      name,
+    ),
   );
   const downloaded = [];
   for (const [index, name] of wanted.entries()) {
@@ -140,6 +143,9 @@ async function sourceFiles() {
     cnaes: files.filter((file) => /Cnaes/i.test(path.basename(file))),
     legalNatures: files.filter((file) => /Naturezas/i.test(path.basename(file))),
     simple: files.filter((file) => /Simples/i.test(path.basename(file))),
+    partners: files.filter((file) => /Socios/i.test(path.basename(file))),
+    qualifications: files.filter((file) => /Qualificacoes/i.test(path.basename(file))),
+    countries: files.filter((file) => /Paises/i.test(path.basename(file))),
   };
   for (const required of ["establishments", "companies", "municipalities", "cnaes"]) {
     if (!grouped[required].length) throw new Error(`Arquivo obrigatório ausente: ${required}.`);
@@ -220,6 +226,19 @@ async function upsertBatch(client, rows) {
     "relevance_score",
     "last_seen_at",
     "raw_payload",
+    "company_root",
+    "branch_type",
+    "secondary_cnaes",
+    "phone_secondary",
+    "fax",
+    "capital_social",
+    "responsible_qualification",
+    "special_status",
+    "special_status_at",
+    "simple_opted_at",
+    "simple_excluded_at",
+    "mei_opted_at",
+    "mei_excluded_at",
   ];
   const values = [];
   const placeholders = rows.map((row, rowIndex) => {
@@ -251,7 +270,20 @@ async function upsertBatch(client, rows) {
        source_url = excluded.source_url,
        relevance_score = excluded.relevance_score,
        last_seen_at = excluded.last_seen_at,
-       raw_payload = excluded.raw_payload,
+      raw_payload = excluded.raw_payload,
+       company_root = excluded.company_root,
+       branch_type = excluded.branch_type,
+       secondary_cnaes = excluded.secondary_cnaes,
+       phone_secondary = excluded.phone_secondary,
+       fax = excluded.fax,
+       capital_social = excluded.capital_social,
+       responsible_qualification = excluded.responsible_qualification,
+       special_status = excluded.special_status,
+       special_status_at = excluded.special_status_at,
+       simple_opted_at = excluded.simple_opted_at,
+       simple_excluded_at = excluded.simple_excluded_at,
+       mei_opted_at = excluded.mei_opted_at,
+       mei_excluded_at = excluded.mei_excluded_at,
        updated_at = now()`,
     values,
   );
@@ -266,6 +298,10 @@ const cnaeLookup = await loadLookup(files.cnaes);
 const legalNatureLookup = files.legalNatures.length
   ? await loadLookup(files.legalNatures)
   : new Map();
+const qualificationLookup = files.qualifications.length
+  ? await loadLookup(files.qualifications)
+  : new Map();
+const countryLookup = files.countries.length ? await loadLookup(files.countries) : new Map();
 const targetMunicipalities = new Map();
 for (const [rfbCode, name] of municipalityLookup) {
   const target = TARGET_CITY_NAMES.get(normalizeCity(name));
@@ -297,9 +333,11 @@ for (const file of files.establishments) {
       root,
       cnpj: `${root}${order}${verifier}`,
       tradeName: nullable(row[4]),
+      branchType: normalize(row[3]) === "1" ? "Matriz" : "Filial",
       statusUpdatedAt: isoDate(row[6]),
       openedAt: isoDate(row[10]),
       cnaeCode: digits(row[11]) || null,
+      secondaryCnaes: normalize(row[12]).split(",").map(digits).filter(Boolean),
       street: [nullable(row[13]), nullable(row[14])].filter(Boolean).join(" ") || null,
       number: nullable(row[15]),
       complement: nullable(row[16]),
@@ -308,7 +346,11 @@ for (const file of files.establishments) {
       state: normalize(row[19]) || "SP",
       municipality,
       phone: [digits(row[21]), digits(row[22])].filter(Boolean).join(""),
+      phoneSecondary: [digits(row[23]), digits(row[24])].filter(Boolean).join(""),
+      fax: [digits(row[25]), digits(row[26])].filter(Boolean).join(""),
       email: nullable(row[27]),
+      specialStatus: nullable(row[28]),
+      specialStatusAt: isoDate(row[29]),
     });
   });
   console.log(`Estabelecimentos filtrados: ${establishments.length}`);
@@ -322,6 +364,8 @@ for (const file of files.companies) {
     companies.set(root, {
       legalName: normalize(row[1]),
       legalNatureCode: normalize(row[2]),
+      responsibleQualificationCode: normalize(row[3]),
+      capitalSocial: Number(normalize(row[4]).replace(",", ".")) || null,
       companySizeCode: normalize(row[5]),
     });
   });
@@ -332,7 +376,14 @@ for (const file of files.simple) {
   await forEachZipLine(file, (row) => {
     const root = digits(row[0]).padStart(8, "0");
     if (!companyRoots.has(root)) return;
-    simple.set(root, { simple: normalize(row[1]) === "S", mei: normalize(row[4]) === "S" });
+    simple.set(root, {
+      simple: normalize(row[1]) === "S",
+      simpleOptedAt: isoDate(row[2]),
+      simpleExcludedAt: isoDate(row[3]),
+      mei: normalize(row[4]) === "S",
+      meiOptedAt: isoDate(row[5]),
+      meiExcludedAt: isoDate(row[6]),
+    });
   });
 }
 
@@ -383,6 +434,22 @@ const leads = establishments.flatMap((establishment) => {
       "https://www.gov.br/receitafederal/pt-br/acesso-a-informacao/dados-abertos/cadastros",
     last_seen_at: now,
     raw_payload: rawPayload,
+    company_root: establishment.root,
+    branch_type: establishment.branchType,
+    secondary_cnaes: establishment.secondaryCnaes,
+    phone_secondary: establishment.phoneSecondary || null,
+    fax: establishment.fax || null,
+    capital_social: company.capitalSocial,
+    responsible_qualification:
+      qualificationLookup.get(company.responsibleQualificationCode) ||
+      company.responsibleQualificationCode ||
+      null,
+    special_status: establishment.specialStatus,
+    special_status_at: establishment.specialStatusAt,
+    simple_opted_at: taxOptions.simpleOptedAt || null,
+    simple_excluded_at: taxOptions.simpleExcludedAt || null,
+    mei_opted_at: taxOptions.meiOptedAt || null,
+    mei_excluded_at: taxOptions.meiExcludedAt || null,
   };
   return [{ ...lead, relevance_score: scoreLead(lead) }];
 });
@@ -407,6 +474,75 @@ try {
     console.log(
       `Gravando leads: ${Math.min((index + 1) * BATCH_SIZE, newLeads.length)}/${newLeads.length}`,
     );
+  }
+  if (files.partners.length) {
+    let importedPartners = 0;
+    for (const file of files.partners) {
+      const partnerBatch = [];
+      const flushPartners = async () => {
+        if (!partnerBatch.length) return;
+        const uniquePartners = [
+          ...new Map(partnerBatch.map((partner) => [partner.sourceKey, partner])).values(),
+        ];
+        const values = [];
+        const placeholders = uniquePartners.map((partner, rowIndex) => {
+          const start = rowIndex * 7;
+          values.push(
+            partner.companyRoot,
+            partner.sourceKey,
+            partner.name,
+            partner.type,
+            partner.qualification,
+            partner.joinedAt,
+            partner.country,
+          );
+          return `(${Array.from({ length: 7 }, (_, index) => `$${start + index + 1}`).join(",")})`;
+        });
+        await client.query(
+          `insert into public.company_lead_partners
+            (company_root, source_key, partner_name, partner_type, qualification, joined_at, country)
+           values ${placeholders.join(",")}
+           on conflict (source_key) do update set
+             partner_name = excluded.partner_name,
+             partner_type = excluded.partner_type,
+             qualification = excluded.qualification,
+             joined_at = excluded.joined_at,
+             country = excluded.country,
+             updated_at = now()`,
+          values,
+        );
+        importedPartners += uniquePartners.length;
+        partnerBatch.length = 0;
+      };
+      await forEachZipLine(file, async (row) => {
+        const companyRoot = digits(row[0]).padStart(8, "0");
+        if (!companyRoots.has(companyRoot)) return;
+        const name = normalize(row[2]);
+        if (!name) return;
+        const type =
+          { 1: "Pessoa jurídica", 2: "Pessoa física", 3: "Estrangeiro" }[normalize(row[1])] ||
+          "Não informado";
+        const qualificationCode = normalize(row[4]);
+        const sourceKey = crypto
+          .createHash("sha256")
+          .update(
+            [companyRoot, normalize(row[1]), name, qualificationCode, normalize(row[5])].join("|"),
+          )
+          .digest("hex");
+        partnerBatch.push({
+          companyRoot,
+          sourceKey,
+          name,
+          type,
+          qualification: qualificationLookup.get(qualificationCode) || qualificationCode || null,
+          joinedAt: isoDate(row[5]),
+          country: countryLookup.get(normalize(row[6])) || null,
+        });
+        if (partnerBatch.length >= BATCH_SIZE) await flushPartners();
+      });
+      await flushPartners();
+      console.log(`Sócios criados/atualizados: ${importedPartners.toLocaleString("pt-BR")}`);
+    }
   }
   console.log(`Clientes atuais ignorados: ${leads.length - newLeads.length}`);
   console.log(`Leads criados/atualizados: ${newLeads.length}`);

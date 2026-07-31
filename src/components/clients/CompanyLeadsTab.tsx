@@ -8,12 +8,14 @@ import {
   ChevronLeft,
   ChevronRight,
   Columns3,
+  Eye,
   ExternalLink,
   LoaderCircle,
   MapPin,
   Search,
   SlidersHorizontal,
   Target,
+  Users,
   X,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -23,12 +25,20 @@ import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 import { Separator } from "@/components/ui/separator";
 import {
   companyLeadsApi,
   type CompanyLead,
   type CompanyLeadFilters,
+  type CompanyLeadDetails,
   type CompanyLeadSort,
   type CompanyLeadStage,
 } from "@/lib/company-leads-api";
@@ -91,7 +101,12 @@ type ColumnDefinition = {
 const columnDefinitions: ColumnDefinition[] = [
   { key: "company", label: "Empresa", sort: "company", className: "max-w-[220px]" },
   { key: "cnpj", label: "CNPJ", sort: "cnpj", className: "whitespace-nowrap" },
-  { key: "opened_at", label: "Data de abertura", sort: "opened_at", className: "whitespace-nowrap" },
+  {
+    key: "opened_at",
+    label: "Data de abertura",
+    sort: "opened_at",
+    className: "whitespace-nowrap",
+  },
   {
     key: "registration_status",
     label: "Situação cadastral",
@@ -113,7 +128,6 @@ const columnDefinitions: ColumnDefinition[] = [
   { key: "source", label: "Fonte", className: "max-w-[160px]" },
 ];
 
-
 const defaultColumns: ColumnKey[] = [
   "company",
   "cnpj",
@@ -126,12 +140,7 @@ const defaultColumns: ColumnKey[] = [
   "stage",
 ];
 
-const companySizeOptions = [
-  "Microempresa",
-  "Empresa de pequeno porte",
-  "Demais",
-  "Não informado",
-];
+const companySizeOptions = ["Microempresa", "Empresa de pequeno porte", "Demais", "Não informado"];
 
 const registrationStatusOptions = ["ATIVA", "BAIXADA", "SUSPENSA", "INAPTA"];
 
@@ -158,6 +167,11 @@ const formatDate = (value: string | null) => {
   const [year, month, day] = value.split("-");
   return `${day}/${month}/${year}`;
 };
+
+const formatCurrency = (value: number | null) =>
+  value == null
+    ? "Não informado"
+    : new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
 
 const openedLabels: Record<number, string> = {
   0: "Qualquer data",
@@ -193,6 +207,9 @@ export function CompanyLeadsTab() {
   const [direction, setDirection] = useState<"asc" | "desc">("desc");
   const [visibleColumns, setVisibleColumns] = useState<ColumnKey[]>(defaultColumns);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [selectedLead, setSelectedLead] = useState<CompanyLeadDetails | null>(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [detailsLoading, setDetailsLoading] = useState(false);
 
   useEffect(() => {
     setVisibleColumns(loadColumns());
@@ -247,7 +264,13 @@ export function CompanyLeadsTab() {
   const toggleSort = (column: CompanyLeadSort) => {
     if (!hasSearched) return;
     const nextDirection: "asc" | "desc" =
-      sort === column ? (direction === "asc" ? "desc" : "asc") : column === "company" ? "asc" : "desc";
+      sort === column
+        ? direction === "asc"
+          ? "desc"
+          : "asc"
+        : column === "company"
+          ? "asc"
+          : "desc";
     void runSearch(0, appliedFilters, column, nextDirection);
   };
 
@@ -266,6 +289,22 @@ export function CompanyLeadsTab() {
     } catch (error) {
       setLeads(previous);
       toast.error(error instanceof Error ? error.message : "Não foi possível atualizar o lead.");
+    }
+  };
+
+  const openDetails = async (lead: CompanyLead) => {
+    setDetailsOpen(true);
+    setDetailsLoading(true);
+    setSelectedLead(null);
+    try {
+      setSelectedLead(await companyLeadsApi.details(lead.id));
+    } catch (error) {
+      setDetailsOpen(false);
+      toast.error(
+        error instanceof Error ? error.message : "Não foi possível carregar os detalhes.",
+      );
+    } finally {
+      setDetailsLoading(false);
     }
   };
 
@@ -381,7 +420,9 @@ export function CompanyLeadsTab() {
           </div>
         );
       case "registration_status":
-        return <span className="whitespace-nowrap text-emerald-600">{lead.registration_status}</span>;
+        return (
+          <span className="whitespace-nowrap text-emerald-600">{lead.registration_status}</span>
+        );
       case "city":
         return (
           <div className="inline-flex items-center gap-1.5 whitespace-nowrap">
@@ -495,7 +536,12 @@ export function CompanyLeadsTab() {
 
         <Popover open={filtersOpen} onOpenChange={setFiltersOpen}>
           <PopoverTrigger asChild>
-            <Button type="button" variant="outline" className="h-9 gap-2" title="Filtros adicionais">
+            <Button
+              type="button"
+              variant="outline"
+              className="h-9 gap-2"
+              title="Filtros adicionais"
+            >
               <SlidersHorizontal className="h-4 w-4" />
               Filtros
               {chips.length > 0 && (
@@ -516,7 +562,6 @@ export function CompanyLeadsTab() {
             </div>
             <div className="hide-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain">
               <div className="space-y-3 p-4">
-
                 <label className="block space-y-1.5">
                   <span className="text-xs font-medium text-muted-foreground">
                     Situação cadastral
@@ -684,9 +729,7 @@ export function CompanyLeadsTab() {
                           checked === true
                             ? columnDefinitions
                                 .map((item) => item.key)
-                                .filter(
-                                  (key) => visibleColumns.includes(key) || key === column.key,
-                                )
+                                .filter((key) => visibleColumns.includes(key) || key === column.key)
                             : visibleColumns.filter((key) => key !== column.key),
                         )
                       }
@@ -698,7 +741,6 @@ export function CompanyLeadsTab() {
             </div>
           </PopoverContent>
         </Popover>
-
 
         <Button
           onClick={() => searchLeads(0)}
@@ -804,18 +846,29 @@ export function CompanyLeadsTab() {
                       </td>
                     ))}
                     <td className="px-2.5 py-1.5">
-
-                      {lead.source_url && (
-                        <a
-                          href={lead.source_url}
-                          target="_blank"
-                          rel="noreferrer"
-                          title="Consultar fonte"
-                          className="grid h-8 w-8 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
+                      <div className="flex items-center gap-1">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          title="Ver detalhes da empresa"
+                          onClick={() => void openDetails(lead)}
+                          className="h-8 w-8"
                         >
-                          <ExternalLink className="h-4 w-4" />
-                        </a>
-                      )}
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        {lead.source_url && (
+                          <a
+                            href={lead.source_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            title="Consultar fonte"
+                            className="grid h-8 w-8 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                          </a>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -878,6 +931,141 @@ export function CompanyLeadsTab() {
           </div>
         </div>
       )}
+      <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
+        <DialogContent className="hide-scrollbar max-h-[90vh] max-w-4xl overflow-y-auto p-0">
+          <DialogHeader className="border-b border-border px-6 py-5 pr-12">
+            <DialogTitle>
+              {selectedLead?.trade_name || selectedLead?.legal_name || "Detalhes do lead"}
+            </DialogTitle>
+            <DialogDescription>
+              {selectedLead
+                ? `${selectedLead.legal_name} · ${formatCnpj(selectedLead.cnpj)}`
+                : "Carregando dados da Receita Federal..."}
+            </DialogDescription>
+          </DialogHeader>
+          {detailsLoading ? (
+            <div className="grid min-h-52 place-items-center text-muted-foreground">
+              <LoaderCircle className="h-6 w-6 animate-spin" />
+            </div>
+          ) : selectedLead ? (
+            <div className="space-y-6 px-6 pb-6">
+              <section>
+                <h3 className="mb-3 text-sm font-semibold">Empresa</h3>
+                <div className="grid gap-x-8 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {[
+                    ["Matriz/filial", selectedLead.branch_type || "Não informado"],
+                    ["Porte", selectedLead.company_size || "Não informado"],
+                    ["Capital social", formatCurrency(selectedLead.capital_social)],
+                    ["Natureza jurídica", selectedLead.legal_nature || "Não informado"],
+                    [
+                      "Qualificação do responsável",
+                      selectedLead.responsible_qualification || "Não informado",
+                    ],
+                    ["Situação especial", selectedLead.special_status || "Nenhuma"],
+                  ].map(([label, value]) => (
+                    <div key={label}>
+                      <div className="text-xs uppercase text-muted-foreground">{label}</div>
+                      <div className="mt-1 text-sm">{value}</div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+              <Separator />
+              <section>
+                <h3 className="mb-3 text-sm font-semibold">Atividades e contatos</h3>
+                <div className="grid gap-x-8 gap-y-4 sm:grid-cols-2">
+                  <div>
+                    <div className="text-xs uppercase text-muted-foreground">CNAE principal</div>
+                    <div className="mt-1 text-sm">
+                      {selectedLead.cnae_code || "Não informado"} ·{" "}
+                      {selectedLead.cnae_description || "Sem descrição"}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs uppercase text-muted-foreground">CNAEs secundários</div>
+                    <div className="mt-1 text-sm">
+                      {selectedLead.secondary_cnaes?.join(", ") || "Nenhum informado"}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs uppercase text-muted-foreground">Telefones</div>
+                    <div className="mt-1 text-sm">
+                      {[formatPhone(selectedLead.phone), formatPhone(selectedLead.phone_secondary)]
+                        .filter((value) => value !== "—")
+                        .join(" · ") || "Não informado"}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs uppercase text-muted-foreground">E-mail</div>
+                    <div className="mt-1 break-all text-sm lowercase">
+                      {selectedLead.email || "Não informado"}
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <Separator />
+              <section>
+                <h3 className="mb-3 text-sm font-semibold">Simples Nacional e MEI</h3>
+                <div className="grid gap-x-8 gap-y-4 sm:grid-cols-2 lg:grid-cols-4">
+                  <div>
+                    <div className="text-xs uppercase text-muted-foreground">Simples</div>
+                    <div className="mt-1 text-sm">
+                      {selectedLead.simples ? "Optante" : "Não optante"}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs uppercase text-muted-foreground">
+                      Opção pelo Simples
+                    </div>
+                    <div className="mt-1 text-sm">{formatDate(selectedLead.simple_opted_at)}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs uppercase text-muted-foreground">MEI</div>
+                    <div className="mt-1 text-sm">
+                      {selectedLead.mei ? "Optante" : "Não optante"}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs uppercase text-muted-foreground">Opção pelo MEI</div>
+                    <div className="mt-1 text-sm">{formatDate(selectedLead.mei_opted_at)}</div>
+                  </div>
+                </div>
+              </section>
+              <Separator />
+              <section>
+                <div className="mb-3 flex items-center gap-2">
+                  <Users className="h-4 w-4 text-primary" />
+                  <h3 className="text-sm font-semibold">
+                    Quadro societário ({selectedLead.partners.length})
+                  </h3>
+                </div>
+                {selectedLead.partners.length ? (
+                  <div className="divide-y divide-border rounded-md border border-border">
+                    {selectedLead.partners.map((partner) => (
+                      <div
+                        key={partner.id}
+                        className="grid gap-1 px-4 py-3 sm:grid-cols-[1.4fr_1fr_auto]"
+                      >
+                        <div className="text-sm font-medium">{partner.name}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {partner.qualification || partner.type}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          Entrada: {formatDate(partner.joined_at)}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Nenhum sócio informado na base importada.
+                  </p>
+                )}
+              </section>
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

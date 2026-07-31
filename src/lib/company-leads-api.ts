@@ -29,6 +29,32 @@ export type CompanyLead = {
   discovered_at: string;
 };
 
+export type CompanyLeadPartner = {
+  id: string;
+  name: string;
+  type: string;
+  qualification: string | null;
+  joined_at: string | null;
+  country: string | null;
+};
+
+export type CompanyLeadDetails = CompanyLead & {
+  company_root: string | null;
+  branch_type: string | null;
+  secondary_cnaes: string[];
+  phone_secondary: string | null;
+  fax: string | null;
+  capital_social: number | null;
+  responsible_qualification: string | null;
+  special_status: string | null;
+  special_status_at: string | null;
+  simple_opted_at: string | null;
+  simple_excluded_at: string | null;
+  mei_opted_at: string | null;
+  mei_excluded_at: string | null;
+  partners: CompanyLeadPartner[];
+};
+
 export type CompanyLeadSort =
   | "company"
   | "cnpj"
@@ -114,6 +140,13 @@ export const companyLeadsApi = {
       total: Number(payload.total || 0),
       source: "Dados públicos do CNPJ/Receita Federal",
     };
+  },
+
+  async details(id: string): Promise<CompanyLeadDetails> {
+    const { data, error } = await supabase.rpc("company_lead_details", { p_id: id });
+    if (error) throw error;
+    if (!data) throw new Error("Lead não encontrado.");
+    return data as CompanyLeadDetails;
   },
 
   async updateStage(id: string, stage: CompanyLeadStage) {
