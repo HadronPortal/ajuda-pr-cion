@@ -499,7 +499,14 @@ export function CompanyLeadsTab() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-end gap-3">
+      <form
+        className="flex flex-wrap items-end gap-3"
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (searching) return;
+          searchLeads(0);
+        }}
+      >
         <label className="min-w-[220px] flex-[1.4] space-y-1.5">
           <span className="text-xs font-medium text-muted-foreground">Cidade</span>
           <Input
@@ -639,6 +646,28 @@ export function CompanyLeadsTab() {
                   />
                 </label>
                 <label className="block space-y-1.5">
+                  <span className="text-xs font-medium text-muted-foreground">Nome da empresa</span>
+                  <Input
+                    value={filters.companyName ?? ""}
+                    onChange={(event) =>
+                      setFilters((value) => ({ ...value, companyName: event.target.value }))
+                    }
+                    placeholder="Razão social ou nome fantasia"
+                  />
+                </label>
+                <label className="block space-y-1.5">
+                  <span className="text-xs font-medium text-muted-foreground">
+                    Descrição do CNAE
+                  </span>
+                  <Input
+                    value={filters.cnaeDescription ?? ""}
+                    onChange={(event) =>
+                      setFilters((value) => ({ ...value, cnaeDescription: event.target.value }))
+                    }
+                    placeholder="Ex.: bovinos, comércio varejista"
+                  />
+                </label>
+                <label className="block space-y-1.5">
                   <span className="text-xs font-medium text-muted-foreground">Score mínimo</span>
                   <Input
                     type="number"
@@ -756,7 +785,7 @@ export function CompanyLeadsTab() {
         </Popover>
 
         <Button
-          onClick={() => searchLeads(0)}
+          type="submit"
           disabled={searching}
           title="Procurar empresas"
           className="h-9 gap-2"
@@ -768,7 +797,7 @@ export function CompanyLeadsTab() {
           )}
           Procurar empresas
         </Button>
-      </div>
+      </form>
 
       {chips.length > 0 && (
         <div className="flex flex-wrap gap-2">
