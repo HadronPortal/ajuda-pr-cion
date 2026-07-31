@@ -1009,7 +1009,7 @@ export function CompanyLeadsTab() {
             <div className="space-y-6 px-6 pb-6">
               {selectedLead.is_client && (
                 <Badge className="bg-sky-500/12 text-sky-700 dark:text-sky-300">
-                  Cliente atual do Prócion CRM
+                  Cliente atual da Prócion CRM
                 </Badge>
               )}
               <section>
