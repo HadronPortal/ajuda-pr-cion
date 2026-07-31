@@ -234,7 +234,8 @@ export function CompanyLeadsTab() {
     nextSort: CompanyLeadSort,
     nextDirection: "asc" | "desc",
   ) => {
-    if (!nextFilters.city.trim() || nextFilters.state.trim().length !== 2) {
+    const hasDirectSearch = Boolean(nextFilters.companyName?.trim() || nextFilters.cnpj?.trim());
+    if (!hasDirectSearch && (!nextFilters.city.trim() || nextFilters.state.trim().length !== 2)) {
       toast.error("Informe a cidade e uma UF válida.");
       return;
     }
@@ -768,19 +769,34 @@ export function CompanyLeadsTab() {
                 </div>
               </div>
             </div>
-            <div className="flex shrink-0 justify-end gap-2 border-t border-border p-4">
-              <Button type="button" variant="outline" onClick={() => setFiltersOpen(false)}>
-                Cancelar
-              </Button>
+            <div className="flex shrink-0 items-center justify-between gap-2 border-t border-border p-4">
               <Button
                 type="button"
-                onClick={() => {
-                  setFiltersOpen(false);
-                  searchLeads(0);
-                }}
+                variant="ghost"
+                onClick={() =>
+                  setFilters((current) => ({
+                    ...initialFilters,
+                    city: current.city,
+                    state: current.state,
+                  }))
+                }
               >
-                Aplicar filtros
+                Limpar filtros
               </Button>
+              <div className="flex gap-2">
+                <Button type="button" variant="outline" onClick={() => setFiltersOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => {
+                    setFiltersOpen(false);
+                    searchLeads(0);
+                  }}
+                >
+                  Aplicar filtros
+                </Button>
+              </div>
             </div>
           </DialogContent>
         </Dialog>
@@ -1005,7 +1021,7 @@ export function CompanyLeadsTab() {
         </div>
       )}
       <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
-        <DialogContent className="max-h-[90vh] max-w-4xl grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden p-0">
+        <DialogContent className="max-h-[90vh] max-w-4xl grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden p-0 [&>button]:z-20">
           <DialogHeader className="relative z-10 shrink-0 border-b border-border bg-card px-6 py-5 pr-12">
             <DialogTitle>
               {selectedLead?.trade_name || selectedLead?.legal_name || "Detalhes do lead"}
