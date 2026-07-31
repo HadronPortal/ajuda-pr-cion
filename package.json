@@ -21,6 +21,7 @@
     "import:company-leads": "node scripts/import-receita-company-leads.mjs",
     "import:company-lead-partners": "node scripts/import-receita-company-partners.mjs",
     "import:company-tax-regimes": "node scripts/import-receita-tax-regimes.mjs",
+    "enrich:company-lead-contacts": "node scripts/enrich-company-lead-contacts.mjs",
     "import:cvs-catalogs": "node scripts/import-cvs-catalogs.mjs",
     "import:trello": "node scripts/import-trello-board.mjs",
     "lint": "eslint .",

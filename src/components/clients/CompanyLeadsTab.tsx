@@ -197,6 +197,9 @@ const formatPhone = (value: string | null) => {
   return value;
 };
 
+const isLikelyPrimaryPartner = (qualification: string | null) =>
+  /titular|sócio-administrador|administrador|presidente|diretor/i.test(qualification || "");
+
 const formatDate = (value: string | null) => {
   if (!value) return "Não informada";
   const [year, month, day] = value.split("-");
@@ -1190,13 +1193,21 @@ export function CompanyLeadsTab() {
                     </div>
                     <div>
                       <div className="text-xs uppercase text-muted-foreground">Telefones</div>
-                      <div className="mt-1 text-sm">
+                      <div className="mt-1 space-y-1 text-sm">
+                        <div>
                         {[
                           formatPhone(selectedLead.phone),
                           formatPhone(selectedLead.phone_secondary),
                         ]
                           .filter((value) => value !== "—")
-                          .join(" · ") || "Não informado"}
+                          .join(" · ") || "Não informado pela Receita Federal"}
+                        </div>
+                        {selectedLead.additional_phones?.map((item) => (
+                          <div key={`${item.phone}-${item.source_url}`}>
+                            {formatPhone(item.phone)}{" "}
+                            <span className="text-xs text-muted-foreground">· {item.source}</span>
+                          </div>
+                        ))}
                       </div>
                     </div>
                     <div>
@@ -1245,12 +1256,17 @@ export function CompanyLeadsTab() {
                   </div>
                   {selectedLead.partners.length ? (
                     <div className="divide-y divide-border rounded-md border border-border">
-                      {selectedLead.partners.map((partner) => (
+                      {selectedLead.partners.map((partner, index) => (
                         <div
                           key={partner.id}
                           className="grid gap-1 px-4 py-3 sm:grid-cols-[1.4fr_1fr_auto]"
                         >
-                          <div className="text-sm font-medium">{partner.name}</div>
+                          <div className="flex items-center gap-2 text-sm font-medium">
+                            {partner.name}
+                            {index === 0 && isLikelyPrimaryPartner(partner.qualification) && (
+                              <Badge variant="secondary">Responsável provável</Badge>
+                            )}
+                          </div>
                           <div className="text-sm text-muted-foreground">
                             {partner.qualification || partner.type}
                           </div>

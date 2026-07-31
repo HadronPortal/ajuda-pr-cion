@@ -49,6 +49,8 @@ export type CompanyLeadDetails = CompanyLead & {
   branch_type: string | null;
   secondary_cnaes: string[];
   phone_secondary: string | null;
+  website: string | null;
+  additional_phones: Array<{ phone: string; source: string; source_url: string }>;
   fax: string | null;
   capital_social: number | null;
   responsible_qualification: string | null;
