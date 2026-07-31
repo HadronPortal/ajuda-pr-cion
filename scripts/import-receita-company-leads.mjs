@@ -20,6 +20,12 @@ const DRY_RUN = process.argv.includes("--dry-run");
 const SKIP_PARTNERS = process.argv.includes("--skip-partners");
 const EXPANSION_ONLY = process.argv.includes("--expansion-only");
 const EXPAND_RADIUS = EXPANSION_ONLY || process.argv.includes("--expand-radius");
+const TARGET_CITY_FILTER = new Set(
+  String(process.env.CNPJ_TARGET_CITIES || "")
+    .split(",")
+    .map(normalizeCity)
+    .filter(Boolean),
+);
 const EXPANSION_DAYS = Math.max(1, Number(process.env.CNPJ_EXPANSION_DAYS || 30));
 const EXPANSION_CUTOFF = new Date(Date.now() - EXPANSION_DAYS * 86400000)
   .toISOString()
@@ -340,6 +346,8 @@ for (const file of files.establishments) {
       .get(normalize(row[20]))
       ?.find((target) => target.state === normalize(row[19]));
     if (!municipality || normalize(row[5]) !== "02") return;
+    if (TARGET_CITY_FILTER.size && !TARGET_CITY_FILTER.has(normalizeCity(municipality.name)))
+      return;
     const openedAt = isoDate(row[10]);
     if (!EXPAND_RADIUS && municipality.distanceKm > 80) return;
     if (EXPANSION_ONLY && municipality.distanceKm <= 80) return;

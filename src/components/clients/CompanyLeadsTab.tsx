@@ -1005,8 +1005,8 @@ export function CompanyLeadsTab() {
         </div>
       )}
       <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
-        <DialogContent className="hide-scrollbar max-h-[90vh] max-w-4xl overflow-y-auto p-0">
-          <DialogHeader className="border-b border-border px-6 py-5 pr-12">
+        <DialogContent className="max-h-[90vh] max-w-4xl grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden p-0">
+          <DialogHeader className="relative z-10 shrink-0 border-b border-border bg-card px-6 py-5 pr-12">
             <DialogTitle>
               {selectedLead?.trade_name || selectedLead?.legal_name || "Detalhes do lead"}
             </DialogTitle>
@@ -1016,163 +1016,170 @@ export function CompanyLeadsTab() {
                 : "Carregando dados da Receita Federal..."}
             </DialogDescription>
           </DialogHeader>
-          {detailsLoading ? (
-            <div className="grid min-h-52 place-items-center text-muted-foreground">
-              <LoaderCircle className="h-6 w-6 animate-spin" />
-            </div>
-          ) : selectedLead ? (
-            <div className="space-y-6 px-6 pb-6">
-              {selectedLead.is_client && (
-                <Badge className="bg-sky-500/12 text-sky-700 dark:text-sky-300">
-                  Cliente atual da Prócion CRM
-                </Badge>
-              )}
-              <section>
-                <h3 className="mb-3 text-sm font-semibold">Empresa</h3>
-                <div className="grid gap-x-8 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {[
-                    ["Matriz/filial", selectedLead.branch_type || "Não informado"],
-                    ["Porte", selectedLead.company_size || "Não informado"],
-                    ["Capital social", formatCurrency(selectedLead.capital_social)],
-                    ["Natureza jurídica", selectedLead.legal_nature || "Não informado"],
-                    [
-                      "Qualificação do responsável",
-                      selectedLead.responsible_qualification || "Não informado",
-                    ],
-                    ["Situação especial", selectedLead.special_status || "Nenhuma"],
-                  ].map(([label, value]) => (
-                    <div key={label}>
-                      <div className="text-xs uppercase text-muted-foreground">{label}</div>
-                      <div className="mt-1 text-sm">{value}</div>
-                    </div>
-                  ))}
-                </div>
-              </section>
-              <Separator />
-              <section>
-                <div className="mb-3 flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-primary" />
-                  <h3 className="text-sm font-semibold">Endereço</h3>
-                </div>
-                <div className="grid gap-x-8 gap-y-4 sm:grid-cols-2">
-                  <div className="sm:col-span-2">
-                    <div className="text-xs uppercase text-muted-foreground">Logradouro</div>
-                    <div className="mt-1 text-sm">{selectedLead.address || "Não informado"}</div>
-                  </div>
-                  <div>
-                    <div className="text-xs uppercase text-muted-foreground">Bairro</div>
-                    <div className="mt-1 text-sm">
-                      {selectedLead.neighborhood || "Não informado"}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-xs uppercase text-muted-foreground">Cidade / UF</div>
-                    <div className="mt-1 text-sm">
-                      {selectedLead.city} - {selectedLead.state}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-xs uppercase text-muted-foreground">CEP</div>
-                    <div className="mt-1 text-sm">
-                      {selectedLead.postal_code || "Não informado"}
-                    </div>
-                  </div>
-                </div>
-              </section>
-              <Separator />
-              <section>
-                <h3 className="mb-3 text-sm font-semibold">Atividades e contatos</h3>
-                <div className="grid gap-x-8 gap-y-4 sm:grid-cols-2">
-                  <div>
-                    <div className="text-xs uppercase text-muted-foreground">CNAE principal</div>
-                    <div className="mt-1 text-sm">
-                      {selectedLead.cnae_code || "Não informado"} ·{" "}
-                      {selectedLead.cnae_description || "Sem descrição"}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-xs uppercase text-muted-foreground">CNAEs secundários</div>
-                    <div className="mt-1 text-sm">
-                      {selectedLead.secondary_cnaes?.join(", ") || "Nenhum informado"}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-xs uppercase text-muted-foreground">Telefones</div>
-                    <div className="mt-1 text-sm">
-                      {[formatPhone(selectedLead.phone), formatPhone(selectedLead.phone_secondary)]
-                        .filter((value) => value !== "—")
-                        .join(" · ") || "Não informado"}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-xs uppercase text-muted-foreground">E-mail</div>
-                    <div className="mt-1 break-all text-sm lowercase">
-                      {selectedLead.email || "Não informado"}
-                    </div>
-                  </div>
-                </div>
-              </section>
-              <Separator />
-              <section>
-                <h3 className="mb-3 text-sm font-semibold">Simples Nacional e MEI</h3>
-                <div className="grid gap-x-8 gap-y-4 sm:grid-cols-2 lg:grid-cols-4">
-                  <div>
-                    <div className="text-xs uppercase text-muted-foreground">Simples</div>
-                    <div className="mt-1 text-sm">
-                      {selectedLead.simples ? "Optante" : "Não optante"}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-xs uppercase text-muted-foreground">
-                      Opção pelo Simples
-                    </div>
-                    <div className="mt-1 text-sm">{formatDate(selectedLead.simple_opted_at)}</div>
-                  </div>
-                  <div>
-                    <div className="text-xs uppercase text-muted-foreground">MEI</div>
-                    <div className="mt-1 text-sm">
-                      {selectedLead.mei ? "Optante" : "Não optante"}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-xs uppercase text-muted-foreground">Opção pelo MEI</div>
-                    <div className="mt-1 text-sm">{formatDate(selectedLead.mei_opted_at)}</div>
-                  </div>
-                </div>
-              </section>
-              <Separator />
-              <section>
-                <div className="mb-3 flex items-center gap-2">
-                  <Users className="h-4 w-4 text-primary" />
-                  <h3 className="text-sm font-semibold">
-                    Quadro societário ({selectedLead.partners.length})
-                  </h3>
-                </div>
-                {selectedLead.partners.length ? (
-                  <div className="divide-y divide-border rounded-md border border-border">
-                    {selectedLead.partners.map((partner) => (
-                      <div
-                        key={partner.id}
-                        className="grid gap-1 px-4 py-3 sm:grid-cols-[1.4fr_1fr_auto]"
-                      >
-                        <div className="text-sm font-medium">{partner.name}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {partner.qualification || partner.type}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          Entrada: {formatDate(partner.joined_at)}
-                        </div>
+          <div className="hide-scrollbar min-h-0 overflow-y-auto overscroll-contain">
+            {detailsLoading ? (
+              <div className="grid min-h-52 place-items-center text-muted-foreground">
+                <LoaderCircle className="h-6 w-6 animate-spin" />
+              </div>
+            ) : selectedLead ? (
+              <div className="space-y-6 px-6 py-6">
+                {selectedLead.is_client && (
+                  <Badge className="bg-sky-500/12 text-sky-700 dark:text-sky-300">
+                    Cliente atual da Prócion CRM
+                  </Badge>
+                )}
+                <section>
+                  <h3 className="mb-3 text-sm font-semibold">Empresa</h3>
+                  <div className="grid gap-x-8 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {[
+                      ["Matriz/filial", selectedLead.branch_type || "Não informado"],
+                      ["Porte", selectedLead.company_size || "Não informado"],
+                      ["Capital social", formatCurrency(selectedLead.capital_social)],
+                      ["Natureza jurídica", selectedLead.legal_nature || "Não informado"],
+                      [
+                        "Qualificação do responsável",
+                        selectedLead.responsible_qualification || "Não informado",
+                      ],
+                      ["Situação especial", selectedLead.special_status || "Nenhuma"],
+                    ].map(([label, value]) => (
+                      <div key={label}>
+                        <div className="text-xs uppercase text-muted-foreground">{label}</div>
+                        <div className="mt-1 text-sm">{value}</div>
                       </div>
                     ))}
                   </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    Nenhum sócio informado na base importada.
-                  </p>
-                )}
-              </section>
-            </div>
-          ) : null}
+                </section>
+                <Separator />
+                <section>
+                  <div className="mb-3 flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-primary" />
+                    <h3 className="text-sm font-semibold">Endereço</h3>
+                  </div>
+                  <div className="grid gap-x-8 gap-y-4 sm:grid-cols-2">
+                    <div className="sm:col-span-2">
+                      <div className="text-xs uppercase text-muted-foreground">Logradouro</div>
+                      <div className="mt-1 text-sm">{selectedLead.address || "Não informado"}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs uppercase text-muted-foreground">Bairro</div>
+                      <div className="mt-1 text-sm">
+                        {selectedLead.neighborhood || "Não informado"}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-xs uppercase text-muted-foreground">Cidade / UF</div>
+                      <div className="mt-1 text-sm">
+                        {selectedLead.city} - {selectedLead.state}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-xs uppercase text-muted-foreground">CEP</div>
+                      <div className="mt-1 text-sm">
+                        {selectedLead.postal_code || "Não informado"}
+                      </div>
+                    </div>
+                  </div>
+                </section>
+                <Separator />
+                <section>
+                  <h3 className="mb-3 text-sm font-semibold">Atividades e contatos</h3>
+                  <div className="grid gap-x-8 gap-y-4 sm:grid-cols-2">
+                    <div>
+                      <div className="text-xs uppercase text-muted-foreground">CNAE principal</div>
+                      <div className="mt-1 text-sm">
+                        {selectedLead.cnae_code || "Não informado"} ·{" "}
+                        {selectedLead.cnae_description || "Sem descrição"}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-xs uppercase text-muted-foreground">
+                        CNAEs secundários
+                      </div>
+                      <div className="mt-1 text-sm">
+                        {selectedLead.secondary_cnaes?.join(", ") || "Nenhum informado"}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-xs uppercase text-muted-foreground">Telefones</div>
+                      <div className="mt-1 text-sm">
+                        {[
+                          formatPhone(selectedLead.phone),
+                          formatPhone(selectedLead.phone_secondary),
+                        ]
+                          .filter((value) => value !== "—")
+                          .join(" · ") || "Não informado"}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-xs uppercase text-muted-foreground">E-mail</div>
+                      <div className="mt-1 break-all text-sm lowercase">
+                        {selectedLead.email || "Não informado"}
+                      </div>
+                    </div>
+                  </div>
+                </section>
+                <Separator />
+                <section>
+                  <h3 className="mb-3 text-sm font-semibold">Simples Nacional e MEI</h3>
+                  <div className="grid gap-x-8 gap-y-4 sm:grid-cols-2 lg:grid-cols-4">
+                    <div>
+                      <div className="text-xs uppercase text-muted-foreground">Simples</div>
+                      <div className="mt-1 text-sm">
+                        {selectedLead.simples ? "Optante" : "Não optante"}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-xs uppercase text-muted-foreground">
+                        Opção pelo Simples
+                      </div>
+                      <div className="mt-1 text-sm">{formatDate(selectedLead.simple_opted_at)}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs uppercase text-muted-foreground">MEI</div>
+                      <div className="mt-1 text-sm">
+                        {selectedLead.mei ? "Optante" : "Não optante"}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-xs uppercase text-muted-foreground">Opção pelo MEI</div>
+                      <div className="mt-1 text-sm">{formatDate(selectedLead.mei_opted_at)}</div>
+                    </div>
+                  </div>
+                </section>
+                <Separator />
+                <section>
+                  <div className="mb-3 flex items-center gap-2">
+                    <Users className="h-4 w-4 text-primary" />
+                    <h3 className="text-sm font-semibold">
+                      Quadro societário ({selectedLead.partners.length})
+                    </h3>
+                  </div>
+                  {selectedLead.partners.length ? (
+                    <div className="divide-y divide-border rounded-md border border-border">
+                      {selectedLead.partners.map((partner) => (
+                        <div
+                          key={partner.id}
+                          className="grid gap-1 px-4 py-3 sm:grid-cols-[1.4fr_1fr_auto]"
+                        >
+                          <div className="text-sm font-medium">{partner.name}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {partner.qualification || partner.type}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            Entrada: {formatDate(partner.joined_at)}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      Nenhum sócio informado na base importada.
+                    </p>
+                  )}
+                </section>
+              </div>
+            ) : null}
+          </div>
         </DialogContent>
       </Dialog>
     </div>
