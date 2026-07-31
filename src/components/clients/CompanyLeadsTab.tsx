@@ -154,13 +154,20 @@ const companySizeOptions = [
 
 const taxRegimeLabels: Record<string, string> = {
   "0": "Simples Nacional",
+  "1": "Lucro Presumido (somente clientes)",
+  "2": "Lucro Real (somente clientes)",
+  "3": "MEI",
+};
+
+const taxRegimeDisplayLabels: Record<string, string> = {
+  "0": "Simples Nacional",
   "1": "Lucro Presumido",
   "2": "Lucro Real",
   "3": "MEI",
 };
 
 const formatTaxRegime = (value: string | null, simples = false, mei = false) => {
-  if (value && taxRegimeLabels[value]) return taxRegimeLabels[value];
+  if (value && taxRegimeDisplayLabels[value]) return taxRegimeDisplayLabels[value];
   if (mei) return "MEI";
   if (simples) return "Simples Nacional";
   return "Não informado";
@@ -1105,6 +1112,14 @@ export function CompanyLeadsTab() {
                           selectedLead.simples,
                           selectedLead.mei,
                         ),
+                      ],
+                      [
+                        "Fonte do regime",
+                        selectedLead.is_client && selectedLead.tax_regime
+                          ? "Prócion CRM (cliente)"
+                          : selectedLead.simples || selectedLead.mei
+                            ? "Receita Federal"
+                            : "Não informado pela base pública",
                       ],
                       ["Capital social", formatCurrency(selectedLead.capital_social)],
                       ["Natureza jurídica", selectedLead.legal_nature || "Não informado"],
