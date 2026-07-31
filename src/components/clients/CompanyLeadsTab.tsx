@@ -9,7 +9,6 @@ import {
   ChevronRight,
   Columns3,
   Eye,
-  ExternalLink,
   LoaderCircle,
   MapPin,
   Search,
@@ -49,6 +48,8 @@ const initialFilters: CompanyLeadFilters = {
   state: "SP",
   openedWithinDays: 90,
   cnae: "",
+  cnaeDescription: "",
+  companyName: "",
   companySize: "",
   registrationStatus: "",
   stage: "",
@@ -336,6 +337,18 @@ export function CompanyLeadsTab() {
       });
     if (source.cnae)
       items.push({ key: "cnae", label: `CNAE: ${source.cnae}`, clear: { cnae: "" } });
+    if (source.companyName)
+      items.push({
+        key: "companyName",
+        label: `Nome: ${source.companyName}`,
+        clear: { companyName: "" },
+      });
+    if (source.cnaeDescription)
+      items.push({
+        key: "cnaeDescription",
+        label: `Descrição do CNAE: ${source.cnaeDescription}`,
+        clear: { cnaeDescription: "" },
+      });
     if (source.companySize)
       items.push({
         key: "companySize",
@@ -486,7 +499,14 @@ export function CompanyLeadsTab() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-end gap-3">
+      <form
+        className="flex flex-wrap items-end gap-3"
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (searching) return;
+          searchLeads(0);
+        }}
+      >
         <label className="min-w-[220px] flex-[1.4] space-y-1.5">
           <span className="text-xs font-medium text-muted-foreground">Cidade</span>
           <Input
@@ -626,6 +646,28 @@ export function CompanyLeadsTab() {
                   />
                 </label>
                 <label className="block space-y-1.5">
+                  <span className="text-xs font-medium text-muted-foreground">Nome da empresa</span>
+                  <Input
+                    value={filters.companyName ?? ""}
+                    onChange={(event) =>
+                      setFilters((value) => ({ ...value, companyName: event.target.value }))
+                    }
+                    placeholder="Razão social ou nome fantasia"
+                  />
+                </label>
+                <label className="block space-y-1.5">
+                  <span className="text-xs font-medium text-muted-foreground">
+                    Descrição do CNAE
+                  </span>
+                  <Input
+                    value={filters.cnaeDescription ?? ""}
+                    onChange={(event) =>
+                      setFilters((value) => ({ ...value, cnaeDescription: event.target.value }))
+                    }
+                    placeholder="Ex.: bovinos, comércio varejista"
+                  />
+                </label>
+                <label className="block space-y-1.5">
                   <span className="text-xs font-medium text-muted-foreground">Score mínimo</span>
                   <Input
                     type="number"
@@ -743,7 +785,7 @@ export function CompanyLeadsTab() {
         </Popover>
 
         <Button
-          onClick={() => searchLeads(0)}
+          type="submit"
           disabled={searching}
           title="Procurar empresas"
           className="h-9 gap-2"
@@ -755,7 +797,7 @@ export function CompanyLeadsTab() {
           )}
           Procurar empresas
         </Button>
-      </div>
+      </form>
 
       {chips.length > 0 && (
         <div className="flex flex-wrap gap-2">
@@ -828,7 +870,7 @@ export function CompanyLeadsTab() {
                   </th>
                 ))}
                 <th className="w-10 px-2.5 py-2">
-                  <span className="sr-only">Fonte</span>
+                  <span className="sr-only">Ações</span>
                 </th>
               </tr>
             </thead>
@@ -857,17 +899,6 @@ export function CompanyLeadsTab() {
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
-                        {lead.source_url && (
-                          <a
-                            href={lead.source_url}
-                            target="_blank"
-                            rel="noreferrer"
-                            title="Consultar fonte"
-                            className="grid h-8 w-8 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                          </a>
-                        )}
                       </div>
                     </td>
                   </tr>
