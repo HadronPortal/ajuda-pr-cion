@@ -81,7 +81,11 @@ begin
     raise exception 'Informe cidade e UF para pesquisar leads.';
   end if;
 
-  where_text := format('lead.state = %L and lead.city = %L', state_value, city_value);
+  where_text := format(
+    'lead.state = %L and lower(translate(lead.city, ''áàâãäéèêëíìîïóòôõöúùûüç'', ''aaaaaeeeeiiiiooooouuuuc'')) = lower(translate(%L, ''áàâãäéèêëíìîïóòôõöúùûüç'', ''aaaaaeeeeiiiiooooouuuuc''))',
+    state_value,
+    city_value
+  );
 
   opened_from := nullif(trim(coalesce(p_filters->>'openedFrom', '')), '');
   if opened_from is not null then
