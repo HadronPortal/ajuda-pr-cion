@@ -1,19 +1,19 @@
 -- Prospecção: busca por nome da empresa, descrição do CNAE e CNAEs secundários.
 
--- Dicionário de descrições de CNAE derivado dos leads já importados.
-create materialized view if not exists public.cnae_labels as
-select distinct on (cnae_code)
-  cnae_code,
-  cnae_description
-from public.company_leads
-where cnae_code is not null
-  and cnae_description is not null
-order by cnae_code, cnae_description;
+-- Dicionário de descrições de CNAE (código -> descrição) usado para pesquisar
+-- também nas descrições dos CNAEs secundários.
+create table if not exists public.cnae_labels (
+  cnae_code text primary key,
+  cnae_description text not null
+);
 
-create unique index if not exists cnae_labels_code_idx on public.cnae_labels (cnae_code);
-
-create index if not exists company_leads_secondary_cnaes_idx
-  on public.company_leads using gin (secondary_cnaes);
+-- Carga (executada por faixas de código para evitar statement timeout):
+-- insert into public.cnae_labels (cnae_code, cnae_description)
+-- select distinct on (cnae_code) cnae_code, cnae_description
+-- from public.company_leads
+-- where cnae_code like '<faixa>%' and cnae_description is not null
+-- order by cnae_code, cnae_description
+-- on conflict (cnae_code) do nothing;
 
 create or replace function public.company_leads_search(
   p_filters jsonb default '{}'::jsonb,
