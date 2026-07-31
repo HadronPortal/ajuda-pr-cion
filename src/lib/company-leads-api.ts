@@ -7,6 +7,8 @@ export type CompanyLead = {
   cnpj: string;
   legal_name: string;
   trade_name: string | null;
+  search_alias?: string | null;
+  matched_cnaes?: Array<{ code: string; description: string }>;
   opened_at: string | null;
   registration_status: string;
   cnae_code: string | null;

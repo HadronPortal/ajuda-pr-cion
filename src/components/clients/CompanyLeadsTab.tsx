@@ -30,6 +30,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 
 import { Separator } from "@/components/ui/separator";
@@ -421,6 +422,12 @@ export function CompanyLeadsTab() {
             {lead.trade_name && (
               <div className="truncate text-xs text-muted-foreground">{lead.legal_name}</div>
             )}
+            {lead.search_alias &&
+              ![lead.trade_name, lead.legal_name]
+                .filter(Boolean)
+                .some((name) => lead.search_alias?.toLowerCase().includes(name!.toLowerCase())) && (
+                <div className="truncate text-xs text-primary">Cadastro: {lead.search_alias}</div>
+              )}
           </>
         );
       case "cnpj":
@@ -447,8 +454,17 @@ export function CompanyLeadsTab() {
         return <div className="truncate text-xs text-muted-foreground">{lead.address || "—"}</div>;
       case "cnae":
         return <span className="whitespace-nowrap">{lead.cnae_code || "—"}</span>;
-      case "cnae_description":
-        return <div className="truncate text-xs">{lead.cnae_description || "—"}</div>;
+      case "cnae_description": {
+        const secondaryMatch = lead.matched_cnaes?.find((item) => item.code !== lead.cnae_code);
+        return (
+          <div className="space-y-0.5 text-xs">
+            <div className="truncate">{lead.cnae_description || "—"}</div>
+            {secondaryMatch && (
+              <div className="truncate text-primary">Secundário: {secondaryMatch.description}</div>
+            )}
+          </div>
+        );
+      }
       case "company_size":
         return <span className="whitespace-nowrap">{lead.company_size || "—"}</span>;
       case "legal_nature":
@@ -554,8 +570,8 @@ export function CompanyLeadsTab() {
           />
         </label>
 
-        <Popover open={filtersOpen} onOpenChange={setFiltersOpen}>
-          <PopoverTrigger asChild>
+        <Dialog open={filtersOpen} onOpenChange={setFiltersOpen}>
+          <DialogTrigger asChild>
             <Button
               type="button"
               variant="outline"
@@ -568,21 +584,17 @@ export function CompanyLeadsTab() {
                 <Badge className="ml-1 bg-primary/10 px-1.5 text-primary">{chips.length}</Badge>
               )}
             </Button>
-          </PopoverTrigger>
-          <PopoverContent
-            align="end"
-            side="bottom"
-            sideOffset={8}
-            collisionPadding={16}
-            avoidCollisions
-            className="flex max-h-[calc(100vh-120px)] w-[min(320px,calc(100vw-32px))] flex-col p-0"
-          >
-            <div className="shrink-0 border-b border-border px-4 py-2.5">
-              <p className="text-sm font-semibold">Filtros adicionais</p>
-            </div>
+          </DialogTrigger>
+          <DialogContent className="flex max-h-[min(760px,calc(100vh-32px))] max-w-2xl flex-col gap-0 overflow-hidden p-0">
+            <DialogHeader className="shrink-0 border-b border-border px-5 py-4 text-left">
+              <DialogTitle>Filtros de prospecção</DialogTitle>
+              <DialogDescription>
+                Refine a consulta por cadastro, empresa, atividade e contato.
+              </DialogDescription>
+            </DialogHeader>
             <div className="hide-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain">
-              <div className="space-y-3 p-4">
-                <label className="block space-y-1.5">
+              <div className="grid gap-4 p-5 sm:grid-cols-2">
+                <label className="block space-y-1.5 sm:col-span-2">
                   <span className="text-xs font-medium text-muted-foreground">
                     Situação cadastral
                   </span>
@@ -601,7 +613,7 @@ export function CompanyLeadsTab() {
                     ))}
                   </select>
                 </label>
-                <label className="block space-y-1.5">
+                <label className="block space-y-1.5 sm:col-span-2">
                   <span className="text-xs font-medium text-muted-foreground">Porte</span>
                   <select
                     value={filters.companySize}
@@ -703,31 +715,35 @@ export function CompanyLeadsTab() {
                     />
                   </label>
                 </div>
-                <Separator />
-                {(
-                  [
-                    ["hasPhone", "Com telefone"],
-                    ["hasEmail", "Com e-mail"],
-                    ["onlyMei", "Somente MEI"],
-                    ["onlySimples", "Somente Simples Nacional"],
-                  ] as Array<[keyof CompanyLeadFilters, string]>
-                ).map(([key, label]) => (
-                  <label key={key} className="flex cursor-pointer items-center gap-2 text-sm">
-                    <Checkbox
-                      checked={Boolean(filters[key])}
-                      onCheckedChange={(checked) =>
-                        setFilters((value) => ({ ...value, [key]: checked === true }))
-                      }
-                    />
-                    {label}
-                  </label>
-                ))}
+                <Separator className="sm:col-span-2" />
+                <div className="grid gap-3 sm:col-span-2 sm:grid-cols-2">
+                  {(
+                    [
+                      ["hasPhone", "Com telefone"],
+                      ["hasEmail", "Com e-mail"],
+                      ["onlyMei", "Somente MEI"],
+                      ["onlySimples", "Somente Simples Nacional"],
+                    ] as Array<[keyof CompanyLeadFilters, string]>
+                  ).map(([key, label]) => (
+                    <label key={key} className="flex cursor-pointer items-center gap-2 text-sm">
+                      <Checkbox
+                        checked={Boolean(filters[key])}
+                        onCheckedChange={(checked) =>
+                          setFilters((value) => ({ ...value, [key]: checked === true }))
+                        }
+                      />
+                      {label}
+                    </label>
+                  ))}
+                </div>
               </div>
             </div>
-            <div className="shrink-0 border-t border-border p-3">
+            <div className="flex shrink-0 justify-end gap-2 border-t border-border p-4">
+              <Button type="button" variant="outline" onClick={() => setFiltersOpen(false)}>
+                Cancelar
+              </Button>
               <Button
                 type="button"
-                className="w-full"
                 onClick={() => {
                   setFiltersOpen(false);
                   searchLeads(0);
@@ -736,8 +752,8 @@ export function CompanyLeadsTab() {
                 Aplicar filtros
               </Button>
             </div>
-          </PopoverContent>
-        </Popover>
+          </DialogContent>
+        </Dialog>
 
         <Popover>
           <PopoverTrigger asChild>
@@ -784,12 +800,7 @@ export function CompanyLeadsTab() {
           </PopoverContent>
         </Popover>
 
-        <Button
-          type="submit"
-          disabled={searching}
-          title="Procurar empresas"
-          className="h-9 gap-2"
-        >
+        <Button type="submit" disabled={searching} title="Procurar empresas" className="h-9 gap-2">
           {searching ? (
             <LoaderCircle className="h-4 w-4 animate-spin" />
           ) : (

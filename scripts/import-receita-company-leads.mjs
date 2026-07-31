@@ -17,6 +17,7 @@ let competence = process.env.CNPJ_COMPETENCE || "";
 const CACHE_DIR = path.resolve(process.env.CNPJ_CACHE_DIR || ".cache/cnpj");
 const BATCH_SIZE = Math.max(100, Number(process.env.CNPJ_IMPORT_BATCH || 1000));
 const DRY_RUN = process.argv.includes("--dry-run");
+const SKIP_PARTNERS = process.argv.includes("--skip-partners");
 
 if (!DATABASE_URL && !DRY_RUN) {
   throw new Error("Defina DATABASE_URL ou execute com --dry-run.");
@@ -239,6 +240,7 @@ async function upsertBatch(client, rows) {
     "simple_excluded_at",
     "mei_opted_at",
     "mei_excluded_at",
+    "search_alias",
   ];
   const values = [];
   const placeholders = rows.map((row, rowIndex) => {
@@ -284,6 +286,7 @@ async function upsertBatch(client, rows) {
        simple_excluded_at = excluded.simple_excluded_at,
        mei_opted_at = excluded.mei_opted_at,
        mei_excluded_at = excluded.mei_excluded_at,
+       search_alias = coalesce(excluded.search_alias, public.company_leads.search_alias),
        updated_at = now()`,
     values,
   );
@@ -464,18 +467,41 @@ const client = new pg.Client({
 });
 await client.connect();
 try {
-  const existing = await client.query(
-    "select regexp_replace(coalesce(document, ''), '\\D', '', 'g') cnpj from public.client_companies",
+  const clientAliases = await client.query(
+    `select regexp_replace(coalesce(document, ''), '\\D', '', 'g') cnpj,
+            nullif(trim(concat_ws(' ', legal_name, trade_name)), '') search_alias
+       from public.client_companies`,
   );
-  const clientCnpjs = new Set(existing.rows.map(({ cnpj }) => cnpj).filter(Boolean));
-  const newLeads = leads.filter((lead) => !clientCnpjs.has(lead.cnpj));
-  for (const [index, batch] of splitBatches(newLeads, BATCH_SIZE).entries()) {
-    await upsertBatch(client, batch);
-    console.log(
-      `Gravando leads: ${Math.min((index + 1) * BATCH_SIZE, newLeads.length)}/${newLeads.length}`,
+  const aliasesByCnpj = new Map(
+    clientAliases.rows
+      .filter(({ cnpj }) => cnpj)
+      .map(({ cnpj, search_alias }) => [cnpj, search_alias]),
+  );
+  for (const lead of leads) lead.search_alias = aliasesByCnpj.get(lead.cnpj) || null;
+
+  const cnaeRows = [...cnaeLookup.entries()].map(([code, description]) => ({ code, description }));
+  for (const batch of splitBatches(cnaeRows, BATCH_SIZE)) {
+    const values = [];
+    const placeholders = batch.map(({ code, description }, index) => {
+      values.push(code, description);
+      return `($${index * 2 + 1}, $${index * 2 + 2})`;
+    });
+    await client.query(
+      `insert into public.cnae_labels (cnae_code, cnae_description)
+       values ${placeholders.join(",")}
+       on conflict (cnae_code) do update
+       set cnae_description = excluded.cnae_description`,
+      values,
     );
   }
-  if (files.partners.length) {
+
+  for (const [index, batch] of splitBatches(leads, BATCH_SIZE).entries()) {
+    await upsertBatch(client, batch);
+    console.log(
+      `Gravando empresas: ${Math.min((index + 1) * BATCH_SIZE, leads.length)}/${leads.length}`,
+    );
+  }
+  if (files.partners.length && !SKIP_PARTNERS) {
     let importedPartners = 0;
     for (const file of files.partners) {
       const partnerBatch = [];
@@ -544,8 +570,7 @@ try {
       console.log(`Sócios criados/atualizados: ${importedPartners.toLocaleString("pt-BR")}`);
     }
   }
-  console.log(`Clientes atuais ignorados: ${leads.length - newLeads.length}`);
-  console.log(`Leads criados/atualizados: ${newLeads.length}`);
+  console.log(`Empresas criadas/atualizadas: ${leads.length}`);
 } finally {
   await client.end();
 }
