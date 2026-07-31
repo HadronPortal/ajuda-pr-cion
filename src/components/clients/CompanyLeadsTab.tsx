@@ -51,6 +51,7 @@ const initialFilters: CompanyLeadFilters = {
   cnae: "",
   cnaeDescription: "",
   companyName: "",
+  cnpj: "",
   companySize: "",
   registrationStatus: "",
   stage: "",
@@ -101,7 +102,7 @@ type ColumnDefinition = {
 };
 
 const columnDefinitions: ColumnDefinition[] = [
-  { key: "company", label: "Empresa", sort: "company", className: "max-w-[220px]" },
+  { key: "company", label: "Empresa", sort: "company", className: "min-w-[220px] max-w-[280px]" },
   { key: "cnpj", label: "CNPJ", sort: "cnpj", className: "whitespace-nowrap" },
   {
     key: "opened_at",
@@ -264,9 +265,10 @@ export function CompanyLeadsTab() {
   };
 
   const searchLeads = (nextPage = 0) => {
-    const nextFilters = filters.companyName?.trim()
-      ? { ...filters, openedWithinDays: 0, openedFrom: "", openedTo: "" }
-      : filters;
+    const nextFilters =
+      filters.companyName?.trim() || filters.cnpj?.trim()
+        ? { ...filters, openedWithinDays: 0, openedFrom: "", openedTo: "" }
+        : filters;
     if (nextFilters !== filters) setFilters(nextFilters);
     void runSearch(nextPage, nextFilters, sort, direction);
   };
@@ -352,6 +354,8 @@ export function CompanyLeadsTab() {
         label: `Nome: ${source.companyName}`,
         clear: { companyName: "" },
       });
+    if (source.cnpj)
+      items.push({ key: "cnpj", label: `CNPJ: ${source.cnpj}`, clear: { cnpj: "" } });
     if (source.cnaeDescription)
       items.push({
         key: "cnaeDescription",
@@ -683,6 +687,17 @@ export function CompanyLeadsTab() {
                   />
                 </label>
                 <label className="block space-y-1.5">
+                  <span className="text-xs font-medium text-muted-foreground">CNPJ</span>
+                  <Input
+                    inputMode="numeric"
+                    value={filters.cnpj ?? ""}
+                    onChange={(event) =>
+                      setFilters((value) => ({ ...value, cnpj: event.target.value }))
+                    }
+                    placeholder="Digite o CNPJ completo ou parcial"
+                  />
+                </label>
+                <label className="block space-y-1.5">
                   <span className="text-xs font-medium text-muted-foreground">
                     Descrição do CNAE
                   </span>
@@ -863,7 +878,7 @@ export function CompanyLeadsTab() {
           <table
             className={cn(
               "w-full min-w-[980px] table-auto",
-              columns.length > 10 ? "text-[13px]" : "text-sm",
+              columns.length > 10 ? "text-[11px]" : "text-xs",
             )}
           >
             <thead className="bg-muted/35 text-left text-xs uppercase text-muted-foreground">

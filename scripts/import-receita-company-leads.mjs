@@ -18,6 +18,12 @@ const CACHE_DIR = path.resolve(process.env.CNPJ_CACHE_DIR || ".cache/cnpj");
 const BATCH_SIZE = Math.max(100, Number(process.env.CNPJ_IMPORT_BATCH || 1000));
 const DRY_RUN = process.argv.includes("--dry-run");
 const SKIP_PARTNERS = process.argv.includes("--skip-partners");
+const EXPANSION_ONLY = process.argv.includes("--expansion-only");
+const EXPAND_RADIUS = EXPANSION_ONLY || process.argv.includes("--expand-radius");
+const EXPANSION_DAYS = Math.max(1, Number(process.env.CNPJ_EXPANSION_DAYS || 30));
+const EXPANSION_CUTOFF = new Date(Date.now() - EXPANSION_DAYS * 86400000)
+  .toISOString()
+  .slice(0, 10);
 
 if (!DATABASE_URL && !DRY_RUN) {
   throw new Error("Defina DATABASE_URL ou execute com --dry-run.");
@@ -311,17 +317,17 @@ const qualificationLookup = files.qualifications.length
 const countryLookup = files.countries.length ? await loadLookup(files.countries) : new Map();
 const targetMunicipalities = new Map();
 for (const [rfbCode, name] of municipalityLookup) {
-  const target = TARGET_CITY_NAMES.get(normalizeCity(name));
-  if (target) targetMunicipalities.set(rfbCode, target);
+  const targets = TARGET_CITY_NAMES.get(normalizeCity(name));
+  if (targets?.length) targetMunicipalities.set(rfbCode, targets);
 }
 const foundTargetCities = new Set(
-  [...targetMunicipalities.values()].map(({ ibgeCode }) => ibgeCode),
+  [...targetMunicipalities.values()].flatMap((targets) => targets.map(({ ibgeCode }) => ibgeCode)),
 );
 if (foundTargetCities.size !== TARGET_CITIES.length) {
   const missing = TARGET_CITIES.filter(([ibgeCode]) => !foundTargetCities.has(ibgeCode)).map(
     ([, name]) => name,
   );
-  throw new Error(`Municípios não encontrados na tabela da Receita: ${missing.join(", ")}.`);
+  console.warn(`Municípios não encontrados na tabela da Receita: ${missing.join(", ")}.`);
 }
 
 const establishments = [];
@@ -330,8 +336,15 @@ let scannedEstablishments = 0;
 for (const file of files.establishments) {
   await forEachZipLine(file, (row) => {
     scannedEstablishments += 1;
-    const municipality = targetMunicipalities.get(normalize(row[20]));
-    if (!municipality || normalize(row[19]) !== "SP" || normalize(row[5]) !== "02") return;
+    const municipality = targetMunicipalities
+      .get(normalize(row[20]))
+      ?.find((target) => target.state === normalize(row[19]));
+    if (!municipality || normalize(row[5]) !== "02") return;
+    const openedAt = isoDate(row[10]);
+    if (!EXPAND_RADIUS && municipality.distanceKm > 80) return;
+    if (EXPANSION_ONLY && municipality.distanceKm <= 80) return;
+    // Mantém o histórico do núcleo e limita a expansão a leads comerciais recentes.
+    if (municipality.distanceKm > 80 && (!openedAt || openedAt < EXPANSION_CUTOFF)) return;
     const root = digits(row[0]).padStart(8, "0");
     const order = digits(row[1]).padStart(4, "0");
     const verifier = digits(row[2]).padStart(2, "0");
@@ -342,7 +355,7 @@ for (const file of files.establishments) {
       tradeName: nullable(row[4]),
       branchType: normalize(row[3]) === "1" ? "Matriz" : "Filial",
       statusUpdatedAt: isoDate(row[6]),
-      openedAt: isoDate(row[10]),
+      openedAt,
       cnaeCode: digits(row[11]) || null,
       secondaryCnaes: normalize(row[12]).split(",").map(digits).filter(Boolean),
       street: [nullable(row[13]), nullable(row[14])].filter(Boolean).join(" ") || null,
@@ -350,7 +363,7 @@ for (const file of files.establishments) {
       complement: nullable(row[16]),
       neighborhood: nullable(row[17]),
       postalCode: digits(row[18]) || null,
-      state: normalize(row[19]) || "SP",
+      state: normalize(row[19]),
       municipality,
       phone: [digits(row[21]), digits(row[22])].filter(Boolean).join(""),
       phoneSecondary: [digits(row[23]), digits(row[24])].filter(Boolean).join(""),
@@ -407,8 +420,8 @@ const leads = establishments.flatMap((establishment) => {
   const taxOptions = simple.get(establishment.root) || { simple: false, mei: false };
   const rawPayload = {
     ibge_city_code: establishment.municipality.ibgeCode,
-    rfb_city_code: [...targetMunicipalities].find(
-      ([, city]) => city.ibgeCode === establishment.municipality.ibgeCode,
+    rfb_city_code: [...targetMunicipalities].find(([, cities]) =>
+      cities.some((city) => city.ibgeCode === establishment.municipality.ibgeCode),
     )?.[0],
     company_size_code: company.companySizeCode,
     simple: taxOptions.simple,

@@ -79,6 +79,7 @@ export type CompanyLeadFilters = {
   cnae: string;
   cnaeDescription?: string;
   companyName?: string;
+  cnpj?: string;
   companySize: string;
   registrationStatus?: string;
   stage?: string;
@@ -123,6 +124,7 @@ function buildFilterPayload(filters: CompanyLeadFilters) {
     cnae: filters.cnae?.trim() || null,
     cnaeDescription: filters.cnaeDescription?.trim() || null,
     companyName: filters.companyName?.trim() || null,
+    cnpj: filters.cnpj?.replace(/\D/g, "") || null,
     companySize: filters.companySize?.trim() || null,
     registrationStatus: filters.registrationStatus?.trim() || null,
     stage: filters.stage?.trim() || null,
