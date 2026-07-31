@@ -14,6 +14,19 @@ alter table public.company_leads
 
 create extension if not exists pg_trgm;
 
+create or replace function public.normalize_company_search(value text)
+returns text
+language sql
+immutable
+parallel safe
+as $$
+  select translate(
+    lower(coalesce(value, '')),
+    'áàâãäéèêëíìîïóòôõöúùûüç',
+    'aaaaaeeeeiiiiooooouuuuc'
+  );
+$$;
+
 create index if not exists company_leads_secondary_cnaes_gin_idx
   on public.company_leads using gin (secondary_cnaes);
 
@@ -25,6 +38,15 @@ create index if not exists company_leads_trade_name_search_idx
 
 create index if not exists company_leads_search_alias_idx
   on public.company_leads using gin (lower(search_alias) gin_trgm_ops);
+
+create index if not exists company_leads_location_search_v2_idx
+  on public.company_leads (
+    state,
+    public.normalize_company_search(city),
+    opened_at desc nulls last,
+    relevance_score desc,
+    id
+  );
 
 update public.company_leads lead
    set search_alias = company.search_alias,
@@ -98,7 +120,7 @@ begin
   end if;
 
   where_text := format(
-    'lead.state = %L and lower(translate(lead.city, ''áàâãäéèêëíìîïóòôõöúùûüç'', ''aaaaaeeeeiiiiooooouuuuc'')) = lower(translate(%L, ''áàâãäéèêëíìîïóòôõöúùûüç'', ''aaaaaeeeeiiiiooooouuuuc''))',
+    'lead.state = %L and public.normalize_company_search(lead.city) = public.normalize_company_search(%L)',
     state_value,
     city_value
   );
@@ -225,7 +247,10 @@ begin
     direction
   );
 
-  execute format('select count(*) from public.company_leads lead where %s', where_text)
+  execute format(
+    'select count(*) from (select 1 from public.company_leads lead where %s limit 5001) counted',
+    where_text
+  )
     into total_count;
 
   execute format(
@@ -286,7 +311,11 @@ begin
     offset_value
   ) into rows_json;
 
-  return jsonb_build_object('rows', coalesce(rows_json, '[]'::jsonb), 'total', coalesce(total_count, 0));
+  return jsonb_build_object(
+    'rows', coalesce(rows_json, '[]'::jsonb),
+    'total', coalesce(total_count, 0),
+    'total_capped', coalesce(total_count, 0) >= 5001
+  );
 end;
 $$;
 

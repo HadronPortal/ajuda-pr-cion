@@ -102,6 +102,7 @@ export type CompanyLeadsQuery = {
 type LeadsResponse = {
   leads: CompanyLead[];
   total: number;
+  totalCapped: boolean;
   source: string;
 };
 
@@ -143,10 +144,15 @@ export const companyLeadsApi = {
       p_offset: query.offset,
     });
     if (error) throw error;
-    const payload = (data || {}) as { rows?: CompanyLead[]; total?: number };
+    const payload = (data || {}) as {
+      rows?: CompanyLead[];
+      total?: number;
+      total_capped?: boolean;
+    };
     return {
       leads: payload.rows || [],
       total: Number(payload.total || 0),
+      totalCapped: Boolean(payload.total_capped),
       source: "Dados públicos do CNPJ/Receita Federal",
     };
   },

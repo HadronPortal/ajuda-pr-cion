@@ -204,6 +204,7 @@ export function CompanyLeadsTab() {
   const [searching, setSearching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [total, setTotal] = useState(0);
+  const [totalCapped, setTotalCapped] = useState(false);
   const [page, setPage] = useState(0);
   const [sort, setSort] = useState<CompanyLeadSort>("opened_at");
   const [direction, setDirection] = useState<"asc" | "desc">("desc");
@@ -248,6 +249,7 @@ export function CompanyLeadsTab() {
       });
       setLeads(result.leads);
       setTotal(result.total);
+      setTotalCapped(result.totalCapped);
       setPage(nextPage);
       setAppliedFilters(nextFilters);
       setSort(nextSort);
@@ -847,7 +849,8 @@ export function CompanyLeadsTab() {
       <div className="flex flex-wrap items-center gap-4 border-y border-border py-3 text-sm">
         <span className="inline-flex items-center gap-2">
           <Building2 className="h-4 w-4 text-primary" />
-          <strong>{total}</strong> leads encontrados
+          <strong>{totalCapped ? "Mais de 5.000" : total.toLocaleString("pt-BR")}</strong> leads
+          encontrados
         </span>
         <span className="inline-flex items-center gap-2">
           <Target className="h-4 w-4 text-emerald-600" />
