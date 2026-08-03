@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { KeyRound, Truck, Undo2, History, Filter } from "lucide-react";
+import { KeyRound, Truck, Undo2, History, Filter, Pencil, ShieldCheck } from "lucide-react";
 import { AppShell, PageHeader } from "@/components/portal/AppShell";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,6 +14,7 @@ import {
   formatFleetDateTime,
   getUsageDepartureRef,
   getUsageReturnRef,
+  getLicensingStatus,
   VEHICLE_STATUS_LABEL,
   USAGE_STATUS_LABEL,
   type UsageStatus,
@@ -22,6 +23,7 @@ import {
 } from "@/lib/fleet-store";
 import { fleetActions } from "@/lib/fleet-action-store";
 import { VehicleHistoryModal } from "@/components/fleet/VehicleHistoryModal";
+import { VehicleEditorModal } from "@/components/fleet/VehicleEditorModal";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/frota")({
@@ -213,6 +215,7 @@ function DeparturesView({ query }: { query: string }) {
 function VehiclesView({ query }: { query: string }) {
   const vehicles = useVehicles();
   const [selected, setSelected] = useState<Vehicle | null>(null);
+  const [editing, setEditing] = useState<Vehicle | null>(null);
   const rows = vehicles.filter((v) =>
     `${v.model} ${v.plate} ${v.category}`.toLowerCase().includes(query.toLowerCase()),
   );
@@ -243,7 +246,22 @@ function VehiclesView({ query }: { query: string }) {
                   <p className="truncate text-[13.5px] font-medium">{v.model}</p>
                   <p className="mt-0.5 font-mono text-[11.5px] text-primary">{v.plate}</p>
                 </div>
-                <VehicleBadge status={v.status} />
+                <div className="flex items-center gap-1">
+                  <VehicleBadge status={v.status} />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    title="Editar veículo"
+                    className="h-7 w-7 shrink-0"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setEditing(v);
+                    }}
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[11.5px] text-muted-foreground">
                 <span>
@@ -264,6 +282,7 @@ function VehiclesView({ query }: { query: string }) {
                 <span className="col-span-2">
                   Revisão: <span className="text-foreground">{v.nextRevisionDate}</span>
                 </span>
+                <LicensingSummary vehicle={v} />
               </div>
             </div>
           </Card>
@@ -274,7 +293,29 @@ function VehiclesView({ query }: { query: string }) {
         open={selected !== null}
         onOpenChange={(o) => !o && setSelected(null)}
       />
+      <VehicleEditorModal
+        vehicle={editing}
+        open={editing !== null}
+        onOpenChange={(open) => !open && setEditing(null)}
+      />
     </>
+  );
+}
+
+function LicensingSummary({ vehicle }: { vehicle: Vehicle }) {
+  const licensing = getLicensingStatus(vehicle);
+  const color = licensing.status === "overdue"
+    ? "text-red-600 dark:text-red-400"
+    : licensing.status === "due_soon"
+      ? "text-amber-600 dark:text-amber-400"
+      : licensing.status === "regular"
+        ? "text-emerald-600 dark:text-emerald-400"
+        : "text-muted-foreground";
+  return (
+    <span className={cn("col-span-2 flex items-center gap-1", color)}>
+      <ShieldCheck className="h-3.5 w-3.5" />
+      Licenciamento: <span>{licensing.label}</span>
+    </span>
   );
 }
 

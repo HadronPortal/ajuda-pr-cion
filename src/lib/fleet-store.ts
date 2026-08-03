@@ -22,7 +22,25 @@ export type Vehicle = {
   nextRevisionMileage: number;
   status: VehicleStatus;
   imageUrl: string;
+  state?: string;
+  renavam?: string;
+  licensingYear?: number;
+  licensingPaidAt?: string;
+  licensingDueDate?: string;
+  maintenanceRecords?: VehicleMaintenance[];
 };
+
+export type VehicleMaintenance = {
+  id: string;
+  performedAt: string;
+  description: string;
+  mileage?: number;
+  workshop?: string;
+  cost?: number;
+  notes?: string;
+};
+
+export type LicensingStatus = "regular" | "due_soon" | "overdue" | "unknown";
 
 export type UsageStatus = "aguardando_retirada" | "em_deslocamento" | "devolvido" | "cancelado";
 
@@ -71,6 +89,7 @@ export type VehicleUsage = {
 
 const nowISO = () => new Date().toISOString();
 const RUNTIME_STORAGE_KEY = "procion.fleet-runtime.v2";
+const VEHICLES_STORAGE_KEY = "procion.fleet-vehicles.v1";
 const SP_TIME_ZONE = "America/Sao_Paulo";
 
 /**
@@ -193,6 +212,29 @@ let usages: VehicleUsage[] = [];
 
 let reservations: VehicleReservation[] = [];
 let runtimeHydrated = false;
+let vehiclesHydrated = false;
+
+function hydrateVehicles() {
+  if (vehiclesHydrated || typeof window === "undefined") return;
+  vehiclesHydrated = true;
+  try {
+    const raw = window.localStorage.getItem(VEHICLES_STORAGE_KEY);
+    if (!raw) return;
+    const saved = JSON.parse(raw) as Vehicle[];
+    if (!Array.isArray(saved)) return;
+    vehicles = vehicles.map((vehicle) => {
+      const stored = saved.find((item) => item.id === vehicle.id);
+      return stored ? { ...vehicle, ...stored, imageUrl: vehicle.imageUrl } : vehicle;
+    });
+  } catch {
+    // Mantém a frota padrão quando o armazenamento estiver indisponível.
+  }
+}
+
+function persistVehicles() {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(VEHICLES_STORAGE_KEY, JSON.stringify(vehicles));
+}
 
 function hydrateRuntimeRecords() {
   if (runtimeHydrated || typeof window === "undefined") return;
@@ -277,6 +319,7 @@ const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((l) => l());
 
 function subscribe(listener: () => void) {
+  hydrateVehicles();
   const wasHydrated = runtimeHydrated;
   hydrateRuntimeRecords();
   listeners.add(listener);
@@ -288,6 +331,7 @@ function subscribe(listener: () => void) {
 // Snapshots + hooks
 // -----------------------------------------------------------------------------
 export function getVehiclesSnapshot() {
+  hydrateVehicles();
   return vehicles;
 }
 export function getUsagesSnapshot() {
@@ -375,8 +419,61 @@ export function cancelReservationByEvent(eventId: string | number) {
 // Consultas auxiliares
 // -----------------------------------------------------------------------------
 export function getVehicleById(id?: string) {
+  hydrateVehicles();
   if (!id) return undefined;
   return vehicles.find((v) => v.id === id);
+}
+
+export function normalizeVehiclePlate(value: string) {
+  const clean = value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 7);
+  return clean.length === 7 ? `${clean.slice(0, 3)}-${clean.slice(3)}` : clean;
+}
+
+export function calculateLicensingDueDate(plate: string, state = "SP", year = new Date().getFullYear()) {
+  if (state.toUpperCase() !== "SP") return undefined;
+  const finalDigit = plate.replace(/\D/g, "").at(-1);
+  const monthByDigit: Record<string, number> = {
+    "1": 7, "2": 7, "3": 8, "4": 8, "5": 9,
+    "6": 9, "7": 10, "8": 10, "9": 11, "0": 12,
+  };
+  const month = finalDigit ? monthByDigit[finalDigit] : undefined;
+  if (!month) return undefined;
+  const lastDay = new Date(year, month, 0).getDate();
+  return `${year}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+}
+
+export function getLicensingStatus(vehicle: Vehicle, today = new Date()) {
+  const year = today.getFullYear();
+  if ((vehicle.licensingYear ?? 0) >= year) {
+    return { status: "regular" as LicensingStatus, label: `Licenciado ${vehicle.licensingYear}` };
+  }
+  const dueDate = vehicle.licensingDueDate || calculateLicensingDueDate(vehicle.plate, vehicle.state, year);
+  if (!dueDate) return { status: "unknown" as LicensingStatus, label: "Prazo não informado" };
+  const due = new Date(`${dueDate}T23:59:59`);
+  const days = Math.ceil((due.getTime() - today.getTime()) / 86_400_000);
+  if (days < 0) return { status: "overdue" as LicensingStatus, label: `Vencido há ${Math.abs(days)} dias`, dueDate };
+  if (days <= 45) return { status: "due_soon" as LicensingStatus, label: `Vence em ${days} dias`, dueDate };
+  return { status: "regular" as LicensingStatus, label: `Vence em ${days} dias`, dueDate };
+}
+
+export function updateVehicle(vehicleId: string, changes: Partial<Vehicle>) {
+  vehicles = vehicles.map((vehicle) => vehicle.id === vehicleId ? { ...vehicle, ...changes } : vehicle);
+  persistVehicles();
+  emit();
+}
+
+export function addVehicleMaintenance(vehicleId: string, input: Omit<VehicleMaintenance, "id">) {
+  const record: VehicleMaintenance = { ...input, id: `mnt-${Date.now().toString(36)}` };
+  vehicles = vehicles.map((vehicle) => vehicle.id === vehicleId
+    ? {
+        ...vehicle,
+        currentMileage: Math.max(vehicle.currentMileage, input.mileage ?? 0),
+        maintenanceRecords: [record, ...(vehicle.maintenanceRecords ?? [])],
+      }
+    : vehicle);
+  persistVehicles();
+  emit();
+  return record;
 }
 
 export function getUsageById(id: string) {
