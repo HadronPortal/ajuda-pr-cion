@@ -146,10 +146,8 @@ const defaultColumns: ColumnKey[] = [
 
 const companySizeOptions = [
   { value: "Microempresa", label: "Microempresa" },
-  { value: "Pequeno", label: "Pequeno porte" },
-  { value: "Médio", label: "Médio porte" },
-  { value: "Grande", label: "Grande porte" },
-  { value: "Demais", label: "Demais" },
+  { value: "Empresa de pequeno porte", label: "Empresa de pequeno porte" },
+  { value: "Demais", label: "Demais portes (médio/grande)" },
 ];
 
 const taxRegimeLabels: Record<string, string> = {
@@ -302,7 +300,7 @@ export function CompanyLeadsTab() {
 
   const searchLeads = (nextPage = 0) => {
     const nextFilters =
-      filters.companyName?.trim() || filters.cnpj?.trim()
+      filters.companyName?.trim() || filters.cnpj?.trim() || filters.taxRegime?.trim()
         ? { ...filters, openedWithinDays: 0, openedFrom: "", openedTo: "" }
         : filters;
     if (nextFilters !== filters) setFilters(nextFilters);
@@ -401,7 +399,7 @@ export function CompanyLeadsTab() {
     if (source.companySize)
       items.push({
         key: "companySize",
-        label: `Porte: ${source.companySize}`,
+        label: `Porte: ${companySizeOptions.find((option) => option.value === source.companySize)?.label ?? source.companySize}`,
         clear: { companySize: "" },
       });
     if (source.taxRegime)
@@ -697,9 +695,16 @@ export function CompanyLeadsTab() {
                   </span>
                   <select
                     value={filters.taxRegime ?? ""}
-                    onChange={(event) =>
-                      setFilters((value) => ({ ...value, taxRegime: event.target.value }))
-                    }
+                    onChange={(event) => {
+                      const taxRegime = event.target.value;
+                      setFilters((value) => ({
+                        ...value,
+                        taxRegime,
+                        ...(taxRegime
+                          ? { openedWithinDays: 0, openedFrom: "", openedTo: "" }
+                          : {}),
+                      }));
+                    }}
                     className="h-9 w-full cursor-pointer rounded-md border border-input bg-background px-3 text-sm"
                   >
                     <option value="">Todos</option>
