@@ -1225,8 +1225,16 @@ export function CompanyLeadsTab() {
                     </div>
                     <div>
                       <div className="text-xs uppercase text-muted-foreground">E-mail</div>
-                      <div className="mt-1 break-all text-sm lowercase">
-                        {selectedLead.email || "Não informado"}
+                      <div className="mt-1 space-y-1 break-all text-sm lowercase">
+                        <div>{selectedLead.email || "Não informado pela Receita Federal"}</div>
+                        {selectedLead.additional_emails?.map((item) => (
+                          <div key={`${item.email}-${item.source_url}`}>
+                            {item.email}{" "}
+                            <span className="text-xs normal-case text-muted-foreground">
+                              · {item.source}
+                            </span>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   </div>

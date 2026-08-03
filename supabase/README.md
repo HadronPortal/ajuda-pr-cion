@@ -27,3 +27,8 @@ Execute `npm run sync:company-leads` em um servidor com `DATABASE_URL` configura
 detecta a competência mais recente da Receita Federal, ignora competências já importadas e registra
 o resultado em `company_lead_sync_runs`. Em Windows, `scripts/run-company-leads-sync.cmd` pode ser
 usado pelo Agendador de Tarefas. A atualização precisa de aproximadamente 8 GB livres para o cache.
+
+O enriquecimento de contatos é executado com `npm run enrich:company-lead-contacts`. Quando
+`GOOGLE_PLACES_API_KEY` está configurada, ele valida a empresa por nome e endereço, consulta telefone
+e site no Google Places e extrai telefones/e-mails das páginas oficiais. Sem a chave, permanece ativo
+apenas o enriquecimento por domínio corporativo. Dados da Receita nunca são substituídos.
