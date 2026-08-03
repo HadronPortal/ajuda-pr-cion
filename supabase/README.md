@@ -21,3 +21,9 @@ node scripts/import-ajuda-supabase.mjs
 ```
 
 O script reconstrói a segunda migração de forma idempotente. As imagens permanecem apontando para a origem e também são catalogadas em `kb_article_assets`, prontas para migração posterior ao Storage.
+# Atualização mensal da prospecção
+
+Execute `npm run sync:company-leads` em um servidor com `DATABASE_URL` configurada. O processo
+detecta a competência mais recente da Receita Federal, ignora competências já importadas e registra
+o resultado em `company_lead_sync_runs`. Em Windows, `scripts/run-company-leads-sync.cmd` pode ser
+usado pelo Agendador de Tarefas. A atualização precisa de aproximadamente 8 GB livres para o cache.
