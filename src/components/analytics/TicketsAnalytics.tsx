@@ -300,12 +300,6 @@ const agentProfiles: Record<string, { name: string; role: string; avatar: string
     avatar: "https://i.pravatar.cc/120?img=59",
     rating: 4.5,
   },
-  PRCGGC: {
-    name: "Guilherme Costa",
-    role: "Coordenador de Suporte",
-    avatar: "https://i.pravatar.cc/120?img=15",
-    rating: 4.9,
-  },
   PRCPED: {
     name: "Pedro Almeida",
     role: "Analista de Sistemas",
