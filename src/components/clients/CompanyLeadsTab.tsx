@@ -172,7 +172,7 @@ const formatTaxRegime = (value: string | null, simples = false, mei = false) => 
   if (value && taxRegimeDisplayLabels[value]) return taxRegimeDisplayLabels[value];
   if (mei) return "MEI";
   if (simples) return "Simples Nacional";
-  return "Não informado";
+  return "Não optante pelo Simples; Real ou Presumido não divulgado";
 };
 
 const registrationStatusOptions = ["ATIVA", "BAIXADA", "SUSPENSA", "INAPTA"];
@@ -1134,7 +1134,7 @@ export function CompanyLeadsTab() {
                         "Fonte do regime",
                         selectedLead.tax_regime || selectedLead.simples || selectedLead.mei
                           ? "Receita Federal"
-                          : "Não informado pela base pública",
+                          : "Receita Federal - cadastro mensal",
                       ],
                       ...(selectedLead.tax_regime_year
                         ? [["Exercício fiscal", selectedLead.tax_regime_year]]
