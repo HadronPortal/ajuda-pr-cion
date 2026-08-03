@@ -15,11 +15,13 @@ function getGreeting(hour: number) {
 
 export function AppHeader() {
   const [paletteOpen, setPaletteOpen] = useState(false);
-  const [greeting, setGreeting] = useState(() => getGreeting(new Date().getHours()));
+  const [greeting, setGreeting] = useState<string | null>(null);
   useEffect(() => {
+    setGreeting(getGreeting(new Date().getHours()));
     const id = setInterval(() => setGreeting(getGreeting(new Date().getHours())), 60_000);
     return () => clearInterval(id);
   }, []);
+
 
   return (
     <header className="sticky top-0 z-20 h-16 border-b border-border bg-background/85 backdrop-blur-xl">
