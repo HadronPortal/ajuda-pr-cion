@@ -671,6 +671,11 @@ export function CompanyLeadsTab() {
                       </option>
                     ))}
                   </select>
+                  {filters.taxRegime && !["0", "3"].includes(filters.taxRegime) && (
+                    <span className="block text-[11px] leading-4 text-muted-foreground">
+                      Dados da publicação anual da Receita Federal, exercício 2022.
+                    </span>
+                  )}
                 </label>
                 <label className="block space-y-1.5">
                   <span className="text-xs font-medium text-muted-foreground">Porte</span>
@@ -1131,6 +1136,9 @@ export function CompanyLeadsTab() {
                           ? "Receita Federal"
                           : "Não informado pela base pública",
                       ],
+                      ...(selectedLead.tax_regime_year
+                        ? [["Exercício fiscal", selectedLead.tax_regime_year]]
+                        : []),
                       ["Capital social", formatCurrency(selectedLead.capital_social)],
                       ["Natureza jurídica", selectedLead.legal_nature || "Não informado"],
                       [

@@ -28,6 +28,8 @@ export type CompanyLead = {
   mei: boolean;
   simples: boolean;
   tax_regime: string | null;
+  tax_regime_year?: string | null;
+  tax_regime_source?: string | null;
   relevance_score: number;
   stage: CompanyLeadStage;
   source: string;
