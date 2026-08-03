@@ -300,7 +300,7 @@ export function CompanyLeadsTab() {
 
   const searchLeads = (nextPage = 0) => {
     const nextFilters =
-      filters.companyName?.trim() || filters.cnpj?.trim() || filters.taxRegime?.trim()
+      filters.companyName?.trim() || filters.cnpj?.trim()
         ? { ...filters, openedWithinDays: 0, openedFrom: "", openedTo: "" }
         : filters;
     if (nextFilters !== filters) setFilters(nextFilters);
