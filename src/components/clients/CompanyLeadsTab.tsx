@@ -11,6 +11,7 @@ import {
   Eye,
   LoaderCircle,
   MapPin,
+  RefreshCw,
   Search,
   SlidersHorizontal,
   Target,
@@ -247,6 +248,7 @@ export function CompanyLeadsTab() {
   const [selectedLead, setSelectedLead] = useState<CompanyLeadDetails | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [detailsLoading, setDetailsLoading] = useState(false);
+  const [enrichingContacts, setEnrichingContacts] = useState(false);
 
   useEffect(() => {
     setVisibleColumns(loadColumns());
@@ -351,6 +353,27 @@ export function CompanyLeadsTab() {
       );
     } finally {
       setDetailsLoading(false);
+    }
+  };
+
+  const enrichSelectedLead = async () => {
+    if (!selectedLead || enrichingContacts) return;
+    setEnrichingContacts(true);
+    try {
+      const result = await companyLeadsApi.enrichContacts(selectedLead.id);
+      setSelectedLead(result.lead);
+      const total = result.statistics.phones + result.statistics.emails;
+      toast.success(
+        result.cached
+          ? "Os contatos desta empresa já foram verificados nas últimas 24 horas."
+          : total
+            ? `${total} contato(s) adicional(is) encontrado(s).`
+            : "Busca concluída. Nenhum contato adicional foi encontrado.",
+      );
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Não foi possível buscar contatos.");
+    } finally {
+      setEnrichingContacts(false);
     }
   };
 
@@ -1187,7 +1210,19 @@ export function CompanyLeadsTab() {
                 </section>
                 <Separator />
                 <section>
-                  <h3 className="mb-3 text-sm font-semibold">Atividades e contatos</h3>
+                  <div className="mb-3 flex items-center justify-between gap-3">
+                    <h3 className="text-sm font-semibold">Atividades e contatos</h3>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={enrichingContacts}
+                      onClick={() => void enrichSelectedLead()}
+                    >
+                      <RefreshCw className={cn("h-4 w-4", enrichingContacts && "animate-spin")} />
+                      {enrichingContacts ? "Buscando..." : "Buscar novos contatos"}
+                    </Button>
+                  </div>
                   <div className="grid gap-x-8 gap-y-4 sm:grid-cols-2">
                     <div>
                       <div className="text-xs uppercase text-muted-foreground">CNAE principal</div>

@@ -174,6 +174,19 @@ export const companyLeadsApi = {
     return data as CompanyLeadDetails;
   },
 
+  async enrichContacts(id: string): Promise<{
+    lead: CompanyLeadDetails;
+    cached: boolean;
+    statistics: { phones: number; emails: number; website: boolean };
+  }> {
+    const { data, error } = await supabase.functions.invoke("company-lead-enrich", {
+      body: { leadId: id },
+    });
+    if (error) throw error;
+    if (!data?.lead) throw new Error(data?.error || "Não foi possível buscar novos contatos.");
+    return data;
+  },
+
   async updateStage(id: string, stage: CompanyLeadStage) {
     const { error } = await supabase.rpc("company_leads_update_stage", {
       p_id: id,

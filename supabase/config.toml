@@ -12,5 +12,8 @@ verify_jwt = false
 [functions.company-leads]
 verify_jwt = false
 
+[functions.company-lead-enrich]
+verify_jwt = false
+
 [functions.spellcheck-ptbr]
 verify_jwt = false
