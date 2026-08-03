@@ -150,14 +150,14 @@ export function AppSidebar() {
           <div className="mb-5 flex items-center gap-3">
             <Avatar className="h-12 w-12 ring-2 ring-primary/20">
               <AvatarFallback className="bg-primary/12 text-sm font-bold text-primary">
-                AR
+                {currentUser.initials}
               </AvatarFallback>
             </Avatar>
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-bold text-sidebar-accent-foreground">
-                Ana Ribeiro
+                {currentUser.name}
               </p>
-              <p className="truncate text-xs text-sidebar-foreground/65">suporte@procion.com.br</p>
+              <p className="truncate text-xs text-sidebar-foreground/65">{currentUser.email}</p>
             </div>
             <ChevronRight className="h-4 w-4 rotate-90 text-sidebar-foreground/35" />
           </div>

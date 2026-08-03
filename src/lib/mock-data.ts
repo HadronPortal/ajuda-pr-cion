@@ -1,9 +1,9 @@
 export const currentUser = {
-  name: "Ana Ribeiro",
-  email: "ana.ribeiro@procion.com.br",
+  name: "PRCGGC",
+  email: "prcggc@procion.com.br",
   role: "Analista de Suporte",
-  initials: "AR",
-  operator: "PRCMAR",
+  initials: "GG",
+  operator: "PRCGGC",
 };
 
 export const shortcuts = [

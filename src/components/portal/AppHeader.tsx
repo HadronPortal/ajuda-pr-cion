@@ -36,7 +36,7 @@ export function AppHeader() {
         <div className="flex-1 min-w-0">
           <p className="truncate text-[15px] font-semibold text-foreground">
             <span className="text-muted-foreground font-normal">{greeting}, </span>
-            PRC {currentUser.name}
+            {currentUser.name}
           </p>
         </div>
 
