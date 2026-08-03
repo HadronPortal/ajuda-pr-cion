@@ -28,6 +28,7 @@ import { Route as KanbanBoardIdRouteImport } from './routes/kanban.$boardId'
 import { Route as ClientesClienteIdRouteImport } from './routes/clientes.$clienteId'
 import { Route as ChamadosNovoRouteImport } from './routes/chamados.novo'
 import { Route as BaseDeConhecimentoSlugRouteImport } from './routes/base-de-conhecimento.$slug'
+import { Route as ApiPublicTestPlacesRouteImport } from './routes/api/public/test-places'
 
 const VersoesRoute = VersoesRouteImport.update({
   id: '/versoes',
@@ -124,6 +125,11 @@ const BaseDeConhecimentoSlugRoute = BaseDeConhecimentoSlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => BaseDeConhecimentoRoute,
 } as any)
+const ApiPublicTestPlacesRoute = ApiPublicTestPlacesRouteImport.update({
+  id: '/api/public/test-places',
+  path: '/api/public/test-places',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -145,6 +151,7 @@ export interface FileRoutesByFullPath {
   '/kanban/$boardId': typeof KanbanBoardIdRoute
   '/base-de-conhecimento/': typeof BaseDeConhecimentoIndexRoute
   '/clientes/': typeof ClientesIndexRoute
+  '/api/public/test-places': typeof ApiPublicTestPlacesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -165,6 +172,7 @@ export interface FileRoutesByTo {
   '/kanban/$boardId': typeof KanbanBoardIdRoute
   '/base-de-conhecimento': typeof BaseDeConhecimentoIndexRoute
   '/clientes': typeof ClientesIndexRoute
+  '/api/public/test-places': typeof ApiPublicTestPlacesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -187,6 +195,7 @@ export interface FileRoutesById {
   '/kanban/$boardId': typeof KanbanBoardIdRoute
   '/base-de-conhecimento/': typeof BaseDeConhecimentoIndexRoute
   '/clientes/': typeof ClientesIndexRoute
+  '/api/public/test-places': typeof ApiPublicTestPlacesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -210,6 +219,7 @@ export interface FileRouteTypes {
     | '/kanban/$boardId'
     | '/base-de-conhecimento/'
     | '/clientes/'
+    | '/api/public/test-places'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -230,6 +240,7 @@ export interface FileRouteTypes {
     | '/kanban/$boardId'
     | '/base-de-conhecimento'
     | '/clientes'
+    | '/api/public/test-places'
   id:
     | '__root__'
     | '/'
@@ -251,6 +262,7 @@ export interface FileRouteTypes {
     | '/kanban/$boardId'
     | '/base-de-conhecimento/'
     | '/clientes/'
+    | '/api/public/test-places'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -269,6 +281,7 @@ export interface RootRouteChildren {
   VersoesRoute: typeof VersoesRoute
   ClientesClienteIdRoute: typeof ClientesClienteIdRoute
   ClientesIndexRoute: typeof ClientesIndexRoute
+  ApiPublicTestPlacesRoute: typeof ApiPublicTestPlacesRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -406,6 +419,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BaseDeConhecimentoSlugRouteImport
       parentRoute: typeof BaseDeConhecimentoRoute
     }
+    '/api/public/test-places': {
+      id: '/api/public/test-places'
+      path: '/api/public/test-places'
+      fullPath: '/api/public/test-places'
+      preLoaderRoute: typeof ApiPublicTestPlacesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -461,6 +481,7 @@ const rootRouteChildren: RootRouteChildren = {
   VersoesRoute: VersoesRoute,
   ClientesClienteIdRoute: ClientesClienteIdRoute,
   ClientesIndexRoute: ClientesIndexRoute,
+  ApiPublicTestPlacesRoute: ApiPublicTestPlacesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
