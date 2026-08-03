@@ -30,7 +30,7 @@ export const latestVersions = [
 ];
 
 export const recentTasks = [
-  { id: "t1", title: "Revisar manual do módulo Fiscal", project: "Base de Conhecimento", status: "Em andamento", due: "Hoje", assignee: "AR" },
+  { id: "t1", title: "Revisar manual do módulo Fiscal", project: "Base de Conhecimento", status: "Em andamento", due: "Hoje", assignee: "GG" },
   { id: "t2", title: "Publicar release notes 2026.3.1", project: "Versões", status: "Aguardando", due: "Amanhã", assignee: "BL" },
   { id: "t3", title: "Atender chamados da fila de suporte", project: "Suporte", status: "Em andamento", due: "Hoje", assignee: "MS" },
   { id: "t4", title: "Atualizar artigo sobre NF-e 4.00", project: "Base de Conhecimento", status: "Concluído", due: "Ontem", assignee: "RT" },
@@ -72,7 +72,7 @@ export const kanbanColumns = [
     id: "doing",
     title: "Em andamento",
     cards: [
-      { id: "k3", title: "Redesign da tela de clientes", tag: "Feature", priority: "Alta", assignee: "AR" },
+      { id: "k3", title: "Redesign da tela de clientes", tag: "Feature", priority: "Alta", assignee: "GG" },
       { id: "k4", title: "Atualizar manuais 2026.3", tag: "Docs", priority: "Média", assignee: "RT" },
     ],
   },

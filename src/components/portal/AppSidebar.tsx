@@ -16,6 +16,7 @@ import hadronIconUrl from "@/assets/menu-hadron-solid.png";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { sidebarStore, useSidebarCollapsed } from "@/lib/sidebar-store";
+import { currentUser } from "@/lib/mock-data";
 
 type NavIcon = ComponentType<{ className?: string; strokeWidth?: number }>;
 
