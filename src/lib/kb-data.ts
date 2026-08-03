@@ -147,7 +147,7 @@ const mockKbArticlesFull: KbArticle[] = [
     tags: ["nf-e", "rejeição", "539", "fiscal"],
     updatedAt: daysAgo(1),
     readTime: "5 min",
-    author: "Ana Ribeiro",
+    author: "PRCGGC",
     summary:
       "A rejeição 539 indica que a chave da NF-e já foi transmitida. Aprenda a identificar e resolver o cenário.",
     content: [

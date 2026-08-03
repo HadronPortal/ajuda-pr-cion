@@ -59,7 +59,7 @@ export type KanbanColumn = {
 };
 
 export const kanbanMembers: KanbanMember[] = [
-  { id: "u-ar", name: "Ana Ribeiro", initials: "AR", color: "bg-primary/15 text-primary", avatarUrl: "https://i.pravatar.cc/96?img=47" },
+  { id: "u-ar", name: "PRCGGC", initials: "GG", color: "bg-primary/15 text-primary", avatarUrl: "https://i.pravatar.cc/96?img=47" },
   { id: "u-bl", name: "Bruno Lima", initials: "BL", color: "bg-accent/20 text-accent-foreground", avatarUrl: "https://i.pravatar.cc/96?img=12" },
   { id: "u-ms", name: "Marina Souza", initials: "MS", color: "bg-success/15 text-success", avatarUrl: "https://i.pravatar.cc/96?img=33" },
   { id: "u-rt", name: "Rafael Torres", initials: "RT", color: "bg-warning/25 text-warning-foreground", avatarUrl: "https://i.pravatar.cc/96?img=59" },
@@ -421,7 +421,7 @@ enrich("PRC-1024", {
     },
   ],
   activity: [
-    { id: "ac-1", at: daysFromNow(-4) + "T10:00:00", text: "Card criado por Ana Ribeiro", authorId: "u-ar" },
+    { id: "ac-1", at: daysFromNow(-4) + "T10:00:00", text: "Card criado por PRCGGC", authorId: "u-ar" },
     { id: "ac-2", at: daysFromNow(-3) + "T11:30:00", text: "Prioridade alterada de Média para Alta", authorId: "u-ar" },
     { id: "ac-3", at: daysFromNow(-2) + "T09:15:00", text: "Responsável definido: Bruno Lima", authorId: "u-ar" },
     { id: "ac-4", at: daysFromNow(-1) + "T16:00:00", text: "Movido de Backlog para Triagem", authorId: "u-bl" },
@@ -452,7 +452,7 @@ enrich("PRC-1030", {
     },
   ],
   activity: [
-    { id: "ac-1", at: daysFromNow(-2) + "T08:00:00", text: "Card criado por Ana Ribeiro", authorId: "u-ar" },
+    { id: "ac-1", at: daysFromNow(-2) + "T08:00:00", text: "Card criado por PRCGGC", authorId: "u-ar" },
     { id: "ac-2", at: daysFromNow(-1) + "T09:00:00", text: "Movido para Triagem", authorId: "u-ar" },
   ],
   attachmentsList: [

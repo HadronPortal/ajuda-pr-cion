@@ -276,8 +276,8 @@ export function TicketsIndicatorCards({ month }: { month?: string } = {}) {
 
 
 const agentProfiles: Record<string, { name: string; role: string; avatar: string; rating: number }> = {
-  PRCSUZ: {
-    name: "Ana Ribeiro",
+  PRCGGC: {
+    name: "PRCGGC",
     role: "Analista de Suporte",
     avatar: "https://i.pravatar.cc/120?img=47",
     rating: 4.8,
