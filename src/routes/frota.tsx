@@ -22,7 +22,7 @@ import {
   type VehicleStatus,
 } from "@/lib/fleet-store";
 import { fleetActions } from "@/lib/fleet-action-store";
-import { VehicleHistoryModal } from "@/components/fleet/VehicleHistoryModal";
+import { VehicleDetailModal } from "@/components/fleet/VehicleDetailModal";
 import { VehicleEditorModal } from "@/components/fleet/VehicleEditorModal";
 import { MaintenanceDialog } from "@/components/fleet/MaintenanceDialog";
 import { cn } from "@/lib/utils";
@@ -306,10 +306,14 @@ function VehiclesView({ query }: { query: string }) {
           </Card>
         ))}
       </div>
-      <VehicleHistoryModal
+      <VehicleDetailModal
         vehicle={selected}
         open={selected !== null}
         onOpenChange={(o) => !o && setSelected(null)}
+        onEdit={(v) => {
+          setSelected(null);
+          setEditing(v);
+        }}
       />
       <VehicleEditorModal
         vehicle={editing}
