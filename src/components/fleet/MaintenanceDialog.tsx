@@ -183,7 +183,7 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[90dvh] flex-col overflow-hidden p-0 sm:max-w-[600px]">
+      <DialogContent className="flex max-h-[90dvh] w-[95vw] max-w-[600px] flex-col overflow-hidden p-0">
         <DetailModalHeader
           icon={Wrench}
           title={mode === "create" ? "Iniciar Manutenção" : "Encerrar Manutenção"}
