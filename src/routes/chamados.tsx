@@ -530,7 +530,9 @@ function TicketsPage() {
         // fallback below
       }
     }
-    const base = monthFilters(initialMonthKey);
+    const base = search.mes || search.status || search.prioridade || search.busca
+      ? monthFilters(initialMonthKey)
+      : { ...initialFilters };
     if (search.status) base.status = search.status;
     if (search.prioridade) base.priority = search.prioridade;
     if (search.busca) base.query = search.busca;
