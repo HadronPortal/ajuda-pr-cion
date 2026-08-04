@@ -83,10 +83,9 @@ function VehicleUsageMapContent({
     // Import Leaflet only on client side
     import("leaflet").then((leaflet) => {
       const leafletLib = (leaflet as any).default || leaflet;
-      console.log('Leaflet loaded:', !!leafletLib);
       setL(leafletLib);
       
-      // Also ensure standard icons work by default
+      // Fix icons
       const iconDefault = leafletLib.Icon.Default;
       if (iconDefault) {
         delete (iconDefault.prototype as any)._getIconUrl;
@@ -96,16 +95,6 @@ function VehicleUsageMapContent({
           shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
         });
       }
-    });
-  }, []);
-      
-      // Fix icons
-      delete (leafletLib.Icon.Default.prototype as any)._getIconUrl;
-      leafletLib.Icon.Default.mergeOptions({
-        iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
-        iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
-        shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
-      });
     });
   }, []);
 
