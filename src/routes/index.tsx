@@ -90,7 +90,10 @@ function formatRelative(iso: string) {
   if (diff === 1) return "ontem";
   if (diff < 7) return `${diff} dias atrás`;
   if (diff < 30) return `${Math.floor(diff / 7)} sem atrás`;
-  return d.toLocaleDateString("pt-BR");
+  // Formatação determinística em UTC para evitar divergência SSR/cliente
+  const dia = String(d.getUTCDate()).padStart(2, "0");
+  const mes = String(d.getUTCMonth() + 1).padStart(2, "0");
+  return `${dia}/${mes}/${d.getUTCFullYear()}`;
 }
 
 
