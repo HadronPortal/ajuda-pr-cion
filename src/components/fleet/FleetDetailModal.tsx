@@ -158,18 +158,29 @@ export function FleetDetailModal({ vehicle, open, onOpenChange, defaultTab = "da
 
 
             <TabsContent value="licenciamento" className="m-0 p-6 space-y-6">
-               <Card className="p-6 border-emerald-100 bg-emerald-50/30">
+               <Card className={cn(
+                 "p-6 border-0 shadow-none",
+                 licensing?.status === "regular" 
+                   ? "bg-emerald-500/10 dark:bg-emerald-500/5 text-emerald-900 dark:text-emerald-400" 
+                   : "bg-amber-500/10 dark:bg-amber-500/5 text-amber-900 dark:text-amber-400"
+               )}>
                  <div className="flex items-center gap-5">
-                   <div className={cn("p-3.5 rounded-full", licensing?.status === "regular" ? "bg-emerald-500/10" : "bg-amber-500/10")}>
-                     {licensing?.status === "regular" ? <CheckCircle2 className="h-6 w-6 text-emerald-600"/> : <AlertCircle className="h-6 w-6 text-amber-600"/>}
+                   <div className={cn("p-3.5 rounded-full", licensing?.status === "regular" ? "bg-emerald-500/20" : "bg-amber-500/20")}>
+                     {licensing?.status === "regular" ? <CheckCircle2 className="h-6 w-6 text-emerald-600 dark:text-emerald-500"/> : <AlertCircle className="h-6 w-6 text-amber-600 dark:text-amber-500"/>}
                    </div>
                    <div className="flex-1">
-                     <h3 className="font-bold text-lg text-emerald-900">{licensing?.status === "regular" ? "Licenciamento em dia" : "Vence em breve"}</h3>
-                     <p className="text-sm text-emerald-700/80">Próximo vencimento em <span className="font-semibold">{formatFleetDateTime(licensing?.dueDate)}</span></p>
+                     <h3 className="font-bold text-lg">{licensing?.status === "regular" ? "Licenciamento em dia" : "Vence em breve"}</h3>
+                     <p className={cn(
+                       "text-sm opacity-80",
+                       licensing?.status === "regular" ? "text-emerald-700 dark:text-emerald-500/70" : "text-amber-700 dark:text-amber-500/70"
+                     )}>
+                       Próximo vencimento em <span className="font-semibold">{formatFleetDateTime(licensing?.dueDate)}</span>
+                     </p>
                    </div>
-                   <Calendar className="h-10 w-10 text-emerald-200" />
+                   <Calendar className={cn("h-10 w-10 opacity-20", licensing?.status === "regular" ? "text-emerald-500" : "text-amber-500")} />
                  </div>
                </Card>
+
                
                <div className="grid grid-cols-4 gap-4">
                  <Stat label="Exercício" value={String(draft.licensingYear || 2025)} />
