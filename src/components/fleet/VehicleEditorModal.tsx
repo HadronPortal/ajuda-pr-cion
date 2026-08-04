@@ -199,22 +199,66 @@ export function VehicleEditorModal({ vehicle, open, onOpenChange }: Props) {
               </section>
             </TabsContent>
 
-            <TabsContent value="licenciamento" className="mt-4 space-y-4">
-              <div className="flex items-center justify-between rounded-md border border-border p-3">
-                <div>
+            <TabsContent value="licenciamento" className="mt-0 space-y-5">
+              <div className="flex items-center justify-between rounded-lg border border-border/60 bg-muted/30 p-4">
+                <div className="space-y-0.5">
                   <p className="text-sm font-medium">Situação do licenciamento</p>
-                  <p className="text-xs text-muted-foreground">Prazo calculado para veículo registrado em SP.</p>
+                  <p className="text-[11px] text-muted-foreground">Cálculo baseado no registro em SP.</p>
                 </div>
-                <Badge className={cn("border", licensing?.status === "overdue" && "border-red-500/30 bg-red-500/10 text-red-600", licensing?.status === "due_soon" && "border-amber-500/30 bg-amber-500/10 text-amber-600", licensing?.status === "regular" && "border-emerald-500/30 bg-emerald-500/10 text-emerald-600")}>{licensing?.label}</Badge>
+                <Badge className={cn("px-3 py-1 font-semibold", licensing?.status === "overdue" && "bg-red-500/10 text-red-600 hover:bg-red-500/20 border-red-200", licensing?.status === "due_soon" && "bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 border-amber-200", licensing?.status === "regular" && "bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 border-emerald-200")}>
+                  {licensing?.label}
+                </Badge>
               </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="UF do registro"><Input value={draft.state ?? "SP"} maxLength={2} onChange={(e) => change("state", e.target.value.toUpperCase())} /></Field>
-                <Field label="Renavam"><Input value={draft.renavam ?? ""} inputMode="numeric" onChange={(e) => change("renavam", e.target.value.replace(/\D/g, "").slice(0, 11))} /></Field>
-                <Field label="Exercício licenciado"><Input type="number" min="2000" max="2100" value={draft.licensingYear ?? ""} onChange={(e) => change("licensingYear", e.target.value ? Number(e.target.value) : undefined)} /></Field>
-                <Field label="Pagamento realizado em"><Input type="date" value={draft.licensingPaidAt ?? ""} onChange={(e) => change("licensingPaidAt", e.target.value || undefined)} /></Field>
-                <Field label="Prazo"><Input type="date" value={draft.licensingDueDate ?? calculateLicensingDueDate(draft.plate, draft.state) ?? ""} onChange={(e) => change("licensingDueDate", e.target.value || undefined)} /></Field>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
+                <Field label="UF do registro">
+                  <Input 
+                    value={draft.state ?? "SP"} 
+                    maxLength={2} 
+                    onChange={(e) => change("state", e.target.value.toUpperCase())}
+                    className="h-9 focus-visible:ring-primary/30"
+                  />
+                </Field>
+                <Field label="Renavam">
+                  <Input 
+                    value={draft.renavam ?? ""} 
+                    inputMode="numeric" 
+                    onChange={(e) => change("renavam", e.target.value.replace(/\D/g, "").slice(0, 11))}
+                    className="h-9 focus-visible:ring-primary/30 tabular-nums"
+                  />
+                </Field>
+                <Field label="Exercício licenciado">
+                  <Input 
+                    type="number" 
+                    min="2000" 
+                    max="2100" 
+                    value={draft.licensingYear ?? ""} 
+                    onChange={(e) => change("licensingYear", e.target.value ? Number(e.target.value) : undefined)}
+                    className="h-9 focus-visible:ring-primary/30 tabular-nums"
+                  />
+                </Field>
+                <Field label="Pagamento realizado em">
+                  <Input 
+                    type="date" 
+                    value={draft.licensingPaidAt ?? ""} 
+                    onChange={(e) => change("licensingPaidAt", e.target.value || undefined)}
+                    className="h-9 focus-visible:ring-primary/30"
+                  />
+                </Field>
+                <div className="sm:col-span-2">
+                  <Field label="Prazo (Calculado automaticamente)">
+                    <Input 
+                      type="date" 
+                      value={draft.licensingDueDate ?? calculateLicensingDueDate(draft.plate, draft.state) ?? ""} 
+                      onChange={(e) => change("licensingDueDate", e.target.value || undefined)}
+                      className="h-9 focus-visible:ring-primary/30"
+                    />
+                  </Field>
+                </div>
               </div>
-              <p className="text-xs text-muted-foreground">A placa define o calendário estimado. A confirmação de quitação deve ser registrada após consultar o CRLV-e no canal oficial.</p>
+              <p className="text-[11px] leading-relaxed text-muted-foreground italic px-1">
+                A placa define o calendário estimado. Confirme a quitação no CRLV-e oficial.
+              </p>
             </TabsContent>
 
             <TabsContent value="manutencao" className="mt-4 space-y-5">
