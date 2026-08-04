@@ -261,22 +261,24 @@ export function FleetDetailModal({ vehicle, open, onOpenChange, defaultTab = "da
             </TabsContent>
           </div>
 
-          <DialogFooter className="border-t px-6 py-4 flex items-center justify-between">
-             <div className="flex gap-2">
-               {activeTab === "licenciamento" && <Button variant="outline" className="h-9 cursor-pointer text-xs"><History className="mr-2 h-4 w-4" /> Histórico de Licenciamentos</Button>}
-               {activeTab === "manutencao" && (
-                 <>
-                   <Button variant="outline" className="h-9 cursor-pointer text-xs" onClick={() => setMaintenanceDialogOpen(true)}>
-                     <Plus className="mr-2 h-4 w-4" /> Nova Manutenção
-                   </Button>
-                   <Button variant="outline" className="h-9 cursor-pointer text-xs"><ClipboardList className="mr-2 h-4 w-4" /> Ver Plano de Manutenção</Button>
-                 </>
-               )}
-             </div>
-             <Button variant="outline" className="h-9 cursor-pointer" onClick={() => onOpenChange(false)}>Fechar</Button>
-          </DialogFooter>
+          {activeTab !== "dados" && (
+            <div className="border-t px-6 py-4 flex items-center justify-between bg-muted/5">
+              <div className="flex gap-2">
+                {activeTab === "licenciamento" && <Button variant="outline" className="h-9 cursor-pointer text-xs"><History className="mr-2 h-4 w-4" /> Histórico de Licenciamentos</Button>}
+                {activeTab === "manutencao" && (
+                  <>
+                    <Button variant="outline" className="h-9 cursor-pointer text-xs" onClick={() => setMaintenanceDialogOpen(true)}>
+                      <Plus className="mr-2 h-4 w-4" /> Nova Manutenção
+                    </Button>
+                    <Button variant="outline" className="h-9 cursor-pointer text-xs"><ClipboardList className="mr-2 h-4 w-4" /> Ver Plano de Manutenção</Button>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
         </Tabs>
       </DialogContent>
+
       
       <MaintenanceDialog 
         vehicle={vehicle} 
