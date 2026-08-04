@@ -778,3 +778,78 @@ function exportHistory(vehicle: Vehicle, usages: VehicleUsage[]) {
   a.click();
   URL.revokeObjectURL(url);
 }
+
+function MaintenanceListView({ maintenanceRecords }: { maintenanceRecords: VehicleMaintenance[] }) {
+  if (maintenanceRecords.length === 0) {
+    return (
+      <div className="flex h-40 flex-col items-center justify-center rounded-lg border border-dashed text-muted-foreground">
+        <Wrench className="mb-2 h-8 w-8 opacity-20" />
+        <p className="text-sm">Nenhuma manutenção registrada para este veículo</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {maintenanceRecords.map((m) => {
+        const inProgress = m.status === "em_andamento";
+        return (
+          <Card key={m.id} className={cn("overflow-hidden border-l-4", inProgress ? "border-l-amber-500 bg-amber-500/5" : "border-l-emerald-500")}>
+            <div className="p-4">
+              <div className="flex items-start justify-between gap-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold">{m.reason}</span>
+                    <Badge variant={inProgress ? "outline" : "secondary"} className={cn("h-5 text-[10px] uppercase", inProgress ? "border-amber-500 text-amber-600" : "bg-emerald-500/10 text-emerald-600")}>
+                      {inProgress ? "Em andamento" : "Concluída"}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                    <Store className="h-3 w-3" />
+                    {m.workshop}
+                  </p>
+                </div>
+                {m.cost !== undefined && (
+                  <div className="text-right">
+                    <p className="text-sm font-bold text-foreground">
+                      {m.cost.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                    </p>
+                    <p className="text-[10px] uppercase text-muted-foreground">Custo Total</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
+                <div className="space-y-0.5">
+                  <p className="text-[10px] uppercase text-muted-foreground">Entrada</p>
+                  <p className="text-[12px] font-medium">{formatFleetDateTime(m.entryDate)}</p>
+                  <p className="text-[11px] text-muted-foreground">{m.entryMileage.toLocaleString("pt-BR")} km</p>
+                </div>
+                {m.exitDate && (
+                  <div className="space-y-0.5">
+                    <p className="text-[10px] uppercase text-muted-foreground">Conclusão</p>
+                    <p className="text-[12px] font-medium">{formatFleetDateTime(m.exitDate)}</p>
+                    <p className="text-[11px] text-muted-foreground">{m.exitMileage?.toLocaleString("pt-BR")} km</p>
+                  </div>
+                )}
+                {m.servicesPerformed && (
+                  <div className="col-span-2 space-y-0.5">
+                    <p className="text-[10px] uppercase text-muted-foreground">Serviços / Peças</p>
+                    <p className="text-[12px] line-clamp-2">{m.servicesPerformed}</p>
+                    {m.partsReplaced && <p className="text-[11px] text-muted-foreground line-clamp-1 italic">{m.partsReplaced}</p>}
+                  </div>
+                )}
+              </div>
+              
+              {m.notes && (
+                <div className="mt-3 rounded bg-muted/50 p-2 text-[11px] text-muted-foreground">
+                  <strong>Obs:</strong> {m.notes}
+                </div>
+              )}
+            </div>
+          </Card>
+        );
+      })}
+    </div>
+  );
+}
