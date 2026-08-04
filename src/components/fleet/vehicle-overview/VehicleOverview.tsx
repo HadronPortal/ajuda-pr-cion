@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { 
   ArrowLeft, 
   Pencil, 
@@ -18,8 +18,29 @@ import {
   MapPin,
   Clock,
   ClipboardList,
-  Info
+  AlertTriangle,
+  FileCheck
 } from "lucide-react";
+import { 
+  type Vehicle, 
+  useUsages,
+  formatFleetDateTime,
+  getLicensingStatus,
+  VEHICLE_STATUS_LABEL,
+  type VehicleUsage,
+  getVehicleById
+} from "@/lib/fleet-store";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
+import { VehicleHistoryModal } from "../VehicleHistoryModal";
+import { MaintenanceDialog } from "../MaintenanceDialog";
+import { VehicleEditorModal } from "../VehicleEditorModal";
+import { fleetActions } from "@/lib/fleet-action-store";
+import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { 
   type Vehicle, 
   useUsages,
