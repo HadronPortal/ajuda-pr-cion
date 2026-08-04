@@ -177,11 +177,11 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
               )}
             </Card>
 
-            <Card className="p-5 flex flex-col">
+            <Card className="p-5 flex flex-col lg:col-span-2">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-2 text-primary">
-                  <ClipboardList className="h-5 w-5" />
-                  <h3 className="text-base font-bold">Linha do Tempo</h3>
+                  <History className="h-5 w-5" />
+                  <h3 className="text-base font-bold">Histórico Geral</h3>
                 </div>
               </div>
               
