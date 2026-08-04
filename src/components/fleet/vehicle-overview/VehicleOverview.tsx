@@ -456,6 +456,102 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
         open={isEditorModalOpen}
         onOpenChange={setIsEditorModalOpen}
       />
+
+      {/* Modal Visualizar Manutenção */}
+      <Dialog open={isMaintenanceDetailsOpen} onOpenChange={setIsMaintenanceDetailsOpen}>
+        <DialogContent className="max-w-2xl p-0 [&>button]:hidden">
+          {selectedMaintenance && (
+            <>
+              <DetailModalHeader
+                icon={Wrench}
+                title="Detalhes da Manutenção"
+                protocol={selectedMaintenance.id.slice(0, 8).toUpperCase()}
+                onClose={() => setIsMaintenanceDetailsOpen(false)}
+              />
+              <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <p className="text-[10px] uppercase text-muted-foreground">Motivo</p>
+                    <p className="text-sm font-semibold">{selectedMaintenance.reason}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] uppercase text-muted-foreground">Oficina</p>
+                    <p className="text-sm">{selectedMaintenance.workshop}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] uppercase text-muted-foreground">Entrada</p>
+                    <p className="text-sm">{formatFleetDateTime(selectedMaintenance.entryDate)}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] uppercase text-muted-foreground">Saída</p>
+                    <p className="text-sm">{selectedMaintenance.exitDate ? formatFleetDateTime(selectedMaintenance.exitDate) : "—"}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] uppercase text-muted-foreground">Custo</p>
+                    <p className="text-sm font-bold text-primary">{selectedMaintenance.cost ? `R$ ${selectedMaintenance.cost.toLocaleString("pt-BR")}` : "—"}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] uppercase text-muted-foreground">KM</p>
+                    <p className="text-sm">{selectedMaintenance.entryMileage.toLocaleString("pt-BR")} km</p>
+                  </div>
+                </div>
+                {selectedMaintenance.notes && (
+                  <div className="space-y-1">
+                    <p className="text-[10px] uppercase text-muted-foreground">Observações</p>
+                    <div className="p-3 bg-muted/50 rounded-lg text-sm italic">
+                      {selectedMaintenance.notes}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Visualizar Utilização */}
+      <Dialog open={isUsageDetailsOpen} onOpenChange={setIsUsageDetailsOpen}>
+        <DialogContent className="max-w-2xl p-0 [&>button]:hidden">
+          {selectedUsage && (
+            <>
+              <DetailModalHeader
+                icon={KeyRound}
+                title="Detalhes da Utilização"
+                protocol={selectedUsage.id.slice(0, 8).toUpperCase()}
+                onClose={() => setIsUsageDetailsOpen(false)}
+              />
+              <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <p className="text-[10px] uppercase text-muted-foreground">Operador</p>
+                    <p className="text-sm font-semibold">{selectedUsage.operatorId}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] uppercase text-muted-foreground">Cliente / Destino</p>
+                    <p className="text-sm">{selectedUsage.client || selectedUsage.destination}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] uppercase text-muted-foreground">Saída</p>
+                    <p className="text-sm">{formatFleetDateTime(selectedUsage.departureAt || selectedUsage.scheduledStartAt)}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] uppercase text-muted-foreground">Retorno</p>
+                    <p className="text-sm">{selectedUsage.returnedAt ? formatFleetDateTime(selectedUsage.returnedAt) : "—"}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] uppercase text-muted-foreground">KM Inicial</p>
+                    <p className="text-sm">{selectedUsage.departureMileage?.toLocaleString("pt-BR")} km</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] uppercase text-muted-foreground">KM Final</p>
+                    <p className="text-sm">{selectedUsage.returnMileage?.toLocaleString("pt-BR") || "—"} km</p>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
