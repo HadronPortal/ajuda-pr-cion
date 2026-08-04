@@ -2,11 +2,15 @@ import { createServerFn } from "@tanstack/react-start";
 import { createClient } from '@supabase/supabase-js';
 
 const getAdminClient = () => {
+  // Try server-side env vars first, then VITE_ prefixed if needed (though on server they should be without VITE_)
   const url = process.env['SUPABASE_URL'] || process.env['VITE_SUPABASE_URL'];
   const serviceKey = process.env['SUPABASE_SERVICE_ROLE_KEY'];
+  
   if (!url || !serviceKey) {
-    throw new Error("Missing Supabase admin credentials");
+    // Return null instead of throwing to handle it gracefully in the handler
+    return null;
   }
+  
   return createClient(url, serviceKey, {
     auth: { autoRefreshToken: false, persistSession: false }
   });
@@ -16,18 +20,31 @@ export const getCoordinates = createServerFn({ method: "POST" })
   .validator((address: string) => address)
   .handler(async ({ data: address }: { data: string }) => {
     const apiKey = process.env['GOOGLE_PLACES_API_KEY'];
-    if (!apiKey) return { success: false, error: "API Key not configured" };
+    if (!apiKey) {
+      console.warn("GOOGLE_PLACES_API_KEY not found");
+      return { success: false, error: "API Key not configured" };
+    }
 
     const supabase = getAdminClient();
+    if (!supabase) {
+      console.warn("Supabase admin client could not be initialized");
+    }
 
-    // 1. Check Cache
-    const { data: cached } = await supabase
-      .from('geocoding_cache')
-      .select('lat, lng')
-      .eq('address', address)
-      .single();
+    // 1. Check Cache if Supabase is available
+    if (supabase) {
+      try {
+        const { data: cached, error: cacheError } = await supabase
+          .from('geocoding_cache')
+          .select('lat, lng')
+          .eq('address', address)
+          .maybeSingle();
 
-    if (cached) return { success: true, ...cached };
+        if (cached) return { success: true, lat: cached.lat, lng: cached.lng };
+        if (cacheError) console.error("Cache check error:", cacheError);
+      } catch (e) {
+        console.error("Cache query failed:", e);
+      }
+    }
 
     // 2. Geocode via Google Places
     try {
@@ -41,7 +58,10 @@ export const getCoordinates = createServerFn({ method: "POST" })
         body: JSON.stringify({ textQuery: address })
       });
 
-      if (!response.ok) throw new Error("Geocoding failed");
+      if (!response.ok) {
+        const errBody = await response.text();
+        throw new Error(`Geocoding failed: ${response.status} ${errBody}`);
+      }
 
       const result = await response.json();
       const location = result.places?.[0]?.location;
@@ -50,15 +70,23 @@ export const getCoordinates = createServerFn({ method: "POST" })
 
       const coords = { lat: location.latitude, lng: location.longitude };
 
-      // 3. Update Cache
-      await supabase.from('geocoding_cache').insert({
-        address,
-        lat: coords.lat,
-        lng: coords.lng
-      });
+      // 3. Update Cache if Supabase is available
+      if (supabase) {
+        try {
+          await supabase.from('geocoding_cache').upsert({
+            address,
+            lat: coords.lat,
+            lng: coords.lng,
+            last_checked_at: new Date().toISOString()
+          }, { onConflict: 'address' });
+        } catch (e) {
+          console.error("Cache update failed:", e);
+        }
+      }
 
       return { success: true, ...coords };
     } catch (error: any) {
+      console.error("Geocoding handler error:", error);
       return { success: false, error: error.message };
     }
   });
