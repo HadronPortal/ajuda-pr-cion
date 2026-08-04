@@ -881,7 +881,7 @@ function TicketsPage() {
               type="button"
               variant="ghost"
               className="h-10 cursor-pointer rounded-lg text-sm"
-              onClick={() => setFilters(initialFilters)}
+              onClick={() => setFilters({ ...initialFilters, dateStart: undefined, dateEnd: undefined })}
             >
               <SlidersHorizontal className="mr-1.5 h-4 w-4" />
               Limpar
