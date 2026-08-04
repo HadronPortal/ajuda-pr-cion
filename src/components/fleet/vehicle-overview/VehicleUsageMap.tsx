@@ -80,7 +80,7 @@ function VehicleUsageMapContent({
   useEffect(() => {
     if (typeof window === 'undefined') return;
     
-    // Import Leaflet only on client side
+    // Import Leaflet directly in browser
     import("leaflet").then((leaflet) => {
       const leafletLib = (leaflet as any).default || leaflet;
       setL(leafletLib);
