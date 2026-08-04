@@ -258,13 +258,224 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
           </div>
         </TabsContent>
 
-        <TabsContent value="maintenance">
-          <Card className="p-12 text-center text-muted-foreground">
-            Módulo de manutenções detalhadas em desenvolvimento.
+        <TabsContent value="maintenance" className="mt-6 flex flex-col gap-6">
+          <Card className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2 text-primary">
+                <Wrench className="h-5 w-5" />
+                <h3 className="text-base font-bold">Histórico de Manutenções</h3>
+              </div>
+              <Button size="sm" className="gap-2" onClick={() => setIsMaintenanceDialogOpen(true)}>
+                <Plus className="h-4 w-4" />
+                Nova manutenção
+              </Button>
+            </div>
+            
+            <div className="space-y-4">
+              {(vehicle.maintenanceRecords ?? []).length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-muted-foreground border border-dashed rounded-lg">
+                  <Wrench className="h-8 w-8 mb-2 opacity-20" />
+                  <p className="text-sm">Nenhuma manutenção registrada.</p>
+                </div>
+              ) : (
+                <div className="grid gap-4">
+                  {(vehicle.maintenanceRecords ?? []).map(m => (
+                    <Card key={m.id} className="p-4 hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => {
+                      // Logic to view maintenance details
+                    }}>
+                      <div className="flex items-start justify-between">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-sm">{m.reason}</span>
+                            <Badge variant={m.status === "em_andamento" ? "outline" : "secondary"} className="text-[10px] uppercase">
+                              {m.status === "em_andamento" ? "Em andamento" : "Concluída"}
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {formatFleetDateTime(m.entryDate)}
+                          </p>
+                        </div>
+                        {m.cost && (
+                          <div className="text-right">
+                            <p className="text-sm font-bold">R$ {m.cost.toLocaleString("pt-BR")}</p>
+                          </div>
+                        )}
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="documents" className="mt-6">
+          <Card className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2 text-primary">
+                <FileText className="h-5 w-5" />
+                <h3 className="text-base font-bold">Documentação</h3>
+              </div>
+              <Button size="sm" className="gap-2">
+                <Plus className="h-4 w-4" />
+                Adicionar documento
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <DocumentCard 
+                title="Licenciamento" 
+                status={licensing.status === "regular" ? "regular" : "vencido"}
+                dueDate={vehicle.licensingDueDate || "—"}
+                value="—"
+              />
+              <DocumentCard 
+                title="CRLV Digital" 
+                status="regular"
+                dueDate="—"
+                value="—"
+              />
+              <DocumentCard 
+                title="IPVA" 
+                status="regular"
+                dueDate="—"
+                value="—"
+              />
+            </div>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="utilization" className="mt-6">
+          <Card className="p-6">
+             <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2 text-primary">
+                <KeyRound className="h-5 w-5" />
+                <h3 className="text-base font-bold">Histórico de Utilizações</h3>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" className="gap-2" disabled={vehicle.status !== "em_uso"} onClick={() => {
+                  const current = vehicleUsages.find(u => u.status === "em_deslocamento");
+                  if (current) fleetActions.openReturn(current.id);
+                }}>
+                  <Undo2 className="h-4 w-4" />
+                  Registrar devolução
+                </Button>
+                <Button size="sm" className="gap-2" disabled={vehicle.status !== "disponivel"} onClick={() => fleetActions.openPickup("manual")}>
+                  <KeyRound className="h-4 w-4" />
+                  Registrar saída
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              {vehicleUsages.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-muted-foreground border border-dashed rounded-lg">
+                  <History className="h-8 w-8 mb-2 opacity-20" />
+                  <p className="text-sm">Nenhuma utilização registrada.</p>
+                </div>
+              ) : (
+                vehicleUsages.map(u => (
+                  <Card key={u.id} className="p-4 hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => {
+                    // Logic to view usage details
+                  }}>
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 items-center">
+                      <div className="flex flex-col">
+                        <span className="text-[10px] uppercase text-muted-foreground">Operador</span>
+                        <span className="text-sm font-medium">{u.operatorId}</span>
+                      </div>
+                      <div className="flex flex-col col-span-2">
+                        <span className="text-[10px] uppercase text-muted-foreground">Cliente / Destino</span>
+                        <span className="text-sm truncate">{u.client || u.destination}</span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[10px] uppercase text-muted-foreground">Saída</span>
+                        <span className="text-sm">{formatFleetDateTime(u.departureAt || u.scheduledStartAt)}</span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[10px] uppercase text-muted-foreground">Devolução</span>
+                        <span className="text-sm">{u.returnedAt ? formatFleetDateTime(u.returnedAt) : "—"}</span>
+                      </div>
+                      <div className="flex justify-end">
+                         <Badge variant={u.status === "em_deslocamento" ? "outline" : "secondary"} className="text-[10px] uppercase">
+                            {u.status === "em_deslocamento" ? "Em uso" : u.status}
+                          </Badge>
+                      </div>
+                    </div>
+                  </Card>
+                ))
+              )}
+            </div>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="occurrences" className="mt-6">
+          <Card className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2 text-primary">
+                <AlertTriangle className="h-5 w-5" />
+                <h3 className="text-base font-bold">Ocorrências</h3>
+              </div>
+              <Button size="sm" className="gap-2">
+                <Plus className="h-4 w-4" />
+                Nova ocorrência
+              </Button>
+            </div>
+
+            <div className="flex flex-col items-center justify-center py-20 text-muted-foreground border border-dashed rounded-lg bg-muted/10">
+              <AlertTriangle className="h-10 w-10 mb-3 opacity-20" />
+              <p className="text-sm">Nenhuma ocorrência registrada.</p>
+              <p className="text-xs mt-1">Avarias, multas ou acidentes aparecerão aqui.</p>
+            </div>
           </Card>
         </TabsContent>
       </Tabs>
+
+      <VehicleHistoryModal 
+        vehicle={vehicle} 
+        open={isHistoryModalOpen} 
+        onOpenChange={setIsHistoryModalOpen} 
+      />
+      
+      <MaintenanceDialog 
+        vehicle={vehicle} 
+        open={isMaintenanceDialogOpen} 
+        onOpenChange={setIsMaintenanceDialogOpen} 
+      />
+
+      <VehicleEditorModal
+        vehicle={vehicle}
+        open={isEditorModalOpen}
+        onOpenChange={setIsEditorModalOpen}
+      />
     </div>
+  );
+}
+
+function DocumentCard({ title, status, dueDate, value }: { title: string, status: "regular" | "vencido" | "pendente", dueDate: string, value: string }) {
+  return (
+    <Card className="p-4 border-l-4 border-l-primary flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <h4 className="font-bold text-sm">{title}</h4>
+        <Badge variant={status === "regular" ? "secondary" : "destructive"} className="text-[10px] uppercase">
+          {status}
+        </Badge>
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <div className="flex flex-col">
+          <span className="text-[10px] uppercase text-muted-foreground">Vencimento</span>
+          <span className="text-xs font-medium">{dueDate}</span>
+        </div>
+        <div className="flex flex-col">
+          <span className="text-[10px] uppercase text-muted-foreground">Valor</span>
+          <span className="text-xs font-medium">{value}</span>
+        </div>
+      </div>
+      <Button variant="ghost" size="sm" className="h-7 text-[11px] gap-1.5 mt-2">
+        <FileCheck className="h-3 w-3" />
+        Visualizar
+      </Button>
+    </Card>
   );
 }
 
