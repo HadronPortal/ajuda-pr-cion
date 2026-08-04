@@ -130,6 +130,7 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
             <div className="lg:col-span-2 flex flex-col gap-6">
               <Card className="relative h-[550px] overflow-hidden bg-gradient-to-b from-muted/5 to-muted/20">
                 <VehicleScene 
+                  fallbackImage={vehicle.imageUrl}
                   onPointClick={(name) => setSelectedPoint({ name, data: (COMPONENT_DATA as any)[name] })} 
                 />
                 {/* Points are now inside VehicleScene as 3D Hotspots */}

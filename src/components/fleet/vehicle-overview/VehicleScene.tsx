@@ -1,4 +1,4 @@
-import { useState, Suspense, useRef, useMemo } from "react";
+import { useEffect, useState, Suspense, useMemo } from "react";
 import { Canvas, useThree } from "@react-three/fiber";
 import { 
   OrbitControls, 
@@ -14,8 +14,7 @@ import {
 import * as THREE from "three";
 import { cn } from "@/lib/utils";
 
-// Preload the model
-useGLTF.preload("/assets/models/car.glb");
+const MODEL_URL = "/assets/models/car.glb";
 
 function Model({ url, onPointClick }: { url: string, onPointClick: (name: string) => void }) {
   const { scene } = useGLTF(url);
@@ -109,24 +108,37 @@ function Hotspot({ position, name, onClick }: { position: THREE.Vector3, name: s
 interface VehicleSceneProps {
   color?: string;
   className?: string;
+  fallbackImage?: string;
   onPointClick?: (name: string) => void;
 }
 
-export function VehicleScene({ className, onPointClick = () => {} }: VehicleSceneProps) {
-  const [error, setError] = useState(false);
+export function VehicleScene({ className, fallbackImage, onPointClick = () => {} }: VehicleSceneProps) {
+  const [modelState, setModelState] = useState<"checking" | "available" | "invalid">("checking");
 
-  if (error) {
+  useEffect(() => {
+    let active = true;
+    fetch(MODEL_URL)
+      .then((response) => response.arrayBuffer())
+      .then((buffer) => {
+        if (!active) return;
+        const bytes = new Uint8Array(buffer, 0, Math.min(4, buffer.byteLength));
+        const isGlb = bytes.length === 4 && bytes[0] === 0x67 && bytes[1] === 0x6c && bytes[2] === 0x54 && bytes[3] === 0x46;
+        setModelState(isGlb ? "available" : "invalid");
+      })
+      .catch(() => active && setModelState("invalid"));
+    return () => { active = false; };
+  }, []);
+
+  if (modelState !== "available") {
     return (
-      <div className={cn("relative h-full w-full bg-muted/20 flex flex-col items-center justify-center p-6 text-center", className)}>
-        <img 
-          src="/lovable-uploads/38605335-9df0-4c28-98e3-0d3460662d53.png" 
-          alt="Modelo indisponível" 
-          className="max-h-[60%] object-contain mb-4 opacity-50"
-        />
-        <div className="space-y-1">
-          <p className="font-semibold text-sm">Modelo 3D indisponível</p>
-          <p className="text-xs text-muted-foreground">Exibindo representação fotográfica.</p>
-        </div>
+      <div className={cn("relative flex h-full w-full items-center justify-center bg-white p-8 dark:bg-muted/10", className)}>
+        {fallbackImage ? (
+          <img src={fallbackImage} alt="Veículo" className="h-full w-full object-contain" />
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            {modelState === "checking" ? "Carregando veículo..." : "Visualização indisponível."}
+          </p>
+        )}
       </div>
     );
   }
@@ -142,7 +154,7 @@ export function VehicleScene({ className, onPointClick = () => {} }: VehicleScen
           
           <Bounds fit clip observe margin={1.2}>
             <Model 
-              url="/assets/models/car.glb" 
+              url={MODEL_URL}
               onPointClick={onPointClick} 
             />
           </Bounds>

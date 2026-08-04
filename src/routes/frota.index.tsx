@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { KeyRound, Truck, Undo2, History, Filter, Pencil, ShieldCheck, Wrench } from "lucide-react";
-import { PageHeader } from "@/components/portal/AppShell";
+import { AppShell, PageHeader } from "@/components/portal/AppShell";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -41,12 +41,11 @@ const TABS: { key: TabKey; label: string; icon: typeof KeyRound }[] = [
 ];
 
 function FleetPage() {
-  const navigate = useNavigate();
   const [tab, setTab] = useState<TabKey>("veiculos");
   const [query, setQuery] = useState("");
 
   return (
-    <div className="flex flex-col">
+    <AppShell>
       <PageHeader
         title="Frota"
         description="Retiradas, devoluções e histórico dos veículos da equipe."
@@ -59,8 +58,8 @@ function FleetPage() {
         }
       />
 
-      <div className="mb-4 border-b border-border">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+      <div className="mb-4 w-full min-w-0 max-w-full border-b border-border">
+        <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
           <div className="-mb-px flex min-w-0 items-center gap-1 overflow-x-auto">
             {TABS.map((t) => {
               const Icon = t.icon;
@@ -94,13 +93,13 @@ function FleetPage() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto p-4 sm:p-6 pt-0">
+      <div className="min-w-0 max-w-full">
         {tab === "saidas" && <DeparturesView query={query} />}
         {tab === "veiculos" && <VehiclesView query={query} />}
         {tab === "em_uso" && <InUseView query={query} />}
         {tab === "historico" && <HistoryView query={query} />}
       </div>
-    </div>
+    </AppShell>
   );
 }
 
@@ -200,7 +199,6 @@ function DeparturesView({ query }: { query: string }) {
 }
 
 function VehiclesView({ query }: { query: string }) {
-  const navigate = useNavigate();
   const vehicles = useVehicles();
   const [editing, setEditing] = useState<Vehicle | null>(null);
   const [maintenance, setMaintenance] = useState<Vehicle | null>(null);
@@ -210,15 +208,20 @@ function VehiclesView({ query }: { query: string }) {
 
   return (
     <>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid w-full min-w-0 max-w-full gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {rows.map((v) => (
           <Card
             key={v.id}
-            role="link"
-            tabIndex={0}
-            onClick={() => navigate({ to: `/frota/${v.id}` })}
-            className="cursor-pointer overflow-hidden p-0 transition hover:border-primary/40 hover:shadow-md"
+            className="group relative min-w-0 overflow-hidden p-0 transition hover:border-primary/40 hover:shadow-md"
           >
+            <Link
+              to="/frota/$vehicleId"
+              params={{ vehicleId: v.id }}
+              aria-label={`Ver detalhes de ${v.model}`}
+              className="absolute inset-0 z-10 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+            >
+              <span className="sr-only">Ver detalhes de {v.model}</span>
+            </Link>
             <div className="flex h-32 items-center justify-center bg-white">
               <img src={v.imageUrl} alt={v.model} className="h-full w-full object-contain p-2" />
             </div>
@@ -234,7 +237,7 @@ function VehiclesView({ query }: { query: string }) {
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="h-7 w-7 shrink-0"
+                    className="relative z-20 h-7 w-7 shrink-0"
                     onClick={(event) => {
                       event.stopPropagation();
                       setMaintenance(v);
@@ -246,7 +249,7 @@ function VehiclesView({ query }: { query: string }) {
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="h-7 w-7 shrink-0"
+                    className="relative z-20 h-7 w-7 shrink-0"
                     onClick={(event) => {
                       event.stopPropagation();
                       setEditing(v);

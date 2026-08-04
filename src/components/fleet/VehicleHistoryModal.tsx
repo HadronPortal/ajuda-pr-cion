@@ -35,26 +35,35 @@ import { Store } from "lucide-react";
 // ---------------------------------------------------------------------------
 function formatDate(iso?: string) {
   if (!iso) return "—";
-  return new Date(iso).toLocaleDateString("pt-BR");
+  const date = new Date(iso);
+  return Number.isNaN(date.getTime()) ? "—" : date.toLocaleDateString("pt-BR");
 }
 function formatTime(iso?: string) {
   if (!iso) return "—";
-  return new Date(iso).toLocaleTimeString("pt-BR", {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "—";
+  return date.toLocaleTimeString("pt-BR", {
     hour: "2-digit",
     minute: "2-digit",
   });
 }
 function formatDateTime(iso?: string) {
   if (!iso) return "—";
-  return new Date(iso).toLocaleString("pt-BR");
+  const date = new Date(iso);
+  return Number.isNaN(date.getTime()) ? "—" : date.toLocaleString("pt-BR");
 }
 function formatKm(v?: number) {
   return v !== undefined ? `${v.toLocaleString("pt-BR")} km` : "—";
 }
 function diffHours(a?: string, b?: string) {
   if (!a || !b) return 0;
-  return Math.max(0, (new Date(b).getTime() - new Date(a).getTime()) / 36e5);
+  const start = new Date(a).getTime();
+  const end = new Date(b).getTime();
+  if (!Number.isFinite(start) || !Number.isFinite(end)) return 0;
+  return Math.max(0, (end - start) / 36e5);
 }
+
+const safeText = (value: unknown) => typeof value === "string" ? value : String(value ?? "");
 function fmtDuration(h: number) {
   if (h <= 0) return "0h";
   const hh = Math.floor(h);
@@ -102,24 +111,22 @@ export function VehicleHistoryModal({
     if (!vehicle) return [];
     return allUsages
       .filter((u) => u.vehicleId === vehicle.id)
-      .sort((a, b) =>
-        (b.departureAt ?? b.scheduledStartAt ?? b.returnedAt ?? "").localeCompare(
-          a.departureAt ?? a.scheduledStartAt ?? a.returnedAt ?? "",
-        ),
-      );
+      .sort((a, b) => safeText(b.departureAt ?? b.scheduledStartAt ?? b.returnedAt).localeCompare(
+        safeText(a.departureAt ?? a.scheduledStartAt ?? a.returnedAt),
+      ));
   }, [allUsages, vehicle]);
 
   const filtered = useMemo(() => {
     return vehicleUsages.filter((u) => {
-      const ref = (u.departureAt ?? u.scheduledStartAt ?? u.returnedAt)?.slice(0, 10);
+      const ref = safeText(u.departureAt ?? u.scheduledStartAt ?? u.returnedAt).slice(0, 10);
       if (!ref) return false;
       if (dateFrom && ref < dateFrom) return false;
       if (dateTo && ref > dateTo) return false;
-      if (operator.trim() && !u.operatorId.toLowerCase().includes(operator.trim().toLowerCase()))
+      if (operator.trim() && !safeText(u.operatorId).toLowerCase().includes(operator.trim().toLowerCase()))
         return false;
       if (statusFilter !== "all" && u.status !== statusFilter) return false;
       if (destination.trim()) {
-        const hay = `${u.destination} ${u.client ?? ""}`.toLowerCase();
+        const hay = `${safeText(u.destination)} ${safeText(u.client)}`.toLowerCase();
         if (!hay.includes(destination.trim().toLowerCase())) return false;
       }
       return true;
@@ -508,7 +515,10 @@ function VehicleStatusChip({ status }: { status: Vehicle["status"] }) {
       cls: "border-rose-500/25 bg-rose-500/10 text-rose-600 dark:text-rose-300",
     },
   };
-  const { label, cls } = map[status];
+  const { label, cls } = map[status] ?? {
+    label: "Não informado",
+    cls: "border-border bg-muted text-muted-foreground",
+  };
   return (
     <Badge
       className={cn(
@@ -721,12 +731,15 @@ function computeStats(usages: VehicleUsage[]) {
   const totalKm = usages.reduce((s, u) => s + (computeDistance(u) ?? 0), 0);
   const totalHours = usages.reduce((s, u) => s + diffHours(u.departureAt, u.returnedAt), 0);
   const opCount: Record<string, number> = {};
-  usages.forEach((u) => (opCount[u.operatorId] = (opCount[u.operatorId] ?? 0) + 1));
+  usages.forEach((u) => {
+    const operator = safeText(u.operatorId) || "Não informado";
+    opCount[operator] = (opCount[operator] ?? 0) + 1;
+  });
   const topOperator = Object.entries(opCount).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "—";
   const withDistance = usages.filter((u) => computeDistance(u) !== undefined);
   const avgKm = withDistance.length ? Math.round(totalKm / withDistance.length) : 0;
   const lastRef = usages
-    .map((u) => u.returnedAt ?? u.departureAt ?? u.scheduledStartAt)
+    .map((u) => safeText(u.returnedAt ?? u.departureAt ?? u.scheduledStartAt))
     .filter((value): value is string => Boolean(value))
     .sort()
     .at(-1);
