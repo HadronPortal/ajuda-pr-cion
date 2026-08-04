@@ -177,6 +177,7 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
       const days = Math.floor(diffMinutes / 1440);
       const hours = Math.floor((diffMinutes % 1440) / 60);
       return `${days} ${days === 1 ? 'dia' : 'dias'} e ${hours}h`;
+    }
   };
 
   const getActiveMaint = () => vehicle.maintenanceRecords?.find(m => m.status === "em_andamento");
