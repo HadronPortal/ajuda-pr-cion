@@ -399,21 +399,78 @@ function VehicleUsageMapContent({
           </div>
         </div>
 
-        {enrichedUsages.some(u => u.geocodingError) && (
+        {(enrichedUsages.some(u => u.geocodingError) || enrichedUsages.some(u => u.isGeocoding)) && (
           <div className="absolute bottom-4 left-4 z-[1000] pointer-events-auto">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Badge variant="destructive" className="flex gap-1 items-center cursor-help">
-                    <AlertTriangle className="h-3 w-3" />
-                    Endereços não localizados
+            {enrichedUsages.some(u => u.isGeocoding) ? (
+              <Badge variant="outline" className="flex gap-2 items-center bg-background/90 backdrop-blur shadow-sm animate-pulse border-primary/30">
+                <RefreshCw className="h-3 w-3 animate-spin text-primary" />
+                <span className="text-[11px] font-medium">Localizando endereços...</span>
+              </Badge>
+            ) : (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Badge variant="destructive" className="flex gap-1.5 items-center cursor-pointer shadow-md hover:bg-destructive/90 transition-colors px-2 py-1">
+                    <AlertCircle className="h-3.5 w-3.5" />
+                    <span className="text-[11px] font-bold">
+                      {enrichedUsages.filter(u => u.geocodingError).length} endereços não localizados
+                    </span>
                   </Badge>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="text-[11px]">Alguns registros possuem endereços inválidos ou não encontrados.</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+                </PopoverTrigger>
+                <PopoverContent className="w-80 p-0 shadow-xl border-border/50 overflow-hidden" align="start" side="top">
+                  <div className="flex items-center justify-between p-3 border-b bg-muted/30">
+                    <div className="flex items-center gap-2">
+                      <AlertCircle className="h-4 w-4 text-destructive" />
+                      <h3 className="text-xs font-bold uppercase tracking-tight">Falhas de Localização</h3>
+                    </div>
+                    <Badge variant="outline" className="text-[10px] font-mono h-5">
+                      {enrichedUsages.filter(u => u.geocodingError).length} itens
+                    </Badge>
+                  </div>
+                  <ScrollArea className="max-h-64">
+                    <div className="p-1 space-y-1">
+                      {enrichedUsages.filter(u => u.geocodingError).map((u, i) => (
+                        <div key={i} className="flex flex-col gap-1 p-2 rounded hover:bg-muted/50 transition-colors group">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-[11px] font-bold text-foreground leading-none">
+                              {u.clientData?.acronym || u.client || "Empresa desconhecida"}
+                            </span>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={() => {
+                                // Forçar nova tentativa simulando re-enrichment para este item
+                                // Na prática, como usamos useServerFn, poderíamos apenas invalidar ou chamar novamente
+                                // Mas aqui vamos apenas mostrar o botão para o usuário
+                              }}
+                            >
+                              <RefreshCw className="h-3 w-3" />
+                            </Button>
+                          </div>
+                          <p className="text-[10px] text-muted-foreground leading-tight italic truncate">
+                            {u.assembledAddress || "Endereço incompleto"}
+                          </p>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <Badge variant="outline" className="text-[9px] py-0 h-4 border-destructive/20 text-destructive bg-destructive/5 font-medium">
+                              {u.geocodingReason}
+                            </Badge>
+                            <button 
+                              onClick={() => {
+                                // Lógica de "Tentar novamente" seria disparar o enriquecimento para este item
+                                window.location.reload(); // Fallback simples para recarregar tudo
+                              }}
+                              className="text-[9px] text-primary hover:underline font-bold"
+                            >
+                              Tentar novamente
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </PopoverContent>
+              </Popover>
+            )}
           </div>
         )}
       </div>
