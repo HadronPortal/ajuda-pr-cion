@@ -16,6 +16,7 @@ import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   useUsages,
   USAGE_STATUS_LABEL,
@@ -187,32 +188,44 @@ export function VehicleHistoryModal({
         />
 
 
-        {/* Conteúdo */}
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-          {selected ? (
-            <DetailView usage={selected} vehicle={vehicle} onBack={() => setSelectedId(null)} />
-          ) : (
-            <ListView
-              stats={stats}
-              usages={filtered}
-              totalCount={vehicleUsages.length}
-              onOpen={(id) => setSelectedId(id)}
-              filters={{
-                dateFrom,
-                dateTo,
-                operator,
-                statusFilter,
-                destination,
-                setDateFrom,
-                setDateTo,
-                setOperator,
-                setStatusFilter,
-                setDestination,
-                clearFilters,
-              }}
-            />
-          )}
-        </div>
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+            {selected ? (
+              <DetailView usage={selected} vehicle={vehicle} onBack={() => setSelectedId(null)} />
+            ) : (
+              <Tabs defaultValue="utilizacao" className="flex min-h-0 flex-1 flex-col">
+                <div className="border-b px-6">
+                  <TabsList className="h-10 w-auto">
+                    <TabsTrigger value="utilizacao">Utilização</TabsTrigger>
+                    <TabsTrigger value="manutencao">Manutenção</TabsTrigger>
+                  </TabsList>
+                </div>
+                <TabsContent value="utilizacao" className="min-h-0 flex-1 flex-col overflow-hidden m-0 data-[state=active]:flex">
+                  <ListView
+                    stats={stats}
+                    usages={filtered}
+                    totalCount={vehicleUsages.length}
+                    onOpen={(id) => setSelectedId(id)}
+                    filters={{
+                      dateFrom,
+                      dateTo,
+                      operator,
+                      statusFilter,
+                      destination,
+                      setDateFrom,
+                      setDateTo,
+                      setOperator,
+                      setStatusFilter,
+                      setDestination,
+                      clearFilters,
+                    }}
+                  />
+                </TabsContent>
+                <TabsContent value="manutencao" className="min-h-0 flex-1 overflow-y-auto m-0 p-6">
+                  <MaintenanceListView maintenanceRecords={vehicle.maintenanceRecords ?? []} />
+                </TabsContent>
+              </Tabs>
+            )}
+          </div>
 
         {/* Rodapé */}
         <footer className="flex shrink-0 items-center justify-between gap-2 border-t border-border bg-card px-4 py-3 md:px-6">
