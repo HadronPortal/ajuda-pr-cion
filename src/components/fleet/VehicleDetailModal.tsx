@@ -170,26 +170,87 @@ export function VehicleDetailModal({ vehicle, open, onOpenChange, onEdit }: Vehi
               )}
 
               {activeTab === "caracteristicas" && (
-                <div className="p-4 text-center text-muted-foreground animate-in slide-in-from-bottom-2 duration-300">
-                  Dados técnicos complementares do veículo.
+                <div className="space-y-6 animate-in slide-in-from-bottom-2 duration-300">
+                  <section>
+                    <h4 className="mb-4 text-sm font-semibold text-foreground">Especificações Técnicas</h4>
+                    <div className="grid grid-cols-2 gap-x-8 gap-y-6 rounded-xl border p-6 bg-muted/5">
+                       <CharacteristicItem label="Motorização" value="Não informado" />
+                       <CharacteristicItem label="Combustível" value="Flex" />
+                       <CharacteristicItem label="Transmissão" value="Não informado" />
+                       <CharacteristicItem label="Tração" value="Não informado" />
+                       <CharacteristicItem label="Potência" value="Não informado" />
+                       <CharacteristicItem label="Peso" value="Não informado" />
+                    </div>
+                  </section>
                 </div>
               )}
 
               {activeTab === "documentos" && (
-                <div className="space-y-4 animate-in slide-in-from-bottom-2 duration-300">
-                  <div className="rounded-xl border p-4 bg-muted/5 space-y-3">
-                    <InfoRow label="Licenciamento" value={licensing.label} />
-                    <InfoRow label="Vencimento" value={licensing.dueDate ? new Date(licensing.dueDate).toLocaleDateString('pt-BR') : 'Não informado'} />
-                    <InfoRow label="Exercício" value={String(vehicle.licensingYear || "Não informado")} />
-                    <InfoRow label="Situação" value={licensing.status === 'regular' ? 'Regularizado' : 'Pendente'} />
-                  </div>
+                <div className="space-y-6 animate-in slide-in-from-bottom-2 duration-300">
+                  <section>
+                    <h4 className="mb-4 text-sm font-semibold text-foreground">Documentação e Licenciamento</h4>
+                    <div className="rounded-xl border bg-muted/5 p-4 space-y-3">
+                      <InfoRow icon={FileText} label="Licenciamento" value={licensing.label} />
+                      <InfoRow icon={Calendar} label="Vencimento" value={licensing.dueDate ? new Date(licensing.dueDate).toLocaleDateString('pt-BR') : 'Não informado'} />
+                      <InfoRow icon={History} label="Exercício" value={String(vehicle.licensingYear || "Não informado")} />
+                      <InfoRow icon={ShieldCheck} label="Situação" value={licensing.status === 'regular' ? 'Regularizado' : 'Pendente'} />
+                      <InfoRow icon={Hash} label="Renavam" value={vehicle.renavam || "Não informado"} />
+                    </div>
+                  </section>
                 </div>
               )}
 
               {activeTab === "historico" && (
-                <div className="space-y-3 animate-in slide-in-from-bottom-2 duration-300">
-                  <p className="text-sm text-muted-foreground">Histórico de utilizações e manutenções.</p>
-                  {/* Simplificado por brevidade, mas segue a ordem cronológica conforme regra 7 */}
+                <div className="space-y-6 animate-in slide-in-from-bottom-2 duration-300">
+                  <section>
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="text-sm font-semibold text-foreground">Histórico Recente</h4>
+                      <Badge variant="outline" className="text-[10px] uppercase">{vehicleUsages.length} registros</Badge>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      {vehicleUsages.length === 0 ? (
+                        <p className="text-center py-8 text-sm text-muted-foreground border border-dashed rounded-xl">Nenhum registro encontrado.</p>
+                      ) : (
+                        vehicleUsages.map((usage) => (
+                          <Card key={usage.id} className="p-3 bg-muted/10 border-muted-foreground/10">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs font-bold">{usage.operatorId}</span>
+                                  <ArrowRight className="h-3 w-3 text-muted-foreground" />
+                                  <span className="text-xs text-muted-foreground truncate max-w-[150px]">{usage.destination}</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                                  <Clock className="h-3 w-3" />
+                                  <span>{formatFleetDateTime(usage.departureAt || usage.scheduledStartAt)}</span>
+                                </div>
+                              </div>
+                              <Badge 
+                                variant="outline" 
+                                className={cn(
+                                  "text-[9px] h-5 px-1.5 uppercase",
+                                  usage.status === "devolvido" && "border-emerald-500/20 text-emerald-600 bg-emerald-500/5",
+                                  usage.status === "em_deslocamento" && "border-amber-500/20 text-amber-600 bg-amber-500/5"
+                                )}
+                              >
+                                {usage.status === "devolvido" ? "Concluído" : "Em uso"}
+                              </Badge>
+                            </div>
+                          </Card>
+                        ))
+                      )}
+                    </div>
+
+                    {(vehicle.maintenanceRecords?.length ?? 0) > 0 && (
+                      <div className="mt-8 space-y-3">
+                        <h4 className="text-sm font-semibold text-foreground mb-4">Manutenções</h4>
+                        {vehicle.maintenanceRecords?.map((m) => (
+                          <MaintenanceCard key={m.id} maintenance={m} />
+                        ))}
+                      </div>
+                    )}
+                  </section>
                 </div>
               )}
             </div>
