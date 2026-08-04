@@ -146,7 +146,8 @@ function VehicleUsageMapContent({
     }
   };
 
-  if (!L) return null;
+  const isClient = typeof window !== 'undefined';
+  if (!L || !isClient) return <div className="p-4">Carregando bibliotecas...</div>;
 
   return (
     <div className="relative h-full w-full overflow-hidden rounded-lg border bg-background flex flex-col">
