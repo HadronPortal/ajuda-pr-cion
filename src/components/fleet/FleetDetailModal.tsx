@@ -23,7 +23,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -32,8 +32,6 @@ import {
   type Vehicle, 
   getLicensingStatus, 
   updateVehicle, 
-  addVehicleMaintenance, 
-  closeVehicleMaintenance,
   formatFleetDateTime,
   type VehicleMaintenance
 } from "@/lib/fleet-store";
@@ -54,6 +52,7 @@ export function FleetDetailModal({ vehicle, open, onOpenChange, defaultTab = "da
   const [draft, setDraft] = useState<Vehicle | null>(null);
   const [maintenanceDialogOpen, setMaintenanceDialogOpen] = useState(false);
   const [selectedMaint, setSelectedMaint] = useState<VehicleMaintenance | null>(null);
+  const [isMaintReadOnly, setIsMaintReadOnly] = useState(false);
 
   useEffect(() => {
     if (vehicle) {
@@ -76,7 +75,6 @@ export function FleetDetailModal({ vehicle, open, onOpenChange, defaultTab = "da
     toast.success("Dados do veículo atualizados.");
   };
 
-  const activeMaintenance = draft.maintenanceRecords?.find(m => m.status === "em_andamento");
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -237,7 +235,7 @@ export function FleetDetailModal({ vehicle, open, onOpenChange, defaultTab = "da
                           if (a.status !== "em_andamento" && b.status === "em_andamento") return 1;
                           return b.entryDate.localeCompare(a.entryDate);
                         }).map(m => (
-                          <tr key={m.id} className={cn("hover:bg-muted/30 transition-colors", m.status === "em_andamento" && "bg-amber-50/30")}>
+                          <tr key={m.id} className={cn("hover:bg-muted/30 transition-colors", m.status === "em_andamento" && "bg-amber-500/5 dark:bg-amber-500/10")}>
                             <td className="px-4 py-3 font-medium">{formatFleetDateTime(m.entryDate).split(',')[0]}</td>
                             <td className="px-4 py-3">{m.reason}</td>
                             <td className="px-4 py-3 tabular-nums">{m.entryMileage.toLocaleString("pt-BR")} km</td>
@@ -246,12 +244,14 @@ export function FleetDetailModal({ vehicle, open, onOpenChange, defaultTab = "da
                             <td className="px-4 py-3 text-right">
                                <Button variant="ghost" size="icon" className="h-8 w-8 cursor-pointer" onClick={() => {
                                  setSelectedMaint(m);
+                                 setIsMaintReadOnly(m.status === "concluido");
                                  setMaintenanceDialogOpen(true);
                                }}>
                                  <Eye className="h-4 w-4" />
                                </Button>
                             </td>
                           </tr>
+
                         ))
                       )}
                     </tbody>
@@ -284,7 +284,10 @@ export function FleetDetailModal({ vehicle, open, onOpenChange, defaultTab = "da
         vehicle={vehicle} 
         open={maintenanceDialogOpen} 
         onOpenChange={setMaintenanceDialogOpen}
+        maintenance={selectedMaint}
+        readOnly={isMaintReadOnly}
       />
+
     </Dialog>
   );
 }
