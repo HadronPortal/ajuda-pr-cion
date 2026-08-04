@@ -350,53 +350,6 @@ function MaintenanceCard({ maintenance }: { maintenance: VehicleMaintenance }) {
   );
 }
 
-function ShieldCheck(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
-      <path d="m9 12 2 2 4-4" />
-    </svg>
-  );
-}
-
-function MaintenanceCard({ maintenance }: { maintenance: VehicleMaintenance }) {
-  const inProgress = maintenance.status === "em_andamento";
-  return (
-    <Card className={cn("p-3 bg-muted/10 border-l-4", inProgress ? "border-l-amber-500" : "border-l-emerald-500")}>
-      <div className="flex items-start justify-between gap-2">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <Wrench className="h-3 w-3 text-muted-foreground" />
-            <span className="text-xs font-bold">{maintenance.reason}</span>
-          </div>
-          <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
-            <Store className="h-3 w-3" />
-            <span>{maintenance.workshop}</span>
-            <span className="mx-1">•</span>
-            <span>{formatFleetDateTime(maintenance.entryDate)}</span>
-          </div>
-        </div>
-        {maintenance.cost !== undefined && (
-          <span className="text-xs font-bold tabular-nums">
-            {maintenance.cost.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-          </span>
-        )}
-      </div>
-    </Card>
-  );
-}
-
 function InfoRow({ icon: Icon, label, value }: { icon?: any, label: string, value: string }) {
   return (
     <div className="flex items-center justify-between py-0.5">
