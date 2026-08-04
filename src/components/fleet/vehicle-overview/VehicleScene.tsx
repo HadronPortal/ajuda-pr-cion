@@ -152,7 +152,7 @@ export function VehicleScene({ className, fallbackImage, onPointClick = () => {}
           <ambientLight intensity={0.5} />
           <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={1} castShadow />
           
-          <Bounds fit clip observe margin={1.2}>
+          <Bounds fit clip observe margin={1.5}>
             <Model 
               url={MODEL_URL}
               onPointClick={onPointClick} 
