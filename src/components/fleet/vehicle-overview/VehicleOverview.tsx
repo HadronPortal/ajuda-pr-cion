@@ -76,8 +76,7 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
             </Button>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-xl font-bold tracking-tight">{vehicle.model.split(" / ")[0]}</h1>
-                <Badge variant="secondary" className="font-mono text-[11px]">{vehicle.yearModel.split(" / ")[0] || "2024"}</Badge>
+                <h1 className="text-xl font-bold tracking-tight">{vehicle.model}</h1>
               </div>
               <p className="text-xs text-muted-foreground">Visão geral do veículo</p>
             </div>
@@ -96,12 +95,12 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
           </div>
         </div>
 
-        <Card className="grid grid-cols-2 gap-y-4 gap-x-6 p-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 bg-muted/20 border-border/50">
+        <Card className="grid grid-cols-1 gap-y-4 gap-x-6 p-4 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 bg-muted/20 border-border/50">
           <HeaderStat 
             icon={Calendar} 
             label="Modelo" 
             value={vehicle.model} 
-            className="sm:col-span-2 lg:col-span-2"
+            className="sm:col-span-2 md:col-span-2 lg:col-span-2 xl:col-span-1"
           />
           <HeaderStat icon={Key} label="Placa" value={vehicle.plate} />
           <HeaderStat icon={ShieldCheck} label="Renavam" value={vehicle.renavam || "—"} />
@@ -113,7 +112,7 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
         </Card>
       </div>
 
-      {/* Quick Actions */}
+      {/* Barra de Ações */}
       <div className="flex flex-wrap gap-2">
         <FleetEntryDialog defaultVehicleId={vehicle.id} triggerLabel="Adicionar lançamento" />
         {vehicle.status === "em_uso" && (
