@@ -9,7 +9,7 @@ import {
   MapPin,
   Truck,
   UserRound,
-  
+  Wrench,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
@@ -152,7 +152,17 @@ export function VehicleHistoryModal({
           title="Histórico do veículo"
           protocol={vehicle.plate}
           onClose={() => handleOpenChange(false)}
-          chips={<VehicleStatusChip status={vehicle.status} />}
+          chips={
+            <div className="flex items-center gap-2">
+              <VehicleStatusChip status={vehicle.status} />
+              {vehicle.maintenanceRecords?.some(m => m.status === "em_andamento") && (
+                <Badge className="border-amber-500/25 bg-amber-500/10 text-amber-600 dark:text-amber-300">
+                  <Wrench className="mr-1 h-3 w-3" />
+                  Manutenção em andamento
+                </Badge>
+              )}
+            </div>
+          }
           meta={
             <>
               <span className="truncate text-foreground">{vehicle.model}</span>
