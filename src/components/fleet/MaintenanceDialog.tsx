@@ -185,15 +185,13 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex max-h-[90dvh] flex-col overflow-hidden p-0 sm:max-w-[600px]">
-        <DialogHeader className="border-b border-border bg-muted/20 px-6 py-4">
-          <DialogTitle className="flex items-center gap-2 text-xl">
-            <Wrench className="h-5 w-5 text-primary" />
-            {mode === "create" ? "Iniciar Manutenção" : "Encerrar Manutenção"}
-          </DialogTitle>
-          <p className="text-sm text-muted-foreground">
-            {vehicle.model} · <span className="font-mono">{vehicle.plate}</span>
-          </p>
-        </DialogHeader>
+        <DetailModalHeader
+          icon={Wrench}
+          title={mode === "create" ? "Iniciar Manutenção" : "Encerrar Manutenção"}
+          protocol={vehicle.plate}
+          onClose={() => onOpenChange(false)}
+          meta={<>{vehicle.model}</>}
+        />
 
         <div className="flex-1 overflow-y-auto p-6 hide-scrollbar">
           {mode === "create" ? (
