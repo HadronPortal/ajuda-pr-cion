@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { 
   ArrowLeft, 
   Pencil, 
@@ -18,20 +18,31 @@ import {
   MapPin,
   Clock,
   ClipboardList,
-  Info
+  AlertTriangle,
+  FileCheck,
+  Plus
 } from "lucide-react";
 import { 
   type Vehicle, 
   useUsages,
   formatFleetDateTime,
   getLicensingStatus,
-  VEHICLE_STATUS_LABEL
+  VEHICLE_STATUS_LABEL,
+  type VehicleUsage,
+  getVehicleById
 } from "@/lib/fleet-store";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
+import { VehicleHistoryModal } from "../VehicleHistoryModal";
+import { MaintenanceDialog } from "../MaintenanceDialog";
+import { VehicleEditorModal } from "../VehicleEditorModal";
+import { fleetActions } from "@/lib/fleet-action-store";
+import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 interface VehicleOverviewProps {
   vehicle: Vehicle;
@@ -41,6 +52,14 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
   const navigate = useNavigate();
   const usages = useUsages();
   const [activeTab, setActiveTab] = useState("overview");
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [isMaintenanceDialogOpen, setIsMaintenanceDialogOpen] = useState(false);
+  const [isEditorModalOpen, setIsEditorModalOpen] = useState(false);
+  const [selectedMaintenance, setSelectedMaintenance] = useState<any>(null);
+  const [isMaintenanceDetailsOpen, setIsMaintenanceDetailsOpen] = useState(false);
+  const [selectedUsage, setSelectedUsage] = useState<any>(null);
+  const [isUsageDetailsOpen, setIsUsageDetailsOpen] = useState(false);
+  const [isOccurenceDetailsOpen, setIsOccurenceDetailsOpen] = useState(false);
 
   const vehicleUsages = useMemo(() => {
     return usages
@@ -68,8 +87,8 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
             </Button>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-xl font-bold tracking-tight">{vehicle.model}</h1>
-                <Badge variant="secondary" className="font-mono text-[11px]">{vehicle.yearModel}</Badge>
+                <h1 className="text-xl font-bold tracking-tight">{vehicle.model.split(" / ")[0]}</h1>
+                <Badge variant="secondary" className="font-mono text-[11px]">{vehicle.yearModel.split(" / ")[0]}</Badge>
               </div>
               <p className="text-xs text-muted-foreground">Visão geral do veículo</p>
             </div>
@@ -89,12 +108,12 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
         </div>
 
         <Card className="grid grid-cols-2 gap-y-4 gap-x-6 p-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 bg-muted/20 border-border/50">
-          <HeaderStat 
-            icon={Calendar} 
-            label="Modelo e ano" 
-            value={`${vehicle.model} / ${vehicle.yearModel}`} 
-            className="sm:col-span-2 lg:col-span-2"
-          />
+            <HeaderStat 
+              icon={Calendar} 
+              label="Modelo" 
+              value={vehicle.model} 
+              className="sm:col-span-2 lg:col-span-2"
+            />
           <HeaderStat icon={FileText} label="Placa" value={vehicle.plate} />
           <HeaderStat icon={ShieldCheck} label="Renavam" value={vehicle.renavam || "—"} />
           <HeaderStat icon={Gauge} label="KM Atual" value={`${vehicle.currentMileage.toLocaleString("pt-BR")} km`} />
@@ -107,12 +126,19 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
 
       {/* Quick Actions */}
       <div className="flex flex-wrap gap-2">
-        <ActionButton icon={Pencil} label="Editar veículo" />
-        <ActionButton icon={Wrench} label="Nova manutenção" />
-        <ActionButton icon={KeyRound} label="Registrar saída" disabled={vehicle.status !== "disponivel"} />
-        <ActionButton icon={Undo2} label="Registrar devolução" disabled={vehicle.status !== "em_uso"} />
-        <ActionButton icon={FileText} label="Documentos" />
-        <ActionButton icon={History} label="Histórico" />
+        <ActionButton icon={Pencil} label="Editar veículo" onClick={() => setIsEditorModalOpen(true)} />
+        <ActionButton icon={Wrench} label="Nova manutenção" onClick={() => setIsMaintenanceDialogOpen(true)} />
+        <ActionButton icon={KeyRound} label="Registrar saída" disabled={vehicle.status !== "disponivel"} onClick={() => {
+          // No current usage id context, this usually happens from a ticket or calendar.
+          // For now, let's open a generic pickup flow or a placeholder.
+          toast.info("Selecione um agendamento no Calendário ou Chamado para registrar a saída.");
+        }} />
+        <ActionButton icon={Undo2} label="Registrar devolução" disabled={vehicle.status !== "em_uso"} onClick={() => {
+          const current = vehicleUsages.find(u => u.status === "em_deslocamento");
+          if (current) fleetActions.openReturn(current.id);
+        }} />
+        <ActionButton icon={FileText} label="Documentos" onClick={() => setActiveTab("documents")} />
+        <ActionButton icon={History} label="Histórico" onClick={() => setIsHistoryModalOpen(true)} />
       </div>
 
       {/* Main Content Area */}
@@ -134,7 +160,7 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
                 <h3 className="text-base font-bold">Últimas Utilizações</h3>
               </div>
               <div className="space-y-4 flex-1">
-                {vehicleUsages.slice(0, 5).map(u => (
+                {vehicleUsages.slice(0, 4).map(u => (
                   <div key={u.id} className="group border-b border-border/40 pb-4 last:border-0 last:pb-0">
                     <div className="flex items-center justify-between font-semibold mb-1">
                       <div className="flex items-center gap-2">
@@ -142,7 +168,7 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
                         <span className="text-[13px]">{u.operatorId}</span>
                       </div>
                       <span className="text-[12px] text-muted-foreground font-normal bg-muted/50 px-2 py-0.5 rounded-full">
-                        {formatFleetDateTime(u.departureAt).split(',')[0]}
+                        {formatFleetDateTime(u.departureAt || u.scheduledStartAt).split(',')[0]}
                       </span>
                     </div>
                     <div className="flex items-start gap-2 text-[12px] text-muted-foreground group-hover:text-foreground transition-colors">
@@ -158,33 +184,34 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
                   </div>
                 )}
               </div>
-              {vehicleUsages.length > 5 && (
-                <Button variant="ghost" size="sm" className="mt-4 w-full text-xs text-muted-foreground hover:text-primary" onClick={() => setActiveTab("utilization")}>
-                  Ver todas as utilizações
+              {vehicleUsages.length > 4 && (
+                <Button variant="ghost" size="sm" className="mt-4 w-full text-xs text-muted-foreground hover:text-primary" onClick={() => setIsHistoryModalOpen(true)}>
+                  Ver tudo
                 </Button>
               )}
             </Card>
 
-            {/* Histórico Recente / Resumo */}
             <Card className="p-5 flex flex-col">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-2 text-primary">
                   <ClipboardList className="h-5 w-5" />
                   <h3 className="text-base font-bold">Histórico Recente</h3>
                 </div>
-                <Button variant="outline" size="sm" className="h-8 text-xs gap-1" onClick={() => setActiveTab("utilization")}>
-                  Ver tudo
-                  <ChevronRight className="h-3 w-3" />
-                </Button>
+                {vehicleUsages.length > 4 && (
+                  <Button variant="outline" size="sm" className="h-8 text-xs gap-1" onClick={() => setIsHistoryModalOpen(true)}>
+                    Ver tudo
+                    <ChevronRight className="h-3 w-3" />
+                  </Button>
+                )}
               </div>
               
               <div className="overflow-hidden flex-1">
                 <div className="space-y-1">
-                  {vehicleUsages.slice(0, 8).map(u => (
+                  {vehicleUsages.slice(0, 4).map(u => (
                     <div key={u.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/30 transition-colors border border-transparent hover:border-border/50">
                       <div className="flex flex-col">
                         <span className="text-[13px] font-medium">{u.operatorId}</span>
-                        <span className="text-[11px] text-muted-foreground">{formatFleetDateTime(u.departureAt)}</span>
+                        <span className="text-[11px] text-muted-foreground">{formatFleetDateTime(u.departureAt || u.scheduledStartAt)}</span>
                       </div>
                       <div className="flex flex-col items-end">
                         <Badge variant="outline" className="text-[10px] uppercase font-bold px-1.5 h-5 mb-1">
@@ -237,13 +264,337 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
           </div>
         </TabsContent>
 
-        <TabsContent value="maintenance">
-          <Card className="p-12 text-center text-muted-foreground">
-            Módulo de manutenções detalhadas em desenvolvimento.
+        <TabsContent value="maintenance" className="mt-6 flex flex-col gap-6">
+          <Card className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2 text-primary">
+                <Wrench className="h-5 w-5" />
+                <h3 className="text-base font-bold">Histórico de Manutenções</h3>
+              </div>
+              <Button size="sm" className="gap-2" onClick={() => setIsMaintenanceDialogOpen(true)}>
+                <Plus className="h-4 w-4" />
+                Nova manutenção
+              </Button>
+            </div>
+            
+            <div className="space-y-4">
+              {(vehicle.maintenanceRecords ?? []).length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-muted-foreground border border-dashed rounded-lg">
+                  <Wrench className="h-8 w-8 mb-2 opacity-20" />
+                  <p className="text-sm">Nenhuma manutenção registrada.</p>
+                </div>
+              ) : (
+                <div className="grid gap-4">
+                  {(vehicle.maintenanceRecords ?? []).map(m => (
+                      <Card key={m.id} className="p-4 hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => {
+                        setSelectedMaintenance(m);
+                        setIsMaintenanceDetailsOpen(true);
+                      }}>
+                      <div className="flex items-start justify-between">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-sm">{m.reason}</span>
+                            <Badge variant={m.status === "em_andamento" ? "outline" : "secondary"} className="text-[10px] uppercase">
+                              {m.status === "em_andamento" ? "Em andamento" : "Concluída"}
+                            </Badge>
+                          </div>
+                          <p className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {formatFleetDateTime(m.entryDate)}
+                          </p>
+                        </div>
+                        {m.cost && (
+                          <div className="text-right">
+                            <p className="text-sm font-bold">R$ {m.cost.toLocaleString("pt-BR")}</p>
+                          </div>
+                        )}
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="documents" className="mt-6">
+          <Card className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2 text-primary">
+                <FileText className="h-5 w-5" />
+                <h3 className="text-base font-bold">Documentação</h3>
+              </div>
+              <Button size="sm" className="gap-2">
+                <Plus className="h-4 w-4" />
+                Adicionar documento
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <DocumentCard 
+                title="Licenciamento" 
+                status={licensing.status === "regular" ? "regular" : "vencido"}
+                dueDate={vehicle.licensingDueDate || "—"}
+                value="—"
+              />
+              <DocumentCard 
+                title="CRLV Digital" 
+                status="regular"
+                dueDate="—"
+                value="—"
+              />
+              <DocumentCard 
+                title="IPVA" 
+                status="regular"
+                dueDate="—"
+                value="—"
+              />
+            </div>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="utilization" className="mt-6">
+          <Card className="p-6">
+             <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2 text-primary">
+                <KeyRound className="h-5 w-5" />
+                <h3 className="text-base font-bold">Histórico de Utilizações</h3>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" className="gap-2" disabled={vehicle.status !== "em_uso"} onClick={() => {
+                  const current = vehicleUsages.find(u => u.status === "em_deslocamento");
+                  if (current) fleetActions.openReturn(current.id);
+                }}>
+                  <Undo2 className="h-4 w-4" />
+                  Registrar devolução
+                </Button>
+                <Button size="sm" className="gap-2" disabled={vehicle.status !== "disponivel"} onClick={() => fleetActions.openPickup("manual")}>
+                  <KeyRound className="h-4 w-4" />
+                  Registrar saída
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              {vehicleUsages.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-muted-foreground border border-dashed rounded-lg">
+                  <History className="h-8 w-8 mb-2 opacity-20" />
+                  <p className="text-sm">Nenhuma utilização registrada.</p>
+                </div>
+              ) : (
+                vehicleUsages.map(u => (
+                  <Card key={u.id} className="p-4 hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => {
+                    setSelectedUsage(u);
+                    setIsUsageDetailsOpen(true);
+                  }}>
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 items-center">
+                      <div className="flex flex-col">
+                        <span className="text-[10px] uppercase text-muted-foreground">Operador</span>
+                        <span className="text-sm font-medium">{u.operatorId}</span>
+                      </div>
+                      <div className="flex flex-col col-span-2">
+                        <span className="text-[10px] uppercase text-muted-foreground">Cliente / Destino</span>
+                        <span className="text-sm truncate">{u.client || u.destination}</span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[10px] uppercase text-muted-foreground">Saída</span>
+                        <span className="text-sm">{formatFleetDateTime(u.departureAt || u.scheduledStartAt)}</span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[10px] uppercase text-muted-foreground">Devolução</span>
+                        <span className="text-sm">{u.returnedAt ? formatFleetDateTime(u.returnedAt) : "—"}</span>
+                      </div>
+                      <div className="flex justify-end">
+                         <Badge variant={u.status === "em_deslocamento" ? "outline" : "secondary"} className="text-[10px] uppercase">
+                            {u.status === "em_deslocamento" ? "Em uso" : u.status}
+                          </Badge>
+                      </div>
+                    </div>
+                  </Card>
+                ))
+              )}
+            </div>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="occurrences" className="mt-6">
+          <Card className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2 text-primary">
+                <AlertTriangle className="h-5 w-5" />
+                <h3 className="text-base font-bold">Ocorrências</h3>
+              </div>
+              <Button size="sm" className="gap-2">
+                <Plus className="h-4 w-4" />
+                Nova ocorrência
+              </Button>
+            </div>
+
+            <div className="flex flex-col items-center justify-center py-20 text-muted-foreground border border-dashed rounded-lg bg-muted/10">
+              <AlertTriangle className="h-10 w-10 mb-3 opacity-20" />
+              <p className="text-sm">Nenhuma ocorrência registrada.</p>
+              <p className="text-xs mt-1">Avarias, multas ou acidentes aparecerão aqui.</p>
+            </div>
           </Card>
         </TabsContent>
       </Tabs>
+
+      <VehicleHistoryModal 
+        vehicle={vehicle} 
+        open={isHistoryModalOpen} 
+        onOpenChange={setIsHistoryModalOpen} 
+      />
+      
+      <MaintenanceDialog 
+        vehicle={vehicle} 
+        open={isMaintenanceDialogOpen} 
+        onOpenChange={setIsMaintenanceDialogOpen} 
+      />
+
+      <VehicleEditorModal
+        vehicle={vehicle}
+        open={isEditorModalOpen}
+        onOpenChange={setIsEditorModalOpen}
+      />
+
+      {/* Modal Visualizar Manutenção */}
+      <Dialog open={isMaintenanceDetailsOpen} onOpenChange={setIsMaintenanceDetailsOpen}>
+        <DialogContent className="max-w-2xl p-0 [&>button]:hidden">
+          {selectedMaintenance && (
+            <>
+              <DetailModalHeader
+                icon={Wrench}
+                title="Detalhes da Manutenção"
+                protocol={selectedMaintenance.id.slice(0, 8).toUpperCase()}
+                onClose={() => setIsMaintenanceDetailsOpen(false)}
+              />
+              <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <p className="text-[10px] uppercase text-muted-foreground">Motivo</p>
+                    <p className="text-sm font-semibold">{selectedMaintenance.reason}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] uppercase text-muted-foreground">Oficina</p>
+                    <p className="text-sm">{selectedMaintenance.workshop}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] uppercase text-muted-foreground">Entrada</p>
+                    <p className="text-sm">{formatFleetDateTime(selectedMaintenance.entryDate)}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] uppercase text-muted-foreground">Saída</p>
+                    <p className="text-sm">{selectedMaintenance.exitDate ? formatFleetDateTime(selectedMaintenance.exitDate) : "—"}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] uppercase text-muted-foreground">Custo</p>
+                    <p className="text-sm font-bold text-primary">{selectedMaintenance.cost ? `R$ ${selectedMaintenance.cost.toLocaleString("pt-BR")}` : "—"}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] uppercase text-muted-foreground">KM</p>
+                    <p className="text-sm">{selectedMaintenance.entryMileage.toLocaleString("pt-BR")} km</p>
+                  </div>
+                </div>
+                {selectedMaintenance.notes && (
+                  <div className="space-y-1">
+                    <p className="text-[10px] uppercase text-muted-foreground">Observações</p>
+                    <div className="p-3 bg-muted/50 rounded-lg text-sm italic">
+                      {selectedMaintenance.notes}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Visualizar Utilização */}
+      <Dialog open={isUsageDetailsOpen} onOpenChange={setIsUsageDetailsOpen}>
+        <DialogContent className="max-w-2xl p-0 [&>button]:hidden">
+          {selectedUsage && (
+            <>
+              <DetailModalHeader
+                icon={KeyRound}
+                title="Detalhes da Utilização"
+                protocol={selectedUsage.id.slice(0, 8).toUpperCase()}
+                onClose={() => setIsUsageDetailsOpen(false)}
+              />
+              <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <p className="text-[10px] uppercase text-muted-foreground">Operador</p>
+                    <p className="text-sm font-semibold">{selectedUsage.operatorId}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] uppercase text-muted-foreground">Cliente / Destino</p>
+                    <p className="text-sm">{selectedUsage.client || selectedUsage.destination}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] uppercase text-muted-foreground">Saída</p>
+                    <p className="text-sm">{formatFleetDateTime(selectedUsage.departureAt || selectedUsage.scheduledStartAt)}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] uppercase text-muted-foreground">Retorno</p>
+                    <p className="text-sm">{selectedUsage.returnedAt ? formatFleetDateTime(selectedUsage.returnedAt) : "—"}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] uppercase text-muted-foreground">KM Inicial</p>
+                    <p className="text-sm">{selectedUsage.departureMileage?.toLocaleString("pt-BR")} km</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] uppercase text-muted-foreground">KM Final</p>
+                    <p className="text-sm">{selectedUsage.returnMileage?.toLocaleString("pt-BR") || "—"} km</p>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Visualizar Ocorrência */}
+      <Dialog open={isOccurenceDetailsOpen} onOpenChange={setIsOccurenceDetailsOpen}>
+        <DialogContent className="max-w-2xl p-0 [&>button]:hidden">
+          <DetailModalHeader
+            icon={AlertTriangle}
+            title="Detalhes da Ocorrência"
+            protocol="OC-001"
+            onClose={() => setIsOccurenceDetailsOpen(false)}
+          />
+          <div className="p-6 text-center text-muted-foreground">
+            Funcionalidade em desenvolvimento.
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
+  );
+}
+
+function DocumentCard({ title, status, dueDate, value }: { title: string, status: "regular" | "vencido" | "pendente", dueDate: string, value: string }) {
+  return (
+    <Card className="p-4 border-l-4 border-l-primary flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <h4 className="font-bold text-sm">{title}</h4>
+        <Badge variant={status === "regular" ? "secondary" : "destructive"} className="text-[10px] uppercase">
+          {status}
+        </Badge>
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <div className="flex flex-col">
+          <span className="text-[10px] uppercase text-muted-foreground">Vencimento</span>
+          <span className="text-xs font-medium">{dueDate}</span>
+        </div>
+        <div className="flex flex-col">
+          <span className="text-[10px] uppercase text-muted-foreground">Valor</span>
+          <span className="text-xs font-medium">{value}</span>
+        </div>
+      </div>
+      <Button variant="ghost" size="sm" className="h-7 text-[11px] gap-1.5 mt-2">
+        <FileCheck className="h-3 w-3" />
+        Visualizar
+      </Button>
+    </Card>
   );
 }
 
@@ -259,12 +610,13 @@ function HeaderStat({ icon: Icon, label, value, className }: { icon: any, label:
   );
 }
 
-function ActionButton({ icon: Icon, label, disabled }: { icon: any, label: string, disabled?: boolean }) {
+function ActionButton({ icon: Icon, label, disabled, onClick }: { icon: any, label: string, disabled?: boolean, onClick?: () => void }) {
   return (
     <Button 
       variant="outline" 
       size="sm" 
       disabled={disabled}
+      onClick={onClick}
       className={cn(
         "h-9 gap-2 bg-background hover:bg-muted/50 transition-colors border-border/60 shadow-sm",
         disabled && "opacity-50 grayscale"
