@@ -67,15 +67,15 @@ export function VehicleEditorModal({ vehicle, open, onOpenChange }: Props) {
       return;
     }
     const record = addVehicleMaintenance(vehicle.id, {
-      performedAt: maintenance.performedAt,
-      description: maintenance.description.trim(),
-      mileage: maintenance.mileage ? Number(maintenance.mileage) : undefined,
-      workshop: maintenance.workshop.trim() || undefined,
-      cost: maintenance.cost ? Number(maintenance.cost.replace(",", ".")) : undefined,
+      entryDate: new Date(maintenance.performedAt).toISOString(),
+      entryMileage: Number(maintenance.mileage) || vehicle.currentMileage,
+      reason: maintenance.description.trim(),
+      workshop: maintenance.workshop.trim() || "Não informada",
       notes: maintenance.notes.trim() || undefined,
     });
     setDraft((current) => current ? {
       ...current,
+      status: "manutencao" as const,
       currentMileage: Math.max(current.currentMileage, Number(maintenance.mileage) || 0),
       maintenanceRecords: [record, ...(current.maintenanceRecords ?? [])],
     } : current);
@@ -143,8 +143,8 @@ export function VehicleEditorModal({ vehicle, open, onOpenChange }: Props) {
                 <h3 className="flex items-center gap-2 text-sm font-medium"><Wrench className="h-4 w-4 text-primary" />Histórico de manutenção</h3>
                 {(draft.maintenanceRecords ?? []).length === 0 ? <p className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">Nenhuma manutenção registrada.</p> : draft.maintenanceRecords?.map((record) => (
                   <div key={record.id} className="grid gap-1 rounded-md border border-border p-3 text-sm sm:grid-cols-[110px_1fr_auto]">
-                    <span className="text-muted-foreground">{formatDate(record.performedAt)}</span>
-                    <div><p className="font-medium">{record.description}</p><p className="text-xs text-muted-foreground">{[record.workshop, record.mileage ? `${record.mileage.toLocaleString("pt-BR")} km` : null, record.notes].filter(Boolean).join(" · ")}</p></div>
+                    <span className="text-muted-foreground">{formatDate(record.entryDate)}</span>
+                    <div><p className="font-medium">{record.reason}</p><p className="text-xs text-muted-foreground">{[record.workshop, record.entryMileage ? `${record.entryMileage.toLocaleString("pt-BR")} km` : null, record.notes].filter(Boolean).join(" · ")}</p></div>
                     <span className="tabular-nums">{record.cost !== undefined ? record.cost.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : ""}</span>
                   </div>
                 ))}

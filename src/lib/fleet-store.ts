@@ -32,12 +32,22 @@ export type Vehicle = {
 
 export type VehicleMaintenance = {
   id: string;
-  performedAt: string;
-  description: string;
-  mileage?: number;
-  workshop?: string;
-  cost?: number;
+  vehicleId: string;
+  entryDate: string; // ISO datetime
+  exitDate?: string; // ISO datetime
+  entryMileage: number;
+  exitMileage?: number;
+  reason: string;
+  workshop: string;
   notes?: string;
+  cost?: number;
+  servicesPerformed?: string;
+  partsReplaced?: string;
+  nextRevisionDate?: string;
+  nextRevisionMileage?: number;
+  status: "em_andamento" | "concluido";
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type LicensingStatus = "regular" | "due_soon" | "overdue" | "unknown";
@@ -198,12 +208,28 @@ let vehicles: Vehicle[] = [
     yearModel: "2022 / 2022",
     currentMileage: 54802,
     fuelLevel: "Cheio",
-    nextRevisionDate: "Em oficina",
+    nextRevisionDate: "10/09/2026",
     nextRevisionMileage: 60000,
     status: "manutencao",
     imageUrl: stradaImg,
   },
 ];
+
+// Add initial maintenance record for Saveiro
+const strada = vehicles.find(v => v.id === "strada");
+if (strada) {
+  strada.maintenanceRecords = [{
+    id: "mnt-initial",
+    vehicleId: "strada",
+    entryDate: "2026-07-28T09:00:00",
+    entryMileage: 54802,
+    reason: "Revisão geral e troca de suspensão",
+    workshop: "Mecânica São Carlos",
+    status: "em_andamento",
+    createdAt: "2026-07-28T09:00:00",
+    updatedAt: "2026-07-28T09:00:00"
+  }];
+}
 
 // -----------------------------------------------------------------------------
 // Utilizações (usages) — inclui alguns registros para "hoje" (2026-07-20)
@@ -384,6 +410,12 @@ export function createReservation(input: {
 }): VehicleReservation | { error: "conflict"; conflict: VehicleReservation } {
   const conflict = hasReservationConflict(input.vehicleId, input.startAt, input.endAt);
   if (conflict) return { error: "conflict", conflict };
+
+  const vehicle = getVehicleById(input.vehicleId);
+  if (vehicle?.status === "manutencao") {
+    // Para simplificar o retorno sem mudar a assinatura radicalmente:
+    return { error: "conflict", conflict: { id: "indisponivel" } as any };
+  }
   const now = nowISO();
   const reservation: VehicleReservation = {
     id: `res-${Date.now().toString(36)}-${Math.floor(Math.random() * 1000)}`,
@@ -462,18 +494,72 @@ export function updateVehicle(vehicleId: string, changes: Partial<Vehicle>) {
   emit();
 }
 
-export function addVehicleMaintenance(vehicleId: string, input: Omit<VehicleMaintenance, "id">) {
-  const record: VehicleMaintenance = { ...input, id: `mnt-${Date.now().toString(36)}` };
-  vehicles = vehicles.map((vehicle) => vehicle.id === vehicleId
-    ? {
-        ...vehicle,
-        currentMileage: Math.max(vehicle.currentMileage, input.mileage ?? 0),
-        maintenanceRecords: [record, ...(vehicle.maintenanceRecords ?? [])],
-      }
-    : vehicle);
+export function addVehicleMaintenance(vehicleId: string, input: Omit<VehicleMaintenance, "id" | "vehicleId" | "createdAt" | "updatedAt" | "status">) {
+  const now = nowISO();
+  const record: VehicleMaintenance = {
+    ...input,
+    id: `mnt-${Date.now().toString(36)}`,
+    vehicleId,
+    status: "em_andamento",
+    createdAt: now,
+    updatedAt: now,
+  };
+  
+  vehicles = vehicles.map((vehicle) => 
+    vehicle.id === vehicleId
+      ? {
+          ...vehicle,
+          status: "manutencao" as VehicleStatus,
+          currentMileage: Math.max(vehicle.currentMileage, input.entryMileage),
+          maintenanceRecords: [record, ...(vehicle.maintenanceRecords ?? [])],
+        }
+      : vehicle
+  );
+  
   persistVehicles();
   emit();
   return record;
+}
+
+export function closeVehicleMaintenance(maintenanceId: string, input: {
+  exitDate: string;
+  exitMileage: number;
+  cost: number;
+  servicesPerformed: string;
+  partsReplaced: string;
+  notes?: string;
+  nextRevisionDate?: string;
+  nextRevisionMileage?: number;
+}) {
+  const now = nowISO();
+  let vehicleId = "";
+
+  vehicles = vehicles.map((vehicle) => {
+    const maintenance = vehicle.maintenanceRecords?.find((m) => m.id === maintenanceId);
+    if (!maintenance) return vehicle;
+    
+    vehicleId = vehicle.id;
+    const updatedRecords = vehicle.maintenanceRecords?.map((m) => 
+      m.id === maintenanceId 
+        ? { ...m, ...input, status: "concluido" as const, updatedAt: now } 
+        : m
+    );
+
+    // Check if there are any other open maintenances for this vehicle
+    const hasOtherOpen = updatedRecords?.some(m => m.status === "em_andamento");
+
+    return {
+      ...vehicle,
+      status: hasOtherOpen ? ("manutencao" as VehicleStatus) : ("disponivel" as VehicleStatus),
+      currentMileage: Math.max(vehicle.currentMileage, input.exitMileage),
+      nextRevisionDate: input.nextRevisionDate || vehicle.nextRevisionDate,
+      nextRevisionMileage: input.nextRevisionMileage || vehicle.nextRevisionMileage,
+      maintenanceRecords: updatedRecords,
+    };
+  });
+
+  persistVehicles();
+  emit();
 }
 
 export function getUsageById(id: string) {
