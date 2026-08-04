@@ -472,18 +472,72 @@ export function updateVehicle(vehicleId: string, changes: Partial<Vehicle>) {
   emit();
 }
 
-export function addVehicleMaintenance(vehicleId: string, input: Omit<VehicleMaintenance, "id">) {
-  const record: VehicleMaintenance = { ...input, id: `mnt-${Date.now().toString(36)}` };
-  vehicles = vehicles.map((vehicle) => vehicle.id === vehicleId
-    ? {
-        ...vehicle,
-        currentMileage: Math.max(vehicle.currentMileage, input.mileage ?? 0),
-        maintenanceRecords: [record, ...(vehicle.maintenanceRecords ?? [])],
-      }
-    : vehicle);
+export function addVehicleMaintenance(vehicleId: string, input: Omit<VehicleMaintenance, "id" | "vehicleId" | "createdAt" | "updatedAt" | "status">) {
+  const now = nowISO();
+  const record: VehicleMaintenance = {
+    ...input,
+    id: `mnt-${Date.now().toString(36)}`,
+    vehicleId,
+    status: "em_andamento",
+    createdAt: now,
+    updatedAt: now,
+  };
+  
+  vehicles = vehicles.map((vehicle) => 
+    vehicle.id === vehicleId
+      ? {
+          ...vehicle,
+          status: "manutencao" as VehicleStatus,
+          currentMileage: Math.max(vehicle.currentMileage, input.entryMileage),
+          maintenanceRecords: [record, ...(vehicle.maintenanceRecords ?? [])],
+        }
+      : vehicle
+  );
+  
   persistVehicles();
   emit();
   return record;
+}
+
+export function closeVehicleMaintenance(maintenanceId: string, input: {
+  exitDate: string;
+  exitMileage: number;
+  cost: number;
+  servicesPerformed: string;
+  partsReplaced: string;
+  notes?: string;
+  nextRevisionDate?: string;
+  nextRevisionMileage?: number;
+}) {
+  const now = nowISO();
+  let vehicleId = "";
+
+  vehicles = vehicles.map((vehicle) => {
+    const maintenance = vehicle.maintenanceRecords?.find((m) => m.id === maintenanceId);
+    if (!maintenance) return vehicle;
+    
+    vehicleId = vehicle.id;
+    const updatedRecords = vehicle.maintenanceRecords?.map((m) => 
+      m.id === maintenanceId 
+        ? { ...m, ...input, status: "concluido" as const, updatedAt: now } 
+        : m
+    );
+
+    // Check if there are any other open maintenances for this vehicle
+    const hasOtherOpen = updatedRecords?.some(m => m.status === "em_andamento");
+
+    return {
+      ...vehicle,
+      status: hasOtherOpen ? ("manutencao" as VehicleStatus) : ("disponivel" as VehicleStatus),
+      currentMileage: Math.max(vehicle.currentMileage, input.exitMileage),
+      nextRevisionDate: input.nextRevisionDate || vehicle.nextRevisionDate,
+      nextRevisionMileage: input.nextRevisionMileage || vehicle.nextRevisionMileage,
+      maintenanceRecords: updatedRecords,
+    };
+  });
+
+  persistVehicles();
+  emit();
 }
 
 export function getUsageById(id: string) {
