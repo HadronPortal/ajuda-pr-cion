@@ -30,6 +30,21 @@ export type Vehicle = {
   maintenanceRecords?: VehicleMaintenance[];
   inspectionHistory?: VehicleInspection[];
   tires?: TireSystem;
+  
+  // Novos campos do editor
+  type?: string;
+  brand?: string;
+  year?: string;
+  nickname?: string;
+  fuelType?: string;
+  tankCapacity?: number;
+  hasSecondTank?: boolean;
+  secondTankCapacity?: number;
+  measurementUnit?: "km" | "mi" | "h";
+  chassis?: string;
+  power?: string;
+  passengerCapacity?: number;
+  observations?: string;
 };
 
 export type TireSystem = {
@@ -814,6 +829,26 @@ export function hasConflict(vehicleId: string, start: string, end: string, ignor
     return s < end && e > start;
   });
 }
+
+export function deleteVehicle(id: string) {
+  const vehicle = vehicles.find(v => v.id === id);
+  if (!vehicle) return { success: false, message: "Veículo não encontrado." };
+
+  if (vehicle.status === "em_uso") {
+    return { success: false, message: "Não é possível excluir um veículo em uso." };
+  }
+
+  const hasOpenMaintenance = vehicle.maintenanceRecords?.some(m => m.status === "em_andamento");
+  if (hasOpenMaintenance) {
+    return { success: false, message: "Não é possível excluir um veículo com manutenção em andamento." };
+  }
+
+  vehicles = vehicles.filter(v => v.id !== id);
+  persistVehicles();
+  emit();
+  return { success: true };
+}
+
 
 // -----------------------------------------------------------------------------
 // Rótulos

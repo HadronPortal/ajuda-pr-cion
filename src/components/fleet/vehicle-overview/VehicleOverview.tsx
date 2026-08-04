@@ -17,7 +17,8 @@ import {
   Key,
   MapPin,
   AlertTriangle,
-  Download
+  Download,
+  Settings
 } from "lucide-react";
 import { 
   type Vehicle, 
@@ -37,6 +38,7 @@ import { fleetActions } from "@/lib/fleet-action-store";
 import { FleetEntryDialog } from "@/components/fleet/FleetEntryDialog";
 import { VehicleHistoryTimeline } from "../VehicleHistoryTimeline";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { VehicleEditorModal } from "../VehicleEditorModal";
 
 interface VehicleOverviewProps {
   vehicle: Vehicle;
@@ -47,6 +49,7 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
   const usages = useUsages();
   const [activeTab, setActiveTab] = useState("overview");
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [selectedMaintenance, setSelectedMaintenance] = useState<any>(null);
   const [isMaintenanceDetailsOpen, setIsMaintenanceDetailsOpen] = useState(false);
   const [selectedUsage, setSelectedUsage] = useState<any>(null);
@@ -121,7 +124,14 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
           />
         )}
         <ActionButton icon={History} label="Histórico" onClick={() => setIsHistoryModalOpen(true)} />
+        <ActionButton icon={Settings} label="Editar veículo" onClick={() => setIsEditorOpen(true)} />
       </div>
+
+      <VehicleEditorModal 
+        vehicle={vehicle} 
+        open={isEditorOpen} 
+        onOpenChange={setIsEditorOpen} 
+      />
 
       {/* Main Content Area */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
