@@ -1,21 +1,35 @@
-import { useEffect, useMemo, useState } from "react";
-import { CarFront, Plus, Save, Wrench } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Save, Trash2, AlertTriangle, X } from "lucide-react";
 import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import {
-  addVehicleMaintenance,
-  calculateLicensingDueDate,
-  getLicensingStatus,
-  normalizeVehiclePlate,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   updateVehicle,
+  deleteVehicle,
+  normalizeVehiclePlate,
   type Vehicle,
 } from "@/lib/fleet-store";
-import { cn } from "@/lib/utils";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 type Props = {
   vehicle: Vehicle | null;
@@ -23,360 +37,369 @@ type Props = {
   onOpenChange: (open: boolean) => void;
 };
 
-const formatDate = (value?: string) => value
-  ? new Date(`${value.slice(0, 10)}T12:00:00`).toLocaleDateString("pt-BR")
-  : "Não informado";
-
 export function VehicleEditorModal({ vehicle, open, onOpenChange }: Props) {
-  const [draft, setDraft] = useState<Vehicle | null>(vehicle);
-  const [maintenance, setMaintenance] = useState({
-    entryDate: new Date().toISOString().slice(0, 16),
-    description: "",
-    mileage: vehicle ? String(vehicle.currentMileage) : "",
-    workshop: "",
-    notes: "",
-  });
+  const [draft, setDraft] = useState<Vehicle | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-  useEffect(() => setDraft(vehicle), [vehicle, open]);
-  const licensing = useMemo(() => draft ? getLicensingStatus(draft) : null, [draft]);
+  useEffect(() => {
+    if (vehicle && open) {
+      setDraft({ ...vehicle });
+    }
+  }, [vehicle, open]);
+
   if (!draft || !vehicle) return null;
 
-  const change = (field: keyof Vehicle, value: string | number | undefined) =>
+  const change = (field: keyof Vehicle, value: any) =>
     setDraft((current) => current ? { ...current, [field]: value } : current);
 
-  const save = () => {
-    const plate = normalizeVehiclePlate(draft.plate);
-    if (plate.replace(/[^A-Z0-9]/g, "").length !== 7) {
+  const handleSave = () => {
+    if (!draft.plate) {
+      toast.error("A placa é obrigatória.");
+      return;
+    }
+    
+    const normalizedPlate = normalizeVehiclePlate(draft.plate);
+    if (normalizedPlate.replace(/[^A-Z0-9]/g, "").length < 7) {
       toast.error("Informe uma placa válida.");
       return;
     }
+
     updateVehicle(vehicle.id, {
       ...draft,
-      plate,
-      state: (draft.state || "SP").toUpperCase(),
-      licensingDueDate: draft.licensingDueDate || calculateLicensingDueDate(plate, draft.state),
+      plate: normalizedPlate,
     });
-    toast.success("Dados do veículo atualizados.");
+    
+    toast.success("Dados do veículo atualizados com sucesso.");
     onOpenChange(false);
   };
 
-  const registerMaintenance = () => {
-    if (!maintenance.description.trim()) {
-      toast.error("Informe o serviço realizado.");
-      return;
+  const handleDelete = () => {
+    const result = deleteVehicle(vehicle.id);
+    if (result.success) {
+      toast.success("Veículo excluído com sucesso.");
+      onOpenChange(false);
+      // Opcional: redirecionar para listagem se estiver na página do veículo
+      if (window.location.pathname.includes(`/frota/${vehicle.id}`)) {
+        window.location.href = "/frota";
+      }
+    } else {
+      toast.error(result.message || "Erro ao excluir veículo.");
     }
-    const record = addVehicleMaintenance(vehicle.id, {
-      entryDate: maintenance.entryDate,
-      entryMileage: Number(maintenance.mileage) || vehicle.currentMileage,
-      reason: maintenance.description.trim(),
-      workshop: maintenance.workshop.trim() || "Não informada",
-      notes: maintenance.notes.trim() || undefined,
-    });
-    setDraft((current) => current ? {
-      ...current,
-      status: "manutencao" as const,
-      currentMileage: Math.max(current.currentMileage, Number(maintenance.mileage) || 0),
-      maintenanceRecords: [record, ...(current.maintenanceRecords ?? [])],
-    } : current);
-    setMaintenance((current) => ({ ...current, description: "", mileage: vehicle ? String(vehicle.currentMileage) : "", workshop: "", notes: "" }));
-    toast.success("Manutenção registrada.");
+    setIsDeleteDialogOpen(false);
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[90dvh] max-w-2xl flex-col overflow-hidden p-0 shadow-lg border-border">
-        <DialogHeader className="px-5 py-3 border-b border-border">
-          <DialogTitle className="flex flex-col gap-0.5">
-            <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Editar veículo</span>
-            <span className="text-base font-semibold">{draft.model}</span>
-          </DialogTitle>
-        </DialogHeader>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="flex max-h-[90dvh] max-w-3xl flex-col overflow-hidden p-0 shadow-lg border-border">
+          <DialogHeader className="px-6 py-4 border-b border-border bg-muted/30">
+            <div className="flex items-center justify-between">
+              <DialogTitle className="flex flex-col gap-0.5">
+                <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Editar veículo</span>
+                <span className="text-lg font-semibold">{draft.model || draft.brand || "Novo Veículo"}</span>
+              </DialogTitle>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8 rounded-full" 
+                onClick={() => onOpenChange(false)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </DialogHeader>
 
-        <Tabs defaultValue="dados" className="flex flex-1 flex-col overflow-hidden">
-          <TabsList className="flex w-full justify-between gap-0 h-10 px-5 bg-transparent border-b border-border/50 rounded-none shrink-0">
-            <TabsTrigger 
-              value="dados" 
-              className="flex-1 bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-foreground rounded-none text-muted-foreground transition-none"
-            >
-              Dados
-            </TabsTrigger>
-            <TabsTrigger 
-              value="licenciamento" 
-              className="flex-1 bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-foreground rounded-none text-muted-foreground transition-none"
-            >
-              Licenciamento
-            </TabsTrigger>
-            <TabsTrigger 
-              value="manutencao" 
-              className="flex-1 bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-foreground rounded-none text-muted-foreground transition-none"
-            >
-              Manutenção
-            </TabsTrigger>
-          </TabsList>
-
-          <div className="flex-1 overflow-y-auto px-5 py-4 hide-scrollbar">
-            <TabsContent value="dados" className="mt-0 space-y-6">
-              <section>
-                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Identificação</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
-                  <Field label="Modelo">
-                    <Input 
-                      value={draft.model} 
-                      onChange={(e) => change("model", e.target.value)}
-                      className="h-9 focus-visible:ring-primary/30"
-                    />
-                  </Field>
-                  <Field label="Placa">
-                    <Input 
-                      value={draft.plate} 
-                      maxLength={8} 
-                      onChange={(e) => change("plate", normalizeVehiclePlate(e.target.value))} 
-                      className="uppercase h-9 focus-visible:ring-primary/30" 
-                    />
-                  </Field>
-                  <Field label="Categoria">
-                    <Input 
-                      value={draft.category} 
-                      onChange={(e) => change("category", e.target.value)}
-                      className="h-9 focus-visible:ring-primary/30"
-                    />
-                  </Field>
-                  <Field label="Cor">
-                    <Input 
-                      value={draft.color} 
-                      onChange={(e) => change("color", e.target.value)}
-                      className="h-9 focus-visible:ring-primary/30"
-                    />
-                  </Field>
-                  <div className="sm:col-span-2">
-                    <Field label="Ano / modelo">
-                      <Input 
-                        value={draft.yearModel} 
-                        onChange={(e) => change("yearModel", e.target.value)}
-                        className="h-9 focus-visible:ring-primary/30"
-                      />
-                    </Field>
-                  </div>
-                </div>
-              </section>
-
-              <hr className="border-border/40" />
-
-              <section>
-                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Controle</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
-                  <Field label="Quilometragem atual">
-                    <Input 
-                      type="text" 
-                      value={draft.currentMileage.toLocaleString("pt-BR")} 
-                      onChange={(e) => {
-                        const val = e.target.value.replace(/\D/g, "");
-                        change("currentMileage", Number(val));
-                      }}
-                      className="h-9 focus-visible:ring-primary/30 tabular-nums"
-                    />
-                  </Field>
-                  <Field label="Próxima revisão (Data)">
-                    <Input 
-                      type="date"
-                      value={draft.nextRevisionDate} 
-                      onChange={(e) => change("nextRevisionDate", e.target.value)}
-                      className="h-9 focus-visible:ring-primary/30"
-                    />
-                  </Field>
-                  <Field label="Revisão por KM">
-                    <Input 
-                      type="text"
-                      value={draft.nextRevisionMileage?.toLocaleString("pt-BR") ?? ""} 
-                      onChange={(e) => {
-                        const val = e.target.value.replace(/\D/g, "");
-                        change("nextRevisionMileage", Number(val));
-                      }}
-                      className="h-9 focus-visible:ring-primary/30 tabular-nums"
-                    />
-                  </Field>
-                </div>
-              </section>
-            </TabsContent>
-
-            <TabsContent value="licenciamento" className="mt-0 space-y-5">
-              <div className="flex items-center justify-between rounded-lg border border-border/60 bg-muted/30 p-4">
-                <div className="space-y-0.5">
-                  <p className="text-sm font-medium">Situação do licenciamento</p>
-                  <p className="text-[11px] text-muted-foreground">Cálculo baseado no registro em SP.</p>
-                </div>
-                <Badge className={cn("px-3 py-1 font-semibold", licensing?.status === "overdue" && "bg-red-500/10 text-red-600 hover:bg-red-500/20 border-red-200", licensing?.status === "due_soon" && "bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 border-amber-200", licensing?.status === "regular" && "bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 border-emerald-200")}>
-                  {licensing?.label}
-                </Badge>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
-                <Field label="UF do registro">
+          <div className="flex-1 overflow-y-auto px-6 py-6 hide-scrollbar space-y-8">
+            {/* Seção: Status e Identificação Básica */}
+            <section>
+              <h3 className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-4 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                Status e Identificação
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Field label="Status">
+                  <Select 
+                    value={draft.status} 
+                    onValueChange={(v) => change("status", v)}
+                  >
+                    <SelectTrigger className="h-10 bg-background">
+                      <SelectValue placeholder="Selecione o status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="disponivel">Ativo</SelectItem>
+                      <SelectItem value="inativo" disabled={draft.status === "em_uso"}>Inativo</SelectItem>
+                      <SelectItem value="manutencao" disabled={draft.status === "em_uso"}>Em Manutenção</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </Field>
+                <Field label="Tipo de veículo">
                   <Input 
-                    value={draft.state ?? "SP"} 
-                    maxLength={2} 
-                    onChange={(e) => change("state", e.target.value.toUpperCase())}
-                    className="h-9 focus-visible:ring-primary/30"
+                    value={draft.type || ""} 
+                    onChange={(e) => change("type", e.target.value)}
+                    placeholder="Ex: Hatch, SUV, Caminhão"
+                    className="h-10"
+                  />
+                </Field>
+                <Field label="Categoria">
+                  <Input 
+                    value={draft.category || ""} 
+                    onChange={(e) => change("category", e.target.value)}
+                    placeholder="Ex: Utilitário"
+                    className="h-10"
+                  />
+                </Field>
+                <Field label="Marca">
+                  <Input 
+                    value={draft.brand || ""} 
+                    onChange={(e) => change("brand", e.target.value)}
+                    placeholder="Ex: Volkswagen"
+                    className="h-10"
+                  />
+                </Field>
+                <Field label="Modelo">
+                  <Input 
+                    value={draft.model || ""} 
+                    onChange={(e) => change("model", e.target.value)}
+                    placeholder="Ex: Gol G4"
+                    className="h-10"
+                  />
+                </Field>
+                <Field label="Nome / Apelido">
+                  <Input 
+                    value={draft.nickname || ""} 
+                    onChange={(e) => change("nickname", e.target.value)}
+                    placeholder="Ex: Carro 01"
+                    className="h-10"
+                  />
+                </Field>
+              </div>
+            </section>
+
+            {/* Seção: Características Técnicas */}
+            <section>
+              <h3 className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-4 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                Características Técnicas
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Field label="Ano Fabricação">
+                  <Input 
+                    value={draft.year || ""} 
+                    onChange={(e) => change("year", e.target.value)}
+                    placeholder="Ex: 2022"
+                    className="h-10"
+                  />
+                </Field>
+                <Field label="Ano Modelo">
+                  <Input 
+                    value={draft.yearModel || ""} 
+                    onChange={(e) => change("yearModel", e.target.value)}
+                    placeholder="Ex: 2023"
+                    className="h-10"
+                  />
+                </Field>
+                <Field label="Cor">
+                  <Input 
+                    value={draft.color || ""} 
+                    onChange={(e) => change("color", e.target.value)}
+                    className="h-10"
+                  />
+                </Field>
+                <Field label="Potência">
+                  <Input 
+                    value={draft.power || ""} 
+                    onChange={(e) => change("power", e.target.value)}
+                    placeholder="Ex: 100cv"
+                    className="h-10"
+                  />
+                </Field>
+                <Field label="Capacidade Passageiros">
+                  <Input 
+                    type="number"
+                    value={draft.passengerCapacity || ""} 
+                    onChange={(e) => change("passengerCapacity", Number(e.target.value))}
+                    className="h-10"
+                  />
+                </Field>
+                <Field label="Combustível">
+                  <Select 
+                    value={draft.fuelType || ""} 
+                    onValueChange={(v) => change("fuelType", v)}
+                  >
+                    <SelectTrigger className="h-10 bg-background">
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="flex">Flex</SelectItem>
+                      <SelectItem value="gasolina">Gasolina</SelectItem>
+                      <SelectItem value="etanol">Etanol</SelectItem>
+                      <SelectItem value="diesel">Diesel</SelectItem>
+                      <SelectItem value="eletrico">Elétrico</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </Field>
+                <Field label="Unidade de Medição">
+                  <Select 
+                    value={draft.measurementUnit || "km"} 
+                    onValueChange={(v) => change("measurementUnit", v)}
+                  >
+                    <SelectTrigger className="h-10 bg-background">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="km">Quilômetros (km)</SelectItem>
+                      <SelectItem value="mi">Milhas (mi)</SelectItem>
+                      <SelectItem value="h">Horas (h)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </Field>
+                <Field label="Capacidade Tanque (L)">
+                  <Input 
+                    type="number"
+                    value={draft.tankCapacity || ""} 
+                    onChange={(e) => change("tankCapacity", Number(e.target.value))}
+                    className="h-10"
+                  />
+                </Field>
+                <div className="flex items-center space-x-2 pt-8">
+                  <Switch 
+                    id="two-tanks" 
+                    checked={draft.hasSecondTank || false}
+                    onCheckedChange={(checked) => change("hasSecondTank", checked)}
+                  />
+                  <Label htmlFor="two-tanks">Dois tanques</Label>
+                </div>
+                {draft.hasSecondTank && (
+                  <Field label="Capacidade 2º Tanque (L)">
+                    <Input 
+                      type="number"
+                      value={draft.secondTankCapacity || ""} 
+                      onChange={(e) => change("secondTankCapacity", Number(e.target.value))}
+                      className="h-10"
+                    />
+                  </Field>
+                )}
+              </div>
+            </section>
+
+            {/* Seção: Documentação e Registro */}
+            <section>
+              <h3 className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-4 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                Documentação e Registro
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Field label="Placa">
+                  <Input 
+                    value={draft.plate || ""} 
+                    onChange={(e) => change("plate", e.target.value.toUpperCase())}
+                    placeholder="AAA-0000"
+                    className="h-10 uppercase font-mono"
                   />
                 </Field>
                 <Field label="Renavam">
                   <Input 
-                    value={draft.renavam ?? ""} 
-                    inputMode="numeric" 
-                    onChange={(e) => change("renavam", e.target.value.replace(/\D/g, "").slice(0, 11))}
-                    className="h-9 focus-visible:ring-primary/30 tabular-nums"
+                    value={draft.renavam || ""} 
+                    onChange={(e) => change("renavam", e.target.value.replace(/\D/g, ""))}
+                    maxLength={11}
+                    className="h-10 font-mono"
                   />
                 </Field>
-                <Field label="Exercício licenciado">
+                <Field label="Chassi">
                   <Input 
-                    type="number" 
-                    min="2000" 
-                    max="2100" 
-                    value={draft.licensingYear ?? ""} 
-                    onChange={(e) => change("licensingYear", e.target.value ? Number(e.target.value) : undefined)}
-                    className="h-9 focus-visible:ring-primary/30 tabular-nums"
+                    value={draft.chassis || ""} 
+                    onChange={(e) => change("chassis", e.target.value.toUpperCase())}
+                    className="h-10 font-mono uppercase"
                   />
                 </Field>
-                <Field label="Pagamento realizado em">
+                <Field label="KM Atual">
                   <Input 
-                    type="date" 
-                    value={draft.licensingPaidAt ?? ""} 
-                    onChange={(e) => change("licensingPaidAt", e.target.value || undefined)}
-                    className="h-9 focus-visible:ring-primary/30"
-                  />
-                </Field>
-                <div className="sm:col-span-2">
-                  <Field label="Prazo (Calculado automaticamente)">
-                    <Input 
-                      type="date" 
-                      value={draft.licensingDueDate ?? calculateLicensingDueDate(draft.plate, draft.state) ?? ""} 
-                      onChange={(e) => change("licensingDueDate", e.target.value || undefined)}
-                      className="h-9 focus-visible:ring-primary/30"
-                    />
-                  </Field>
-                </div>
-              </div>
-              <p className="text-[11px] leading-relaxed text-muted-foreground italic px-1">
-                A placa define o calendário estimado. Confirme a quitação no CRLV-e oficial.
-              </p>
-            </TabsContent>
-
-            <TabsContent value="manutencao" className="mt-0 space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3 p-4 rounded-xl border border-border/50 bg-muted/20">
-                <Field label="Data/Hora de Entrada">
-                  <Input 
-                    type="datetime-local" 
-                    value={maintenance.entryDate} 
-                    onChange={(e) => setMaintenance({ ...maintenance, entryDate: e.target.value })} 
-                    className="h-9 focus-visible:ring-primary/30"
-                  />
-                </Field>
-                <Field label="Quilometragem Inicial">
-                  <Input 
-                    type="text" 
-                    value={Number(maintenance.mileage).toLocaleString("pt-BR")} 
+                    type="text"
+                    value={draft.currentMileage?.toLocaleString("pt-BR") || "0"} 
                     onChange={(e) => {
                       const val = e.target.value.replace(/\D/g, "");
-                      setMaintenance({ ...maintenance, mileage: val });
-                    }} 
-                    className="h-9 focus-visible:ring-primary/30 tabular-nums"
+                      change("currentMileage", Number(val));
+                    }}
+                    className="h-10 tabular-nums"
                   />
                 </Field>
-                <Field label="Motivo / Problema">
-                  <Input 
-                    value={maintenance.description} 
-                    onChange={(e) => setMaintenance({ ...maintenance, description: e.target.value })} 
-                    placeholder="Ex.: Troca de óleo..." 
-                    className="h-9 focus-visible:ring-primary/30"
-                  />
-                </Field>
-                <Field label="Oficina">
-                  <Input 
-                    value={maintenance.workshop} 
-                    onChange={(e) => setMaintenance({ ...maintenance, workshop: e.target.value })} 
-                    className="h-9 focus-visible:ring-primary/30"
-                  />
-                </Field>
-                <div className="sm:col-span-2">
-                  <Field label="Observações">
-                    <Input 
-                      value={maintenance.notes} 
-                      onChange={(e) => setMaintenance({ ...maintenance, notes: e.target.value })} 
-                      className="h-9 focus-visible:ring-primary/30"
-                    />
-                  </Field>
-                </div>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  className="sm:col-span-2 h-9 border-primary/20 hover:bg-primary/5 hover:text-primary transition-colors gap-2" 
-                  onClick={registerMaintenance}
-                >
-                  <Plus className="h-4 w-4" />
-                  Iniciar manutenção
-                </Button>
               </div>
-              <div className="space-y-3">
-                <h3 className="flex items-center gap-2 text-[11px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
-                  <Wrench className="h-3.5 w-3.5 text-primary/70" />
-                  Histórico de manutenção
-                </h3>
-                <div className="space-y-2">
-                  {(draft.maintenanceRecords ?? []).length === 0 ? (
-                    <div className="rounded-xl border border-dashed border-border p-8 text-center bg-muted/5">
-                      <p className="text-sm text-muted-foreground">Nenhuma manutenção registrada.</p>
-                    </div>
-                  ) : (
-                    draft.maintenanceRecords?.map((record) => (
-                      <div key={record.id} className="grid grid-cols-1 sm:grid-cols-[100px_1fr_auto] gap-3 items-center rounded-xl border border-border/50 bg-card p-3 shadow-sm hover:border-primary/20 transition-colors">
-                        <span className="text-[11px] font-medium text-muted-foreground tabular-nums bg-muted/50 px-2 py-1 rounded text-center shrink-0">
-                          {formatDate(record.entryDate)}
-                        </span>
-                        <div className="min-w-0">
-                          <p className="text-sm font-semibold truncate">{record.reason}</p>
-                          <p className="text-[11px] text-muted-foreground truncate">
-                            {[record.workshop, record.entryMileage ? `${record.entryMileage.toLocaleString("pt-BR")} km` : null, record.notes].filter(Boolean).join(" · ")}
-                          </p>
-                        </div>
-                        <span className="text-sm font-bold text-primary tabular-nums shrink-0">
-                          {record.cost !== undefined ? record.cost.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 2 }) : ""}
-                        </span>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            </TabsContent>
-          </div>
-        </Tabs>
+            </section>
 
-        <div className="flex justify-end gap-3 border-t border-border px-5 py-3 bg-card shrink-0">
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={() => onOpenChange(false)}
-            className="h-9 px-4 text-muted-foreground hover:text-foreground"
-          >
-            Cancelar
-          </Button>
-          <Button 
-            size="sm"
-            onClick={save}
-            className="h-9 px-4 bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm gap-2"
-          >
-            <Save className="h-4 w-4" />
-            Salvar alterações
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+            <section>
+              <Field label="Observações">
+                <Textarea 
+                  value={draft.observations || ""} 
+                  onChange={(e) => change("observations", e.target.value)}
+                  placeholder="Informações adicionais sobre o veículo..."
+                  className="min-h-[100px] resize-none"
+                  spellCheck={true}
+                  lang="pt-BR"
+                />
+              </Field>
+            </section>
+          </div>
+
+          <DialogFooter className="flex flex-row items-center justify-between gap-3 border-t border-border px-6 py-4 bg-muted/20 shrink-0">
+            <Button 
+              variant="ghost" 
+              className="text-red-500 hover:text-red-600 hover:bg-red-50 transition-colors gap-2"
+              onClick={() => setIsDeleteDialogOpen(true)}
+            >
+              <Trash2 className="h-4 w-4" />
+              Excluir veículo
+            </Button>
+            
+            <div className="flex gap-3">
+              <Button 
+                variant="outline" 
+                onClick={() => onOpenChange(false)}
+                className="h-10 px-6 border-border hover:bg-muted"
+              >
+                Cancelar
+              </Button>
+              <Button 
+                onClick={handleSave}
+                className="h-10 px-8 bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm gap-2"
+              >
+                <Save className="h-4 w-4" />
+                Salvar alterações
+              </Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-red-500" />
+              Confirmar exclusão
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Você tem certeza que deseja excluir o veículo <strong>{vehicle.model}</strong> ({vehicle.plate})? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDelete}
+              className="bg-red-500 hover:bg-red-600 text-white"
+            >
+              Confirmar exclusão
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="space-y-1">
-      <Label className="text-[11px] font-medium text-muted-foreground uppercase tracking-tight pl-0.5">
+    <div className="space-y-1.5">
+      <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide ml-0.5">
         {label}
       </Label>
       {children}
