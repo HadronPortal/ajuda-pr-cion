@@ -17,7 +17,8 @@ import {
   Key,
   MapPin,
   AlertTriangle,
-  Download
+  Download,
+  CalendarDays
 } from "lucide-react";
 import { 
   type Vehicle, 
@@ -76,8 +77,7 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
             </Button>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-xl font-bold tracking-tight">{vehicle.model.split(" / ")[0]}</h1>
-                <Badge variant="secondary" className="font-mono text-[11px]">{vehicle.yearModel.split(" / ")[0] || "2024"}</Badge>
+                <h1 className="text-xl font-bold tracking-tight">{vehicle.model}</h1>
               </div>
               <p className="text-xs text-muted-foreground">Visão geral do veículo</p>
             </div>
@@ -96,24 +96,18 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
           </div>
         </div>
 
-        <Card className="grid grid-cols-2 gap-y-4 gap-x-6 p-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 bg-muted/20 border-border/50">
-          <HeaderStat 
-            icon={Calendar} 
-            label="Modelo" 
-            value={vehicle.model} 
-            className="sm:col-span-2 lg:col-span-2"
-          />
+        <Card className="grid grid-cols-1 gap-y-4 gap-x-6 p-4 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 bg-muted/20 border-border/50">
           <HeaderStat icon={Key} label="Placa" value={vehicle.plate} />
           <HeaderStat icon={ShieldCheck} label="Renavam" value={vehicle.renavam || "—"} />
           <HeaderStat icon={Gauge} label="KM Atual" value={`${vehicle.currentMileage.toLocaleString("pt-BR")} km`} />
           <HeaderStat icon={Fuel} label="Combustível" value={vehicle.fuelLevel} />
           <HeaderStat icon={LayoutDashboard} label="Status" value={VEHICLE_STATUS_LABEL[vehicle.status]} />
           <HeaderStat icon={User} label="Último condutor" value={lastUsage?.operatorId || "—"} />
-          <HeaderStat icon={Wrench} label="Próxima revisão" value={vehicle.nextRevisionDate} />
+          <HeaderStat icon={CalendarDays} label="Próxima revisão" value={vehicle.nextRevisionDate} />
         </Card>
       </div>
 
-      {/* Quick Actions */}
+      {/* Barra de Ações */}
       <div className="flex flex-wrap gap-2">
         <FleetEntryDialog defaultVehicleId={vehicle.id} triggerLabel="Adicionar lançamento" />
         {vehicle.status === "em_uso" && (
@@ -140,49 +134,13 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
 
         <TabsContent value="overview" className="mt-6 flex flex-col gap-6">
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            {/* Últimas Utilizações */}
-            <Card className="p-5 flex flex-col">
-              <div className="flex items-center gap-2 mb-6 text-primary">
-                <Clock className="h-5 w-5" />
-                <h3 className="text-base font-bold">Últimas Utilizações</h3>
-              </div>
-              <div className="space-y-4 flex-1">
-                {vehicleUsages.slice(0, 4).map(u => (
-                  <div key={u.id} className="group border-b border-border/40 pb-4 last:border-0 last:pb-0">
-                    <div className="flex items-center justify-between font-semibold mb-1">
-                      <div className="flex items-center gap-2">
-                        <User className="h-3.5 w-3.5 text-muted-foreground" />
-                        <span className="text-[13px]">{u.operatorId}</span>
-                      </div>
-                      <span className="text-[12px] text-muted-foreground font-normal bg-muted/50 px-2 py-0.5 rounded-full">
-                        {formatFleetDateTime(u.departureAt || u.scheduledStartAt).split(',')[0]}
-                      </span>
-                    </div>
-                    <div className="flex items-start gap-2 text-[12px] text-muted-foreground group-hover:text-foreground transition-colors">
-                      <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-                      <span className="line-clamp-1">{u.destination}</span>
-                    </div>
-                  </div>
-                ))}
-                {vehicleUsages.length === 0 && (
-                  <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-                    <History className="h-8 w-8 mb-2 opacity-20" />
-                    <p className="text-sm">Nenhum histórico disponível.</p>
-                  </div>
-                )}
-              </div>
-              {vehicleUsages.length > 4 && (
-                <Button variant="ghost" size="sm" className="mt-4 w-full text-xs text-muted-foreground hover:text-primary" onClick={() => setIsHistoryModalOpen(true)}>
-                  Ver tudo
-                </Button>
-              )}
-            </Card>
+            {/* Histórico Geral */}
 
-            <Card className="p-5 flex flex-col">
+            <Card className="p-5 flex flex-col lg:col-span-2">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-2 text-primary">
-                  <ClipboardList className="h-5 w-5" />
-                  <h3 className="text-base font-bold">Linha do Tempo</h3>
+                  <History className="h-5 w-5" />
+                  <h3 className="text-base font-bold">Histórico Geral</h3>
                 </div>
               </div>
               
