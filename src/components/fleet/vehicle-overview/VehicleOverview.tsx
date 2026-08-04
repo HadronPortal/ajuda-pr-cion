@@ -128,7 +128,7 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             {/* 3D Scene Area */}
             <div className="lg:col-span-2 flex flex-col gap-6">
-              <Card className="relative h-[550px] overflow-hidden bg-gradient-to-b from-muted/5 to-muted/20">
+              <Card className="relative h-[450px] overflow-hidden bg-gradient-to-b from-muted/5 to-muted/20">
                 <VehicleScene 
                   fallbackImage={vehicle.imageUrl}
                   onPointClick={(name) => setSelectedPoint({ name, data: (COMPONENT_DATA as any)[name] })} 
@@ -142,9 +142,6 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
                   />
                 )}
               </Card>
-
-              {/* Tires Section (Lower part of overview) */}
-              <TireStatusView tires={vehicle.tires} />
             </div>
 
             {/* Side Panel */}
