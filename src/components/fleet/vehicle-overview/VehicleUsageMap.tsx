@@ -108,9 +108,9 @@ function VehicleUsageMapContent({
       const initialResults: UsageWithCoords[] = usages.map(u => {
         const client = getClientById(u.client);
         const parts = client ? [
-          (client as any).logradouro || client.city?.split(' - ')[0],
-          (client as any).numero,
-          (client as any).bairro,
+          client.sourcePayload?.logradouro || (client as any).logradouro || client.city?.split(' - ')[0],
+          client.sourcePayload?.numero || (client as any).numero,
+          client.sourcePayload?.bairro || (client as any).bairro,
           client.city?.split(' - ')[0],
           client.uf?.toUpperCase(),
           client.cep?.replace(/\D/g, "").replace(/(\d{5})(\d{3})/, "$1-$2"),
