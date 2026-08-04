@@ -92,22 +92,111 @@ export function VehicleEditorModal({ vehicle, open, onOpenChange }: Props) {
           </DialogTitle>
         </DialogHeader>
 
-        <Tabs defaultValue="dados" className="flex min-h-0 flex-1 flex-col">
-          <TabsList className="mx-5 mt-3 grid h-10 w-auto grid-cols-3">
-            <TabsTrigger value="dados">Dados</TabsTrigger>
-            <TabsTrigger value="licenciamento">Licenciamento</TabsTrigger>
-            <TabsTrigger value="manutencao">Manutenção</TabsTrigger>
+        <Tabs defaultValue="dados" className="flex flex-1 flex-col overflow-hidden">
+          <TabsList className="flex w-full justify-between gap-0 h-10 px-5 bg-transparent border-b border-border/50 rounded-none shrink-0">
+            <TabsTrigger 
+              value="dados" 
+              className="flex-1 bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-foreground rounded-none text-muted-foreground transition-none"
+            >
+              Dados
+            </TabsTrigger>
+            <TabsTrigger 
+              value="licenciamento" 
+              className="flex-1 bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-foreground rounded-none text-muted-foreground transition-none"
+            >
+              Licenciamento
+            </TabsTrigger>
+            <TabsTrigger 
+              value="manutencao" 
+              className="flex-1 bg-transparent data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary data-[state=active]:text-foreground rounded-none text-muted-foreground transition-none"
+            >
+              Manutenção
+            </TabsTrigger>
           </TabsList>
-          <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-5">
-            <TabsContent value="dados" className="mt-4 grid gap-4 sm:grid-cols-2">
-              <Field label="Modelo"><Input value={draft.model} onChange={(e) => change("model", e.target.value)} /></Field>
-              <Field label="Placa"><Input value={draft.plate} maxLength={8} onChange={(e) => change("plate", normalizeVehiclePlate(e.target.value))} className="uppercase" /></Field>
-              <Field label="Categoria"><Input value={draft.category} onChange={(e) => change("category", e.target.value)} /></Field>
-              <Field label="Cor"><Input value={draft.color} onChange={(e) => change("color", e.target.value)} /></Field>
-              <Field label="Ano / modelo"><Input value={draft.yearModel} onChange={(e) => change("yearModel", e.target.value)} /></Field>
-              <Field label="Quilometragem atual"><Input type="number" min="0" value={draft.currentMileage} onChange={(e) => change("currentMileage", Number(e.target.value))} /></Field>
-              <Field label="Próxima revisão"><Input value={draft.nextRevisionDate} onChange={(e) => change("nextRevisionDate", e.target.value)} /></Field>
-              <Field label="Revisão por KM"><Input type="number" min="0" value={draft.nextRevisionMileage} onChange={(e) => change("nextRevisionMileage", Number(e.target.value))} /></Field>
+
+          <div className="flex-1 overflow-y-auto px-5 py-4 hide-scrollbar">
+            <TabsContent value="dados" className="mt-0 space-y-6">
+              <section>
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Identificação</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
+                  <Field label="Modelo">
+                    <Input 
+                      value={draft.model} 
+                      onChange={(e) => change("model", e.target.value)}
+                      className="h-9 focus-visible:ring-primary/30"
+                    />
+                  </Field>
+                  <Field label="Placa">
+                    <Input 
+                      value={draft.plate} 
+                      maxLength={8} 
+                      onChange={(e) => change("plate", normalizeVehiclePlate(e.target.value))} 
+                      className="uppercase h-9 focus-visible:ring-primary/30" 
+                    />
+                  </Field>
+                  <Field label="Categoria">
+                    <Input 
+                      value={draft.category} 
+                      onChange={(e) => change("category", e.target.value)}
+                      className="h-9 focus-visible:ring-primary/30"
+                    />
+                  </Field>
+                  <Field label="Cor">
+                    <Input 
+                      value={draft.color} 
+                      onChange={(e) => change("color", e.target.value)}
+                      className="h-9 focus-visible:ring-primary/30"
+                    />
+                  </Field>
+                  <div className="sm:col-span-2">
+                    <Field label="Ano / modelo">
+                      <Input 
+                        value={draft.yearModel} 
+                        onChange={(e) => change("yearModel", e.target.value)}
+                        className="h-9 focus-visible:ring-primary/30"
+                      />
+                    </Field>
+                  </div>
+                </div>
+              </section>
+
+              <hr className="border-border/40" />
+
+              <section>
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Controle</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3">
+                  <Field label="Quilometragem atual">
+                    <Input 
+                      type="text" 
+                      value={draft.currentMileage.toLocaleString("pt-BR")} 
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, "");
+                        change("currentMileage", Number(val));
+                      }}
+                      className="h-9 focus-visible:ring-primary/30 tabular-nums"
+                    />
+                  </Field>
+                  <Field label="Próxima revisão (Data)">
+                    <Input 
+                      type="date"
+                      value={draft.nextRevisionDate} 
+                      onChange={(e) => change("nextRevisionDate", e.target.value)}
+                      className="h-9 focus-visible:ring-primary/30"
+                    />
+                  </Field>
+                  <Field label="Revisão por KM">
+                    <Input 
+                      type="text"
+                      value={draft.nextRevisionMileage?.toLocaleString("pt-BR") ?? ""} 
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/\D/g, "");
+                        change("nextRevisionMileage", Number(val));
+                      }}
+                      className="h-9 focus-visible:ring-primary/30 tabular-nums"
+                    />
+                  </Field>
+                </div>
+              </section>
             </TabsContent>
 
             <TabsContent value="licenciamento" className="mt-4 space-y-4">
