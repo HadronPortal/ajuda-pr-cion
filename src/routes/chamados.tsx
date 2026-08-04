@@ -403,10 +403,13 @@ function QuickFiltersBar({
 
   const anyActive = hasAnyActive(filters);
 
-
   const clearAll = () => {
     setQueryDraft("");
-    setFilters({ ...initialFilters });
+    setFilters({
+      ...initialFilters,
+      dateStart: undefined,
+      dateEnd: undefined,
+    });
   };
 
   return (
