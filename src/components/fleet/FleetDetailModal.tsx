@@ -80,33 +80,20 @@ export function FleetDetailModal({ vehicle, open, onOpenChange, defaultTab = "da
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex h-[90dvh] max-h-[90dvh] w-[95vw] max-w-4xl flex-col overflow-hidden p-0">
+      <DialogContent className="flex h-[90dvh] max-h-[90dvh] w-[95vw] max-w-4xl flex-col overflow-hidden p-0 gap-0">
         <DetailModalHeader
           icon={activeTab === "manutencao" ? Wrench : activeTab === "licenciamento" ? FileText : CarFront}
           title={activeTab === "manutencao" ? "Manutenção" : activeTab === "licenciamento" ? "Licenciamento" : "Dados do veículo"}
           protocol={draft.plate}
           onClose={() => onOpenChange(false)}
-          chips={
-            <div className="flex gap-2">
-               <Badge variant={draft.status === "manutencao" ? "destructive" : draft.status === "em_uso" ? "secondary" : "outline"} className="uppercase text-[10px]">
-                {draft.status.replace("_", " ")}
-              </Badge>
-              {activeMaintenance && (
-                 <Badge variant="outline" className="border-amber-500 text-amber-600 bg-amber-50 uppercase text-[10px]">
-                  Em Manutenção
-                </Badge>
-              )}
-            </div>
-          }
-          meta={<>{draft.model} · {draft.yearModel}</>}
         />
         
         <Tabs value={activeTab} onValueChange={(t: any) => setActiveTab(t)} className="flex min-h-0 flex-1 flex-col">
-          <div className="border-b px-6 pt-2">
-            <TabsList className="w-fit bg-transparent gap-6">
-              <TabsTrigger value="dados" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 pb-2 shadow-none bg-transparent">Informações Gerais</TabsTrigger>
-              <TabsTrigger value="licenciamento" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 pb-2 shadow-none bg-transparent">Licenciamento</TabsTrigger>
-              <TabsTrigger value="manutencao" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 pb-2 shadow-none bg-transparent">Manutenção</TabsTrigger>
+          <div className="px-6 border-b">
+            <TabsList className="w-fit bg-transparent gap-0">
+              <TabsTrigger value="dados" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4 pb-3 pt-4 shadow-none bg-transparent font-medium">Informações Gerais</TabsTrigger>
+              <TabsTrigger value="licenciamento" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4 pb-3 pt-4 shadow-none bg-transparent font-medium">Licenciamento</TabsTrigger>
+              <TabsTrigger value="manutencao" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4 pb-3 pt-4 shadow-none bg-transparent font-medium">Manutenção</TabsTrigger>
             </TabsList>
           </div>
           
@@ -114,7 +101,7 @@ export function FleetDetailModal({ vehicle, open, onOpenChange, defaultTab = "da
             <TabsContent value="dados" className="m-0 p-6 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div className="md:col-span-1 space-y-6">
-                  <div className="aspect-[4/3] w-full rounded-2xl bg-white flex items-center justify-center overflow-hidden border shadow-sm">
+                  <div className="aspect-[4/3] w-full rounded-xl bg-muted/20 flex items-center justify-center overflow-hidden border shadow-inner">
                     <img src={draft.imageUrl} alt={draft.model} className="object-contain h-full w-full p-4" />
                   </div>
                   
@@ -152,7 +139,7 @@ export function FleetDetailModal({ vehicle, open, onOpenChange, defaultTab = "da
                   </div>
                 </div>
                 
-                <div className="md:col-span-2 grid grid-cols-2 gap-x-6 gap-y-5">
+                <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5">
                   <Field label="Placa" value={draft.plate} onChange={(v: string) => setDraft({...draft, plate: v})} readOnly={!isEditing} />
                   <Field label="Renavam" value={draft.renavam} onChange={(v: string) => setDraft({...draft, renavam: v})} readOnly={!isEditing} />
                   <Field label="Chassi" value={draft.chassis} onChange={(v: string) => setDraft({...draft, chassis: v})} readOnly={!isEditing} />
@@ -168,6 +155,7 @@ export function FleetDetailModal({ vehicle, open, onOpenChange, defaultTab = "da
                 </div>
               </div>
             </TabsContent>
+
 
             <TabsContent value="licenciamento" className="m-0 p-6 space-y-6">
                <Card className="p-6 border-emerald-100 bg-emerald-50/30">
