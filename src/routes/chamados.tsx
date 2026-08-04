@@ -234,8 +234,8 @@ const initialFilters: Filters = {
   operatorType: "Todos",
   operator: "Todos",
   dateType: "Registro",
-  dateStart: undefined,
-  dateEnd: undefined,
+  dateStart: new Date(new Date().setHours(0, 0, 0, 0)),
+  dateEnd: new Date(new Date().setHours(23, 59, 59, 999)),
 };
 
 function monthFilters(monthKey: string): Filters {
@@ -403,10 +403,13 @@ function QuickFiltersBar({
 
   const anyActive = hasAnyActive(filters);
 
-
   const clearAll = () => {
     setQueryDraft("");
-    setFilters({ ...initialFilters });
+    setFilters({
+      ...initialFilters,
+      dateStart: undefined,
+      dateEnd: undefined,
+    });
   };
 
   return (
@@ -527,7 +530,9 @@ function TicketsPage() {
         // fallback below
       }
     }
-    const base = monthFilters(initialMonthKey);
+    const base = search.mes || search.status || search.prioridade || search.busca
+      ? monthFilters(initialMonthKey)
+      : { ...initialFilters };
     if (search.status) base.status = search.status;
     if (search.prioridade) base.priority = search.prioridade;
     if (search.busca) base.query = search.busca;
@@ -876,7 +881,7 @@ function TicketsPage() {
               type="button"
               variant="ghost"
               className="h-10 cursor-pointer rounded-lg text-sm"
-              onClick={() => setFilters(initialFilters)}
+              onClick={() => setFilters({ ...initialFilters, dateStart: undefined, dateEnd: undefined })}
             >
               <SlidersHorizontal className="mr-1.5 h-4 w-4" />
               Limpar

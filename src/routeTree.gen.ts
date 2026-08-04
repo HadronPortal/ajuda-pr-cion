@@ -22,9 +22,11 @@ import { Route as BaseDeConhecimentoRouteImport } from './routes/base-de-conheci
 import { Route as AtualizacoesRouteImport } from './routes/atualizacoes'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as FrotaIndexRouteImport } from './routes/frota.index'
 import { Route as ClientesIndexRouteImport } from './routes/clientes.index'
 import { Route as BaseDeConhecimentoIndexRouteImport } from './routes/base-de-conhecimento.index'
 import { Route as KanbanBoardIdRouteImport } from './routes/kanban.$boardId'
+import { Route as FrotaVehicleIdRouteImport } from './routes/frota.$vehicleId'
 import { Route as ClientesClienteIdRouteImport } from './routes/clientes.$clienteId'
 import { Route as ChamadosNovoRouteImport } from './routes/chamados.novo'
 import { Route as BaseDeConhecimentoSlugRouteImport } from './routes/base-de-conhecimento.$slug'
@@ -95,6 +97,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FrotaIndexRoute = FrotaIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => FrotaRoute,
+} as any)
 const ClientesIndexRoute = ClientesIndexRouteImport.update({
   id: '/clientes/',
   path: '/clientes/',
@@ -109,6 +116,11 @@ const KanbanBoardIdRoute = KanbanBoardIdRouteImport.update({
   id: '/$boardId',
   path: '/$boardId',
   getParentRoute: () => KanbanRoute,
+} as any)
+const FrotaVehicleIdRoute = FrotaVehicleIdRouteImport.update({
+  id: '/$vehicleId',
+  path: '/$vehicleId',
+  getParentRoute: () => FrotaRoute,
 } as any)
 const ClientesClienteIdRoute = ClientesClienteIdRouteImport.update({
   id: '/clientes/$clienteId',
@@ -138,7 +150,7 @@ export interface FileRoutesByFullPath {
   '/base-de-conhecimento': typeof BaseDeConhecimentoRouteWithChildren
   '/calendario': typeof CalendarioRoute
   '/chamados': typeof ChamadosRouteWithChildren
-  '/frota': typeof FrotaRoute
+  '/frota': typeof FrotaRouteWithChildren
   '/iniciar-hadron': typeof IniciarHadronRoute
   '/kanban': typeof KanbanRouteWithChildren
   '/kanban-dashboard': typeof KanbanDashboardRoute
@@ -148,9 +160,11 @@ export interface FileRoutesByFullPath {
   '/base-de-conhecimento/$slug': typeof BaseDeConhecimentoSlugRoute
   '/chamados/novo': typeof ChamadosNovoRoute
   '/clientes/$clienteId': typeof ClientesClienteIdRoute
+  '/frota/$vehicleId': typeof FrotaVehicleIdRoute
   '/kanban/$boardId': typeof KanbanBoardIdRoute
   '/base-de-conhecimento/': typeof BaseDeConhecimentoIndexRoute
   '/clientes/': typeof ClientesIndexRoute
+  '/frota/': typeof FrotaIndexRoute
   '/api/public/test-places': typeof ApiPublicTestPlacesRoute
 }
 export interface FileRoutesByTo {
@@ -159,7 +173,6 @@ export interface FileRoutesByTo {
   '/atualizacoes': typeof AtualizacoesRoute
   '/calendario': typeof CalendarioRoute
   '/chamados': typeof ChamadosRouteWithChildren
-  '/frota': typeof FrotaRoute
   '/iniciar-hadron': typeof IniciarHadronRoute
   '/kanban': typeof KanbanRouteWithChildren
   '/kanban-dashboard': typeof KanbanDashboardRoute
@@ -169,9 +182,11 @@ export interface FileRoutesByTo {
   '/base-de-conhecimento/$slug': typeof BaseDeConhecimentoSlugRoute
   '/chamados/novo': typeof ChamadosNovoRoute
   '/clientes/$clienteId': typeof ClientesClienteIdRoute
+  '/frota/$vehicleId': typeof FrotaVehicleIdRoute
   '/kanban/$boardId': typeof KanbanBoardIdRoute
   '/base-de-conhecimento': typeof BaseDeConhecimentoIndexRoute
   '/clientes': typeof ClientesIndexRoute
+  '/frota': typeof FrotaIndexRoute
   '/api/public/test-places': typeof ApiPublicTestPlacesRoute
 }
 export interface FileRoutesById {
@@ -182,7 +197,7 @@ export interface FileRoutesById {
   '/base-de-conhecimento': typeof BaseDeConhecimentoRouteWithChildren
   '/calendario': typeof CalendarioRoute
   '/chamados': typeof ChamadosRouteWithChildren
-  '/frota': typeof FrotaRoute
+  '/frota': typeof FrotaRouteWithChildren
   '/iniciar-hadron': typeof IniciarHadronRoute
   '/kanban': typeof KanbanRouteWithChildren
   '/kanban-dashboard': typeof KanbanDashboardRoute
@@ -192,9 +207,11 @@ export interface FileRoutesById {
   '/base-de-conhecimento/$slug': typeof BaseDeConhecimentoSlugRoute
   '/chamados/novo': typeof ChamadosNovoRoute
   '/clientes/$clienteId': typeof ClientesClienteIdRoute
+  '/frota/$vehicleId': typeof FrotaVehicleIdRoute
   '/kanban/$boardId': typeof KanbanBoardIdRoute
   '/base-de-conhecimento/': typeof BaseDeConhecimentoIndexRoute
   '/clientes/': typeof ClientesIndexRoute
+  '/frota/': typeof FrotaIndexRoute
   '/api/public/test-places': typeof ApiPublicTestPlacesRoute
 }
 export interface FileRouteTypes {
@@ -216,9 +233,11 @@ export interface FileRouteTypes {
     | '/base-de-conhecimento/$slug'
     | '/chamados/novo'
     | '/clientes/$clienteId'
+    | '/frota/$vehicleId'
     | '/kanban/$boardId'
     | '/base-de-conhecimento/'
     | '/clientes/'
+    | '/frota/'
     | '/api/public/test-places'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -227,7 +246,6 @@ export interface FileRouteTypes {
     | '/atualizacoes'
     | '/calendario'
     | '/chamados'
-    | '/frota'
     | '/iniciar-hadron'
     | '/kanban'
     | '/kanban-dashboard'
@@ -237,9 +255,11 @@ export interface FileRouteTypes {
     | '/base-de-conhecimento/$slug'
     | '/chamados/novo'
     | '/clientes/$clienteId'
+    | '/frota/$vehicleId'
     | '/kanban/$boardId'
     | '/base-de-conhecimento'
     | '/clientes'
+    | '/frota'
     | '/api/public/test-places'
   id:
     | '__root__'
@@ -259,9 +279,11 @@ export interface FileRouteTypes {
     | '/base-de-conhecimento/$slug'
     | '/chamados/novo'
     | '/clientes/$clienteId'
+    | '/frota/$vehicleId'
     | '/kanban/$boardId'
     | '/base-de-conhecimento/'
     | '/clientes/'
+    | '/frota/'
     | '/api/public/test-places'
   fileRoutesById: FileRoutesById
 }
@@ -272,7 +294,7 @@ export interface RootRouteChildren {
   BaseDeConhecimentoRoute: typeof BaseDeConhecimentoRouteWithChildren
   CalendarioRoute: typeof CalendarioRoute
   ChamadosRoute: typeof ChamadosRouteWithChildren
-  FrotaRoute: typeof FrotaRoute
+  FrotaRoute: typeof FrotaRouteWithChildren
   IniciarHadronRoute: typeof IniciarHadronRoute
   KanbanRoute: typeof KanbanRouteWithChildren
   KanbanDashboardRoute: typeof KanbanDashboardRoute
@@ -377,6 +399,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/frota/': {
+      id: '/frota/'
+      path: '/'
+      fullPath: '/frota/'
+      preLoaderRoute: typeof FrotaIndexRouteImport
+      parentRoute: typeof FrotaRoute
+    }
     '/clientes/': {
       id: '/clientes/'
       path: '/clientes'
@@ -397,6 +426,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/kanban/$boardId'
       preLoaderRoute: typeof KanbanBoardIdRouteImport
       parentRoute: typeof KanbanRoute
+    }
+    '/frota/$vehicleId': {
+      id: '/frota/$vehicleId'
+      path: '/$vehicleId'
+      fullPath: '/frota/$vehicleId'
+      preLoaderRoute: typeof FrotaVehicleIdRouteImport
+      parentRoute: typeof FrotaRoute
     }
     '/clientes/$clienteId': {
       id: '/clientes/$clienteId'
@@ -454,6 +490,18 @@ const ChamadosRouteWithChildren = ChamadosRoute._addFileChildren(
   ChamadosRouteChildren,
 )
 
+interface FrotaRouteChildren {
+  FrotaVehicleIdRoute: typeof FrotaVehicleIdRoute
+  FrotaIndexRoute: typeof FrotaIndexRoute
+}
+
+const FrotaRouteChildren: FrotaRouteChildren = {
+  FrotaVehicleIdRoute: FrotaVehicleIdRoute,
+  FrotaIndexRoute: FrotaIndexRoute,
+}
+
+const FrotaRouteWithChildren = FrotaRoute._addFileChildren(FrotaRouteChildren)
+
 interface KanbanRouteChildren {
   KanbanBoardIdRoute: typeof KanbanBoardIdRoute
 }
@@ -472,7 +520,7 @@ const rootRouteChildren: RootRouteChildren = {
   BaseDeConhecimentoRoute: BaseDeConhecimentoRouteWithChildren,
   CalendarioRoute: CalendarioRoute,
   ChamadosRoute: ChamadosRouteWithChildren,
-  FrotaRoute: FrotaRoute,
+  FrotaRoute: FrotaRouteWithChildren,
   IniciarHadronRoute: IniciarHadronRoute,
   KanbanRoute: KanbanRouteWithChildren,
   KanbanDashboardRoute: KanbanDashboardRoute,
