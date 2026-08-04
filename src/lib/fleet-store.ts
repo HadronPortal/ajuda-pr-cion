@@ -206,6 +206,13 @@ let vehicles: Vehicle[] = [
     nextRevisionMileage: 50000,
     status: "disponivel",
     imageUrl: corollaImg,
+    tires: {
+      frontLeft: { pressure: 32, condition: "normal", lastSwapMileage: 35000, nextRotationMileage: 45000 },
+      frontRight: { pressure: 32, condition: "normal", lastSwapMileage: 35000, nextRotationMileage: 45000 },
+      rearLeft: { pressure: 30, condition: "normal", lastSwapMileage: 35000, nextRotationMileage: 45000 },
+      rearRight: { pressure: 30, condition: "normal", lastSwapMileage: 35000, nextRotationMileage: 45000 },
+      lastInspectionDate: "2026-07-15"
+    }
   },
   {
     id: "tracker",
@@ -220,6 +227,13 @@ let vehicles: Vehicle[] = [
     nextRevisionMileage: 40000,
     status: "disponivel",
     imageUrl: trackerImg,
+    tires: {
+      frontLeft: { pressure: 33, condition: "normal", lastSwapMileage: 25000, nextRotationMileage: 35000 },
+      frontRight: { pressure: 33, condition: "normal", lastSwapMileage: 25000, nextRotationMileage: 35000 },
+      rearLeft: { pressure: 31, condition: "normal", lastSwapMileage: 25000, nextRotationMileage: 35000 },
+      rearRight: { pressure: 31, condition: "normal", lastSwapMileage: 25000, nextRotationMileage: 35000 },
+      lastInspectionDate: "2026-07-10"
+    }
   },
   {
     id: "onix",
@@ -234,6 +248,13 @@ let vehicles: Vehicle[] = [
     nextRevisionMileage: 65000,
     status: "disponivel",
     imageUrl: onixImg,
+    tires: {
+      frontLeft: { pressure: 28, condition: "warning", lastSwapMileage: 50000, nextRotationMileage: 60000 },
+      frontRight: { pressure: 32, condition: "normal", lastSwapMileage: 50000, nextRotationMileage: 60000 },
+      rearLeft: { pressure: 22, condition: "critical", lastSwapMileage: 50000, nextRotationMileage: 60000 },
+      rearRight: { pressure: 30, condition: "normal", lastSwapMileage: 50000, nextRotationMileage: 60000 },
+      lastInspectionDate: "2026-07-18"
+    }
   },
   {
     id: "strada",
@@ -248,6 +269,13 @@ let vehicles: Vehicle[] = [
     nextRevisionMileage: 60000,
     status: "manutencao",
     imageUrl: stradaImg,
+    tires: {
+      frontLeft: { pressure: 32, condition: "normal", lastSwapMileage: 40000, nextRotationMileage: 50000 },
+      frontRight: { pressure: 32, condition: "normal", lastSwapMileage: 40000, nextRotationMileage: 50000 },
+      rearLeft: { pressure: 34, condition: "normal", lastSwapMileage: 40000, nextRotationMileage: 50000 },
+      rearRight: { pressure: 34, condition: "normal", lastSwapMileage: 40000, nextRotationMileage: 50000 },
+      lastInspectionDate: "2026-07-12"
+    }
   },
 ];
 
