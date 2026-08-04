@@ -151,12 +151,43 @@ function VehicleUsageMapContent({
                 isGeocoding: false
               };
             } else {
-              finalResults[i] = { 
-                ...usage, 
-                geocodingError: true, 
-                geocodingReason: res.error || "Endereço não localizado",
-                isGeocoding: false 
-              };
+              // Tentar fallback progressivo se falhou o endereço completo
+              const parts = usage.assembledAddress.split(',').map(p => p.trim());
+              let fallbackRes = res;
+              
+              // Fallback 1: logradouro + número + cidade + UF + Brasil
+              if (parts.length >= 5) {
+                const f1 = [parts[0], parts[1], parts[3], parts[4], "Brasil"].join(", ");
+                fallbackRes = await fetchCoords({ data: f1 });
+              }
+              
+              // Fallback 2: CEP + Brasil
+              if (!fallbackRes.success && parts.length >= 6) {
+                const f2 = [parts[5], "Brasil"].join(", ");
+                fallbackRes = await fetchCoords({ data: f2 });
+              }
+              
+              // Fallback 3: cidade + UF + Brasil
+              if (!fallbackRes.success && parts.length >= 5) {
+                const f3 = [parts[3], parts[4], "Brasil"].join(", ");
+                fallbackRes = await fetchCoords({ data: f3 });
+              }
+
+              if (fallbackRes.success) {
+                finalResults[i] = {
+                  ...usage,
+                  lat: fallbackRes.lat,
+                  lng: fallbackRes.lng,
+                  isGeocoding: false
+                };
+              } else {
+                finalResults[i] = { 
+                  ...usage, 
+                  geocodingError: true, 
+                  geocodingReason: fallbackRes.error || "Endereço não localizado",
+                  isGeocoding: false 
+                };
+              }
             }
             setEnrichedUsages([...finalResults]);
           }
