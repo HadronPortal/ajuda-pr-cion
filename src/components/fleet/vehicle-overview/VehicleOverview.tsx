@@ -121,7 +121,11 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
       <div className="flex flex-wrap gap-2">
         <ActionButton icon={Pencil} label="Editar veículo" onClick={() => setIsEditorModalOpen(true)} />
         <ActionButton icon={Wrench} label="Nova manutenção" onClick={() => setIsMaintenanceDialogOpen(true)} />
-        <ActionButton icon={KeyRound} label="Registrar saída" disabled={vehicle.status !== "disponivel"} onClick={() => fleetActions.openPicker()} />
+        <ActionButton icon={KeyRound} label="Registrar saída" disabled={vehicle.status !== "disponivel"} onClick={() => {
+          // No current usage id context, this usually happens from a ticket or calendar.
+          // For now, let's open a generic pickup flow or a placeholder.
+          toast.info("Selecione um agendamento no Calendário ou Chamado para registrar a saída.");
+        }} />
         <ActionButton icon={Undo2} label="Registrar devolução" disabled={vehicle.status !== "em_uso"} onClick={() => {
           const current = vehicleUsages.find(u => u.status === "em_deslocamento");
           if (current) fleetActions.openReturn(current.id);
