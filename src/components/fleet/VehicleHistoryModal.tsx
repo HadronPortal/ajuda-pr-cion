@@ -59,7 +59,7 @@ function fmtDuration(h: number) {
   if (h <= 0) return "0h";
   const hh = Math.floor(h);
   const mm = Math.round((h - hh) * 60);
-  return mm ? `${hh}h ${mm}m` : `${hh}h`;
+  return mm ? `${hh}h ${mm}min` : `${hh}h`;
 }
 
 function usageBadgeClass(status: UsageStatus) {

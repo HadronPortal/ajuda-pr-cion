@@ -525,7 +525,8 @@ export function addVehicleMaintenance(vehicleId: string, input: Omit<VehicleMain
 export function closeVehicleMaintenance(maintenanceId: string, input: {
   exitDate: string;
   exitMileage: number;
-  cost: number;
+  cost?: number;
+  duration?: string;
   servicesPerformed: string;
   partsReplaced: string;
   notes?: string;
