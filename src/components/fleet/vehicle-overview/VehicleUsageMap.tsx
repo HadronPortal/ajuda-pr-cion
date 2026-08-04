@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, lazy, Suspense } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ExternalLink, Calendar, User, MapPin, FilterX, Filter } from "lucide-react";
+import { ExternalLink, Calendar, User, MapPin, FilterX, Filter, AlertCircle, RefreshCw, X as LucideX } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { formatFleetDateTime, type VehicleUsage, USAGE_STATUS_LABEL } from "@/lib/fleet-store";
 import { getClientById } from "@/lib/clients-store";
@@ -11,6 +11,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { cn } from "@/lib/utils";
 import { ClientOnly } from "@/components/ui/client-only";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 // Lazy load map components to avoid SSR issues
 const MapContainer = lazy(() => import("react-leaflet").then(mod => ({ default: mod.MapContainer })));
@@ -24,6 +26,9 @@ interface UsageWithCoords extends VehicleUsage {
   lng?: number;
   clientData?: any;
   geocodingError?: boolean;
+  geocodingReason?: string;
+  assembledAddress?: string;
+  isGeocoding?: boolean;
 }
 
 interface MapFilters {
