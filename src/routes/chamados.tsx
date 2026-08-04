@@ -234,8 +234,8 @@ const initialFilters: Filters = {
   operatorType: "Todos",
   operator: "Todos",
   dateType: "Registro",
-  dateStart: undefined,
-  dateEnd: undefined,
+  dateStart: new Date(new Date().setHours(0, 0, 0, 0)),
+  dateEnd: new Date(new Date().setHours(23, 59, 59, 999)),
 };
 
 function monthFilters(monthKey: string): Filters {
