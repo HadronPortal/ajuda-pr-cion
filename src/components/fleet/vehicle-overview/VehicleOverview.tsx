@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { 
   ArrowLeft, 
@@ -33,7 +33,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { VehicleScene } from "./VehicleScene";
 import { ComponentInfoPanel, COMPONENT_DATA } from "./InteractivePoints";
-import { TireStatusView } from "./TireStatusView";
+import { VehicleUsageMap } from "./VehicleUsageMap";
 import { cn } from "@/lib/utils";
 
 interface VehicleOverviewProps {
@@ -45,12 +45,45 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
   const usages = useUsages();
   const [activeTab, setActiveTab] = useState("overview");
   const [selectedPoint, setSelectedPoint] = useState<{ name: string; data: any } | null>(null);
+  const [mapFilters, setMapFilters] = useState({
+    period: "all",
+    client: "all",
+    operator: "all",
+    status: "all"
+  });
 
   const vehicleUsages = useMemo(() => {
     return usages
       .filter((u) => u.vehicleId === vehicle.id)
       .sort((a, b) => (b.returnedAt ?? b.updatedAt).localeCompare(a.returnedAt ?? a.updatedAt));
   }, [usages, vehicle.id]);
+
+  const filteredUsages = useMemo(() => {
+    return vehicleUsages.filter(u => {
+      if (mapFilters.status !== "all" && u.status !== mapFilters.status) return false;
+      if (mapFilters.operator !== "all" && u.operatorId !== mapFilters.operator) return false;
+      if (mapFilters.client !== "all" && u.client !== mapFilters.client) return false;
+      
+      if (mapFilters.period !== "all") {
+        const date = new Date(u.departureAt || u.scheduledStartAt || "");
+        const now = new Date();
+        if (mapFilters.period === "today") {
+          return date.toDateString() === now.toDateString();
+        }
+        if (mapFilters.period === "week") {
+          const weekAgo = new Date();
+          weekAgo.setDate(now.getDate() - 7);
+          return date >= weekAgo;
+        }
+        if (mapFilters.period === "month") {
+          const monthAgo = new Date();
+          monthAgo.setMonth(now.getMonth() - 1);
+          return date >= monthAgo;
+        }
+      }
+      return true;
+    });
+  }, [vehicleUsages, mapFilters]);
 
   const lastUsage = vehicleUsages.find(u => u.status === "devolvido");
   const currentUsage = vehicleUsages.find(u => u.status === "em_deslocamento");
@@ -126,21 +159,16 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
 
         <TabsContent value="overview" className="mt-6 flex flex-col gap-6">
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-            {/* 3D Scene Area */}
+            {/* Map Area */}
             <div className="lg:col-span-2 flex flex-col gap-6">
-              <Card className="relative h-[450px] overflow-hidden bg-gradient-to-b from-muted/5 to-muted/20">
-                <VehicleScene 
-                  fallbackImage={vehicle.imageUrl}
-                  onPointClick={(name) => setSelectedPoint({ name, data: (COMPONENT_DATA as any)[name] })} 
+              <Card className="relative h-[450px] overflow-hidden">
+                <VehicleUsageMap 
+                  usages={filteredUsages} 
+                  filters={mapFilters}
+                  onFilterChange={(f) => setMapFilters(prev => ({ ...prev, ...f }))}
+                  allOperators={Array.from(new Set(vehicleUsages.map(u => u.operatorId)))}
+                  allClients={Array.from(new Set(vehicleUsages.map(u => u.client).filter(Boolean) as string[]))}
                 />
-                {/* Points are now inside VehicleScene as 3D Hotspots */}
-                {selectedPoint && (
-                  <ComponentInfoPanel 
-                    name={selectedPoint.name} 
-                    data={selectedPoint.data} 
-                    onClose={() => setSelectedPoint(null)} 
-                  />
-                )}
               </Card>
             </div>
 

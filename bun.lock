@@ -37,13 +37,14 @@
         "@radix-ui/react-tooltip": "^1.2.8",
         "@react-three/drei": "^10.7.7",
         "@react-three/fiber": "^9.7.0",
-        "@supabase/supabase-js": "^2.110.7",
+        "@supabase/supabase-js": "^2.112.0",
         "@tailwindcss/vite": "^4.2.1",
         "@tanstack/react-query": "^5.101.1",
         "@tanstack/react-router": "^1.170.16",
         "@tanstack/react-start": "^1.168.26",
         "@tanstack/router-plugin": "^1.168.18",
         "@tanstack/zod-adapter": "^1.167.0",
+        "@types/leaflet": "^1.9.22",
         "@types/three": "^0.185.3",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
@@ -51,11 +52,15 @@
         "date-fns": "^4.1.0",
         "embla-carousel-react": "^8.6.0",
         "input-otp": "^1.4.2",
+        "leaflet": "^1.9.4",
+        "leaflet.markercluster": "^1.5.3",
         "lucide-react": "^0.575.0",
         "react": "^19.2.0",
         "react-day-picker": "^9.14.0",
         "react-dom": "^19.2.0",
         "react-hook-form": "^7.71.2",
+        "react-leaflet": "^5.0.0",
+        "react-leaflet-cluster": "^4.1.3",
         "react-resizable-panels": "^4.6.5",
         "recharts": "^2.15.4",
         "sonner": "^2.0.7",
@@ -423,6 +428,8 @@
 
     "@radix-ui/rect": ["@radix-ui/rect@1.1.1", "", {}, "sha512-HPwpGIzkl28mWyZqG52jiqDJ12waP11Pa1lGoiyUkIEuMLBP0oeK/C89esbXrxsky5we7dfd8U58nm0SgAWpVw=="],
 
+    "@react-leaflet/core": ["@react-leaflet/core@3.0.0", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@react-leaflet/core/-/core-3.0.0.tgz", { "peerDependencies": { "leaflet": "^1.9.0", "react": "^19.0.0", "react-dom": "^19.0.0" } }, "sha512-3EWmekh4Nz+pGcr+xjf0KNyYfC3U2JjnkWsh0zcqaexYqmmB5ZhH37kz41JXGmKzpaMZCnPofBBm64i+YrEvGQ=="],
+
     "@react-three/drei": ["@react-three/drei@10.7.7", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@react-three/drei/-/drei-10.7.7.tgz", { "dependencies": { "@babel/runtime": "^7.26.0", "@mediapipe/tasks-vision": "0.10.17", "@monogrid/gainmap-js": "^3.0.6", "@use-gesture/react": "^10.3.1", "camera-controls": "^3.1.0", "cross-env": "^7.0.3", "detect-gpu": "^5.0.56", "glsl-noise": "^0.0.0", "hls.js": "^1.5.17", "maath": "^0.10.8", "meshline": "^3.3.1", "stats-gl": "^2.2.8", "stats.js": "^0.17.0", "suspend-react": "^0.1.3", "three-mesh-bvh": "^0.8.3", "three-stdlib": "^2.35.6", "troika-three-text": "^0.52.4", "tunnel-rat": "^0.1.2", "use-sync-external-store": "^1.4.0", "utility-types": "^3.11.0", "zustand": "^5.0.1" }, "peerDependencies": { "@react-three/fiber": "^9.0.0", "react": "^19", "react-dom": "^19", "three": ">=0.159" }, "optionalPeers": ["react-dom"] }, "sha512-ff+J5iloR0k4tC++QtD/j9u3w5fzfgFAWDtAGQah9pF2B1YgOq/5JxqY0/aVoQG5r3xSZz0cv5tk2YuBob4xEQ=="],
 
     "@react-three/fiber": ["@react-three/fiber@9.7.0", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@react-three/fiber/-/fiber-9.7.0.tgz", { "dependencies": { "@babel/runtime": "^7.17.8", "@types/webxr": "*", "base64-js": "^1.5.1", "buffer": "^6.0.3", "its-fine": "^2.0.0", "react-use-measure": "^2.1.7", "scheduler": "^0.27.0", "suspend-react": "^0.1.3", "use-sync-external-store": "^1.4.0", "zustand": "^5.0.3" }, "peerDependencies": { "expo": ">=43.0", "expo-asset": ">=8.4", "expo-file-system": ">=11.0", "expo-gl": ">=11.0", "react": ">=19 <19.3", "react-dom": ">=19 <19.3", "react-native": ">=0.78", "three": ">=0.156" }, "optionalPeers": ["expo", "expo-asset", "expo-file-system", "expo-gl", "react-dom", "react-native"] }, "sha512-EWm9FwcaOZQu/ExFW5rggoCMM1NJet5YbxVxKaOE+KSncrjU0Wx7017qSyGFvupviK89nMYGCWU3BIK4dI1clw=="],
@@ -511,19 +518,19 @@
 
     "@standard-schema/utils": ["@standard-schema/utils@0.3.0", "", {}, "sha512-e7Mew686owMaPJVNNLs55PUvgz371nKgwsc4vxE49zsODpJEnxgxRo2y/OKrqueavXgZNMDVj3DdHFlaSAeU8g=="],
 
-    "@supabase/auth-js": ["@supabase/auth-js@2.110.7", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@supabase/auth-js/-/auth-js-2.110.7.tgz", { "dependencies": { "tslib": "2.8.1" } }, "sha512-M5Bpl4hCv6kHcOO/xM06Dyfg1mYLHljMkp1plhzG9IRZPc3czvyMsSN1XpL5+GKisOKM3lSN59zhpcm6sMVXfA=="],
+    "@supabase/auth-js": ["@supabase/auth-js@2.112.0", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@supabase/auth-js/-/auth-js-2.112.0.tgz", { "dependencies": { "tslib": "2.8.1" } }, "sha512-8qAdObNQHKbSeVBLmf2WLNT7+bCE8zBofpCFiNUqGBAl5qw9VagSvcmPXlh78McAU7iHrGik1oeJxiB2A6B29w=="],
 
-    "@supabase/functions-js": ["@supabase/functions-js@2.110.7", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@supabase/functions-js/-/functions-js-2.110.7.tgz", { "dependencies": { "tslib": "2.8.1" } }, "sha512-megYmexlYEoR/0qlsr4Snh9wtzAodO7MAri3NMevZrXzNvQRKlvmTcSBoKGLQEPDakgDZMqbMdf9DwoZz6qfoA=="],
+    "@supabase/functions-js": ["@supabase/functions-js@2.112.0", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@supabase/functions-js/-/functions-js-2.112.0.tgz", { "dependencies": { "tslib": "2.8.1" } }, "sha512-2DdaEZs0vq86orMIZBO+eM5w5/UxZb1EZyg2JraBKS4W9BzfFO+fOFD6YStmZ7iAOWvxNTGPjPNItsofpGgTCA=="],
 
     "@supabase/phoenix": ["@supabase/phoenix@0.4.5", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@supabase/phoenix/-/phoenix-0.4.5.tgz", {}, "sha512-aAn9H9ovVyeApKy11OWOrrOGq8DV68yWeH4ud2lN9fzn4aO8Zb5GLL9m1pUg9nLqIcT+ZDfAcsZe0E/nqdv2lw=="],
 
-    "@supabase/postgrest-js": ["@supabase/postgrest-js@2.110.7", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@supabase/postgrest-js/-/postgrest-js-2.110.7.tgz", { "dependencies": { "tslib": "2.8.1" } }, "sha512-ban6YV0djhVaqVYezlOARKLIuOBSvLLhyQVZjA2nxPrtswhxHCl1+gI4giFgI9ATQAaMNbUZb4JXiuL5lEA/5g=="],
+    "@supabase/postgrest-js": ["@supabase/postgrest-js@2.112.0", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@supabase/postgrest-js/-/postgrest-js-2.112.0.tgz", { "dependencies": { "tslib": "2.8.1" } }, "sha512-4HKCVq32Jlk/wS8Ud8QgaAuQ4u6w1hZfw/gS5IcIN7wYddElMj4kfiCZpHMPfncomMnYzAKBUhwBZPpRcTH2Yw=="],
 
-    "@supabase/realtime-js": ["@supabase/realtime-js@2.110.7", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@supabase/realtime-js/-/realtime-js-2.110.7.tgz", { "dependencies": { "@supabase/phoenix": "0.4.5", "tslib": "2.8.1" } }, "sha512-AMtZjyFA2gsmjuxopPNS/sRznLQHG0Ht5x+ytTPTOh3vAcOTUlVRLx7gW4/CONNnbb3PKOkE+HmM35HOSbmomQ=="],
+    "@supabase/realtime-js": ["@supabase/realtime-js@2.112.0", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@supabase/realtime-js/-/realtime-js-2.112.0.tgz", { "dependencies": { "@supabase/phoenix": "0.4.5", "tslib": "2.8.1" } }, "sha512-McFFP+ivFDMTaCEh8JDpG+sPEmv5IjKvrP0uTH3Lbsriai4KbxB8ycY8TqPQnbjhOVjEifQm1q0y2tL1CUw9Zg=="],
 
-    "@supabase/storage-js": ["@supabase/storage-js@2.110.7", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@supabase/storage-js/-/storage-js-2.110.7.tgz", { "dependencies": { "iceberg-js": "^0.8.1", "tslib": "2.8.1" } }, "sha512-2tcDE8cjEDy1uKxKavBpKQod1JdMV1jDXQag48TCa+kycmJOltc0yVabC0BUlhOwAl6WykXU2aOsH3ELMtZrmQ=="],
+    "@supabase/storage-js": ["@supabase/storage-js@2.112.0", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@supabase/storage-js/-/storage-js-2.112.0.tgz", { "dependencies": { "iceberg-js": "^0.8.1", "tslib": "2.8.1" } }, "sha512-X44Bl045X/e5e2tJqWsY+JmQvgtm04BJuijiWprIWYLn0mDvGnu8hLdzPOPcTVji7wlqbt2ZUHttsv+rGKQYXw=="],
 
-    "@supabase/supabase-js": ["@supabase/supabase-js@2.110.7", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@supabase/supabase-js/-/supabase-js-2.110.7.tgz", { "dependencies": { "@supabase/auth-js": "2.110.7", "@supabase/functions-js": "2.110.7", "@supabase/postgrest-js": "2.110.7", "@supabase/realtime-js": "2.110.7", "@supabase/storage-js": "2.110.7" } }, "sha512-AnfO3A230Shy6RMO7cya3Wl1OcXnABJrzH8vP+fY7/RFjhzcchB7DjKkkTIAntlwekD+GkSFzEvt2tC+D4Fp8w=="],
+    "@supabase/supabase-js": ["@supabase/supabase-js@2.112.0", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@supabase/supabase-js/-/supabase-js-2.112.0.tgz", { "dependencies": { "@supabase/auth-js": "2.112.0", "@supabase/functions-js": "2.112.0", "@supabase/postgrest-js": "2.112.0", "@supabase/realtime-js": "2.112.0", "@supabase/storage-js": "2.112.0" }, "peerDependencies": { "@opentelemetry/api": ">=1.0.0" }, "optionalPeers": ["@opentelemetry/api"] }, "sha512-dHVOgog58GOagtrZuPxJYg/R45ZV2U0qqgXffH+lMlt1OS+267Pw4g7bw3iXCGxN85OufiE0nI1baxDXlgEyfQ=="],
 
     "@tabby_ai/hijri-converter": ["@tabby_ai/hijri-converter@1.0.5", "", {}, "sha512-r5bClKrcIusDoo049dSL8CawnHR6mRdDwhlQuIgZRNty68q0x8k3Lf1BtPAMxRf/GgnHBnIO4ujd3+GQdLWzxQ=="],
 
@@ -641,7 +648,11 @@
 
     "@types/estree": ["@types/estree@1.0.8", "", {}, "sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w=="],
 
+    "@types/geojson": ["@types/geojson@7946.0.16", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@types/geojson/-/geojson-7946.0.16.tgz", {}, "sha512-6C8nqWur3j98U6+lXDfTUWIfgvZU+EumvpHKcYjujKH7woYyLj2sUmff0tRhrqM7BohUw7Pz3ZB1jj2gW9Fvmg=="],
+
     "@types/json-schema": ["@types/json-schema@7.0.15", "", {}, "sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA=="],
+
+    "@types/leaflet": ["@types/leaflet@1.9.22", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@types/leaflet/-/leaflet-1.9.22.tgz", { "dependencies": { "@types/geojson": "*" } }, "sha512-h3lhECYEKDasG7LFHu+GiHqAvsgLuQvlJvVZzJDGONo3sEL+wUOqSFLnwkZlK0qVxnxbuGFW8iBlJNYs5wgndA=="],
 
     "@types/node": ["@types/node@22.19.17", "", { "dependencies": { "undici-types": "~6.21.0" } }, "sha512-wGdMcf+vPYM6jikpS/qhg6WiqSV/OhG+jeeHT/KlVqxYfD40iYJf9/AE1uQxVWFvU7MipKRkRv8NSHiCGgPr8Q=="],
 
@@ -987,6 +998,10 @@
 
     "launch-editor": ["launch-editor@2.14.1", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/launch-editor/-/launch-editor-2.14.1.tgz", { "dependencies": { "picocolors": "^1.1.1", "shell-quote": "^1.8.4" } }, "sha512-QWBrQsMpH7gPr965dsKD/3cKWiNoTjpATQf++Xq63N6sKRGMwlVXz41O1IZTMfZQgBctD/K5Zt06+/I6pP6+HA=="],
 
+    "leaflet": ["leaflet@1.9.4", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/leaflet/-/leaflet-1.9.4.tgz", {}, "sha512-nxS1ynzJOmOlHp+iL3FyWqK89GtNL8U8rvlMOsQdTTssxZwCXh8N2NB3GDQOL+YR3XnWyZAxwQixURb+FA74PA=="],
+
+    "leaflet.markercluster": ["leaflet.markercluster@1.5.3", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/leaflet.markercluster/-/leaflet.markercluster-1.5.3.tgz", { "peerDependencies": { "leaflet": "^1.3.1" } }, "sha512-vPTw/Bndq7eQHjLBVlWpnGeLa3t+3zGiuM7fJwCkiMFq+nmRuG3RI3f7f4N4TDX7T4NpbAXpR2+NTRSEGfCSeA=="],
+
     "levn": ["levn@0.4.1", "", { "dependencies": { "prelude-ls": "^1.2.1", "type-check": "~0.4.0" } }, "sha512-+bT2uH4E5LGE7h/n3evcS/sQlJXCpIp6ym8OWJ5eV6+67Dsql/LaaT7qJBAt2rzfoa/5QBGBhxDix1dMt2kQKQ=="],
 
     "lie": ["lie@3.3.0", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/lie/-/lie-3.3.0.tgz", { "dependencies": { "immediate": "~3.0.5" } }, "sha512-UaiMJzeWRlEujzAuw5LokY1L5ecNQYZKfmyZ9L7wDHb/p5etKaxXhohBcrw0EYby+G/NA52vRSN4N39dxHAIwQ=="],
@@ -1138,6 +1153,10 @@
     "react-hook-form": ["react-hook-form@7.73.1", "", { "peerDependencies": { "react": "^16.8.0 || ^17 || ^18 || ^19" } }, "sha512-VAfVYOPcx3piiEVQy95vyFmBwbVUsP/AUIN+mpFG8h11yshDd444nn0VyfaGWSRnhOLVgiDu7HIuBtAIzxn9dA=="],
 
     "react-is": ["react-is@18.3.1", "", {}, "sha512-/LLMVyas0ljjAtoYiPqYiL8VWXzUUdThrmU5+n20DZv+a+ClRoevUzw5JxU+Ieh5/c87ytoTBV9G1FiKfNJdmg=="],
+
+    "react-leaflet": ["react-leaflet@5.0.0", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/react-leaflet/-/react-leaflet-5.0.0.tgz", { "dependencies": { "@react-leaflet/core": "^3.0.0" }, "peerDependencies": { "leaflet": "^1.9.0", "react": "^19.0.0", "react-dom": "^19.0.0" } }, "sha512-CWbTpr5vcHw5bt9i4zSlPEVQdTVcML390TjeDG0cK59z1ylexpqC6M1PJFjV8jD7CF+ACBFsLIDs6DRMoLEofw=="],
+
+    "react-leaflet-cluster": ["react-leaflet-cluster@4.1.3", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/react-leaflet-cluster/-/react-leaflet-cluster-4.1.3.tgz", { "dependencies": { "leaflet.markercluster": "^1.5.3" }, "peerDependencies": { "@react-leaflet/core": "^3.0.0", "leaflet": "^1.9.0", "react": "^19.0.0", "react-dom": "^19.0.0", "react-leaflet": "^5.0.0" } }, "sha512-b3ICS7r9Fs5hBWrFPMVnmkCuDewyG3m1GaGzamXY0eryyAXDfQ+ikSkiR/mVethueIIA5MSyLok2/KsZVotspQ=="],
 
     "react-refresh": ["react-refresh@0.18.0", "", {}, "sha512-QgT5//D3jfjJb6Gsjxv0Slpj23ip+HtOpnNgnb2S5zU3CB26G/IDPGoy4RJB42wzFE46DRsstbW6tKHoKbhAxw=="],
 
