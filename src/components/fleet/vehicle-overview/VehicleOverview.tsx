@@ -177,22 +177,23 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
               )}
             </Card>
 
-            {/* Histórico Recente / Resumo */}
             <Card className="p-5 flex flex-col">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-2 text-primary">
                   <ClipboardList className="h-5 w-5" />
                   <h3 className="text-base font-bold">Histórico Recente</h3>
                 </div>
-                <Button variant="outline" size="sm" className="h-8 text-xs gap-1" onClick={() => setActiveTab("utilization")}>
-                  Ver tudo
-                  <ChevronRight className="h-3 w-3" />
-                </Button>
+                {vehicleUsages.length > 4 && (
+                  <Button variant="outline" size="sm" className="h-8 text-xs gap-1" onClick={() => setIsHistoryModalOpen(true)}>
+                    Ver tudo
+                    <ChevronRight className="h-3 w-3" />
+                  </Button>
+                )}
               </div>
               
               <div className="overflow-hidden flex-1">
                 <div className="space-y-1">
-                  {vehicleUsages.slice(0, 8).map(u => (
+                  {vehicleUsages.slice(0, 4).map(u => (
                     <div key={u.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/30 transition-colors border border-transparent hover:border-border/50">
                       <div className="flex flex-col">
                         <span className="text-[13px] font-medium">{u.operatorId}</span>
