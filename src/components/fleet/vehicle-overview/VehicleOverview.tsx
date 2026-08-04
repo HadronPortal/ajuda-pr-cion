@@ -280,12 +280,13 @@ function HeaderStat({ icon: Icon, label, value, className }: { icon: any, label:
   );
 }
 
-function ActionButton({ icon: Icon, label, disabled }: { icon: any, label: string, disabled?: boolean }) {
+function ActionButton({ icon: Icon, label, disabled, onClick }: { icon: any, label: string, disabled?: boolean, onClick?: () => void }) {
   return (
     <Button 
       variant="outline" 
       size="sm" 
       disabled={disabled}
+      onClick={onClick}
       className={cn(
         "h-9 gap-2 bg-background hover:bg-muted/50 transition-colors border-border/60 shadow-sm",
         disabled && "opacity-50 grayscale"
