@@ -22,8 +22,7 @@ import {
   type VehicleStatus,
 } from "@/lib/fleet-store";
 import { fleetActions } from "@/lib/fleet-action-store";
-import { VehicleHistoryModal } from "@/components/fleet/VehicleHistoryModal";
-import { VehicleEditorModal } from "@/components/fleet/VehicleEditorModal";
+import { FleetDetailModal } from "@/components/fleet/FleetDetailModal";
 import { MaintenanceDialog } from "@/components/fleet/MaintenanceDialog";
 import { cn } from "@/lib/utils";
 
