@@ -80,7 +80,7 @@ function VehicleUsageMapContent({
   useEffect(() => {
     // Import Leaflet only on client side
     import("leaflet").then((leaflet) => {
-      const leafletLib = leaflet.default || leaflet;
+      const leafletLib = (leaflet as any).default || leaflet;
       console.log('Leaflet loaded:', !!leafletLib);
       setL(leafletLib);
       
