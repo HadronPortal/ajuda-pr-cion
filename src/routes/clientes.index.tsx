@@ -72,6 +72,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { listClients } from "@/lib/clients-api";
 import type {
@@ -90,7 +91,6 @@ import type {
 } from "@/lib/clients-api";
 import { normalizeCityUf } from "@/lib/br-city";
 import { supabase } from "@/lib/supabase";
-import { toast } from "sonner";
 import hadronIconUrl from "@/assets/menu-hadron-solid.png";
 
 export function HadronMenuIcon({ className }: { className?: string }) {
@@ -213,10 +213,10 @@ export const Route = createFileRoute("/clientes/")({
   validateSearch: zodValidator(clientesSearchSchema),
   loader: async () => {
     try {
-      return { clients: await listClients() };
+      return { clients: await listClients(), loadFailed: false };
     } catch (error) {
       console.error("Não foi possível carregar clientes do Supabase", error);
-      return { clients: clientRows };
+      return { clients: [] as ClientRow[], loadFailed: true };
     }
   },
   component: ClientsPage,
@@ -633,7 +633,9 @@ function ClientVersionCell({ client }: { client: ClientRow }) {
 }
 
 function ClientsPage() {
-  const { clients } = Route.useLoaderData() as { clients: ClientRow[] };
+  const loaderData = Route.useLoaderData() as { clients: ClientRow[]; loadFailed?: boolean };
+  const [clients, setClients] = useState<ClientRow[]>(loaderData.clients);
+  const [clientsLoading, setClientsLoading] = useState(Boolean(loaderData.loadFailed));
   const { grupo, origem, q, sigla: siglaParam, status: statusParam } = Route.useSearch();
   const navigate = useNavigate();
   const grupoParam = (grupo ?? "").trim().toUpperCase();
@@ -656,6 +658,26 @@ function ClientsPage() {
     key: "registered",
     dir: "desc",
   });
+
+  useEffect(() => {
+    if (!loaderData.loadFailed) return;
+    let cancelled = false;
+    setClientsLoading(true);
+    listClients()
+      .then((rows) => {
+        if (!cancelled) setClients(rows);
+      })
+      .catch((error) => {
+        console.error("Não foi possível recarregar clientes no navegador", error);
+        if (!cancelled) toast.error("Não foi possível carregar os clientes. Tente novamente.");
+      })
+      .finally(() => {
+        if (!cancelled) setClientsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [loaderData.loadFailed]);
 
   useEffect(() => {
     lastFilters = filters;
@@ -1159,7 +1181,15 @@ function ClientsPage() {
                 </tr>
               ))}
 
-              {filtered.length === 0 && (
+              {clientsLoading && (
+                <tr>
+                  <td colSpan={7} className="px-4 py-10 text-center text-sm text-muted-foreground">
+                    Carregando todos os clientes...
+                  </td>
+                </tr>
+              )}
+
+              {!clientsLoading && filtered.length === 0 && (
                 <tr>
                   <td colSpan={7} className="px-4 py-10 text-center text-sm text-muted-foreground">
                     Nenhum cliente encontrado com os filtros atuais.

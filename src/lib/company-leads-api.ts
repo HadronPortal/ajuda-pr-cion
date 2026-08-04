@@ -146,14 +146,30 @@ function buildFilterPayload(filters: CompanyLeadFilters) {
 
 export const companyLeadsApi = {
   async list(query: CompanyLeadsQuery): Promise<LeadsResponse> {
-    const { data, error } = await supabase.rpc("company_leads_search", {
+    let { data, error } = await supabase.rpc("company_leads_search", {
       p_filters: buildFilterPayload(query.filters),
       p_sort: query.sort,
       p_direction: query.direction,
       p_limit: query.limit,
       p_offset: query.offset,
     });
-    if (error) throw error;
+    if (error?.code === "PGRST202") {
+      const legacyResult = await supabase.rpc("company_leads_search", {
+        p_filters: buildFilterPayload(query.filters),
+        p_sort_key: query.sort,
+        p_sort_dir: query.direction,
+        p_limit: query.limit,
+        p_offset: query.offset,
+      });
+      data = legacyResult.data;
+      error = legacyResult.error;
+    }
+    if (error) {
+      throw new Error(
+        [error.message, error.details, error.hint].filter(Boolean).join(" ") ||
+          "Falha ao procurar empresas.",
+      );
+    }
     const payload = (data || {}) as {
       rows?: CompanyLead[];
       total?: number;
