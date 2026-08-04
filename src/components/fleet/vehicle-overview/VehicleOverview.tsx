@@ -17,7 +17,8 @@ import {
   Key,
   MapPin,
   AlertTriangle,
-  Download
+  Download,
+  Settings
 } from "lucide-react";
 import { 
   type Vehicle, 
