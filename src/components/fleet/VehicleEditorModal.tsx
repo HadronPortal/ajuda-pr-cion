@@ -316,15 +316,35 @@ export function VehicleEditorModal({ vehicle, open, onOpenChange }: Props) {
                   Iniciar manutenção
                 </Button>
               </div>
-              <div className="space-y-2">
-                <h3 className="flex items-center gap-2 text-sm font-medium"><Wrench className="h-4 w-4 text-primary" />Histórico de manutenção</h3>
-                {(draft.maintenanceRecords ?? []).length === 0 ? <p className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">Nenhuma manutenção registrada.</p> : draft.maintenanceRecords?.map((record) => (
-                  <div key={record.id} className="grid gap-1 rounded-md border border-border p-3 text-sm sm:grid-cols-[110px_1fr_auto]">
-                    <span className="text-muted-foreground">{formatDate(record.entryDate)}</span>
-                    <div><p className="font-medium">{record.reason}</p><p className="text-xs text-muted-foreground">{[record.workshop, record.entryMileage ? `${record.entryMileage.toLocaleString("pt-BR")} km` : null, record.notes].filter(Boolean).join(" · ")}</p></div>
-                    <span className="tabular-nums">{record.cost !== undefined ? record.cost.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 2 }) : ""}</span>
-                  </div>
-                ))}
+              <div className="space-y-3">
+                <h3 className="flex items-center gap-2 text-[11px] font-bold text-muted-foreground uppercase tracking-wider pl-1">
+                  <Wrench className="h-3.5 w-3.5 text-primary/70" />
+                  Histórico de manutenção
+                </h3>
+                <div className="space-y-2">
+                  {(draft.maintenanceRecords ?? []).length === 0 ? (
+                    <div className="rounded-xl border border-dashed border-border p-8 text-center bg-muted/5">
+                      <p className="text-sm text-muted-foreground">Nenhuma manutenção registrada.</p>
+                    </div>
+                  ) : (
+                    draft.maintenanceRecords?.map((record) => (
+                      <div key={record.id} className="grid grid-cols-1 sm:grid-cols-[100px_1fr_auto] gap-3 items-center rounded-xl border border-border/50 bg-card p-3 shadow-sm hover:border-primary/20 transition-colors">
+                        <span className="text-[11px] font-medium text-muted-foreground tabular-nums bg-muted/50 px-2 py-1 rounded text-center shrink-0">
+                          {formatDate(record.entryDate)}
+                        </span>
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold truncate">{record.reason}</p>
+                          <p className="text-[11px] text-muted-foreground truncate">
+                            {[record.workshop, record.entryMileage ? `${record.entryMileage.toLocaleString("pt-BR")} km` : null, record.notes].filter(Boolean).join(" · ")}
+                          </p>
+                        </div>
+                        <span className="text-sm font-bold text-primary tabular-nums shrink-0">
+                          {record.cost !== undefined ? record.cost.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 2 }) : ""}
+                        </span>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
             </TabsContent>
           </div>
