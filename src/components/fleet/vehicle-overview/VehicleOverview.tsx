@@ -281,9 +281,10 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
               ) : (
                 <div className="grid gap-4">
                   {(vehicle.maintenanceRecords ?? []).map(m => (
-                    <Card key={m.id} className="p-4 hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => {
-                      // Logic to view maintenance details
-                    }}>
+                      <Card key={m.id} className="p-4 hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => {
+                        setSelectedMaintenance(m);
+                        setIsMaintenanceDetailsOpen(true);
+                      }}>
                       <div className="flex items-start justify-between">
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
