@@ -1,4 +1,4 @@
-import { Suspense, forwardRef, useImperativeHandle, useRef, useMemo } from "react";
+import { useState, Suspense, forwardRef, useImperativeHandle, useRef, useMemo } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { 
   OrbitControls, 
