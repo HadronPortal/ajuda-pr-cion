@@ -196,6 +196,7 @@ function ConfigInput({
   );
 }
 import { CreateEventDialog } from "@/components/calendar/CreateEventDialog";
+import { CompanyLeadsTab } from "@/components/clients/CompanyLeadsTab";
 import { addLocalEvent, useLocalEventsForClient } from "@/lib/local-events-store";
 
 const clientesSearchSchema = z.object({
@@ -638,7 +639,7 @@ function ClientsPage() {
   const grupoParam = (grupo ?? "").trim().toUpperCase();
   const initialStatus = (QUICK_STATUS_OPTIONS as string[]).includes(statusParam ?? "")
     ? (statusParam as StatusFilter)
-    : "Ativo";
+    : "Todos";
   const [filters, setFilters] = useState<Filters>(() =>
     grupoParam
       ? { ...emptyFilters, siglaGrupo: grupoParam, status: initialStatus }
@@ -649,6 +650,7 @@ function ClientsPage() {
   const [quickAcronym, setQuickAcronym] = useState(() => siglaParam ?? "");
   const [draft, setDraft] = useState<Filters>(() => filters);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState<"clientes" | "prospeccao">("clientes");
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState<{ key: SortKey; dir: "asc" | "desc" } | null>({
     key: "registered",
@@ -915,6 +917,39 @@ function ClientsPage() {
         breadcrumbs={[{ label: "Clientes" }]}
       />
 
+      {!grupoParam && (
+        <div className="mb-5 flex items-center gap-1 border-b border-border">
+          <button
+            type="button"
+            onClick={() => setActiveSection("clientes")}
+            className={cn(
+              "relative h-10 cursor-pointer px-4 text-sm font-medium transition-colors",
+              activeSection === "clientes"
+                ? "text-primary after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-primary"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            Clientes
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveSection("prospeccao")}
+            className={cn(
+              "relative h-10 cursor-pointer px-4 text-sm font-medium transition-colors",
+              activeSection === "prospeccao"
+                ? "text-primary after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-primary"
+                : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            Prospecção
+          </button>
+        </div>
+      )}
+
+      {activeSection === "prospeccao" && !grupoParam ? (
+        <CompanyLeadsTab />
+      ) : (
+        <>
       <div className="mb-3">
         <div className="mb-2 flex justify-end">
           <Button
@@ -1160,6 +1195,8 @@ function ClientsPage() {
         }}
         onClear={() => setDraft(emptyFilters)}
       />
+        </>
+      )}
     </AppShell>
   );
 }
