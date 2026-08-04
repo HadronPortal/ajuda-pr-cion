@@ -85,10 +85,10 @@ export function VehicleEditorModal({ vehicle, open, onOpenChange }: Props) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex max-h-[88vh] max-w-3xl flex-col overflow-hidden p-0">
-        <DialogHeader className="border-b border-border px-5 py-4">
-          <DialogTitle className="flex items-center gap-2 text-lg">
-            <CarFront className="h-5 w-5 text-primary" />
-            Editar veículo · {draft.model}
+        <DialogHeader className="px-5 py-3 border-b border-border">
+          <DialogTitle className="flex flex-col gap-0.5">
+            <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Editar veículo</span>
+            <span className="text-base font-semibold">{draft.model}</span>
           </DialogTitle>
         </DialogHeader>
 
