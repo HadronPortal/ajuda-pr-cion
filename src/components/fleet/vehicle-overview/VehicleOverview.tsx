@@ -88,8 +88,13 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
           </div>
         </div>
 
-        <Card className="grid grid-cols-2 gap-y-4 gap-x-2 p-4 sm:grid-cols-4 lg:grid-cols-8 bg-muted/20 border-border/50">
-          <HeaderStat icon={Calendar} label="Modelo e ano" value={`${vehicle.model} / ${vehicle.yearModel}`} />
+        <Card className="grid grid-cols-2 gap-y-4 gap-x-6 p-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 bg-muted/20 border-border/50">
+          <HeaderStat 
+            icon={Calendar} 
+            label="Modelo e ano" 
+            value={`${vehicle.model} / ${vehicle.yearModel}`} 
+            className="sm:col-span-2 lg:col-span-2"
+          />
           <HeaderStat icon={FileText} label="Placa" value={vehicle.plate} />
           <HeaderStat icon={ShieldCheck} label="Renavam" value={vehicle.renavam || "—"} />
           <HeaderStat icon={Gauge} label="KM Atual" value={`${vehicle.currentMileage.toLocaleString("pt-BR")} km`} />
@@ -121,25 +126,7 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
         </TabsList>
 
         <TabsContent value="overview" className="mt-6 flex flex-col gap-6">
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {/* Informações Gerais */}
-            <Card className="p-5 flex flex-col">
-              <div className="flex items-center gap-2 mb-6 text-primary">
-                <Info className="h-5 w-5" />
-                <h3 className="text-base font-bold">Informações Gerais</h3>
-              </div>
-              <div className="grid grid-cols-1 gap-5 flex-1">
-                <SideInfo label="Situação licenciamento" value={licensing.label} 
-                  status={licensing.status === "overdue" ? "critical" : licensing.status === "due_soon" ? "warning" : "normal"} 
-                />
-                <SideInfo label="Próxima manutenção" value={vehicle.nextRevisionDate} />
-                <SideInfo label="Utilização atual" value={currentUsage ? `Em uso (${currentUsage.operatorId})` : "Disponível"} />
-                <SideInfo label="Último condutor" value={lastUsage?.operatorId || "—"} />
-                <SideInfo label="Quilometragem" value={`${vehicle.currentMileage.toLocaleString("pt-BR")} km`} />
-                <SideInfo label="Combustível" value={vehicle.fuelLevel} />
-              </div>
-            </Card>
-
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             {/* Últimas Utilizações */}
             <Card className="p-5 flex flex-col">
               <div className="flex items-center gap-2 mb-6 text-primary">
@@ -179,7 +166,7 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
             </Card>
 
             {/* Histórico Recente / Resumo */}
-            <Card className="p-5 flex flex-col lg:col-span-1 md:col-span-2">
+            <Card className="p-5 flex flex-col">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-2 text-primary">
                   <ClipboardList className="h-5 w-5" />
@@ -193,7 +180,7 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
               
               <div className="overflow-hidden flex-1">
                 <div className="space-y-1">
-                  {vehicleUsages.slice(0, 6).map(u => (
+                  {vehicleUsages.slice(0, 8).map(u => (
                     <div key={u.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/30 transition-colors border border-transparent hover:border-border/50">
                       <div className="flex flex-col">
                         <span className="text-[13px] font-medium">{u.operatorId}</span>
@@ -260,14 +247,14 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
   );
 }
 
-function HeaderStat({ icon: Icon, label, value }: { icon: any, label: string, value: string }) {
+function HeaderStat({ icon: Icon, label, value, className }: { icon: any, label: string, value: string, className?: string }) {
   return (
-    <div className="flex flex-col gap-1">
-      <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-muted-foreground">
-        <Icon className="h-3 w-3" />
-        {label}
+    <div className={cn("flex flex-col gap-1 min-w-0", className)}>
+      <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-muted-foreground whitespace-nowrap overflow-hidden">
+        <Icon className="h-3 w-3 shrink-0" />
+        <span className="truncate">{label}</span>
       </div>
-      <div className="text-[13px] font-medium truncate">{value}</div>
+      <div className="text-[13px] font-medium leading-tight break-words line-clamp-2">{value}</div>
     </div>
   );
 }
