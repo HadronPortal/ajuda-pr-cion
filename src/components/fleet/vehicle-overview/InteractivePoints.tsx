@@ -16,7 +16,7 @@ interface InteractivePointsProps {
   onPointClick: (name: string, data: ComponentStatus) => void;
 }
 
-const COMPONENT_DATA: Record<string, ComponentStatus> = {
+export const COMPONENT_DATA: Record<string, ComponentStatus> = {
   "Pneu Dianteiro Esquerdo": {
     condition: "Bom - 32 psi",
     lastCheck: "10/07/2026",
@@ -63,6 +63,30 @@ const COMPONENT_DATA: Record<string, ComponentStatus> = {
     lastMaintenance: "20/02/2025",
     nextCheck: "15/01/2027",
     notes: "Tensão de saída estável.",
+    status: "normal"
+  },
+  "Freios": {
+    condition: "Bom",
+    lastCheck: "12/07/2026",
+    lastMaintenance: "01/03/2026",
+    nextCheck: "12/01/2027",
+    notes: "Pastilhas em meia vida.",
+    status: "normal"
+  },
+  "Óleo": {
+    condition: "Nível OK",
+    lastCheck: "20/07/2026",
+    lastMaintenance: "10/05/2026",
+    nextCheck: "10/11/2026",
+    notes: "Viscosidade dentro do esperado.",
+    status: "normal"
+  },
+  "Carroceria": {
+    condition: "Excelente",
+    lastCheck: "15/07/2026",
+    lastMaintenance: "—",
+    nextCheck: "15/01/2027",
+    notes: "Pintura protegida com cera.",
     status: "normal"
   }
 };
