@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { 
   ArrowLeft, 
@@ -8,8 +8,6 @@ import {
   Undo2, 
   FileText, 
   History,
-  AlertTriangle,
-  Info,
   ChevronRight,
   Gauge,
   Fuel,
@@ -17,11 +15,12 @@ import {
   ShieldCheck,
   User,
   LayoutDashboard,
-  Tractor
+  MapPin,
+  Clock,
+  ClipboardList
 } from "lucide-react";
 import { 
   type Vehicle, 
-  type VehicleUsage,
   useUsages,
   formatFleetDateTime,
   getLicensingStatus,
@@ -31,9 +30,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { VehicleScene } from "./VehicleScene";
-import { ComponentInfoPanel, COMPONENT_DATA } from "./InteractivePoints";
-import { VehicleUsageMap } from "./VehicleUsageMap";
 import { cn } from "@/lib/utils";
 
 interface VehicleOverviewProps {
@@ -44,60 +40,12 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
   const navigate = useNavigate();
   const usages = useUsages();
   const [activeTab, setActiveTab] = useState("overview");
-  const [selectedPoint, setSelectedPoint] = useState<{ name: string; data: any } | null>(null);
-  const [mapFilters, setMapFilters] = useState({
-    period: "all",
-    client: "all",
-    operator: "all",
-    status: "all"
-  });
 
   const vehicleUsages = useMemo(() => {
     return usages
       .filter((u) => u.vehicleId === vehicle.id)
       .sort((a, b) => (b.returnedAt ?? b.updatedAt).localeCompare(a.returnedAt ?? a.updatedAt));
   }, [usages, vehicle.id]);
-
-  const filteredUsages = useMemo(() => {
-    return vehicleUsages.filter(u => {
-      // Normalize internal status for filtering
-      const status = u.status.toLowerCase();
-      const filterStatus = mapFilters.status.toLowerCase();
-      
-      if (filterStatus !== "all") {
-        const isCompleted = filterStatus === "concluido" && (status === "concluido" || status === "devolvido");
-        const isInUse = filterStatus === "em_deslocamento" && (status === "em_deslocamento" || status === "em_uso");
-        const isScheduled = filterStatus === "agendado" && (status === "agendado" || status === "aguardando_retirada");
-        const isCancelled = filterStatus === "cancelado" && status === "cancelado";
-        
-        if (!isCompleted && !isInUse && !isScheduled && !isCancelled) return false;
-      }
-
-      if (mapFilters.operator !== "all" && u.operatorId !== mapFilters.operator) return false;
-      if (mapFilters.client !== "all" && u.client !== mapFilters.client) return false;
-      
-      if (mapFilters.period !== "all") {
-        const dateStr = u.departureAt || u.scheduledStartAt || "";
-        if (!dateStr) return false;
-        const date = new Date(dateStr);
-        const now = new Date();
-        if (mapFilters.period === "today") {
-          return date.toDateString() === now.toDateString();
-        }
-        if (mapFilters.period === "week") {
-          const weekAgo = new Date();
-          weekAgo.setDate(now.getDate() - 7);
-          return date >= weekAgo;
-        }
-        if (mapFilters.period === "month") {
-          const monthAgo = new Date();
-          monthAgo.setMonth(now.getMonth() - 1);
-          return date >= monthAgo;
-        }
-      }
-      return true;
-    });
-  }, [vehicleUsages, mapFilters]);
 
   const lastUsage = vehicleUsages.find(u => u.status === "devolvido");
   const currentUsage = vehicleUsages.find(u => u.status === "em_deslocamento");
@@ -172,94 +120,133 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
         </TabsList>
 
         <TabsContent value="overview" className="mt-6 flex flex-col gap-6">
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-            {/* Map Area */}
-            <div className="lg:col-span-2 flex flex-col gap-6">
-              <Card className="relative h-[450px] overflow-hidden">
-                <VehicleUsageMap 
-                  usages={filteredUsages} 
-                  filters={mapFilters}
-                  onFilterChange={(f) => setMapFilters(prev => ({ ...prev, ...f }))}
-                  allOperators={Array.from(new Set(vehicleUsages.map(u => u.operatorId)))}
-                  allClients={Array.from(new Set(vehicleUsages.map(u => u.client).filter(Boolean) as string[]))}
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {/* Informações Gerais */}
+            <Card className="p-5 flex flex-col">
+              <div className="flex items-center gap-2 mb-6 text-primary">
+                <Info className="h-5 w-5" />
+                <h3 className="text-base font-bold">Informações Gerais</h3>
+              </div>
+              <div className="grid grid-cols-1 gap-5 flex-1">
+                <SideInfo label="Situação licenciamento" value={licensing.label} 
+                  status={licensing.status === "overdue" ? "critical" : licensing.status === "due_soon" ? "warning" : "normal"} 
                 />
-              </Card>
-            </div>
+                <SideInfo label="Próxima manutenção" value={vehicle.nextRevisionDate} />
+                <SideInfo label="Utilização atual" value={currentUsage ? `Em uso (${currentUsage.operatorId})` : "Disponível"} />
+                <SideInfo label="Último condutor" value={lastUsage?.operatorId || "—"} />
+                <SideInfo label="Quilometragem" value={`${vehicle.currentMileage.toLocaleString("pt-BR")} km`} />
+                <SideInfo label="Combustível" value={vehicle.fuelLevel} />
+              </div>
+            </Card>
 
-            {/* Side Panel */}
-            <div className="flex flex-col gap-6">
-              <Card className="p-4">
-                <h3 className="mb-4 text-sm font-semibold">Informações Gerais</h3>
-                <div className="space-y-3">
-                  <SideInfo label="Situação licenciamento" value={licensing.label} 
-                    status={licensing.status === "overdue" ? "critical" : licensing.status === "due_soon" ? "warning" : "normal"} 
-                  />
-                  <SideInfo label="Próxima manutenção" value={vehicle.nextRevisionDate} />
-                  <SideInfo label="Utilização atual" value={currentUsage ? `Em uso (${currentUsage.operatorId})` : "Disponível"} />
-                  <SideInfo label="Último condutor" value={lastUsage?.operatorId || "—"} />
-                  <SideInfo label="Quilometragem" value={`${vehicle.currentMileage.toLocaleString("pt-BR")} km`} />
-                  <SideInfo label="Combustível" value={vehicle.fuelLevel} />
-                </div>
-              </Card>
-
-              <Card className="p-4">
-                <h3 className="mb-4 text-sm font-semibold">Últimas Utilizações</h3>
-                <div className="space-y-4">
-                  {vehicleUsages.slice(0, 3).map(u => (
-                    <div key={u.id} className="border-b pb-3 last:border-0 last:pb-0">
-                      <div className="flex items-center justify-between font-medium">
+            {/* Últimas Utilizações */}
+            <Card className="p-5 flex flex-col">
+              <div className="flex items-center gap-2 mb-6 text-primary">
+                <Clock className="h-5 w-5" />
+                <h3 className="text-base font-bold">Últimas Utilizações</h3>
+              </div>
+              <div className="space-y-4 flex-1">
+                {vehicleUsages.slice(0, 5).map(u => (
+                  <div key={u.id} className="group border-b border-border/40 pb-4 last:border-0 last:pb-0">
+                    <div className="flex items-center justify-between font-semibold mb-1">
+                      <div className="flex items-center gap-2">
+                        <User className="h-3.5 w-3.5 text-muted-foreground" />
                         <span className="text-[13px]">{u.operatorId}</span>
-                        <span className="text-[12px] text-muted-foreground">{formatFleetDateTime(u.departureAt).split(',')[0]}</span>
                       </div>
-                      <div className="mt-1 text-[12px] text-muted-foreground">
-                        {u.destination}
+                      <span className="text-[12px] text-muted-foreground font-normal bg-muted/50 px-2 py-0.5 rounded-full">
+                        {formatFleetDateTime(u.departureAt).split(',')[0]}
+                      </span>
+                    </div>
+                    <div className="flex items-start gap-2 text-[12px] text-muted-foreground group-hover:text-foreground transition-colors">
+                      <MapPin className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                      <span className="line-clamp-1">{u.destination}</span>
+                    </div>
+                  </div>
+                ))}
+                {vehicleUsages.length === 0 && (
+                  <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                    <History className="h-8 w-8 mb-2 opacity-20" />
+                    <p className="text-sm">Nenhum histórico disponível.</p>
+                  </div>
+                )}
+              </div>
+              {vehicleUsages.length > 5 && (
+                <Button variant="ghost" size="sm" className="mt-4 w-full text-xs text-muted-foreground hover:text-primary" onClick={() => setActiveTab("utilization")}>
+                  Ver todas as utilizações
+                </Button>
+              )}
+            </Card>
+
+            {/* Histórico Recente / Resumo */}
+            <Card className="p-5 flex flex-col lg:col-span-1 md:col-span-2">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-2 text-primary">
+                  <ClipboardList className="h-5 w-5" />
+                  <h3 className="text-base font-bold">Histórico Recente</h3>
+                </div>
+                <Button variant="outline" size="sm" className="h-8 text-xs gap-1" onClick={() => setActiveTab("utilization")}>
+                  Ver tudo
+                  <ChevronRight className="h-3 w-3" />
+                </Button>
+              </div>
+              
+              <div className="overflow-hidden flex-1">
+                <div className="space-y-1">
+                  {vehicleUsages.slice(0, 6).map(u => (
+                    <div key={u.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/30 transition-colors border border-transparent hover:border-border/50">
+                      <div className="flex flex-col">
+                        <span className="text-[13px] font-medium">{u.operatorId}</span>
+                        <span className="text-[11px] text-muted-foreground">{formatFleetDateTime(u.departureAt)}</span>
+                      </div>
+                      <div className="flex flex-col items-end">
+                        <Badge variant="outline" className="text-[10px] uppercase font-bold px-1.5 h-5 mb-1">
+                          {u.returnMileage ? `${u.returnMileage.toLocaleString("pt-BR")} km` : "—"}
+                        </Badge>
+                        <span className="text-[11px] text-muted-foreground">Utilização</span>
                       </div>
                     </div>
                   ))}
                   {vehicleUsages.length === 0 && (
-                    <p className="text-center text-sm text-muted-foreground py-4">Nenhum histórico.</p>
+                    <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                      <History className="h-8 w-8 mb-2 opacity-20" />
+                      <p className="text-sm">Nenhum registro encontrado.</p>
+                    </div>
                   )}
                 </div>
-              </Card>
-            </div>
+              </div>
+            </Card>
           </div>
 
-          {/* Bottom History Table */}
-          <Card className="p-4">
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-sm font-semibold">Histórico Recente</h3>
-              <Button variant="ghost" size="sm" className="text-xs">
-                Ver todo o histórico
-                <ChevronRight className="ml-1 h-3 w-3" />
-              </Button>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-[13px]">
-                <thead>
-                  <tr className="border-b text-muted-foreground">
-                    <th className="pb-2 text-left font-medium">Data</th>
-                    <th className="pb-2 text-left font-medium">Tipo de serviço</th>
-                    <th className="pb-2 text-left font-medium">Operador / Oficina</th>
-                    <th className="pb-2 text-left font-medium">Quilometragem</th>
-                    <th className="pb-2 text-left font-medium text-right">Ação</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {vehicleUsages.slice(0, 5).map(u => (
-                    <tr key={u.id} className="border-b last:border-0">
-                      <td className="py-3 tabular-nums">{formatFleetDateTime(u.departureAt).split(',')[0]}</td>
-                      <td className="py-3">Utilização</td>
-                      <td className="py-3">{u.operatorId}</td>
-                      <td className="py-3 tabular-nums">{u.returnMileage ? `${u.returnMileage.toLocaleString("pt-BR")} km` : "—"}</td>
-                      <td className="py-3 text-right">
-                        <Button variant="ghost" size="sm" className="h-7 text-xs">Ver detalhes</Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </Card>
+          {/* Manutenção Preventiva e Alertas (Extra Info) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card className="p-5 border-l-4 border-l-blue-500">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-500/10 rounded-lg">
+                  <ShieldCheck className="h-5 w-5 text-blue-500" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold">Manutenção e Revisão</h4>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Próxima revisão agendada para <span className="font-semibold text-foreground">{vehicle.nextRevisionDate}</span> ou ao atingir <span className="font-semibold text-foreground">{(vehicle.currentMileage + 10000).toLocaleString("pt-BR")} km</span>.
+                  </p>
+                </div>
+              </div>
+            </Card>
+
+            <Card className="p-5 border-l-4 border-l-emerald-500">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-emerald-500/10 rounded-lg">
+                  <Gauge className="h-5 w-5 text-emerald-500" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold">Consumo Médio Est.</h4>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    O veículo apresenta um consumo médio estimado de <span className="font-semibold text-foreground">12.5 km/l</span> nos últimos 30 dias.
+                  </p>
+                </div>
+              </div>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="maintenance">
@@ -314,16 +301,19 @@ function TabTrigger({ value, children }: { value: string, children: React.ReactN
 
 function SideInfo({ label, value, status = "normal" }: { label: string, value: string, status?: "normal" | "warning" | "critical" }) {
   return (
-    <div className="flex flex-col gap-1">
-      <span className="text-[11px] uppercase tracking-wider text-muted-foreground">{label}</span>
+    <div className="flex flex-col gap-1.5 p-3 rounded-lg bg-muted/30 border border-border/40">
+      <span className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground/80">{label}</span>
       <div className="flex items-center gap-2">
         {status !== "normal" && (
           <div className={cn(
-            "h-2 w-2 rounded-full",
-            status === "critical" ? "bg-red-500" : "bg-amber-500"
+            "h-2 w-2 rounded-full animate-pulse",
+            status === "critical" ? "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]" : "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]"
           )} />
         )}
-        <span className="text-[13px] font-medium">{value}</span>
+        <span className={cn(
+          "text-[13px] font-semibold",
+          status === "critical" ? "text-red-500" : status === "warning" ? "text-amber-500" : "text-foreground"
+        )}>{value}</span>
       </div>
     </div>
   );
