@@ -20,11 +20,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   useUsages,
   USAGE_STATUS_LABEL,
+  formatFleetDateTime,
   type UsageStatus,
   type Vehicle,
   type VehicleUsage,
+  type VehicleMaintenance,
 } from "@/lib/fleet-store";
 import { cn } from "@/lib/utils";
+import { Card } from "@/components/ui/card";
+import { Store } from "lucide-react";
 
 // ---------------------------------------------------------------------------
 // Utilidades
