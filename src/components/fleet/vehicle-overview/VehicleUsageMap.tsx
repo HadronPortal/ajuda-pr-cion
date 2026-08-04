@@ -111,20 +111,18 @@ function VehicleUsageMapContent({
            continue;
         }
 
-        const fullAddress = [
-          client.address || client.logradouro,
-          client.number || client.numero,
-          client.complement || client.complemento,
-          client.neighborhood || client.bairro,
-          client.city || client.cidade,
-          client.state || client.uf,
-          client.zipCode || client.cep
-        ].filter(Boolean).join(", ");
-
-        if (!fullAddress || fullAddress.trim().length < 5) {
-          results.push({ ...usage, clientData: client, geocodingError: true });
-          continue;
-        }
+        // Normalizar endereço seguindo regras de negócio
+        const parts = [
+          client.logradouro,
+          client.numero,
+          client.bairro,
+          client.cidade,
+          client.uf?.toUpperCase(),
+          client.cep?.replace(/\D/g, "").replace(/(\d{5})(\d{3})/, "$1-$2"),
+          "Brasil"
+        ].filter(v => v && v !== "undefined" && v !== "null" && v.trim() !== "");
+        
+        const fullAddress = Array.from(new Set(parts)).join(", ");
 
         try {
           const res = await fetchCoords({ data: fullAddress });
