@@ -60,12 +60,26 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
 
   const filteredUsages = useMemo(() => {
     return vehicleUsages.filter(u => {
-      if (mapFilters.status !== "all" && u.status !== mapFilters.status) return false;
+      // Normalize internal status for filtering
+      const status = u.status.toLowerCase();
+      const filterStatus = mapFilters.status.toLowerCase();
+      
+      if (filterStatus !== "all") {
+        const isCompleted = filterStatus === "concluido" && (status === "concluido" || status === "devolvido");
+        const isInUse = filterStatus === "em_deslocamento" && (status === "em_deslocamento" || status === "em_uso");
+        const isScheduled = filterStatus === "agendado" && (status === "agendado" || status === "aguardando_retirada");
+        const isCancelled = filterStatus === "cancelado" && status === "cancelado";
+        
+        if (!isCompleted && !isInUse && !isScheduled && !isCancelled) return false;
+      }
+
       if (mapFilters.operator !== "all" && u.operatorId !== mapFilters.operator) return false;
       if (mapFilters.client !== "all" && u.client !== mapFilters.client) return false;
       
       if (mapFilters.period !== "all") {
-        const date = new Date(u.departureAt || u.scheduledStartAt || "");
+        const dateStr = u.departureAt || u.scheduledStartAt || "";
+        if (!dateStr) return false;
+        const date = new Date(dateStr);
         const now = new Date();
         if (mapFilters.period === "today") {
           return date.toDateString() === now.toDateString();
