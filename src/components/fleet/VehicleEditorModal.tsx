@@ -318,9 +318,23 @@ export function VehicleEditorModal({ vehicle, open, onOpenChange }: Props) {
           </div>
         </Tabs>
 
-        <div className="flex justify-end gap-2 border-t border-border px-5 py-3">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={save}><Save className="mr-2 h-4 w-4" />Salvar alterações</Button>
+        <div className="flex justify-end gap-3 border-t border-border px-5 py-3 bg-card shrink-0">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => onOpenChange(false)}
+            className="h-9 px-4 text-muted-foreground hover:text-foreground"
+          >
+            Cancelar
+          </Button>
+          <Button 
+            size="sm"
+            onClick={save}
+            className="h-9 px-4 bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm gap-2"
+          >
+            <Save className="h-4 w-4" />
+            Salvar alterações
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
