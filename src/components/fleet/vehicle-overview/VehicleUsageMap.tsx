@@ -105,19 +105,9 @@ function VehicleUsageMapContent({
     let active = true;
     async function enrich() {
       setLoading(true);
-      const results: UsageWithCoords[] = [];
-      
-      for (const usage of usages) {
-        // Find client by ID or acronym as fallback
-        const client = getClientById(usage.client) as any;
-        
-        if (!client) {
-           results.push({ ...usage, geocodingError: true });
-           continue;
-        }
-
-        // Normalizar endereço seguindo regras de negócio
-        const parts = [
+      const initialResults: UsageWithCoords[] = usages.map(u => {
+        const client = getClientById(u.client);
+        const parts = client ? [
           client.logradouro,
           client.numero,
           client.bairro,
@@ -125,32 +115,65 @@ function VehicleUsageMapContent({
           client.uf?.toUpperCase(),
           client.cep?.replace(/\D/g, "").replace(/(\d{5})(\d{3})/, "$1-$2"),
           "Brasil"
-        ].filter(v => v && v !== "undefined" && v !== "null" && v.trim() !== "");
+        ].filter(v => v && v !== "undefined" && v !== "null" && v.trim() !== "") : [];
         
-        const fullAddress = Array.from(new Set(parts)).join(", ");
+        return {
+          ...u,
+          clientData: client,
+          assembledAddress: parts.length > 0 ? Array.from(new Set(parts)).join(", ") : undefined,
+          isGeocoding: true
+        };
+      });
+      
+      setEnrichedUsages(initialResults);
+
+      const finalResults = [...initialResults];
+      
+      // Geocodificar sequencialmente para respeitar limites e facilitar cache
+      for (let i = 0; i < finalResults.length; i++) {
+        if (!active) break;
+        const usage = finalResults[i];
+        
+        if (!usage.assembledAddress) {
+          finalResults[i] = { ...usage, geocodingError: true, geocodingReason: "Associação de cliente ou endereço ausente", isGeocoding: false };
+          setEnrichedUsages([...finalResults]);
+          continue;
+        }
 
         try {
-          const res = await fetchCoords({ data: fullAddress });
+          const res = await fetchCoords({ data: usage.assembledAddress });
           if (active) {
             if (res.success) {
-              results.push({
+              finalResults[i] = {
                 ...usage,
                 lat: res.lat,
                 lng: res.lng,
-                clientData: client
-              });
+                isGeocoding: false
+              };
             } else {
-              results.push({ ...usage, clientData: client, geocodingError: true });
+              finalResults[i] = { 
+                ...usage, 
+                geocodingError: true, 
+                geocodingReason: res.error || "Endereço não localizado",
+                isGeocoding: false 
+              };
             }
+            setEnrichedUsages([...finalResults]);
           }
-        } catch (e) {
-          if (active) results.push({ ...usage, clientData: client, geocodingError: true });
+        } catch (e: any) {
+          if (active) {
+            finalResults[i] = { 
+              ...usage, 
+              geocodingError: true, 
+              geocodingReason: e.message || "Erro de conexão",
+              isGeocoding: false 
+            };
+            setEnrichedUsages([...finalResults]);
+          }
         }
       }
-      if (active) {
-        setEnrichedUsages(results);
-        setLoading(false);
-      }
+      
+      if (active) setLoading(false);
     }
     enrich();
     return () => { active = false; };
