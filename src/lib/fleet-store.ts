@@ -32,12 +32,22 @@ export type Vehicle = {
 
 export type VehicleMaintenance = {
   id: string;
-  performedAt: string;
-  description: string;
-  mileage?: number;
-  workshop?: string;
-  cost?: number;
+  vehicleId: string;
+  entryDate: string; // ISO datetime
+  exitDate?: string; // ISO datetime
+  entryMileage: number;
+  exitMileage?: number;
+  reason: string;
+  workshop: string;
   notes?: string;
+  cost?: number;
+  servicesPerformed?: string;
+  partsReplaced?: string;
+  nextRevisionDate?: string;
+  nextRevisionMileage?: number;
+  status: "em_andamento" | "concluido";
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type LicensingStatus = "regular" | "due_soon" | "overdue" | "unknown";
