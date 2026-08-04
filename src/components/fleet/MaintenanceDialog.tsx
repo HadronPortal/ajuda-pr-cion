@@ -26,11 +26,14 @@ type MaintenanceDialogProps = {
   vehicle: Vehicle;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  maintenance?: VehicleMaintenance | null;
+  readOnly?: boolean;
 };
 
-export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDialogProps) {
+export function MaintenanceDialog({ vehicle, open, onOpenChange, maintenance, readOnly }: MaintenanceDialogProps) {
   const [mode, setMode] = useState<"create" | "close" | "view">("create");
   const [selectedMaint, setSelectedMaint] = useState<VehicleMaintenance | null>(null);
+  const [isReadOnly, setIsReadOnly] = useState(false);
 
   // Form states for creation
   const [createForm, setCreateForm] = useState({
@@ -55,26 +58,41 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
 
   useEffect(() => {
     if (open) {
-      const active = vehicle.maintenanceRecords?.find(m => m.status === "em_andamento");
-      if (active) {
-        setMode("close");
-        setSelectedMaint(active);
-        setCloseForm(prev => ({
-          ...prev,
-          exitMileage: String(vehicle.currentMileage),
-        }));
+      if (maintenance) {
+        setMode(maintenance.status === "em_andamento" ? "close" : "view");
+        setSelectedMaint(maintenance);
+        setIsReadOnly(readOnly || maintenance.status === "concluido");
+        if (maintenance.status === "em_andamento") {
+          setCloseForm(prev => ({
+            ...prev,
+            exitMileage: String(vehicle.currentMileage),
+          }));
+        }
       } else {
-        setMode("create");
-        setCreateForm({
-          entryDate: new Date().toISOString().slice(0, 16),
-          entryMileage: String(vehicle.currentMileage),
-          reason: "",
-          workshop: "",
-          notes: "",
-        });
+        const active = vehicle.maintenanceRecords?.find(m => m.status === "em_andamento");
+        if (active) {
+          setMode("close");
+          setSelectedMaint(active);
+          setIsReadOnly(false);
+          setCloseForm(prev => ({
+            ...prev,
+            exitMileage: String(vehicle.currentMileage),
+          }));
+        } else {
+          setMode("create");
+          setSelectedMaint(null);
+          setIsReadOnly(false);
+          setCreateForm({
+            entryDate: new Date().toISOString().slice(0, 16),
+            entryMileage: String(vehicle.currentMileage),
+            reason: "",
+            workshop: "",
+            notes: "",
+          });
+        }
       }
     }
-  }, [open, vehicle]);
+  }, [open, vehicle, maintenance, readOnly]);
 
   const handleCreate = () => {
     if (!createForm.reason.trim() || !createForm.workshop.trim()) {
@@ -179,14 +197,12 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
     }
   };
 
-  const getActiveMaint = () => vehicle.maintenanceRecords?.find(m => m.status === "em_andamento");
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex max-h-[90dvh] w-[95vw] max-w-[600px] flex-col overflow-hidden p-0">
         <DetailModalHeader
           icon={Wrench}
-          title={mode === "create" ? "Iniciar Manutenção" : "Encerrar Manutenção"}
+          title={isReadOnly ? "Detalhes da Manutenção" : mode === "create" ? "Iniciar Manutenção" : "Encerrar Manutenção"}
           protocol={vehicle.plate}
           onClose={() => onOpenChange(false)}
           meta={<>{vehicle.model}</>}
@@ -264,7 +280,7 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
           ) : (
             <div className="space-y-5">
               {/* Resumo da Entrada */}
-              <Card className="bg-muted/30 p-4">
+              <Card className="bg-muted/30 p-4 border-0 shadow-none">
                 <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   <History className="h-3.5 w-3.5" />
                   Dados de Entrada
@@ -292,9 +308,10 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
                     <CheckCircle2 className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
                       type="datetime-local"
-                      value={closeForm.exitDate}
+                      value={isReadOnly ? (selectedMaint?.exitDate?.slice(0, 16) || "") : closeForm.exitDate}
                       onChange={e => setCloseForm({ ...closeForm, exitDate: e.target.value })}
                       className="pl-9"
+                      readOnly={isReadOnly}
                     />
                   </div>
                 </div>
@@ -304,9 +321,10 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
                     <Gauge className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
                       type="number"
-                      value={closeForm.exitMileage}
+                      value={isReadOnly ? selectedMaint?.exitMileage : closeForm.exitMileage}
                       onChange={e => setCloseForm({ ...closeForm, exitMileage: e.target.value })}
                       className="pl-9"
+                      readOnly={isReadOnly}
                     />
                   </div>
                 </div>
@@ -316,13 +334,17 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
                 <div className="space-y-2">
                   <Label>Valor Total</Label>
                   <div className="relative">
-                    <div className="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+                    <div className={cn(
+                      "flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm",
+                      isReadOnly && "bg-muted/50 border-transparent"
+                    )}>
                       <span className="mr-1 text-muted-foreground select-none">R$</span>
                       <input
                         placeholder="0,00"
-                        value={closeForm.cost}
+                        value={isReadOnly ? (selectedMaint?.cost ? selectedMaint.cost.toLocaleString("pt-BR", { minimumFractionDigits: 2 }) : "—") : closeForm.cost}
                         onChange={e => setCloseForm({ ...closeForm, cost: formatCurrency(e.target.value) })}
                         className="flex-1 bg-transparent outline-none placeholder:text-muted-foreground"
+                        readOnly={isReadOnly}
                       />
                     </div>
                   </div>
@@ -333,7 +355,7 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
                     <Clock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
                       readOnly
-                      value={calculateCurrentDuration()}
+                      value={isReadOnly ? (selectedMaint?.duration || "—") : calculateCurrentDuration()}
                       className="bg-muted/50 pl-9"
                     />
                   </div>
@@ -346,9 +368,10 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
                   <ClipboardList className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Textarea
                     placeholder="Descreva detalhadamente o que foi feito..."
-                    value={closeForm.servicesPerformed}
+                    value={isReadOnly ? selectedMaint?.servicesPerformed : closeForm.servicesPerformed}
                     onChange={e => setCloseForm({ ...closeForm, servicesPerformed: e.target.value })}
                     className="min-h-[80px] pl-9"
+                    readOnly={isReadOnly}
                   />
                 </div>
               </div>
@@ -359,9 +382,10 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
                   <Package className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Textarea
                     placeholder="Listagem de peças..."
-                    value={closeForm.partsReplaced}
+                    value={isReadOnly ? selectedMaint?.partsReplaced : closeForm.partsReplaced}
                     onChange={e => setCloseForm({ ...closeForm, partsReplaced: e.target.value })}
                     className="min-h-[80px] pl-9"
+                    readOnly={isReadOnly}
                   />
                 </div>
               </div>
@@ -371,8 +395,9 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
                   <Label>Próxima Revisão (Data)</Label>
                   <Input
                     type="date"
-                    value={closeForm.nextRevisionDate}
+                    value={isReadOnly ? selectedMaint?.nextRevisionDate : closeForm.nextRevisionDate}
                     onChange={e => setCloseForm({ ...closeForm, nextRevisionDate: e.target.value })}
+                    readOnly={isReadOnly}
                   />
                 </div>
                 <div className="space-y-2">
@@ -380,8 +405,9 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
                   <Input
                     type="number"
                     placeholder="Ex: 60000"
-                    value={closeForm.nextRevisionMileage}
+                    value={isReadOnly ? selectedMaint?.nextRevisionMileage : closeForm.nextRevisionMileage}
                     onChange={e => setCloseForm({ ...closeForm, nextRevisionMileage: e.target.value })}
+                    readOnly={isReadOnly}
                   />
                 </div>
               </div>
@@ -390,29 +416,32 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
                 <Label>Observações Finais</Label>
                 <Textarea
                   placeholder="Informações adicionais sobre a conclusão..."
-                  value={closeForm.notes}
+                  value={isReadOnly ? selectedMaint?.notes : closeForm.notes}
                   onChange={e => setCloseForm({ ...closeForm, notes: e.target.value })}
                   className="min-h-[80px]"
+                  readOnly={isReadOnly}
                 />
               </div>
             </div>
           )}
         </div>
 
-        <DialogFooter className="border-t border-border bg-muted/20 px-6 py-4">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancelar
-          </Button>
-          {mode === "create" ? (
-            <Button onClick={handleCreate}>
-              Iniciar Manutenção
+        {!isReadOnly && (
+          <DialogFooter className="border-t border-border bg-muted/20 px-6 py-4">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Cancelar
             </Button>
-          ) : (
-            <Button onClick={handleClose}>
-              Encerrar Manutenção
-            </Button>
-          )}
-        </DialogFooter>
+            {mode === "create" ? (
+              <Button onClick={handleCreate}>
+                Iniciar Manutenção
+              </Button>
+            ) : (
+              <Button onClick={handleClose}>
+                Encerrar Manutenção
+              </Button>
+            )}
+          </DialogFooter>
+        )}
       </DialogContent>
     </Dialog>
   );

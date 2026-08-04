@@ -23,7 +23,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -32,8 +32,6 @@ import {
   type Vehicle, 
   getLicensingStatus, 
   updateVehicle, 
-  addVehicleMaintenance, 
-  closeVehicleMaintenance,
   formatFleetDateTime,
   type VehicleMaintenance
 } from "@/lib/fleet-store";
@@ -54,6 +52,7 @@ export function FleetDetailModal({ vehicle, open, onOpenChange, defaultTab = "da
   const [draft, setDraft] = useState<Vehicle | null>(null);
   const [maintenanceDialogOpen, setMaintenanceDialogOpen] = useState(false);
   const [selectedMaint, setSelectedMaint] = useState<VehicleMaintenance | null>(null);
+  const [isMaintReadOnly, setIsMaintReadOnly] = useState(false);
 
   useEffect(() => {
     if (vehicle) {
@@ -76,37 +75,23 @@ export function FleetDetailModal({ vehicle, open, onOpenChange, defaultTab = "da
     toast.success("Dados do veículo atualizados.");
   };
 
-  const activeMaintenance = draft.maintenanceRecords?.find(m => m.status === "em_andamento");
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex h-[90dvh] max-h-[90dvh] w-[95vw] max-w-4xl flex-col overflow-hidden p-0">
+      <DialogContent className="flex h-[90dvh] max-h-[90dvh] w-[95vw] max-w-4xl flex-col overflow-hidden p-0 gap-0">
         <DetailModalHeader
           icon={activeTab === "manutencao" ? Wrench : activeTab === "licenciamento" ? FileText : CarFront}
           title={activeTab === "manutencao" ? "Manutenção" : activeTab === "licenciamento" ? "Licenciamento" : "Dados do veículo"}
           protocol={draft.plate}
           onClose={() => onOpenChange(false)}
-          chips={
-            <div className="flex gap-2">
-               <Badge variant={draft.status === "manutencao" ? "destructive" : draft.status === "em_uso" ? "secondary" : "outline"} className="uppercase text-[10px]">
-                {draft.status.replace("_", " ")}
-              </Badge>
-              {activeMaintenance && (
-                 <Badge variant="outline" className="border-amber-500 text-amber-600 bg-amber-50 uppercase text-[10px]">
-                  Em Manutenção
-                </Badge>
-              )}
-            </div>
-          }
-          meta={<>{draft.model} · {draft.yearModel}</>}
         />
         
         <Tabs value={activeTab} onValueChange={(t: any) => setActiveTab(t)} className="flex min-h-0 flex-1 flex-col">
-          <div className="border-b px-6 pt-2">
-            <TabsList className="w-fit bg-transparent gap-6">
-              <TabsTrigger value="dados" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 pb-2 shadow-none bg-transparent">Informações Gerais</TabsTrigger>
-              <TabsTrigger value="licenciamento" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 pb-2 shadow-none bg-transparent">Licenciamento</TabsTrigger>
-              <TabsTrigger value="manutencao" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-1 pb-2 shadow-none bg-transparent">Manutenção</TabsTrigger>
+          <div className="px-6 border-b">
+            <TabsList className="w-fit bg-transparent gap-0">
+              <TabsTrigger value="dados" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4 pb-3 pt-4 shadow-none bg-transparent font-medium">Informações Gerais</TabsTrigger>
+              <TabsTrigger value="licenciamento" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4 pb-3 pt-4 shadow-none bg-transparent font-medium">Licenciamento</TabsTrigger>
+              <TabsTrigger value="manutencao" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-4 pb-3 pt-4 shadow-none bg-transparent font-medium">Manutenção</TabsTrigger>
             </TabsList>
           </div>
           
@@ -114,7 +99,7 @@ export function FleetDetailModal({ vehicle, open, onOpenChange, defaultTab = "da
             <TabsContent value="dados" className="m-0 p-6 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div className="md:col-span-1 space-y-6">
-                  <div className="aspect-[4/3] w-full rounded-2xl bg-white flex items-center justify-center overflow-hidden border shadow-sm">
+                  <div className="aspect-[4/3] w-full rounded-xl bg-muted/20 flex items-center justify-center overflow-hidden border shadow-inner">
                     <img src={draft.imageUrl} alt={draft.model} className="object-contain h-full w-full p-4" />
                   </div>
                   
@@ -152,7 +137,7 @@ export function FleetDetailModal({ vehicle, open, onOpenChange, defaultTab = "da
                   </div>
                 </div>
                 
-                <div className="md:col-span-2 grid grid-cols-2 gap-x-6 gap-y-5">
+                <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5">
                   <Field label="Placa" value={draft.plate} onChange={(v: string) => setDraft({...draft, plate: v})} readOnly={!isEditing} />
                   <Field label="Renavam" value={draft.renavam} onChange={(v: string) => setDraft({...draft, renavam: v})} readOnly={!isEditing} />
                   <Field label="Chassi" value={draft.chassis} onChange={(v: string) => setDraft({...draft, chassis: v})} readOnly={!isEditing} />
@@ -169,19 +154,31 @@ export function FleetDetailModal({ vehicle, open, onOpenChange, defaultTab = "da
               </div>
             </TabsContent>
 
+
             <TabsContent value="licenciamento" className="m-0 p-6 space-y-6">
-               <Card className="p-6 border-emerald-100 bg-emerald-50/30">
+               <Card className={cn(
+                 "p-6 border-0 shadow-none",
+                 licensing?.status === "regular" 
+                   ? "bg-emerald-500/10 dark:bg-emerald-500/5 text-emerald-900 dark:text-emerald-400" 
+                   : "bg-amber-500/10 dark:bg-amber-500/5 text-amber-900 dark:text-amber-400"
+               )}>
                  <div className="flex items-center gap-5">
-                   <div className={cn("p-3.5 rounded-full", licensing?.status === "regular" ? "bg-emerald-500/10" : "bg-amber-500/10")}>
-                     {licensing?.status === "regular" ? <CheckCircle2 className="h-6 w-6 text-emerald-600"/> : <AlertCircle className="h-6 w-6 text-amber-600"/>}
+                   <div className={cn("p-3.5 rounded-full", licensing?.status === "regular" ? "bg-emerald-500/20" : "bg-amber-500/20")}>
+                     {licensing?.status === "regular" ? <CheckCircle2 className="h-6 w-6 text-emerald-600 dark:text-emerald-500"/> : <AlertCircle className="h-6 w-6 text-amber-600 dark:text-amber-500"/>}
                    </div>
                    <div className="flex-1">
-                     <h3 className="font-bold text-lg text-emerald-900">{licensing?.status === "regular" ? "Licenciamento em dia" : "Vence em breve"}</h3>
-                     <p className="text-sm text-emerald-700/80">Próximo vencimento em <span className="font-semibold">{formatFleetDateTime(licensing?.dueDate)}</span></p>
+                     <h3 className="font-bold text-lg">{licensing?.status === "regular" ? "Licenciamento em dia" : "Vence em breve"}</h3>
+                     <p className={cn(
+                       "text-sm opacity-80",
+                       licensing?.status === "regular" ? "text-emerald-700 dark:text-emerald-500/70" : "text-amber-700 dark:text-amber-500/70"
+                     )}>
+                       Próximo vencimento em <span className="font-semibold">{formatFleetDateTime(licensing?.dueDate)}</span>
+                     </p>
                    </div>
-                   <Calendar className="h-10 w-10 text-emerald-200" />
+                   <Calendar className={cn("h-10 w-10 opacity-20", licensing?.status === "regular" ? "text-emerald-500" : "text-amber-500")} />
                  </div>
                </Card>
+
                
                <div className="grid grid-cols-4 gap-4">
                  <Stat label="Exercício" value={String(draft.licensingYear || 2025)} />
@@ -238,7 +235,7 @@ export function FleetDetailModal({ vehicle, open, onOpenChange, defaultTab = "da
                           if (a.status !== "em_andamento" && b.status === "em_andamento") return 1;
                           return b.entryDate.localeCompare(a.entryDate);
                         }).map(m => (
-                          <tr key={m.id} className={cn("hover:bg-muted/30 transition-colors", m.status === "em_andamento" && "bg-amber-50/30")}>
+                          <tr key={m.id} className={cn("hover:bg-muted/30 transition-colors", m.status === "em_andamento" && "bg-amber-500/5 dark:bg-amber-500/10")}>
                             <td className="px-4 py-3 font-medium">{formatFleetDateTime(m.entryDate).split(',')[0]}</td>
                             <td className="px-4 py-3">{m.reason}</td>
                             <td className="px-4 py-3 tabular-nums">{m.entryMileage.toLocaleString("pt-BR")} km</td>
@@ -247,12 +244,14 @@ export function FleetDetailModal({ vehicle, open, onOpenChange, defaultTab = "da
                             <td className="px-4 py-3 text-right">
                                <Button variant="ghost" size="icon" className="h-8 w-8 cursor-pointer" onClick={() => {
                                  setSelectedMaint(m);
+                                 setIsMaintReadOnly(m.status === "concluido");
                                  setMaintenanceDialogOpen(true);
                                }}>
                                  <Eye className="h-4 w-4" />
                                </Button>
                             </td>
                           </tr>
+
                         ))
                       )}
                     </tbody>
@@ -262,28 +261,33 @@ export function FleetDetailModal({ vehicle, open, onOpenChange, defaultTab = "da
             </TabsContent>
           </div>
 
-          <DialogFooter className="border-t px-6 py-4 flex items-center justify-between">
-             <div className="flex gap-2">
-               {activeTab === "licenciamento" && <Button variant="outline" className="h-9 cursor-pointer text-xs"><History className="mr-2 h-4 w-4" /> Histórico de Licenciamentos</Button>}
-               {activeTab === "manutencao" && (
-                 <>
-                   <Button variant="outline" className="h-9 cursor-pointer text-xs" onClick={() => setMaintenanceDialogOpen(true)}>
-                     <Plus className="mr-2 h-4 w-4" /> Nova Manutenção
-                   </Button>
-                   <Button variant="outline" className="h-9 cursor-pointer text-xs"><ClipboardList className="mr-2 h-4 w-4" /> Ver Plano de Manutenção</Button>
-                 </>
-               )}
-             </div>
-             <Button variant="outline" className="h-9 cursor-pointer" onClick={() => onOpenChange(false)}>Fechar</Button>
-          </DialogFooter>
+          {activeTab !== "dados" && (
+            <div className="border-t px-6 py-4 flex items-center justify-between bg-muted/5">
+              <div className="flex gap-2">
+                {activeTab === "licenciamento" && <Button variant="outline" className="h-9 cursor-pointer text-xs"><History className="mr-2 h-4 w-4" /> Histórico de Licenciamentos</Button>}
+                {activeTab === "manutencao" && (
+                  <>
+                    <Button variant="outline" className="h-9 cursor-pointer text-xs" onClick={() => setMaintenanceDialogOpen(true)}>
+                      <Plus className="mr-2 h-4 w-4" /> Nova Manutenção
+                    </Button>
+                    <Button variant="outline" className="h-9 cursor-pointer text-xs"><ClipboardList className="mr-2 h-4 w-4" /> Ver Plano de Manutenção</Button>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
         </Tabs>
       </DialogContent>
+
       
       <MaintenanceDialog 
         vehicle={vehicle} 
         open={maintenanceDialogOpen} 
         onOpenChange={setMaintenanceDialogOpen}
+        maintenance={selectedMaint}
+        readOnly={isMaintReadOnly}
       />
+
     </Dialog>
   );
 }
