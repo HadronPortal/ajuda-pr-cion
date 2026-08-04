@@ -208,12 +208,28 @@ let vehicles: Vehicle[] = [
     yearModel: "2022 / 2022",
     currentMileage: 54802,
     fuelLevel: "Cheio",
-    nextRevisionDate: "Em oficina",
+    nextRevisionDate: "10/09/2026",
     nextRevisionMileage: 60000,
     status: "manutencao",
     imageUrl: stradaImg,
   },
 ];
+
+// Add initial maintenance record for Saveiro
+const strada = vehicles.find(v => v.id === "strada");
+if (strada) {
+  strada.maintenanceRecords = [{
+    id: "mnt-initial",
+    vehicleId: "strada",
+    entryDate: "2026-07-28T09:00:00",
+    entryMileage: 54802,
+    reason: "Revisão geral e troca de suspensão",
+    workshop: "Mecânica São Carlos",
+    status: "em_andamento",
+    createdAt: "2026-07-28T09:00:00",
+    updatedAt: "2026-07-28T09:00:00"
+  }];
+}
 
 // -----------------------------------------------------------------------------
 // Utilizações (usages) — inclui alguns registros para "hoje" (2026-07-20)
