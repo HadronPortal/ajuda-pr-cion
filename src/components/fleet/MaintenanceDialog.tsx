@@ -182,7 +182,7 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-hidden p-0 sm:max-w-[600px]">
+      <DialogContent className="flex max-h-[90dvh] flex-col overflow-hidden p-0 sm:max-w-[600px]">
         <DialogHeader className="border-b border-border bg-muted/20 px-6 py-4">
           <DialogTitle className="flex items-center gap-2 text-xl">
             <Wrench className="h-5 w-5 text-primary" />
@@ -193,7 +193,7 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
           </p>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-6 hide-scrollbar">
           {mode === "create" ? (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -317,12 +317,11 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
                 <div className="space-y-2">
                   <Label>Valor Total</Label>
                   <div className="relative">
-                    <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
                       placeholder="R$ 0,00"
                       value={closeForm.cost}
                       onChange={e => setCloseForm({ ...closeForm, cost: formatCurrency(e.target.value) })}
-                      className="pl-9"
+                      className="h-10"
                     />
                   </div>
                 </div>
