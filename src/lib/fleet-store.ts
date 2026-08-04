@@ -528,7 +528,7 @@ export function updateVehicle(vehicleId: string, changes: Partial<Vehicle>) {
   emit();
 }
 
-export function addVehicleMaintenance(vehicleId: string, input: Omit<VehicleMaintenance, "id" | "vehicleId" | "createdAt" | "updatedAt" | "status">) {
+export function addVehicleMaintenance(vehicleId: string, input: Omit<VehicleMaintenance, "id" | "vehicleId" | "createdAt" | "updatedAt" | "status">): VehicleMaintenance {
   const now = nowISO();
   const record: VehicleMaintenance = {
     ...input,
