@@ -168,7 +168,7 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
                         <span className="text-[13px]">{u.operatorId}</span>
                       </div>
                       <span className="text-[12px] text-muted-foreground font-normal bg-muted/50 px-2 py-0.5 rounded-full">
-                        {formatFleetDateTime(u.departureAt).split(',')[0]}
+                        {formatFleetDateTime(u.departureAt || u.scheduledStartAt).split(',')[0]}
                       </span>
                     </div>
                     <div className="flex items-start gap-2 text-[12px] text-muted-foreground group-hover:text-foreground transition-colors">
