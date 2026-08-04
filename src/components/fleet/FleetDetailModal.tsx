@@ -126,9 +126,18 @@ export function FleetDetailModal({ vehicle, open, onOpenChange, defaultTab = "da
                       <span className="text-[10px] text-muted-foreground uppercase mt-1">SP - São Carlos</span>
                     </div>
 
+                      <Button className="w-full h-11 cursor-pointer" variant="outline" onClick={() => {
+                        onOpenChange(false);
+                        fleetActions.openReturn(draft.id); // Or trigger return logic
+                      }}>
+                        <Undo2 className="mr-2 h-4 w-4" />
+                        Registrar Retorno
+                      </Button>
+                    )}
+
                     {!isEditing ? (
                       <Button className="w-full h-11 cursor-pointer" variant="outline" onClick={() => setIsEditing(true)}>
-                        <CarFront className="mr-2 h-4 w-4" />
+                        <Pencil className="mr-2 h-4 w-4" />
                         Editar veículo
                       </Button>
                     ) : (
