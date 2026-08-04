@@ -78,10 +78,12 @@ function VehicleUsageMapContent({
   const [L, setL] = useState<any>(null);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     // Import Leaflet only on client side
     import("leaflet").then((leaflet) => {
       const leafletLib = (leaflet as any).default || leaflet;
-      console.log('Leaflet loaded:', !!leafletLib);
+      console.log('Leaflet loaded successfully');
       setL(leafletLib);
       
       // Fix icons
