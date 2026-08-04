@@ -41,18 +41,6 @@ import { VehicleEditorModal } from "../VehicleEditorModal";
 import { fleetActions } from "@/lib/fleet-action-store";
 import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { 
-  type Vehicle, 
-  useUsages,
-  formatFleetDateTime,
-  getLicensingStatus,
-  VEHICLE_STATUS_LABEL
-} from "@/lib/fleet-store";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { cn } from "@/lib/utils";
 
 interface VehicleOverviewProps {
   vehicle: Vehicle;
