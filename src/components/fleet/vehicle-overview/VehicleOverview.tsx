@@ -50,6 +50,9 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
   const navigate = useNavigate();
   const usages = useUsages();
   const [activeTab, setActiveTab] = useState("overview");
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [isMaintenanceDialogOpen, setIsMaintenanceDialogOpen] = useState(false);
+  const [isEditorModalOpen, setIsEditorModalOpen] = useState(false);
 
   const vehicleUsages = useMemo(() => {
     return usages
