@@ -24,11 +24,6 @@ export type Vehicle = {
   imageUrl: string;
   state?: string;
   renavam?: string;
-  chassis?: string;
-  fuelType?: string;
-  power?: string;
-  capacity?: string;
-  location?: string;
   licensingYear?: number;
   licensingPaidAt?: string;
   licensingDueDate?: string;
@@ -166,21 +161,14 @@ let vehicles: Vehicle[] = [
   {
     id: "corolla",
     model: "Volkswagen Gol G4",
-    plate: "ABC-1D23",
+    plate: "ABC-1234",
     category: "Hatch",
     color: "Prata",
     yearModel: "2022 / 2023",
-    currentMileage: 12450,
+    currentMileage: 45678,
     fuelLevel: "1/2",
-    fuelType: "Flex",
-    power: "1.0 8V",
-    capacity: "5 lugares",
-    chassis: "9BDNF41B0RY123456",
-    renavam: "12345678900",
-    state: "SP",
-    location: "São Carlos - SP",
     nextRevisionDate: "10/09/2026",
-    nextRevisionMileage: 20000,
+    nextRevisionMileage: 50000,
     status: "disponivel",
     imageUrl: corollaImg,
   },
@@ -193,13 +181,6 @@ let vehicles: Vehicle[] = [
     yearModel: "2023 / 2024",
     currentMileage: 31420,
     fuelLevel: "3/4",
-    fuelType: "Flex",
-    power: "1.0 MPFI",
-    capacity: "5 lugares",
-    chassis: "9BGXF41B0RY654321",
-    renavam: "98765432100",
-    state: "SP",
-    location: "São Carlos - SP",
     nextRevisionDate: "22/11/2026",
     nextRevisionMileage: 40000,
     status: "disponivel",
@@ -214,13 +195,6 @@ let vehicles: Vehicle[] = [
     yearModel: "2021 / 2022",
     currentMileage: 62150,
     fuelLevel: "1/4",
-    fuelType: "Flex",
-    power: "1.0 Fire",
-    capacity: "5 lugares",
-    chassis: "9BDXF41B0RY112233",
-    renavam: "11223344556",
-    state: "SP",
-    location: "São Carlos - SP",
     nextRevisionDate: "05/08/2026",
     nextRevisionMileage: 65000,
     status: "disponivel",
@@ -235,13 +209,6 @@ let vehicles: Vehicle[] = [
     yearModel: "2022 / 2022",
     currentMileage: 54802,
     fuelLevel: "Cheio",
-    fuelType: "Flex",
-    power: "1.6 MSI",
-    capacity: "2 lugares",
-    chassis: "9BDXF41B0RY998877",
-    renavam: "99887766554",
-    state: "SP",
-    location: "São Carlos - SP",
     nextRevisionDate: "10/09/2026",
     nextRevisionMileage: 60000,
     status: "manutencao",
@@ -528,7 +495,7 @@ export function updateVehicle(vehicleId: string, changes: Partial<Vehicle>) {
   emit();
 }
 
-export function addVehicleMaintenance(vehicleId: string, input: Omit<VehicleMaintenance, "id" | "vehicleId" | "createdAt" | "updatedAt" | "status">): VehicleMaintenance {
+export function addVehicleMaintenance(vehicleId: string, input: Omit<VehicleMaintenance, "id" | "vehicleId" | "createdAt" | "updatedAt" | "status">) {
   const now = nowISO();
   const record: VehicleMaintenance = {
     ...input,

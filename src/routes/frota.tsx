@@ -22,7 +22,8 @@ import {
   type VehicleStatus,
 } from "@/lib/fleet-store";
 import { fleetActions } from "@/lib/fleet-action-store";
-import { FleetDetailModal } from "@/components/fleet/FleetDetailModal";
+import { VehicleHistoryModal } from "@/components/fleet/VehicleHistoryModal";
+import { VehicleEditorModal } from "@/components/fleet/VehicleEditorModal";
 import { MaintenanceDialog } from "@/components/fleet/MaintenanceDialog";
 import { cn } from "@/lib/utils";
 
@@ -305,21 +306,21 @@ function VehiclesView({ query }: { query: string }) {
           </Card>
         ))}
       </div>
-      <FleetDetailModal
+      <VehicleHistoryModal
         vehicle={selected}
         open={selected !== null}
-        onOpenChange={(o: boolean) => !o && setSelected(null)}
+        onOpenChange={(o) => !o && setSelected(null)}
       />
-      <FleetDetailModal
+      <VehicleEditorModal
         vehicle={editing}
         open={editing !== null}
-        onOpenChange={(open: boolean) => !open && setEditing(null)}
+        onOpenChange={(open) => !open && setEditing(null)}
       />
       {maintenance && (
         <MaintenanceDialog
           vehicle={maintenance}
           open={maintenance !== null}
-          onOpenChange={(open: boolean) => !open && setMaintenance(null)}
+          onOpenChange={(open) => !open && setMaintenance(null)}
         />
       )}
     </>
