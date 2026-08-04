@@ -167,9 +167,9 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
                   </div>
                 )}
               </div>
-              {vehicleUsages.length > 5 && (
-                <Button variant="ghost" size="sm" className="mt-4 w-full text-xs text-muted-foreground hover:text-primary" onClick={() => setActiveTab("utilization")}>
-                  Ver todas as utilizações
+              {vehicleUsages.length > 4 && (
+                <Button variant="ghost" size="sm" className="mt-4 w-full text-xs text-muted-foreground hover:text-primary" onClick={() => setIsHistoryModalOpen(true)}>
+                  Ver tudo
                 </Button>
               )}
             </Card>
