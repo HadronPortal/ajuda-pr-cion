@@ -40,7 +40,8 @@ export type VehicleMaintenance = {
   reason: string;
   workshop: string;
   notes?: string;
-  cost?: number;
+  cost?: number; // Numeric value in DB
+  duration?: string; // Formatted duration string (e.g., "6h 30min")
   servicesPerformed?: string;
   partsReplaced?: string;
   nextRevisionDate?: string;
