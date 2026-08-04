@@ -111,7 +111,7 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
             <HeaderStat 
               icon={Calendar} 
               label="Modelo" 
-              value={vehicle.model} 
+              value={vehicle.model.split(" / ")[0]} 
               className="sm:col-span-2 lg:col-span-2"
             />
           <HeaderStat icon={FileText} label="Placa" value={vehicle.plate} />
