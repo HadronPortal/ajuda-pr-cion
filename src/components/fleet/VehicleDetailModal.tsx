@@ -120,12 +120,12 @@ export function VehicleDetailModal({ vehicle, open, onOpenChange, onEdit }: Vehi
 
           {/* CONTEÚDO PRINCIPAL (68%) */}
           <main className="flex flex-1 flex-col overflow-hidden bg-card">
-            <div className="flex-1 overflow-y-auto p-6 hide-scrollbar">
+            <div className="flex-1 overflow-y-auto p-5 modal-scroll hide-scrollbar">
               {activeTab === "resumo" && (
-                <div className="space-y-6 animate-in fade-in duration-300">
+                <div className="space-y-5 animate-in fade-in duration-300">
                   <section>
-                    <h4 className="mb-4 text-sm font-semibold text-foreground">Informações Gerais</h4>
-                    <div className="rounded-xl border bg-muted/5 p-4 space-y-3">
+                    <h4 className="mb-3 text-[13px] font-semibold text-foreground">Informações Gerais</h4>
+                    <div className="rounded-lg border border-border bg-card p-3 space-y-1">
                       <InfoRow icon={Hash} label="Placa" value={vehicle.plate} />
                       <InfoRow icon={Fingerprint} label="Renavam" value={vehicle.renavam || "Não informado"} />
                       <InfoRow icon={Settings2} label="Chassi" value="Não informado" />
@@ -133,36 +133,36 @@ export function VehicleDetailModal({ vehicle, open, onOpenChange, onEdit }: Vehi
                     </div>
                   </section>
 
-                  <section className="grid grid-cols-2 gap-x-8 gap-y-6">
-                    <div className="space-y-6">
+                  <section className="grid grid-cols-2 gap-x-6 gap-y-4">
+                    <div className="space-y-4">
                       <CharacteristicItem label="Cor" value={vehicle.color} />
                       <CharacteristicItem label="Tipo de Veículo" value={vehicle.category} />
                       <CharacteristicItem label="Potência" value="Não informado" />
                     </div>
-                    <div className="space-y-6">
+                    <div className="space-y-4">
                       <CharacteristicItem icon={Fuel} label="Combustível" value="Flex" />
                       <CharacteristicItem label="Categoria" value="Particular" />
                       <CharacteristicItem label="Capacidade" value="5 lugares" />
                     </div>
                   </section>
 
-                  <section className="grid grid-cols-2 gap-4">
-                    <div className="flex items-center gap-4 rounded-xl border p-4 bg-muted/5">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10 text-blue-600">
-                        <Gauge className="h-5 w-5" />
+                  <section className="grid grid-cols-2 gap-3">
+                    <div className="flex items-center gap-3 rounded-lg border p-3 bg-muted/5">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-500/10 text-blue-600">
+                        <Gauge className="h-4.5 w-4.5" />
                       </div>
-                      <div>
-                        <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Quilometragem</p>
-                        <p className="text-sm font-bold text-foreground">{vehicle.currentMileage.toLocaleString("pt-BR")} km</p>
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Quilometragem</p>
+                        <p className="text-sm font-bold text-foreground truncate">{vehicle.currentMileage.toLocaleString("pt-BR")} km</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4 rounded-xl border p-4 bg-muted/5">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600">
-                        <MapPin className="h-5 w-5" />
+                    <div className="flex items-center gap-3 rounded-lg border p-3 bg-muted/5">
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600">
+                        <MapPin className="h-4.5 w-4.5" />
                       </div>
-                      <div>
-                        <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Localização Atual</p>
-                        <p className="text-sm font-bold text-foreground">São Carlos - SP</p>
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Localização Atual</p>
+                        <p className="text-sm font-bold text-foreground truncate">São Carlos - SP</p>
                       </div>
                     </div>
                   </section>
@@ -268,8 +268,8 @@ export function VehicleDetailModal({ vehicle, open, onOpenChange, onEdit }: Vehi
             </div>
 
             {/* NAVEGAÇÃO INFERIOR */}
-            <footer className="mt-auto border-t bg-muted/10">
-              <nav className="flex items-center justify-around h-20">
+            <footer className="mt-auto border-t bg-muted/5">
+              <nav className="flex items-center justify-around h-16">
                 <TabButton 
                   active={activeTab === "resumo"} 
                   onClick={() => setActiveTab("resumo")}
@@ -352,24 +352,24 @@ function MaintenanceCard({ maintenance }: { maintenance: VehicleMaintenance }) {
 
 function InfoRow({ icon: Icon, label, value }: { icon?: any, label: string, value: string }) {
   return (
-    <div className="flex items-center justify-between py-0.5">
+    <div className="flex h-8 items-center justify-between">
       <div className="flex items-center gap-2">
-        {Icon && <Icon className="h-3.5 w-3.5 text-muted-foreground/70" />}
+        {Icon && <Icon className="h-3.5 w-3.5 text-muted-foreground/50" />}
         <span className="text-sm text-muted-foreground">{label}</span>
       </div>
-      <span className="text-sm font-medium text-foreground">{value}</span>
+      <span className="text-sm font-medium text-foreground text-right">{value}</span>
     </div>
   );
 }
 
 function CharacteristicItem({ icon: Icon, label, value }: { icon?: any, label: string, value: string }) {
   return (
-    <div className="space-y-1">
+    <div className="space-y-0.5">
       <div className="flex items-center gap-1.5">
-        {Icon && <Icon className="h-3.5 w-3.5 text-muted-foreground/60" />}
-        <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">{label}</span>
+        {Icon && <Icon className="h-3.5 w-3.5 text-muted-foreground/50" />}
+        <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">{label}</span>
       </div>
-      <p className="text-sm font-bold text-foreground">{value || "Não informado"}</p>
+      <p className="text-sm font-semibold text-foreground leading-tight">{value || "Não informado"}</p>
     </div>
   );
 }
