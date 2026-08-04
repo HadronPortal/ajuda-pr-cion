@@ -59,7 +59,7 @@ function fmtDuration(h: number) {
   if (h <= 0) return "0h";
   const hh = Math.floor(h);
   const mm = Math.round((h - hh) * 60);
-  return mm ? `${hh}h ${mm}m` : `${hh}h`;
+  return mm ? `${hh}h ${mm}min` : `${hh}h`;
 }
 
 function usageBadgeClass(status: UsageStatus) {
@@ -823,7 +823,7 @@ function MaintenanceListView({ maintenanceRecords }: { maintenanceRecords: Vehic
                 )}
               </div>
 
-              <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
+              <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-5">
                 <div className="space-y-0.5">
                   <p className="text-[10px] uppercase text-muted-foreground">Entrada</p>
                   <p className="text-[12px] font-medium">{formatFleetDateTime(m.entryDate)}</p>
@@ -834,6 +834,12 @@ function MaintenanceListView({ maintenanceRecords }: { maintenanceRecords: Vehic
                     <p className="text-[10px] uppercase text-muted-foreground">Conclusão</p>
                     <p className="text-[12px] font-medium">{formatFleetDateTime(m.exitDate)}</p>
                     <p className="text-[11px] text-muted-foreground">{m.exitMileage?.toLocaleString("pt-BR")} km</p>
+                  </div>
+                )}
+                {m.duration && (
+                  <div className="space-y-0.5">
+                    <p className="text-[10px] uppercase text-muted-foreground">Duração</p>
+                    <p className="text-[12px] font-medium">{m.duration}</p>
                   </div>
                 )}
                 {m.servicesPerformed && (

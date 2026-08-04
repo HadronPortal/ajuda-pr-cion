@@ -46,7 +46,7 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
   const [closeForm, setCloseForm] = useState({
     exitDate: new Date().toISOString().slice(0, 16),
     exitMileage: String(vehicle.currentMileage),
-    cost: "",
+    cost: "", // This will hold the "R$ 1.234,56" string
     servicesPerformed: "",
     partsReplaced: "",
     notes: "",
@@ -107,10 +107,33 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
       return;
     }
 
+    // Parse numeric cost from formatted string
+    const numericCost = closeForm.cost 
+      ? Number(closeForm.cost.replace(/[^\d,]/g, "").replace(",", ".")) 
+      : undefined;
+
+    // Calculate duration
+    const start = new Date(selectedMaint.entryDate);
+    const end = new Date(closeForm.exitDate);
+    const diffMs = end.getTime() - start.getTime();
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+    
+    let duration = "";
+    if (diffMinutes < 1440) { // < 24h
+      const hours = Math.floor(diffMinutes / 60);
+      const mins = diffMinutes % 60;
+      duration = `${hours}h ${mins}min`;
+    } else {
+      const days = Math.floor(diffMinutes / 1440);
+      const hours = Math.floor((diffMinutes % 1440) / 60);
+      duration = `${days} ${days === 1 ? 'dia' : 'dias'} e ${hours}h`;
+    }
+
     closeVehicleMaintenance(selectedMaint.id, {
       exitDate: closeForm.exitDate,
       exitMileage: Number(closeForm.exitMileage),
-      cost: Number(closeForm.cost.replace(",", ".")),
+      cost: numericCost,
+      duration,
       servicesPerformed: closeForm.servicesPerformed.trim(),
       partsReplaced: closeForm.partsReplaced.trim(),
       notes: closeForm.notes.trim() || undefined,
@@ -120,6 +143,41 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
 
     toast.success("Manutenção encerrada. Veículo agora está disponível.");
     onOpenChange(false);
+  };
+
+  const formatCurrency = (value: string) => {
+    // Remove non-digits
+    const cleanValue = value.replace(/\D/g, "");
+    if (!cleanValue) return "";
+    
+    const numberValue = parseInt(cleanValue) / 100;
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    }).format(numberValue);
+  };
+
+  const calculateCurrentDuration = () => {
+    if (!selectedMaint || !closeForm.exitDate) return "Em andamento";
+    
+    const start = new Date(selectedMaint.entryDate);
+    const end = new Date(closeForm.exitDate);
+    
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) return "Data inválida";
+    if (end < start) return "Conclusão anterior à entrada";
+
+    const diffMs = end.getTime() - start.getTime();
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
+    
+    if (diffMinutes < 1440) { // < 24h
+      const hours = Math.floor(diffMinutes / 60);
+      const mins = diffMinutes % 60;
+      return `${hours}h ${mins}min`;
+    } else {
+      const days = Math.floor(diffMinutes / 1440);
+      const hours = Math.floor((diffMinutes % 1440) / 60);
+      return `${days} ${days === 1 ? 'dia' : 'dias'} e ${hours}h`;
+    }
   };
 
   return (
@@ -257,28 +315,24 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Valor Total (R$)</Label>
+                  <Label>Valor Total</Label>
                   <div className="relative">
                     <DollarSign className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
-                      placeholder="0,00"
+                      placeholder="R$ 0,00"
                       value={closeForm.cost}
-                      onChange={e => setCloseForm({ ...closeForm, cost: e.target.value })}
+                      onChange={e => setCloseForm({ ...closeForm, cost: formatCurrency(e.target.value) })}
                       className="pl-9"
                     />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label>Duração aproximada</Label>
+                  <Label>Duração do serviço</Label>
                   <div className="relative">
                     <Clock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
                       readOnly
-                      value={
-                        selectedMaint 
-                          ? `${Math.max(0, Math.floor((new Date(closeForm.exitDate).getTime() - new Date(selectedMaint.entryDate).getTime()) / (1000 * 60 * 60 * 24)))} dias`
-                          : ""
-                      }
+                      value={calculateCurrentDuration()}
                       className="bg-muted/50 pl-9"
                     />
                   </div>
