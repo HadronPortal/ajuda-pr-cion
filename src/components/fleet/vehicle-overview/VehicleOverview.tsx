@@ -32,7 +32,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { VehicleScene } from "./VehicleScene";
-import { InteractivePoints, ComponentInfoPanel } from "./InteractivePoints";
+import { ComponentInfoPanel, COMPONENT_DATA } from "./InteractivePoints";
 import { TireStatusView } from "./TireStatusView";
 import { cn } from "@/lib/utils";
 
@@ -130,7 +130,7 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
             <div className="lg:col-span-2 flex flex-col gap-6">
               <Card className="relative h-[550px] overflow-hidden bg-gradient-to-b from-muted/5 to-muted/20">
                 <VehicleScene 
-                  onPointClick={(name, data) => setSelectedPoint({ name, data })} 
+                  onPointClick={(name) => setSelectedPoint({ name, data: (COMPONENT_DATA as any)[name] })} 
                 />
                 {/* Points are now inside VehicleScene as 3D Hotspots */}
                 {selectedPoint && (
