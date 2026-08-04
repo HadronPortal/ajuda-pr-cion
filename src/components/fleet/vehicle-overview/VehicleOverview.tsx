@@ -87,8 +87,8 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
             </Button>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-xl font-bold tracking-tight">{vehicle.model}</h1>
-                <Badge variant="secondary" className="font-mono text-[11px]">{vehicle.yearModel}</Badge>
+                <h1 className="text-xl font-bold tracking-tight">{vehicle.model.split(" / ")[0]}</h1>
+                <Badge variant="secondary" className="font-mono text-[11px]">{vehicle.yearModel.split(" / ")[0]}</Badge>
               </div>
               <p className="text-xs text-muted-foreground">Visão geral do veículo</p>
             </div>
