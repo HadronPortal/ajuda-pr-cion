@@ -384,7 +384,8 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
               ) : (
                 vehicleUsages.map(u => (
                   <Card key={u.id} className="p-4 hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => {
-                    // Logic to view usage details
+                    setSelectedUsage(u);
+                    setIsUsageDetailsOpen(true);
                   }}>
                     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 items-center">
                       <div className="flex flex-col">
