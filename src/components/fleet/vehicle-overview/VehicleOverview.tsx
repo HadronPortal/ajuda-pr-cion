@@ -30,6 +30,7 @@ import {
   type VehicleUsage,
   getVehicleById
 } from "@/lib/fleet-store";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
