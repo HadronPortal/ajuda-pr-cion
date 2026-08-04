@@ -1,5 +1,5 @@
-import { useState, Suspense, forwardRef, useImperativeHandle, useRef, useMemo } from "react";
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { useState, Suspense, useRef, useMemo } from "react";
+import { Canvas, useThree } from "@react-three/fiber";
 import { 
   OrbitControls, 
   ContactShadows, 
@@ -13,14 +13,12 @@ import {
 } from "@react-three/drei";
 import * as THREE from "three";
 import { cn } from "@/lib/utils";
-import { Info, AlertCircle, CheckCircle2 } from "lucide-react";
 
 // Preload the model
 useGLTF.preload("/assets/models/car.glb");
 
-function Model({ url, onPointClick }: { url: string, onPointClick: (name: string, data: any) => void }) {
+function Model({ url, onPointClick }: { url: string, onPointClick: (name: string) => void }) {
   const { scene } = useGLTF(url);
-  const { camera } = useThree();
 
   // Clone scene to avoid shared state if multiple instances
   const clonedScene = useMemo(() => scene.clone(), [scene]);
@@ -38,18 +36,17 @@ function Model({ url, onPointClick }: { url: string, onPointClick: (name: string
     });
   }, [clonedScene]);
 
-  // Coordinates for hotspots (normalized to model space)
-  // These are estimates based on standard sedan proportions
+  // Coordinates for hotspots (normalized to model space for SedanSeriesB)
   const hotspots = [
-    { name: "Pneu Dianteiro Esquerdo", position: [-0.8, 0.3, 1.4], type: "tire" },
-    { name: "Pneu Dianteiro Direito", position: [0.8, 0.3, 1.4], type: "tire" },
-    { name: "Pneu Traseiro Esquerdo", position: [-0.8, 0.3, -1.4], type: "tire" },
-    { name: "Pneu Traseiro Direito", position: [0.8, 0.3, -1.4], type: "tire" },
-    { name: "Motor", position: [0, 0.8, 1.8], type: "engine" },
-    { name: "Bateria", position: [0.4, 0.7, 1.6], type: "battery" },
-    { name: "Freios", position: [0.7, 0.4, 1.3], type: "brakes" },
-    { name: "Óleo", position: [-0.3, 0.7, 1.7], type: "oil" },
-    { name: "Carroceria", position: [0, 1.2, 0], type: "body" },
+    { name: "Pneu Dianteiro Esquerdo", position: [-0.9, 0.4, 1.4] },
+    { name: "Pneu Dianteiro Direito", position: [0.9, 0.4, 1.4] },
+    { name: "Pneu Traseiro Esquerdo", position: [-0.9, 0.4, -1.4] },
+    { name: "Pneu Traseiro Direito", position: [0.9, 0.4, -1.4] },
+    { name: "Motor", position: [0, 0.9, 2.0] },
+    { name: "Bateria", position: [0.5, 0.8, 1.7] },
+    { name: "Freios", position: [0.8, 0.5, 1.4] },
+    { name: "Óleo", position: [-0.4, 0.8, 1.8] },
+    { name: "Carroceria", position: [0, 1.3, 0] },
   ];
 
   return (
@@ -60,7 +57,7 @@ function Model({ url, onPointClick }: { url: string, onPointClick: (name: string
           key={spot.name} 
           position={new THREE.Vector3(...spot.position)} 
           name={spot.name} 
-          onClick={() => onPointClick(spot.name, {})} 
+          onClick={() => onPointClick(spot.name)} 
         />
       ))}
     </group>
@@ -69,14 +66,9 @@ function Model({ url, onPointClick }: { url: string, onPointClick: (name: string
 
 function Hotspot({ position, name, onClick }: { position: THREE.Vector3, name: string, onClick: () => void }) {
   const [hovered, setHovered] = useState(false);
-  const ref = useRef<THREE.Group>(null);
   
-  // Logic to hide if behind the car could be added here using Raycaster, 
-  // but Html component in drei handles basic occlusion well enough for now 
-  // if we set distanceFactor.
-
   return (
-    <group ref={ref} position={position}>
+    <group position={position}>
       <Html
         distanceFactor={6}
         position={[0, 0, 0]}
@@ -102,7 +94,6 @@ function Hotspot({ position, name, onClick }: { position: THREE.Vector3, name: s
             <div className="relative h-3 w-3 rounded-full bg-primary shadow-lg border-2 border-white" />
           </div>
           
-          {/* Tooltip */}
           <div className={cn(
             "absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-background/90 backdrop-blur text-[10px] font-medium rounded shadow-md border whitespace-nowrap transition-opacity pointer-events-none",
             hovered ? "opacity-100" : "opacity-0"
@@ -115,12 +106,10 @@ function Hotspot({ position, name, onClick }: { position: THREE.Vector3, name: s
   );
 }
 
-import { useState } from "react";
-
 interface VehicleSceneProps {
   color?: string;
   className?: string;
-  onPointClick?: (name: string, data: any) => void;
+  onPointClick?: (name: string) => void;
 }
 
 export function VehicleScene({ className, onPointClick = () => {} }: VehicleSceneProps) {
@@ -171,8 +160,8 @@ export function VehicleScene({ className, onPointClick = () => {} }: VehicleScen
             enableZoom={true}
             minDistance={3}
             maxDistance={8}
-            maxPolarAngle={Math.PI / 2.1} // Prevent going below ground
-            minPolarAngle={0.1} // Prevent top-down vertical flip
+            maxPolarAngle={Math.PI / 2.1}
+            minPolarAngle={0.1}
             makeDefault
           />
           <BakeShadows />
