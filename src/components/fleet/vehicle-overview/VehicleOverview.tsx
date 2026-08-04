@@ -371,9 +371,9 @@ function HeaderStat({ icon: Icon, label, value, className }: { icon: any; label:
     <div className={cn("flex flex-col gap-1 min-w-0", className)}>
       <div className="flex items-center gap-1.5 text-muted-foreground">
         <Icon className="h-3 w-3 shrink-0" />
-        <span className="text-[10px] font-bold uppercase tracking-wider truncate">{label}</span>
+        <span className="text-[10px] font-normal uppercase tracking-wider truncate">{label}</span>
       </div>
-      <p className="text-sm font-black truncate">{value}</p>
+      <p className="text-sm font-normal truncate">{value}</p>
     </div>
   );
 }
