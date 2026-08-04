@@ -32,7 +32,7 @@ export function VehicleEditorModal({ vehicle, open, onOpenChange }: Props) {
   const [maintenance, setMaintenance] = useState({
     entryDate: new Date().toISOString().slice(0, 16),
     description: "",
-    mileage: String(vehicle.currentMileage),
+    mileage: vehicle ? String(vehicle.currentMileage) : "",
     workshop: "",
     notes: "",
   });
@@ -78,7 +78,7 @@ export function VehicleEditorModal({ vehicle, open, onOpenChange }: Props) {
       currentMileage: Math.max(current.currentMileage, Number(maintenance.mileage) || 0),
       maintenanceRecords: [record, ...(current.maintenanceRecords ?? [])],
     } : current);
-    setMaintenance((current) => ({ ...current, description: "", mileage: String(vehicle.currentMileage), workshop: "", notes: "" }));
+    setMaintenance((current) => ({ ...current, description: "", mileage: vehicle ? String(vehicle.currentMileage) : "", workshop: "", notes: "" }));
     toast.success("Manutenção registrada.");
   };
 
