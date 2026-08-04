@@ -17,7 +17,8 @@ import {
   LayoutDashboard,
   MapPin,
   Clock,
-  ClipboardList
+  ClipboardList,
+  Info
 } from "lucide-react";
 import { 
   type Vehicle, 
