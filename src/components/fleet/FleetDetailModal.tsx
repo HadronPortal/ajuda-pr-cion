@@ -15,7 +15,9 @@ import {
   FileText,
   History,
   Eye,
-  Plus
+  Plus,
+  Undo2,
+  Pencil
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -35,6 +37,7 @@ import {
   formatFleetDateTime,
   type VehicleMaintenance
 } from "@/lib/fleet-store";
+import { fleetActions } from "@/lib/fleet-action-store";
 import { cn } from "@/lib/utils";
 import { MaintenanceDialog } from "./MaintenanceDialog";
 
