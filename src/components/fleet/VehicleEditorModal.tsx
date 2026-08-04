@@ -30,11 +30,10 @@ const formatDate = (value?: string) => value
 export function VehicleEditorModal({ vehicle, open, onOpenChange }: Props) {
   const [draft, setDraft] = useState<Vehicle | null>(vehicle);
   const [maintenance, setMaintenance] = useState({
-    performedAt: new Date().toISOString().slice(0, 10),
+    entryDate: new Date().toISOString().slice(0, 16),
     description: "",
-    mileage: "",
+    mileage: vehicle ? String(vehicle.currentMileage) : "",
     workshop: "",
-    cost: "",
     notes: "",
   });
 
@@ -67,7 +66,7 @@ export function VehicleEditorModal({ vehicle, open, onOpenChange }: Props) {
       return;
     }
     const record = addVehicleMaintenance(vehicle.id, {
-      entryDate: new Date(maintenance.performedAt).toISOString(),
+      entryDate: maintenance.entryDate,
       entryMileage: Number(maintenance.mileage) || vehicle.currentMileage,
       reason: maintenance.description.trim(),
       workshop: maintenance.workshop.trim() || "Não informada",
@@ -79,7 +78,7 @@ export function VehicleEditorModal({ vehicle, open, onOpenChange }: Props) {
       currentMileage: Math.max(current.currentMileage, Number(maintenance.mileage) || 0),
       maintenanceRecords: [record, ...(current.maintenanceRecords ?? [])],
     } : current);
-    setMaintenance((current) => ({ ...current, description: "", mileage: "", workshop: "", cost: "", notes: "" }));
+    setMaintenance((current) => ({ ...current, description: "", mileage: vehicle ? String(vehicle.currentMileage) : "", workshop: "", notes: "" }));
     toast.success("Manutenção registrada.");
   };
 
@@ -131,13 +130,46 @@ export function VehicleEditorModal({ vehicle, open, onOpenChange }: Props) {
 
             <TabsContent value="manutencao" className="mt-4 space-y-5">
               <div className="grid gap-3 rounded-md border border-border p-4 sm:grid-cols-2">
-                <Field label="Data"><Input type="date" value={maintenance.performedAt} onChange={(e) => setMaintenance({ ...maintenance, performedAt: e.target.value })} /></Field>
-                <Field label="KM"><Input type="number" min="0" value={maintenance.mileage} onChange={(e) => setMaintenance({ ...maintenance, mileage: e.target.value })} /></Field>
-                <Field label="Serviço realizado"><Input value={maintenance.description} onChange={(e) => setMaintenance({ ...maintenance, description: e.target.value })} placeholder="Ex.: troca de óleo e filtros" /></Field>
-                <Field label="Oficina"><Input value={maintenance.workshop} onChange={(e) => setMaintenance({ ...maintenance, workshop: e.target.value })} /></Field>
-                <Field label="Valor"><Input inputMode="decimal" value={maintenance.cost} onChange={(e) => setMaintenance({ ...maintenance, cost: e.target.value })} placeholder="0,00" /></Field>
-                <Field label="Observações"><Input value={maintenance.notes} onChange={(e) => setMaintenance({ ...maintenance, notes: e.target.value })} /></Field>
-                <Button type="button" variant="outline" className="sm:col-span-2" onClick={registerMaintenance}><Plus className="mr-2 h-4 w-4" />Registrar manutenção</Button>
+                <Field label="Data/Hora de Entrada">
+                  <Input 
+                    type="datetime-local" 
+                    value={maintenance.entryDate} 
+                    onChange={(e) => setMaintenance({ ...maintenance, entryDate: e.target.value })} 
+                  />
+                </Field>
+                <Field label="Quilometragem Inicial">
+                  <Input 
+                    type="number" 
+                    min="0" 
+                    value={maintenance.mileage} 
+                    onChange={(e) => setMaintenance({ ...maintenance, mileage: e.target.value })} 
+                  />
+                </Field>
+                <Field label="Motivo / Problema">
+                  <Input 
+                    value={maintenance.description} 
+                    onChange={(e) => setMaintenance({ ...maintenance, description: e.target.value })} 
+                    placeholder="Ex.: Troca de óleo, barulho na suspensão..." 
+                  />
+                </Field>
+                <Field label="Oficina">
+                  <Input 
+                    value={maintenance.workshop} 
+                    onChange={(e) => setMaintenance({ ...maintenance, workshop: e.target.value })} 
+                  />
+                </Field>
+                <div className="sm:col-span-2">
+                  <Field label="Observações">
+                    <Input 
+                      value={maintenance.notes} 
+                      onChange={(e) => setMaintenance({ ...maintenance, notes: e.target.value })} 
+                    />
+                  </Field>
+                </div>
+                <Button type="button" variant="outline" className="sm:col-span-2" onClick={registerMaintenance}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Iniciar manutenção
+                </Button>
               </div>
               <div className="space-y-2">
                 <h3 className="flex items-center gap-2 text-sm font-medium"><Wrench className="h-4 w-4 text-primary" />Histórico de manutenção</h3>
@@ -145,7 +177,7 @@ export function VehicleEditorModal({ vehicle, open, onOpenChange }: Props) {
                   <div key={record.id} className="grid gap-1 rounded-md border border-border p-3 text-sm sm:grid-cols-[110px_1fr_auto]">
                     <span className="text-muted-foreground">{formatDate(record.entryDate)}</span>
                     <div><p className="font-medium">{record.reason}</p><p className="text-xs text-muted-foreground">{[record.workshop, record.entryMileage ? `${record.entryMileage.toLocaleString("pt-BR")} km` : null, record.notes].filter(Boolean).join(" · ")}</p></div>
-                    <span className="tabular-nums">{record.cost !== undefined ? record.cost.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : ""}</span>
+                    <span className="tabular-nums">{record.cost !== undefined ? record.cost.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 2 }) : ""}</span>
                   </div>
                 ))}
               </div>
