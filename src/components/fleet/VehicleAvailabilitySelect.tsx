@@ -32,7 +32,7 @@ export function evaluateVehicle(
   windowStart: string | null,
   windowEnd: string | null,
 ): VehicleAvailability {
-  if (vehicle.status === "manutencao") return { key: "indisponivel", label: "Indisponível" };
+  if (vehicle.status === "manutencao") return { key: "indisponivel", label: "Em manutenção" };
   if (!windowStart || !windowEnd) {
     if (vehicle.status === "em_uso") return { key: "em_uso", label: "Em uso" };
   } else if (hasConflict(vehicle.id, windowStart, windowEnd)) {

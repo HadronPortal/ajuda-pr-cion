@@ -394,6 +394,12 @@ export function createReservation(input: {
 }): VehicleReservation | { error: "conflict"; conflict: VehicleReservation } {
   const conflict = hasReservationConflict(input.vehicleId, input.startAt, input.endAt);
   if (conflict) return { error: "conflict", conflict };
+
+  const vehicle = getVehicleById(input.vehicleId);
+  if (vehicle?.status === "manutencao") {
+    // Para simplificar o retorno sem mudar a assinatura radicalmente:
+    return { error: "conflict", conflict: { id: "indisponivel" } as any };
+  }
   const now = nowISO();
   const reservation: VehicleReservation = {
     id: `res-${Date.now().toString(36)}-${Math.floor(Math.random() * 1000)}`,
