@@ -68,9 +68,7 @@ import { Card } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { CalendarClock, type LucideIcon } from "lucide-react";
-import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -198,7 +196,6 @@ function ConfigInput({
   );
 }
 import { CreateEventDialog } from "@/components/calendar/CreateEventDialog";
-import { CompanyLeadsTab } from "@/components/clients/CompanyLeadsTab";
 import { addLocalEvent, useLocalEventsForClient } from "@/lib/local-events-store";
 
 const clientesSearchSchema = z.object({
@@ -652,7 +649,6 @@ function ClientsPage() {
   const [quickAcronym, setQuickAcronym] = useState(() => siglaParam ?? "");
   const [draft, setDraft] = useState<Filters>(() => filters);
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState<"clientes" | "prospeccao">("clientes");
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState<{ key: SortKey; dir: "asc" | "desc" } | null>({
     key: "registered",
@@ -919,39 +915,6 @@ function ClientsPage() {
         breadcrumbs={[{ label: "Clientes" }]}
       />
 
-      {!grupoParam && (
-        <div className="mb-5 flex items-center gap-1 border-b border-border">
-          <button
-            type="button"
-            onClick={() => setActiveSection("clientes")}
-            className={cn(
-              "relative h-10 cursor-pointer px-4 text-sm font-medium transition-colors",
-              activeSection === "clientes"
-                ? "text-primary after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-primary"
-                : "text-muted-foreground hover:text-foreground",
-            )}
-          >
-            Clientes
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveSection("prospeccao")}
-            className={cn(
-              "relative h-10 cursor-pointer px-4 text-sm font-medium transition-colors",
-              activeSection === "prospeccao"
-                ? "text-primary after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-primary"
-                : "text-muted-foreground hover:text-foreground",
-            )}
-          >
-            Prospecção
-          </button>
-        </div>
-      )}
-
-      {activeSection === "prospeccao" && !grupoParam ? (
-        <CompanyLeadsTab />
-      ) : (
-        <>
       <div className="mb-3">
         <div className="mb-2 flex justify-end">
           <Button
@@ -1197,8 +1160,6 @@ function ClientsPage() {
         }}
         onClear={() => setDraft(emptyFilters)}
       />
-        </>
-      )}
     </AppShell>
   );
 }
@@ -1840,16 +1801,20 @@ function AllContactsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[85vh] w-full max-w-3xl flex-col gap-0 overflow-hidden bg-card p-0 [&>button]:hidden">
-        <DialogTitle className="sr-only">Contatos</DialogTitle>
-        <DetailModalHeader
-          icon={UsersRound}
-          title="Contatos"
-          protocol={client.acronym}
-          meta={client.fantasia || client.razaoSocial || client.name}
-          onClose={() => onOpenChange(false)}
-        />
-
+      <DialogContent className="flex max-h-[85vh] w-full max-w-3xl flex-col gap-0 overflow-hidden bg-card p-0">
+        <DialogHeader className="border-b border-border p-5 text-left">
+          <div className="flex items-center gap-3">
+            <span className="grid h-10 w-10 place-items-center rounded-md bg-primary/10 text-primary">
+              <UsersRound className="h-5 w-5" />
+            </span>
+            <div className="min-w-0">
+              <DialogTitle className="text-base font-medium">Contatos</DialogTitle>
+              <p className="truncate text-xs text-muted-foreground">
+                {client.acronym} · {client.fantasia || client.razaoSocial || client.name}
+              </p>
+            </div>
+          </div>
+        </DialogHeader>
 
         <div className="flex flex-col gap-3 border-b border-border px-5 py-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="inline-flex rounded-lg border border-border bg-muted/40 p-0.5 text-xs">
@@ -2179,15 +2144,10 @@ function RecentActivityCard({
             </Button>
           )}
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogContent className="max-h-[80vh] max-w-2xl gap-0 overflow-y-auto p-0 [&>button]:hidden">
-              <DialogTitle className="sr-only">Atividade recente</DialogTitle>
-              <DetailModalHeader
-                icon={History}
-                title="Atividade recente"
-                onClose={() => setDialogOpen(false)}
-              />
-              <div className="px-5 py-4">
-
+            <DialogContent className="max-h-[80vh] max-w-2xl overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Atividade recente</DialogTitle>
+              </DialogHeader>
               <ul className="space-y-3">
                 {items.map((item) => (
                   <li
@@ -2207,9 +2167,7 @@ function RecentActivityCard({
                   </li>
                 ))}
               </ul>
-              </div>
             </DialogContent>
-
           </Dialog>
         </>
       ) : (
@@ -2437,15 +2395,10 @@ function SupportRowsCompact({
         </Button>
       )}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-h-[80vh] max-w-3xl gap-0 overflow-y-auto p-0 [&>button]:hidden">
-          <DialogTitle className="sr-only">Agendamentos e atendimentos</DialogTitle>
-          <DetailModalHeader
-            icon={CalendarClock}
-            title="Agendamentos e atendimentos"
-            onClose={() => setDialogOpen(false)}
-          />
-          <div className="px-5 py-4">
-
+        <DialogContent className="max-h-[80vh] max-w-3xl overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Agendamentos e atendimentos</DialogTitle>
+          </DialogHeader>
           <ul className="space-y-2">
             {rows.map((row) => (
               <li
@@ -2466,9 +2419,7 @@ function SupportRowsCompact({
               </li>
             ))}
           </ul>
-          </div>
         </DialogContent>
-
       </Dialog>
     </>
   );
@@ -3567,17 +3518,16 @@ export function ClientParametersTab({ parameters }: { parameters: ClientParamete
         open={selectedParameter !== null}
         onOpenChange={(open) => !open && setSelectedParameter(null)}
       >
-        <DialogContent className="max-h-[85vh] max-w-4xl gap-0 overflow-y-auto p-0 [&>button]:hidden">
+        <DialogContent className="max-h-[85vh] max-w-4xl overflow-y-auto">
           {selectedParameter && (
             <>
-              <DialogTitle className="sr-only">Parâmetro</DialogTitle>
-              <DetailModalHeader
-                icon={SlidersHorizontal}
-                title="Parâmetro"
-                onClose={() => setSelectedParameter(null)}
-              />
-              <div className="space-y-6 px-5 py-4">
-
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  Parâmetro
+                  <SlidersHorizontal className="h-5 w-5 text-muted-foreground" />
+                </DialogTitle>
+              </DialogHeader>
+              <div className="space-y-6">
                 <div className="border-b border-border pb-4">
                   <p className="text-sm font-medium">{selectedParameter.signature || "-"}</p>
                   <p className="mt-1 text-sm text-muted-foreground">
@@ -3951,15 +3901,17 @@ export function ClientInternetTab({
       </Section>
 
       <Dialog open={configOpen} onOpenChange={setConfigOpen}>
-        <DialogContent className="max-h-[92vh] max-w-6xl gap-0 overflow-y-auto p-0 [&>button]:hidden">
-          <DialogTitle className="sr-only">Configuração do Hádron Web</DialogTitle>
-          <DetailModalHeader
-            icon={HadronMenuIcon as unknown as LucideIcon}
-            title={client.razaoSocial || client.name}
-            protocol={client.acronym}
-            onClose={() => setConfigOpen(false)}
-          />
-
+        <DialogContent className="max-h-[92vh] max-w-6xl overflow-y-auto p-0">
+          <DialogHeader className="border-b border-border bg-muted/30 px-6 py-5">
+            <DialogTitle className="flex items-center gap-3 text-xl">
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground">
+                <HadronMenuIcon className="h-6 w-6" />
+              </span>
+              <span className="min-w-0 truncate">
+                {client.acronym} - {client.razaoSocial || client.name}
+              </span>
+            </DialogTitle>
+          </DialogHeader>
 
           <div className="space-y-6 px-6 pb-7">
             <div>

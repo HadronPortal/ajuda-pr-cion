@@ -28,6 +28,41 @@ export type Vehicle = {
   licensingPaidAt?: string;
   licensingDueDate?: string;
   maintenanceRecords?: VehicleMaintenance[];
+  inspectionHistory?: VehicleInspection[];
+  tires?: TireSystem;
+};
+
+export type TireSystem = {
+  frontLeft: TireData;
+  frontRight: TireData;
+  rearLeft: TireData;
+  rearRight: TireData;
+  lastInspectionDate?: string;
+};
+
+export type TireData = {
+  pressure: number;
+  condition: "normal" | "warning" | "critical";
+  lastSwapMileage: number;
+  nextRotationMileage: number;
+  notes?: string;
+};
+
+export type VehicleInspection = {
+  id: string;
+  vehicleId: string;
+  date: string;
+  inspectorId: string;
+  components: {
+    tires: "normal" | "warning" | "critical";
+    brakes: "normal" | "warning" | "critical";
+    engine: "normal" | "warning" | "critical";
+    battery: "normal" | "warning" | "critical";
+    oil: "normal" | "warning" | "critical";
+    bodywork: "normal" | "warning" | "critical";
+  };
+  notes?: string;
+  mileageAtInspection: number;
 };
 
 export type VehicleMaintenance = {
