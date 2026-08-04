@@ -19,7 +19,7 @@ const selectClass =
 export type VehicleAvailability =
   | { key: "disponivel"; label: "Disponível"; conflict?: undefined }
   | { key: "em_uso"; label: "Em uso" | "Em uso no período"; conflict?: undefined }
-  | { key: "indisponivel"; label: "Indisponível"; conflict?: undefined }
+  | { key: "indisponivel"; label: "Indisponível" | "Em manutenção"; conflict?: undefined }
   | { key: "pre_agendado"; label: "Pré-agendado"; conflict?: boolean };
 
 export function combineDateTime(date: string, time: string): string | null {
