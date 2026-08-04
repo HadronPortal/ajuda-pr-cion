@@ -211,7 +211,7 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
                     <div key={u.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/30 transition-colors border border-transparent hover:border-border/50">
                       <div className="flex flex-col">
                         <span className="text-[13px] font-medium">{u.operatorId}</span>
-                        <span className="text-[11px] text-muted-foreground">{formatFleetDateTime(u.departureAt)}</span>
+                        <span className="text-[11px] text-muted-foreground">{formatFleetDateTime(u.departureAt || u.scheduledStartAt)}</span>
                       </div>
                       <div className="flex flex-col items-end">
                         <Badge variant="outline" className="text-[10px] uppercase font-bold px-1.5 h-5 mb-1">
