@@ -342,5 +342,12 @@ export function VehicleEditorModal({ vehicle, open, onOpenChange }: Props) {
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return <div className="space-y-1.5"><Label>{label}</Label>{children}</div>;
+  return (
+    <div className="space-y-1">
+      <Label className="text-[11px] font-medium text-muted-foreground uppercase tracking-tight pl-0.5">
+        {label}
+      </Label>
+      {children}
+    </div>
+  );
 }
