@@ -25,6 +25,7 @@ import { fleetActions } from "@/lib/fleet-action-store";
 import { VehicleHistoryModal } from "@/components/fleet/VehicleHistoryModal";
 import { VehicleEditorModal } from "@/components/fleet/VehicleEditorModal";
 import { MaintenanceDialog } from "@/components/fleet/MaintenanceDialog";
+import { FleetEntryDialog } from "@/components/fleet/FleetEntryDialog";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/frota/")({
@@ -51,10 +52,13 @@ function FleetPage() {
         description="Retiradas, devoluções e histórico dos veículos da equipe."
         breadcrumbs={[{ label: "Frota" }]}
         actions={
-          <Button variant="outline" className="h-10 cursor-pointer gap-2 rounded-lg">
-            <Filter className="h-4 w-4" />
-            Filtros
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" className="h-10 cursor-pointer gap-2 rounded-lg">
+              <Filter className="h-4 w-4" />
+              Filtros
+            </Button>
+            <FleetEntryDialog />
+          </div>
         }
       />
 

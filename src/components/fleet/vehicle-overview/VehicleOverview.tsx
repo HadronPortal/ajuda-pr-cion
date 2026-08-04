@@ -43,6 +43,7 @@ import { VehicleEditorModal } from "../VehicleEditorModal";
 import { fleetActions } from "@/lib/fleet-action-store";
 import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { FleetEntryDialog } from "@/components/fleet/FleetEntryDialog";
 
 interface VehicleOverviewProps {
   vehicle: Vehicle;
@@ -126,6 +127,7 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
 
       {/* Quick Actions */}
       <div className="flex flex-wrap gap-2">
+        <FleetEntryDialog defaultVehicleId={vehicle.id} triggerLabel="Adicionar lançamento" />
         <ActionButton icon={Pencil} label="Editar veículo" onClick={() => setIsEditorModalOpen(true)} />
         <ActionButton icon={Wrench} label="Nova manutenção" onClick={() => setIsMaintenanceDialogOpen(true)} />
         <ActionButton icon={KeyRound} label="Registrar saída" disabled={vehicle.status !== "disponivel"} onClick={() => {
