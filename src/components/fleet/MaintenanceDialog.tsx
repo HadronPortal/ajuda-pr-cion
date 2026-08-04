@@ -152,8 +152,8 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
     
     const numberValue = parseInt(cleanValue) / 100;
     return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
     }).format(numberValue);
   };
 
@@ -317,12 +317,15 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
                 <div className="space-y-2">
                   <Label>Valor Total</Label>
                   <div className="relative">
-                    <Input
-                      placeholder="R$ 0,00"
-                      value={closeForm.cost}
-                      onChange={e => setCloseForm({ ...closeForm, cost: formatCurrency(e.target.value) })}
-                      className="h-10"
-                    />
+                    <div className="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+                      <span className="mr-1 text-muted-foreground select-none">R$</span>
+                      <input
+                        placeholder="0,00"
+                        value={closeForm.cost}
+                        onChange={e => setCloseForm({ ...closeForm, cost: formatCurrency(e.target.value) })}
+                        className="flex-1 bg-transparent outline-none placeholder:text-muted-foreground"
+                      />
+                    </div>
                   </div>
                 </div>
                 <div className="space-y-2">

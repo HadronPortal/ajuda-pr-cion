@@ -816,7 +816,7 @@ function MaintenanceListView({ maintenanceRecords }: { maintenanceRecords: Vehic
                 {m.cost !== undefined && (
                   <div className="text-right">
                     <p className="text-sm font-bold text-foreground">
-                      {m.cost.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                      {m.cost.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 2 })}
                     </p>
                     <p className="text-[10px] uppercase text-muted-foreground">Custo Total</p>
                   </div>
