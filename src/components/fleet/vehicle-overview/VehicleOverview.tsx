@@ -19,7 +19,8 @@ import {
   Clock,
   ClipboardList,
   AlertTriangle,
-  FileCheck
+  FileCheck,
+  Plus
 } from "lucide-react";
 import { 
   type Vehicle, 
