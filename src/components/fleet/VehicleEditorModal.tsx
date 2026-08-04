@@ -261,34 +261,40 @@ export function VehicleEditorModal({ vehicle, open, onOpenChange }: Props) {
               </p>
             </TabsContent>
 
-            <TabsContent value="manutencao" className="mt-4 space-y-5">
-              <div className="grid gap-3 rounded-md border border-border p-4 sm:grid-cols-2">
+            <TabsContent value="manutencao" className="mt-0 space-y-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3 p-4 rounded-xl border border-border/50 bg-muted/20">
                 <Field label="Data/Hora de Entrada">
                   <Input 
                     type="datetime-local" 
                     value={maintenance.entryDate} 
                     onChange={(e) => setMaintenance({ ...maintenance, entryDate: e.target.value })} 
+                    className="h-9 focus-visible:ring-primary/30"
                   />
                 </Field>
                 <Field label="Quilometragem Inicial">
                   <Input 
-                    type="number" 
-                    min="0" 
-                    value={maintenance.mileage} 
-                    onChange={(e) => setMaintenance({ ...maintenance, mileage: e.target.value })} 
+                    type="text" 
+                    value={Number(maintenance.mileage).toLocaleString("pt-BR")} 
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, "");
+                      setMaintenance({ ...maintenance, mileage: val });
+                    }} 
+                    className="h-9 focus-visible:ring-primary/30 tabular-nums"
                   />
                 </Field>
                 <Field label="Motivo / Problema">
                   <Input 
                     value={maintenance.description} 
                     onChange={(e) => setMaintenance({ ...maintenance, description: e.target.value })} 
-                    placeholder="Ex.: Troca de óleo, barulho na suspensão..." 
+                    placeholder="Ex.: Troca de óleo..." 
+                    className="h-9 focus-visible:ring-primary/30"
                   />
                 </Field>
                 <Field label="Oficina">
                   <Input 
                     value={maintenance.workshop} 
                     onChange={(e) => setMaintenance({ ...maintenance, workshop: e.target.value })} 
+                    className="h-9 focus-visible:ring-primary/30"
                   />
                 </Field>
                 <div className="sm:col-span-2">
@@ -296,11 +302,17 @@ export function VehicleEditorModal({ vehicle, open, onOpenChange }: Props) {
                     <Input 
                       value={maintenance.notes} 
                       onChange={(e) => setMaintenance({ ...maintenance, notes: e.target.value })} 
+                      className="h-9 focus-visible:ring-primary/30"
                     />
                   </Field>
                 </div>
-                <Button type="button" variant="outline" className="sm:col-span-2" onClick={registerMaintenance}>
-                  <Plus className="mr-2 h-4 w-4" />
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  className="sm:col-span-2 h-9 border-primary/20 hover:bg-primary/5 hover:text-primary transition-colors gap-2" 
+                  onClick={registerMaintenance}
+                >
+                  <Plus className="h-4 w-4" />
                   Iniciar manutenção
                 </Button>
               </div>
