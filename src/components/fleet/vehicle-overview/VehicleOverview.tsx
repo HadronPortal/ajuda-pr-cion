@@ -141,7 +141,7 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
               </Card>
 
               {/* Tires Section (Lower part of overview) */}
-              <TireStatusView />
+              <TireStatusView tires={vehicle.tires} />
             </div>
 
             {/* Side Panel */}
