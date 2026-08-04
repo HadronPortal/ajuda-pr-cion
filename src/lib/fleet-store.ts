@@ -24,6 +24,11 @@ export type Vehicle = {
   imageUrl: string;
   state?: string;
   renavam?: string;
+  chassis?: string;
+  fuelType?: string;
+  power?: string;
+  capacity?: string;
+  location?: string;
   licensingYear?: number;
   licensingPaidAt?: string;
   licensingDueDate?: string;
