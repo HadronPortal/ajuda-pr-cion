@@ -89,12 +89,12 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
         </div>
 
         <Card className="grid grid-cols-2 gap-y-4 gap-x-6 p-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 bg-muted/20 border-border/50">
-          <HeaderStat 
-            icon={Calendar} 
-            label="Modelo e ano" 
-            value={`${vehicle.model} / ${vehicle.yearModel}`} 
-            className="sm:col-span-2 lg:col-span-2"
-          />
+            <HeaderStat 
+              icon={Calendar} 
+              label="Modelo" 
+              value={vehicle.model} 
+              className="sm:col-span-2 lg:col-span-2"
+            />
           <HeaderStat icon={FileText} label="Placa" value={vehicle.plate} />
           <HeaderStat icon={ShieldCheck} label="Renavam" value={vehicle.renavam || "—"} />
           <HeaderStat icon={Gauge} label="KM Atual" value={`${vehicle.currentMileage.toLocaleString("pt-BR")} km`} />
