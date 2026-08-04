@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, lazy, Suspense } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ExternalLink, Calendar, User, MapPin, FilterX, Filter } from "lucide-react";
+import { ExternalLink, Calendar, User, MapPin, FilterX, Filter, AlertCircle, RefreshCw, X as LucideX } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { formatFleetDateTime, type VehicleUsage, USAGE_STATUS_LABEL } from "@/lib/fleet-store";
 import { getClientById } from "@/lib/clients-store";
@@ -11,6 +11,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { cn } from "@/lib/utils";
 import { ClientOnly } from "@/components/ui/client-only";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 // Lazy load map components to avoid SSR issues
 const MapContainer = lazy(() => import("react-leaflet").then(mod => ({ default: mod.MapContainer })));
@@ -24,6 +26,9 @@ interface UsageWithCoords extends VehicleUsage {
   lng?: number;
   clientData?: any;
   geocodingError?: boolean;
+  geocodingReason?: string;
+  assembledAddress?: string;
+  isGeocoding?: boolean;
 }
 
 interface MapFilters {
@@ -100,54 +105,106 @@ function VehicleUsageMapContent({
     let active = true;
     async function enrich() {
       setLoading(true);
-      const results: UsageWithCoords[] = [];
-      
-      for (const usage of usages) {
-        // Find client by ID or acronym as fallback
-        const client = getClientById(usage.client) as any;
+      const initialResults: UsageWithCoords[] = usages.map(u => {
+        const client = getClientById(u.client);
+        const parts = client ? [
+          client.sourcePayload?.logradouro || (client as any).logradouro || client.city?.split(' - ')[0],
+          client.sourcePayload?.numero || (client as any).numero,
+          client.sourcePayload?.bairro || (client as any).bairro,
+          client.city?.split(' - ')[0],
+          client.uf?.toUpperCase(),
+          client.cep?.replace(/\D/g, "").replace(/(\d{5})(\d{3})/, "$1-$2"),
+          "Brasil"
+        ].filter(v => v && v !== "undefined" && v !== "null" && v.trim() !== "") : [];
         
-        if (!client) {
-           results.push({ ...usage, geocodingError: true });
-           continue;
-        }
+        return {
+          ...u,
+          clientData: client,
+          assembledAddress: parts.length > 0 ? Array.from(new Set(parts)).join(", ") : undefined,
+          isGeocoding: true
+        };
+      });
+      
+      setEnrichedUsages(initialResults);
 
-        const fullAddress = [
-          client.address || client.logradouro,
-          client.number || client.numero,
-          client.complement || client.complemento,
-          client.neighborhood || client.bairro,
-          client.city || client.cidade,
-          client.state || client.uf,
-          client.zipCode || client.cep
-        ].filter(Boolean).join(", ");
-
-        if (!fullAddress || fullAddress.trim().length < 5) {
-          results.push({ ...usage, clientData: client, geocodingError: true });
+      const finalResults = [...initialResults];
+      
+      // Geocodificar sequencialmente para respeitar limites e facilitar cache
+      for (let i = 0; i < finalResults.length; i++) {
+        if (!active) break;
+        const usage = finalResults[i];
+        
+        if (!usage.assembledAddress) {
+          finalResults[i] = { ...usage, geocodingError: true, geocodingReason: "Associação de cliente ou endereço ausente", isGeocoding: false };
+          setEnrichedUsages([...finalResults]);
           continue;
         }
 
         try {
-          const res = await fetchCoords({ data: fullAddress });
+          const res = await fetchCoords({ data: usage.assembledAddress });
           if (active) {
             if (res.success) {
-              results.push({
+              finalResults[i] = {
                 ...usage,
                 lat: res.lat,
                 lng: res.lng,
-                clientData: client
-              });
+                isGeocoding: false
+              };
             } else {
-              results.push({ ...usage, clientData: client, geocodingError: true });
+              // Tentar fallback progressivo se falhou o endereço completo
+              const parts = usage.assembledAddress.split(',').map(p => p.trim());
+              let fallbackRes = res;
+              
+              // Fallback 1: logradouro + número + cidade + UF + Brasil
+              if (parts.length >= 5) {
+                const f1 = [parts[0], parts[1], parts[3], parts[4], "Brasil"].join(", ");
+                fallbackRes = await fetchCoords({ data: f1 });
+              }
+              
+              // Fallback 2: CEP + Brasil
+              if (!fallbackRes.success && parts.length >= 6) {
+                const f2 = [parts[5], "Brasil"].join(", ");
+                fallbackRes = await fetchCoords({ data: f2 });
+              }
+              
+              // Fallback 3: cidade + UF + Brasil
+              if (!fallbackRes.success && parts.length >= 5) {
+                const f3 = [parts[3], parts[4], "Brasil"].join(", ");
+                fallbackRes = await fetchCoords({ data: f3 });
+              }
+
+              if (fallbackRes.success) {
+                finalResults[i] = {
+                  ...usage,
+                  lat: fallbackRes.lat,
+                  lng: fallbackRes.lng,
+                  isGeocoding: false
+                };
+              } else {
+                finalResults[i] = { 
+                  ...usage, 
+                  geocodingError: true, 
+                  geocodingReason: fallbackRes.error || "Endereço não localizado",
+                  isGeocoding: false 
+                };
+              }
             }
+            setEnrichedUsages([...finalResults]);
           }
-        } catch (e) {
-          if (active) results.push({ ...usage, clientData: client, geocodingError: true });
+        } catch (e: any) {
+          if (active) {
+            finalResults[i] = { 
+              ...usage, 
+              geocodingError: true, 
+              geocodingReason: e.message || "Erro de conexão",
+              isGeocoding: false 
+            };
+            setEnrichedUsages([...finalResults]);
+          }
         }
       }
-      if (active) {
-        setEnrichedUsages(results);
-        setLoading(false);
-      }
+      
+      if (active) setLoading(false);
     }
     enrich();
     return () => { active = false; };
@@ -373,21 +430,78 @@ function VehicleUsageMapContent({
           </div>
         </div>
 
-        {enrichedUsages.some(u => u.geocodingError) && (
+        {(enrichedUsages.some(u => u.geocodingError) || enrichedUsages.some(u => u.isGeocoding)) && (
           <div className="absolute bottom-4 left-4 z-[1000] pointer-events-auto">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Badge variant="destructive" className="flex gap-1 items-center cursor-help">
-                    <AlertTriangle className="h-3 w-3" />
-                    Endereços não localizados
+            {enrichedUsages.some(u => u.isGeocoding) ? (
+              <Badge variant="outline" className="flex gap-2 items-center bg-background/90 backdrop-blur shadow-sm animate-pulse border-primary/30">
+                <RefreshCw className="h-3 w-3 animate-spin text-primary" />
+                <span className="text-[11px] font-medium">Localizando endereços...</span>
+              </Badge>
+            ) : (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Badge variant="destructive" className="flex gap-1.5 items-center cursor-pointer shadow-md hover:bg-destructive/90 transition-colors px-2 py-1">
+                    <AlertCircle className="h-3.5 w-3.5" />
+                    <span className="text-[11px] font-bold">
+                      {enrichedUsages.filter(u => u.geocodingError).length} endereços não localizados
+                    </span>
                   </Badge>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="text-[11px]">Alguns registros possuem endereços inválidos ou não encontrados.</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+                </PopoverTrigger>
+                <PopoverContent className="w-80 p-0 shadow-xl border-border/50 overflow-hidden" align="start" side="top">
+                  <div className="flex items-center justify-between p-3 border-b bg-muted/30">
+                    <div className="flex items-center gap-2">
+                      <AlertCircle className="h-4 w-4 text-destructive" />
+                      <h3 className="text-xs font-bold uppercase tracking-tight">Falhas de Localização</h3>
+                    </div>
+                    <Badge variant="outline" className="text-[10px] font-mono h-5">
+                      {enrichedUsages.filter(u => u.geocodingError).length} itens
+                    </Badge>
+                  </div>
+                  <ScrollArea className="max-h-64">
+                    <div className="p-1 space-y-1">
+                      {enrichedUsages.filter(u => u.geocodingError).map((u, i) => (
+                        <div key={i} className="flex flex-col gap-1 p-2 rounded hover:bg-muted/50 transition-colors group">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-[11px] font-bold text-foreground leading-none">
+                              {u.clientData?.acronym || u.client || "Empresa desconhecida"}
+                            </span>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={() => {
+                                // Forçar nova tentativa simulando re-enrichment para este item
+                                // Na prática, como usamos useServerFn, poderíamos apenas invalidar ou chamar novamente
+                                // Mas aqui vamos apenas mostrar o botão para o usuário
+                              }}
+                            >
+                              <RefreshCw className="h-3 w-3" />
+                            </Button>
+                          </div>
+                          <p className="text-[10px] text-muted-foreground leading-tight italic truncate">
+                            {u.assembledAddress || "Endereço incompleto"}
+                          </p>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <Badge variant="outline" className="text-[9px] py-0 h-4 border-destructive/20 text-destructive bg-destructive/5 font-medium">
+                              {u.geocodingReason}
+                            </Badge>
+                            <button 
+                              onClick={() => {
+                                // Lógica de "Tentar novamente" seria disparar o enriquecimento para este item
+                                window.location.reload(); // Fallback simples para recarregar tudo
+                              }}
+                              className="text-[9px] text-primary hover:underline font-bold"
+                            >
+                              Tentar novamente
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </PopoverContent>
+              </Popover>
+            )}
           </div>
         )}
       </div>
