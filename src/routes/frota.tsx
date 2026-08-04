@@ -305,21 +305,21 @@ function VehiclesView({ query }: { query: string }) {
           </Card>
         ))}
       </div>
-      <VehicleHistoryModal
+      <FleetDetailModal
         vehicle={selected}
         open={selected !== null}
-        onOpenChange={(o) => !o && setSelected(null)}
+        onOpenChange={(o: boolean) => !o && setSelected(null)}
       />
-      <VehicleEditorModal
+      <FleetDetailModal
         vehicle={editing}
         open={editing !== null}
-        onOpenChange={(open) => !open && setEditing(null)}
+        onOpenChange={(open: boolean) => !open && setEditing(null)}
       />
       {maintenance && (
         <MaintenanceDialog
           vehicle={maintenance}
           open={maintenance !== null}
-          onOpenChange={(open) => !open && setMaintenance(null)}
+          onOpenChange={(open: boolean) => !open && setMaintenance(null)}
         />
       )}
     </>
