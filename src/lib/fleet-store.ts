@@ -30,6 +30,21 @@ export type Vehicle = {
   maintenanceRecords?: VehicleMaintenance[];
   inspectionHistory?: VehicleInspection[];
   tires?: TireSystem;
+  
+  // Novos campos do editor
+  type?: string;
+  brand?: string;
+  year?: string;
+  nickname?: string;
+  fuelType?: string;
+  tankCapacity?: number;
+  hasSecondTank?: boolean;
+  secondTankCapacity?: number;
+  measurementUnit?: "km" | "mi" | "h";
+  chassis?: string;
+  power?: string;
+  passengerCapacity?: number;
+  observations?: string;
 };
 
 export type TireSystem = {
