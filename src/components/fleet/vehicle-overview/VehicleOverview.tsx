@@ -119,12 +119,15 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
 
       {/* Quick Actions */}
       <div className="flex flex-wrap gap-2">
-        <ActionButton icon={Pencil} label="Editar veículo" />
-        <ActionButton icon={Wrench} label="Nova manutenção" />
-        <ActionButton icon={KeyRound} label="Registrar saída" disabled={vehicle.status !== "disponivel"} />
-        <ActionButton icon={Undo2} label="Registrar devolução" disabled={vehicle.status !== "em_uso"} />
-        <ActionButton icon={FileText} label="Documentos" />
-        <ActionButton icon={History} label="Histórico" />
+        <ActionButton icon={Pencil} label="Editar veículo" onClick={() => setIsEditorModalOpen(true)} />
+        <ActionButton icon={Wrench} label="Nova manutenção" onClick={() => setIsMaintenanceDialogOpen(true)} />
+        <ActionButton icon={KeyRound} label="Registrar saída" disabled={vehicle.status !== "disponivel"} onClick={() => fleetActions.openPicker()} />
+        <ActionButton icon={Undo2} label="Registrar devolução" disabled={vehicle.status !== "em_uso"} onClick={() => {
+          const current = vehicleUsages.find(u => u.status === "em_deslocamento");
+          if (current) fleetActions.openReturn(current.id);
+        }} />
+        <ActionButton icon={FileText} label="Documentos" onClick={() => setActiveTab("documents")} />
+        <ActionButton icon={History} label="Histórico" onClick={() => setIsHistoryModalOpen(true)} />
       </div>
 
       {/* Main Content Area */}
