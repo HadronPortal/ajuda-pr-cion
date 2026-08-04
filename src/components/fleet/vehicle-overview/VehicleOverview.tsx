@@ -111,7 +111,7 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
             <HeaderStat 
               icon={Calendar} 
               label="Modelo" 
-              value={vehicle.model.split(" / ")[0]} 
+              value={vehicle.model} 
               className="sm:col-span-2 lg:col-span-2"
             />
           <HeaderStat icon={FileText} label="Placa" value={vehicle.plate} />
@@ -550,6 +550,21 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
               </div>
             </>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Visualizar Ocorrência */}
+      <Dialog open={isOccurenceDetailsOpen} onOpenChange={setIsOccurenceDetailsOpen}>
+        <DialogContent className="max-w-2xl p-0 [&>button]:hidden">
+          <DetailModalHeader
+            icon={AlertTriangle}
+            title="Detalhes da Ocorrência"
+            protocol="OC-001"
+            onClose={() => setIsOccurenceDetailsOpen(false)}
+          />
+          <div className="p-6 text-center text-muted-foreground">
+            Funcionalidade em desenvolvimento.
+          </div>
         </DialogContent>
       </Dialog>
     </div>
