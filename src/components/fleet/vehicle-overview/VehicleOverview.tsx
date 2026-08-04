@@ -17,7 +17,8 @@ import {
   Key,
   MapPin,
   AlertTriangle,
-  Download
+  Download,
+  CalendarDays
 } from "lucide-react";
 import { 
   type Vehicle, 
@@ -96,19 +97,13 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
         </div>
 
         <Card className="grid grid-cols-1 gap-y-4 gap-x-6 p-4 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 bg-muted/20 border-border/50">
-          <HeaderStat 
-            icon={Calendar} 
-            label="Modelo" 
-            value={vehicle.model} 
-            className="sm:col-span-2 md:col-span-2 lg:col-span-2 xl:col-span-1"
-          />
           <HeaderStat icon={Key} label="Placa" value={vehicle.plate} />
           <HeaderStat icon={ShieldCheck} label="Renavam" value={vehicle.renavam || "—"} />
           <HeaderStat icon={Gauge} label="KM Atual" value={`${vehicle.currentMileage.toLocaleString("pt-BR")} km`} />
           <HeaderStat icon={Fuel} label="Combustível" value={vehicle.fuelLevel} />
           <HeaderStat icon={LayoutDashboard} label="Status" value={VEHICLE_STATUS_LABEL[vehicle.status]} />
           <HeaderStat icon={User} label="Último condutor" value={lastUsage?.operatorId || "—"} />
-          <HeaderStat icon={Wrench} label="Próxima revisão" value={vehicle.nextRevisionDate} />
+          <HeaderStat icon={CalendarDays} label="Próxima revisão" value={vehicle.nextRevisionDate} />
         </Card>
       </div>
 
