@@ -96,20 +96,14 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
           </div>
         </div>
 
-        <Card className="grid grid-cols-2 gap-y-4 gap-x-6 p-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 bg-muted/20 border-border/50">
-          <HeaderStat 
-            icon={Calendar} 
-            label="Modelo" 
-            value={vehicle.model} 
-            className="sm:col-span-2 lg:col-span-2"
-          />
+        <Card className="grid grid-cols-2 gap-y-4 gap-x-6 p-4 md:grid-cols-7 bg-muted/20 border-border/50">
+          <HeaderStat icon={Calendar} label="Modelo" value={vehicle.model.split(" / ")[0]} />
           <HeaderStat icon={Key} label="Placa" value={vehicle.plate} />
           <HeaderStat icon={ShieldCheck} label="Renavam" value={vehicle.renavam || "—"} />
           <HeaderStat icon={Gauge} label="KM Atual" value={`${vehicle.currentMileage.toLocaleString("pt-BR")} km`} />
           <HeaderStat icon={Fuel} label="Combustível" value={vehicle.fuelLevel} />
           <HeaderStat icon={LayoutDashboard} label="Status" value={VEHICLE_STATUS_LABEL[vehicle.status]} />
           <HeaderStat icon={User} label="Último condutor" value={lastUsage?.operatorId || "—"} />
-          <HeaderStat icon={Wrench} label="Próxima revisão" value={vehicle.nextRevisionDate} />
         </Card>
       </div>
 
@@ -377,9 +371,9 @@ function HeaderStat({ icon: Icon, label, value, className }: { icon: any; label:
     <div className={cn("flex flex-col gap-1 min-w-0", className)}>
       <div className="flex items-center gap-1.5 text-muted-foreground">
         <Icon className="h-3 w-3 shrink-0" />
-        <span className="text-[10px] font-bold uppercase tracking-wider truncate">{label}</span>
+        <span className="text-[10px] font-normal uppercase tracking-wider truncate">{label}</span>
       </div>
-      <p className="text-sm font-black truncate">{value}</p>
+      <p className="text-sm font-normal truncate">{value}</p>
     </div>
   );
 }
