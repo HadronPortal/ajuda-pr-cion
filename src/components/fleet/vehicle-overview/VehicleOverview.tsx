@@ -132,10 +132,10 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
       {/* Main Content Area */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="h-auto w-full justify-start rounded-none border-b bg-transparent p-0">
-          <TabTrigger value="overview">Visão geral</TabTrigger>
-          <TabTrigger value="maintenance">Manutenções</TabTrigger>
-          <TabTrigger value="utilization">Utilizações</TabTrigger>
-          <TabTrigger value="occurrences">Ocorrências</TabTrigger>
+          <TabsTrigger value="overview">Visão geral</TabsTrigger>
+          <TabsTrigger value="maintenance">Manutenções</TabsTrigger>
+          <TabsTrigger value="utilization">Utilizações</TabsTrigger>
+          <TabsTrigger value="occurrences">Ocorrências</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="mt-6 flex flex-col gap-6">
