@@ -55,6 +55,11 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [isMaintenanceDialogOpen, setIsMaintenanceDialogOpen] = useState(false);
   const [isEditorModalOpen, setIsEditorModalOpen] = useState(false);
+  const [selectedMaintenance, setSelectedMaintenance] = useState<any>(null);
+  const [isMaintenanceDetailsOpen, setIsMaintenanceDetailsOpen] = useState(false);
+  const [selectedUsage, setSelectedUsage] = useState<any>(null);
+  const [isUsageDetailsOpen, setIsUsageDetailsOpen] = useState(false);
+  const [isOccurenceDetailsOpen, setIsOccurenceDetailsOpen] = useState(false);
 
   const vehicleUsages = useMemo(() => {
     return usages
