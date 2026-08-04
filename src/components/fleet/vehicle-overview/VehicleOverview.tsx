@@ -143,7 +143,7 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
                 <h3 className="text-base font-bold">Últimas Utilizações</h3>
               </div>
               <div className="space-y-4 flex-1">
-                {vehicleUsages.slice(0, 5).map(u => (
+                {vehicleUsages.slice(0, 4).map(u => (
                   <div key={u.id} className="group border-b border-border/40 pb-4 last:border-0 last:pb-0">
                     <div className="flex items-center justify-between font-semibold mb-1">
                       <div className="flex items-center gap-2">
