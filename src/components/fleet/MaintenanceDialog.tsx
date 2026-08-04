@@ -26,11 +26,16 @@ type MaintenanceDialogProps = {
   vehicle: Vehicle;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  maintenance?: VehicleMaintenance | null;
+  readOnly?: boolean;
 };
+
 
 export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDialogProps) {
   const [mode, setMode] = useState<"create" | "close" | "view">("create");
   const [selectedMaint, setSelectedMaint] = useState<VehicleMaintenance | null>(null);
+  const [isReadOnly, setIsReadOnly] = useState(false);
+
 
   // Form states for creation
   const [createForm, setCreateForm] = useState({
@@ -55,26 +60,42 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
 
   useEffect(() => {
     if (open) {
-      const active = vehicle.maintenanceRecords?.find(m => m.status === "em_andamento");
-      if (active) {
-        setMode("close");
-        setSelectedMaint(active);
-        setCloseForm(prev => ({
-          ...prev,
-          exitMileage: String(vehicle.currentMileage),
-        }));
+      if (maintenance) {
+        setMode(maintenance.status === "em_andamento" ? "close" : "view");
+        setSelectedMaint(maintenance);
+        setIsReadOnly(readOnly || maintenance.status === "concluido");
+        if (maintenance.status === "em_andamento") {
+          setCloseForm(prev => ({
+            ...prev,
+            exitMileage: String(vehicle.currentMileage),
+          }));
+        }
       } else {
-        setMode("create");
-        setCreateForm({
-          entryDate: new Date().toISOString().slice(0, 16),
-          entryMileage: String(vehicle.currentMileage),
-          reason: "",
-          workshop: "",
-          notes: "",
-        });
+        const active = vehicle.maintenanceRecords?.find(m => m.status === "em_andamento");
+        if (active) {
+          setMode("close");
+          setSelectedMaint(active);
+          setIsReadOnly(false);
+          setCloseForm(prev => ({
+            ...prev,
+            exitMileage: String(vehicle.currentMileage),
+          }));
+        } else {
+          setMode("create");
+          setSelectedMaint(null);
+          setIsReadOnly(false);
+          setCreateForm({
+            entryDate: new Date().toISOString().slice(0, 16),
+            entryMileage: String(vehicle.currentMileage),
+            reason: "",
+            workshop: "",
+            notes: "",
+          });
+        }
       }
     }
-  }, [open, vehicle]);
+  }, [open, vehicle, maintenance, readOnly]);
+
 
   const handleCreate = () => {
     if (!createForm.reason.trim() || !createForm.workshop.trim()) {
@@ -186,15 +207,17 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
       <DialogContent className="flex max-h-[90dvh] w-[95vw] max-w-[600px] flex-col overflow-hidden p-0">
         <DetailModalHeader
           icon={Wrench}
-          title={mode === "create" ? "Iniciar Manutenção" : "Encerrar Manutenção"}
+          title={isReadOnly ? "Detalhes da Manutenção" : mode === "create" ? "Iniciar Manutenção" : "Encerrar Manutenção"}
           protocol={vehicle.plate}
           onClose={() => onOpenChange(false)}
           meta={<>{vehicle.model}</>}
         />
 
+
         <div className="flex-1 overflow-y-auto p-6 hide-scrollbar">
           {mode === "create" ? (
             <div className="space-y-4">
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Data/Hora de Entrada</Label>
@@ -261,8 +284,9 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
                 </div>
               </div>
             </div>
-          ) : (
+          ) : mode === "close" && !isReadOnly ? (
             <div className="space-y-5">
+
               {/* Resumo da Entrada */}
               <Card className="bg-muted/30 p-4">
                 <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -399,20 +423,23 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
           )}
         </div>
 
-        <DialogFooter className="border-t border-border bg-muted/20 px-6 py-4">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancelar
-          </Button>
-          {mode === "create" ? (
-            <Button onClick={handleCreate}>
-              Iniciar Manutenção
+        {!isReadOnly && (
+          <DialogFooter className="border-t border-border bg-muted/20 px-6 py-4">
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Cancelar
             </Button>
-          ) : (
-            <Button onClick={handleClose}>
-              Encerrar Manutenção
-            </Button>
-          )}
-        </DialogFooter>
+            {mode === "create" ? (
+              <Button onClick={handleCreate}>
+                Iniciar Manutenção
+              </Button>
+            ) : (
+              <Button onClick={handleClose}>
+                Encerrar Manutenção
+              </Button>
+            )}
+          </DialogFooter>
+        )}
+
       </DialogContent>
     </Dialog>
   );
