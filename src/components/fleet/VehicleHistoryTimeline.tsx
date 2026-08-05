@@ -31,6 +31,7 @@ const TYPE_CONFIG = {
 export function VehicleHistoryTimeline({ vehicleId }: { vehicleId: string }) {
   const allEntries = useFleetEntries();
   const [search, setSearch] = useState("");
+  const [showAll, setShowAll] = useState(false);
 
   const vehicleEntries = useMemo(() => {
     return allEntries
@@ -44,12 +45,14 @@ export function VehicleHistoryTimeline({ vehicleId }: { vehicleId: string }) {
           TYPE_CONFIG[e.type]?.label.toLowerCase().includes(s)
         );
       })
-      .sort((a, b) => new Date(a.occurredAt).getTime() - new Date(b.occurredAt).getTime()); // Mais antigo primeiro conforme solicitado
+      .sort((a, b) => new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime());
   }, [allEntries, vehicleId, search]);
+
+  const visibleEntries = showAll ? vehicleEntries : vehicleEntries.slice(0, 3);
 
   const groups = useMemo(() => {
     const map: Record<string, FleetEntry[]> = {};
-    vehicleEntries.forEach(entry => {
+    visibleEntries.forEach(entry => {
       const date = new Date(entry.occurredAt);
       const month = date.toLocaleString('pt-BR', { month: 'long' });
       const year = date.getFullYear();
@@ -58,7 +61,7 @@ export function VehicleHistoryTimeline({ vehicleId }: { vehicleId: string }) {
       map[key].push(entry);
     });
     return Object.entries(map);
-  }, [vehicleEntries]);
+  }, [visibleEntries]);
 
   const exportData = () => {
     const content = vehicleEntries.map(e => (
@@ -154,6 +157,12 @@ export function VehicleHistoryTimeline({ vehicleId }: { vehicleId: string }) {
           </div>
         )}
       </div>
+
+      {vehicleEntries.length > 3 && (
+        <Button variant="ghost" className="mt-5 w-full cursor-pointer text-primary" onClick={() => setShowAll((value) => !value)}>
+          {showAll ? "Mostrar menos" : "Ver tudo"}
+        </Button>
+      )}
     </Card>
   );
 }

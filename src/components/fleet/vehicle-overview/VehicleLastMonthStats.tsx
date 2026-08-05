@@ -2,13 +2,16 @@ import { useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useFleetEntries } from "@/lib/fleet-entry-store";
-import { Fuel, Wrench, Receipt } from "lucide-react";
+import { Fuel, Wrench, Receipt, KeyRound, MapPin } from "lucide-react";
+import { formatFleetDateTime, type VehicleUsage } from "@/lib/fleet-store";
 
 interface VehicleLastMonthStatsProps {
   vehicleId: string;
+  usages: VehicleUsage[];
+  onUsageClick: (usage: VehicleUsage) => void;
 }
 
-export function VehicleLastMonthStats({ vehicleId }: VehicleLastMonthStatsProps) {
+export function VehicleLastMonthStats({ vehicleId, usages, onUsageClick }: VehicleLastMonthStatsProps) {
   const allEntries = useFleetEntries();
 
   const stats = useMemo(() => {
@@ -94,6 +97,28 @@ export function VehicleLastMonthStats({ vehicleId }: VehicleLastMonthStatsProps)
             <p className="text-base font-bold">{stats.pctDespesa}%</p>
           </div>
         </div>
+      </div>
+
+      <div className="mt-6 border-t pt-5">
+        <div className="mb-3 flex items-center gap-2 text-primary">
+          <KeyRound className="h-4 w-4" />
+          <h4 className="text-sm font-semibold">Utilizações</h4>
+        </div>
+        {usages.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Nenhuma utilização registrada.</p>
+        ) : (
+          <div className="space-y-2">
+            {usages.slice(0, 4).map((usage) => (
+              <button key={usage.id} type="button" onClick={() => onUsageClick(usage)} className="flex w-full cursor-pointer items-center justify-between gap-3 rounded-md border px-3 py-2 text-left hover:bg-muted/40">
+                <span className="min-w-0">
+                  <span className="block text-sm font-medium">{usage.operatorId}</span>
+                  <span className="flex items-center gap-1 truncate text-xs text-muted-foreground"><MapPin className="h-3 w-3 shrink-0" />{usage.destination}</span>
+                </span>
+                <span className="shrink-0 text-xs text-muted-foreground">{formatFleetDateTime(usage.departureAt || usage.scheduledStartAt)}</span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <Button variant="outline" className="w-full mt-8 rounded-full border-primary/50 text-primary hover:bg-primary/5 h-12 text-sm font-bold uppercase tracking-wider">

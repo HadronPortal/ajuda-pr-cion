@@ -15,7 +15,6 @@ import {
   ClipboardList,
   Wrench,
   Key,
-  MapPin,
   AlertTriangle,
   Download,
   Settings
@@ -139,14 +138,20 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
         <TabsList className="h-auto w-full justify-start rounded-none border-b bg-transparent p-0">
           <TabsTrigger value="overview">Visão geral</TabsTrigger>
           <TabsTrigger value="maintenance">Manutenções</TabsTrigger>
-          <TabsTrigger value="utilization">Utilizações</TabsTrigger>
           <TabsTrigger value="occurrences">Ocorrências</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="mt-6 flex flex-col gap-6">
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             <VehicleHistoryTimeline vehicleId={vehicle.id} />
-            <VehicleLastMonthStats vehicleId={vehicle.id} />
+            <VehicleLastMonthStats
+              vehicleId={vehicle.id}
+              usages={vehicleUsages}
+              onUsageClick={(usage) => {
+                setSelectedUsage(usage);
+                setIsUsageDetailsOpen(true);
+              }}
+            />
           </div>
         </TabsContent>
 
@@ -191,58 +196,6 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
                             <p className="text-sm font-bold">R$ {m.cost.toLocaleString("pt-BR")}</p>
                           </div>
                         )}
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </div>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="utilization" className="mt-6">
-          <Card className="p-6">
-             <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-2 text-primary">
-                <KeyRound className="h-5 w-5" />
-                <h3 className="text-base font-bold">Histórico de Utilizações</h3>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              {vehicleUsages.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-muted-foreground border border-dashed rounded-lg">
-                  <KeyRound className="h-8 w-8 mb-2 opacity-20" />
-                  <p className="text-sm">Nenhuma utilização registrada.</p>
-                </div>
-              ) : (
-                <div className="grid gap-4">
-                  {vehicleUsages.map(u => (
-                    <Card key={u.id} className="p-4 hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => {
-                      setSelectedUsage(u);
-                      setIsUsageDetailsOpen(true);
-                    }}>
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <span className="font-semibold text-sm">{u.operatorId}</span>
-                            <Badge variant="outline" className="text-[10px] uppercase">
-                              {u.status}
-                            </Badge>
-                          </div>
-                          <p className="text-xs text-muted-foreground flex items-center gap-1">
-                            <MapPin className="h-3 w-3" />
-                            {u.destination}
-                          </p>
-                          <p className="text-[10px] text-muted-foreground">
-                            {formatFleetDateTime(u.departureAt || u.scheduledStartAt)} - {u.returnedAt ? formatFleetDateTime(u.returnedAt) : "Em uso"}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <Badge variant="secondary" className="font-mono text-[10px]">
-                            {u.returnMileage ? `${u.returnMileage.toLocaleString("pt-BR")} km` : (u.departureMileage ? `${u.departureMileage.toLocaleString("pt-BR")} km` : "—")}
-                          </Badge>
-                        </div>
                       </div>
                     </Card>
                   ))}
