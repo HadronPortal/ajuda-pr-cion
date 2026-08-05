@@ -9,7 +9,8 @@ import {
   ClipboardCheck, 
   Bell,
   Search,
-  Download
+  Download,
+  Calendar
 } from "lucide-react";
 import { type FleetEntry, useFleetEntries } from "@/lib/fleet-entry-store";
 import { Badge } from "@/components/ui/badge";
