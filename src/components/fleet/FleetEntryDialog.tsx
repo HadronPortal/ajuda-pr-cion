@@ -124,8 +124,17 @@ function CommonFields({ draft, set, vehicles, type }: { draft: Draft; set: Sette
   </div>;
 }
 
+function computeLiters(amount: string, unitPrice: string) {
+  const total = moneyValue(amount);
+  const price = moneyValue(unitPrice);
+  if (total === undefined || price === undefined || !(total > 0) || !(price > 0)) return "";
+  const liters = total / price;
+  if (!Number.isFinite(liters)) return "";
+  return liters.toLocaleString("pt-BR", { maximumFractionDigits: 3 });
+}
+
 function FuelFields({ draft, set }: { draft: Draft; set: Setter }) { return <>
-  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"><Field label="Combustível"><select className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" value={draft.fuelType} onChange={(e) => set("fuelType", e.target.value)}><option>Gasolina aditivada</option><option>Gasolina comum</option><option>Etanol</option><option>Diesel</option><option>GNV</option></select></Field><Field label="Preço por litro (R$)"><Input inputMode="decimal" value={draft.unitPrice} onChange={(e) => set("unitPrice", e.target.value)} /></Field><Field label="Valor total (R$)"><Input inputMode="decimal" value={draft.amount} onChange={(e) => set("amount", e.target.value)} /></Field><Field label="Litros"><Input inputMode="decimal" value={draft.liters} onChange={(e) => set("liters", e.target.value)} /></Field><Field label="Posto de combustível"><Input value={draft.fuelStation} onChange={(e) => set("fuelStation", e.target.value)} /></Field><Field label="Motorista"><Input value={draft.driver} onChange={(e) => set("driver", e.target.value)} /></Field></div>
+  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"><Field label="Combustível"><select className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" value={draft.fuelType} onChange={(e) => set("fuelType", e.target.value)}><option>Gasolina aditivada</option><option>Gasolina comum</option><option>Etanol</option><option>Diesel</option><option>GNV</option></select></Field><Field label="Preço por litro (R$)"><Input inputMode="decimal" value={draft.unitPrice} onChange={(e) => { const value = e.target.value; set("unitPrice", value); set("liters", computeLiters(draft.amount, value)); }} /></Field><Field label="Valor total (R$)"><Input inputMode="decimal" value={draft.amount} onChange={(e) => { const value = e.target.value; set("amount", value); set("liters", computeLiters(value, draft.unitPrice)); }} /></Field><Field label="Litros"><Input inputMode="decimal" value={draft.liters} onChange={(e) => set("liters", e.target.value)} /></Field><Field label="Posto de combustível"><Input value={draft.fuelStation} onChange={(e) => set("fuelStation", e.target.value)} /></Field><Field label="Motorista"><Input value={draft.driver} onChange={(e) => set("driver", e.target.value)} /></Field></div>
   <div className="grid gap-4 sm:grid-cols-2"><Field label="Motivo (opcional)"><Input value={draft.motive} onChange={(e) => set("motive", e.target.value)} /></Field><Payment draft={draft} set={set} /></div>
   <div className="flex flex-wrap gap-6"><Check label="Está completando o tanque?" checked={draft.fullTank} onChange={(value) => set("fullTank", value)} /><Check label="Abastecimento anterior em falta?" checked={draft.previousRefuelingMissing} onChange={(value) => set("previousRefuelingMissing", value)} /></div>
   </>; }
