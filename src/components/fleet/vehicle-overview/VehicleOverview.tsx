@@ -11,20 +11,17 @@ import {
   ShieldCheck,
   User,
   LayoutDashboard,
-  Clock,
-  ClipboardList,
-  Wrench,
   Key,
   AlertTriangle,
-  Download,
-  Settings
+  Settings,
+  CheckCircle2
 } from "lucide-react";
 import { 
   type Vehicle, 
   useUsages,
   formatFleetDateTime,
   VEHICLE_STATUS_LABEL,
-  getVehicleById
+  updateVehicle
 } from "@/lib/fleet-store";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -50,8 +47,6 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
   const [activeTab, setActiveTab] = useState("overview");
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
-  const [selectedMaintenance, setSelectedMaintenance] = useState<any>(null);
-  const [isMaintenanceDetailsOpen, setIsMaintenanceDetailsOpen] = useState(false);
   const [selectedUsage, setSelectedUsage] = useState<any>(null);
   const [isUsageDetailsOpen, setIsUsageDetailsOpen] = useState(false);
 
@@ -113,6 +108,16 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
       {/* Quick Actions */}
       <div className="flex flex-wrap gap-2">
         <FleetEntryDialog defaultVehicleId={vehicle.id} triggerLabel="Adicionar lançamento" />
+        {vehicle.status === "manutencao" && (
+          <ActionButton
+            icon={CheckCircle2}
+            label="Liberar veículo"
+            onClick={() => {
+              updateVehicle(vehicle.id, { status: "disponivel" });
+              toast.success("Veículo liberado e disponível para uso.");
+            }}
+          />
+        )}
         {vehicle.status === "em_uso" && (
           <ActionButton 
             icon={Undo2} 
@@ -137,7 +142,6 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="h-auto w-full justify-start rounded-none border-b bg-transparent p-0">
           <TabsTrigger value="overview">Visão geral</TabsTrigger>
-          <TabsTrigger value="maintenance">Manutenções</TabsTrigger>
           <TabsTrigger value="occurrences">Ocorrências</TabsTrigger>
         </TabsList>
 
@@ -153,55 +157,6 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
               }}
             />
           </div>
-        </TabsContent>
-
-        <TabsContent value="maintenance" className="mt-6 flex flex-col gap-6">
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-2 text-primary">
-                <Wrench className="h-5 w-5" />
-                <h3 className="text-base font-bold">Histórico de Manutenções</h3>
-              </div>
-            </div>
-            
-            <div className="space-y-4">
-              {(vehicle.maintenanceRecords ?? []).length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-muted-foreground border border-dashed rounded-lg">
-                  <Wrench className="h-8 w-8 mb-2 opacity-20" />
-                  <p className="text-sm">Nenhuma manutenção registrada.</p>
-                </div>
-              ) : (
-                <div className="grid gap-4">
-                  {(vehicle.maintenanceRecords ?? []).map(m => (
-                      <Card key={m.id} className="p-4 hover:bg-muted/30 transition-colors cursor-pointer" onClick={() => {
-                        setSelectedMaintenance(m);
-                        setIsMaintenanceDetailsOpen(true);
-                      }}>
-                      <div className="flex items-start justify-between">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <span className="font-semibold text-sm">{m.reason}</span>
-                            <Badge variant={m.status === "em_andamento" ? "outline" : "secondary"} className="text-[10px] uppercase">
-                              {m.status === "em_andamento" ? "Em andamento" : "Concluída"}
-                            </Badge>
-                          </div>
-                          <p className="text-xs text-muted-foreground flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {formatFleetDateTime(m.entryDate)}
-                          </p>
-                        </div>
-                        {m.cost && (
-                          <div className="text-right">
-                            <p className="text-sm font-bold">R$ {m.cost.toLocaleString("pt-BR")}</p>
-                          </div>
-                        )}
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </div>
-          </Card>
         </TabsContent>
 
         <TabsContent value="occurrences" className="mt-6">
@@ -228,30 +183,6 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
         open={isHistoryModalOpen} 
         onOpenChange={setIsHistoryModalOpen} 
       />
-
-      {/* Modal Detalhes Manutenção */}
-      <Dialog open={isMaintenanceDetailsOpen} onOpenChange={setIsMaintenanceDetailsOpen}>
-        <DialogContent className="max-w-2xl [&_button:not(:disabled)]:cursor-pointer [&_select:not(:disabled)]:cursor-pointer">
-          {selectedMaintenance && (
-            <>
-              <DialogTitle className="flex items-center gap-2 text-xl font-bold">
-                <Wrench className="h-5 w-5 text-primary" />
-                Detalhes da Manutenção
-              </DialogTitle>
-              <div className="grid grid-cols-2 gap-6 py-4">
-                <DetailItem label="Motivo" value={selectedMaintenance.reason} />
-                <DetailItem label="Oficina" value={selectedMaintenance.workshop} />
-                <DetailItem label="Data Entrada" value={formatFleetDateTime(selectedMaintenance.entryDate)} />
-                <DetailItem label="Data Saída" value={selectedMaintenance.exitDate ? formatFleetDateTime(selectedMaintenance.exitDate) : "—"} />
-                <DetailItem label="KM Entrada" value={`${selectedMaintenance.entryMileage?.toLocaleString("pt-BR")} km`} />
-                <DetailItem label="Custo" value={selectedMaintenance.cost ? `R$ ${selectedMaintenance.cost.toLocaleString("pt-BR")}` : "—"} />
-                <DetailItem label="Status" value={selectedMaintenance.status === "em_andamento" ? "Em andamento" : "Concluída"} />
-                <DetailItem label="Observações" value={selectedMaintenance.notes || "—"} fullWidth />
-              </div>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
 
       {/* Modal Detalhes Utilização */}
       <Dialog open={isUsageDetailsOpen} onOpenChange={setIsUsageDetailsOpen}>

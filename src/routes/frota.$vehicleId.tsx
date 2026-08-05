@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { getVehicleById } from "@/lib/fleet-store";
+import { getVehicleById, useVehicles } from "@/lib/fleet-store";
 import { VehicleOverview } from "@/components/fleet/vehicle-overview/VehicleOverview";
 import { AppShell } from "@/components/portal/AppShell";
 
@@ -15,7 +15,7 @@ export const Route = createFileRoute("/frota/$vehicleId")({
 
 function VehicleOverviewRoute() {
   const { vehicleId } = Route.useParams();
-  const vehicle = getVehicleById(vehicleId);
+  const vehicle = useVehicles().find((item) => item.id === vehicleId);
   const navigate = useNavigate();
 
   if (!vehicle) {
