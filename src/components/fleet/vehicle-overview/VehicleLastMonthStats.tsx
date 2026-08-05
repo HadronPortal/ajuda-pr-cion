@@ -32,19 +32,19 @@ export function VehicleLastMonthStats({ vehicleId, usages, onUsageClick }: Vehic
     const daysCount = 30; // Mês comercial
     const costPerDay = totalCusto / daysCount;
 
-    const counts = {
-      abastecimento: entries.filter(e => e.type === 'abastecimento').length,
-      servico: entries.filter(e => e.type === 'servico').length,
-      despesa: entries.filter(e => e.type === 'despesa').length,
+    const amounts = {
+      abastecimento: entries.filter(e => e.type === 'abastecimento').reduce((sum, e) => sum + (e.amount || 0), 0),
+      servico: entries.filter(e => e.type === 'servico').reduce((sum, e) => sum + (e.amount || 0), 0),
+      despesa: entries.filter(e => e.type === 'despesa').reduce((sum, e) => sum + (e.amount || 0), 0),
     };
-    const totalSpecific = counts.abastecimento + counts.servico + counts.despesa || 1;
+    const totalSpecific = amounts.abastecimento + amounts.servico + amounts.despesa;
 
     return {
       totalCusto,
       costPerDay,
-      pctAbastecimento: Math.round((counts.abastecimento / totalSpecific) * 100),
-      pctServico: Math.round((counts.servico / totalSpecific) * 100),
-      pctDespesa: Math.round((counts.despesa / totalSpecific) * 100),
+      pctAbastecimento: totalSpecific ? Math.round((amounts.abastecimento / totalSpecific) * 100) : 0,
+      pctServico: totalSpecific ? Math.round((amounts.servico / totalSpecific) * 100) : 0,
+      pctDespesa: totalSpecific ? Math.round((amounts.despesa / totalSpecific) * 100) : 0,
     };
   }, [allEntries, vehicleId]);
 

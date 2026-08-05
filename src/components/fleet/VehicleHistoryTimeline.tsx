@@ -9,7 +9,8 @@ import {
   Bell,
   Search,
   Download,
-  Calendar
+  Calendar,
+  UserRound
 } from "lucide-react";
 import { type FleetEntry, useFleetEntries } from "@/lib/fleet-entry-store";
 import { Badge } from "@/components/ui/badge";
@@ -132,8 +133,8 @@ export function VehicleHistoryTimeline({ vehicleId }: { vehicleId: string }) {
                         )}
 
                         <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium">
-                          <MapPinned className="h-3.5 w-3.5" />
-                          {entry.distance ? `${entry.distance.toLocaleString('pt-BR')} km/L` : '0,00 km/L'}
+                          <UserRound className="h-3.5 w-3.5" />
+                          {entry.driver || "PRC não informado"}
                         </div>
                       </div>
 

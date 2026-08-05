@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { createFleetEntry, type FleetEntryType } from "@/lib/fleet-entry-store";
-import { useVehicles } from "@/lib/fleet-store";
+import { updateVehicle, useVehicles, type VehicleStatus } from "@/lib/fleet-store";
 import { useOperatorAcronyms } from "@/lib/collaborators-store";
 
 const TYPES = [
@@ -22,6 +22,7 @@ type Draft = {
   origin: string; destination: string; distance: string; routeKind: "viagem" | "frete"; ratePerKm: string;
   readingType: string; readingValue: string; checklistItems: string; reminderAt: string;
   reminderKind: "despesa" | "servico"; attachmentName: string;
+  vehicleStatus: "" | Extract<VehicleStatus, "manutencao" | "disponivel">;
 };
 
 function localNow(offsetHours = 0) {
@@ -36,7 +37,7 @@ function emptyDraft(vehicleId = ""): Draft {
     title: "", notes: "", amount: "", liters: "", unitPrice: "", fuelType: "Gasolina aditivada",
     fuelStation: "", driver: "", motive: "", paymentMethod: "", location: "", origin: "", destination: "",
     distance: "", routeKind: "viagem", ratePerKm: "", readingType: "Quilometragem", readingValue: "",
-    checklistItems: "", reminderAt: "", reminderKind: "despesa", attachmentName: "",
+    checklistItems: "", reminderAt: "", reminderKind: "despesa", attachmentName: "", vehicleStatus: "",
   };
 }
 
@@ -75,6 +76,9 @@ export function FleetEntryDialog({ defaultVehicleId, triggerLabel = "Adicionar" 
       reminderAt: type === "lembrete" ? draft.reminderAt || undefined : undefined,
       reminderKind: type === "lembrete" ? draft.reminderKind : undefined,
     });
+    if (type === "servico" && draft.vehicleStatus) {
+      updateVehicle(draft.vehicleId, { status: draft.vehicleStatus });
+    }
     toast.success(`${selectedLabel} registrado com sucesso.`);
     close();
   };
@@ -134,7 +138,7 @@ function FuelFields({ draft, set, operators }: { draft: Draft; set: Setter; oper
   </>; }
 
 function ExpenseFields({ draft, set, operators }: { draft: Draft; set: Setter; operators: string[] }) { return <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"><Field label="Tipo de despesa"><Input value={draft.title} onChange={(e) => set("title", e.target.value)} placeholder="Ex.: estacionamento" /></Field><Field label="Valor (R$)"><CurrencyInput value={draft.amount} onChange={(value) => set("amount", value)} /></Field><Field label="Local (opcional)"><Input value={draft.location} onChange={(e) => set("location", e.target.value)} /></Field><DriverSelect value={draft.driver} onChange={(value) => set("driver", value)} operators={operators} /><Field label="Motivo (opcional)"><Input value={draft.motive} onChange={(e) => set("motive", e.target.value)} /></Field><Payment draft={draft} set={set} /></div>; }
-function ServiceFields({ draft, set, operators }: { draft: Draft; set: Setter; operators: string[] }) { return <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"><Field label="Tipo de serviço"><Input value={draft.title} onChange={(e) => set("title", e.target.value)} /></Field><Field label="Local / oficina"><Input value={draft.location} onChange={(e) => set("location", e.target.value)} /></Field><Field label="Valor (R$)"><CurrencyInput value={draft.amount} onChange={(value) => set("amount", value)} /></Field><DriverSelect value={draft.driver} onChange={(value) => set("driver", value)} operators={operators} /><Payment draft={draft} set={set} /></div>; }
+function ServiceFields({ draft, set, operators }: { draft: Draft; set: Setter; operators: string[] }) { return <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"><Field label="Tipo de serviço"><Input value={draft.title} onChange={(e) => set("title", e.target.value)} /></Field><Field label="Local / oficina"><Input value={draft.location} onChange={(e) => set("location", e.target.value)} /></Field><Field label="Valor (R$)"><CurrencyInput value={draft.amount} onChange={(value) => set("amount", value)} /></Field><DriverSelect value={draft.driver} onChange={(value) => set("driver", value)} operators={operators} /><Field label="Status do veículo"><select className="h-10 w-full cursor-pointer rounded-md border border-input bg-background px-3 text-sm" value={draft.vehicleStatus} onChange={(event) => set("vehicleStatus", event.target.value as Draft["vehicleStatus"])}><option value="">Manter status atual</option><option value="manutencao">Em manutenção</option><option value="disponivel">Disponível</option></select></Field><Payment draft={draft} set={set} /></div>; }
 function RouteFields({ draft, set }: { draft: Draft; set: Setter }) { return <><div className="grid gap-4 sm:grid-cols-2"><Field label="Origem"><Input value={draft.origin} onChange={(e) => set("origin", e.target.value)} /></Field><Field label="Destino"><Input value={draft.destination} onChange={(e) => set("destination", e.target.value)} /></Field><Field label="Data e hora final"><Input type="datetime-local" value={draft.endedAt} onChange={(e) => set("endedAt", e.target.value)} /></Field><Field label="Odômetro final"><Input value={draft.endingMileage} onChange={(e) => set("endingMileage", e.target.value.replace(/\D/g, ""))} /></Field></div><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"><Field label="Modalidade"><select className="h-10 w-full cursor-pointer rounded-md border border-input bg-background px-3 text-sm" value={draft.routeKind} onChange={(e) => set("routeKind", e.target.value as Draft["routeKind"])}><option value="viagem">Viagem</option><option value="frete">Frete</option></select></Field><Field label="Distância (km)"><Input value={draft.distance} onChange={(e) => set("distance", e.target.value)} /></Field><Field label="Valor por km (R$)"><CurrencyInput value={draft.ratePerKm} onChange={(value) => set("ratePerKm", value)} /></Field><Field label="Motorista"><Input value={draft.driver} onChange={(e) => set("driver", e.target.value)} /></Field></div><Field label="Motivo (opcional)"><Input value={draft.motive} onChange={(e) => set("motive", e.target.value)} /></Field></>; }
 function ReadingFields({ draft, set }: { draft: Draft; set: Setter }) { return <div className="grid gap-4 sm:grid-cols-3"><Field label="Tipo de leitura"><Input value={draft.readingType} onChange={(e) => set("readingType", e.target.value)} /></Field><Field label="Valor"><Input value={draft.readingValue} onChange={(e) => set("readingValue", e.target.value)} /></Field><Field label="Motorista"><Input value={draft.driver} onChange={(e) => set("driver", e.target.value)} /></Field></div>; }
 function ReminderFields({ draft, set }: { draft: Draft; set: Setter }) { return <div className="grid gap-4 sm:grid-cols-3"><Field label="Categoria"><select className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" value={draft.reminderKind} onChange={(e) => set("reminderKind", e.target.value as Draft["reminderKind"])}><option value="despesa">Despesa</option><option value="servico">Serviço</option></select></Field><Field label={draft.reminderKind === "despesa" ? "Tipo de despesa" : "Tipo de serviço"}><Input value={draft.title} onChange={(e) => set("title", e.target.value)} /></Field><Field label="Lembrar em"><Input type="datetime-local" value={draft.reminderAt} onChange={(e) => set("reminderAt", e.target.value)} /></Field></div>; }

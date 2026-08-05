@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { KeyRound, Truck, Undo2, History, Filter, Pencil, ShieldCheck, Wrench } from "lucide-react";
+import { KeyRound, Truck, Undo2, History, Filter, ShieldCheck } from "lucide-react";
 import { AppShell, PageHeader } from "@/components/portal/AppShell";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -23,8 +23,6 @@ import {
 } from "@/lib/fleet-store";
 import { fleetActions } from "@/lib/fleet-action-store";
 import { VehicleHistoryModal } from "@/components/fleet/VehicleHistoryModal";
-import { VehicleEditorModal } from "@/components/fleet/VehicleEditorModal";
-import { MaintenanceDialog } from "@/components/fleet/MaintenanceDialog";
 import { FleetEntryDialog } from "@/components/fleet/FleetEntryDialog";
 import { cn } from "@/lib/utils";
 
@@ -204,8 +202,6 @@ function DeparturesView({ query }: { query: string }) {
 
 function VehiclesView({ query }: { query: string }) {
   const vehicles = useVehicles();
-  const [editing, setEditing] = useState<Vehicle | null>(null);
-  const [maintenance, setMaintenance] = useState<Vehicle | null>(null);
   const rows = vehicles.filter((v) =>
     `${v.model} ${v.plate} ${v.category}`.toLowerCase().includes(query.toLowerCase()),
   );
@@ -237,30 +233,6 @@ function VehiclesView({ query }: { query: string }) {
                 </div>
                 <div className="flex items-center gap-1">
                   <VehicleBadge status={v.status} />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="relative z-20 h-7 w-7 shrink-0"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      setMaintenance(v);
-                    }}
-                  >
-                    <Wrench className="h-3.5 w-3.5" />
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="relative z-20 h-7 w-7 shrink-0"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      setEditing(v);
-                    }}
-                  >
-                    <Pencil className="h-3.5 w-3.5" />
-                  </Button>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[11.5px] text-muted-foreground">
@@ -272,18 +244,6 @@ function VehiclesView({ query }: { query: string }) {
           </Card>
         ))}
       </div>
-      <VehicleEditorModal
-        vehicle={editing}
-        open={editing !== null}
-        onOpenChange={(open) => !open && setEditing(null)}
-      />
-      {maintenance && (
-        <MaintenanceDialog
-          vehicle={maintenance}
-          open={maintenance !== null}
-          onOpenChange={(open) => !open && setMaintenance(null)}
-        />
-      )}
     </>
   );
 }
