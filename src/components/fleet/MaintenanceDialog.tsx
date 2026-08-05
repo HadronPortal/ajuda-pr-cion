@@ -22,6 +22,8 @@ import {
   type VehicleMaintenance,
 } from "@/lib/fleet-store";
 import { cn } from "@/lib/utils";
+import { createFleetEntry } from "@/lib/fleet-entry-store";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type MaintenanceDialogProps = {
   vehicle: Vehicle;
@@ -52,6 +54,7 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
     notes: "",
     nextRevisionDate: "",
     nextRevisionMileage: "",
+    vehicleStatus: "disponivel" as "disponivel" | "manutencao",
   });
 
   useEffect(() => {
@@ -139,9 +142,26 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
       notes: closeForm.notes.trim() || undefined,
       nextRevisionDate: closeForm.nextRevisionDate || undefined,
       nextRevisionMileage: closeForm.nextRevisionMileage ? Number(closeForm.nextRevisionMileage) : undefined,
+      vehicleStatus: closeForm.vehicleStatus,
     });
 
-    toast.success("Manutenção encerrada. Veículo agora está disponível.");
+    createFleetEntry({
+      type: "servico",
+      vehicleId: vehicle.id,
+      occurredAt: closeForm.exitDate,
+      mileage: Number(closeForm.exitMileage),
+      title: closeForm.servicesPerformed.trim() || selectedMaint.reason,
+      notes: [
+        selectedMaint.workshop ? `Oficina: ${selectedMaint.workshop}` : "",
+        closeForm.partsReplaced.trim() ? `Itens trocados: ${closeForm.partsReplaced.trim()}` : "",
+        closeForm.notes.trim(),
+      ].filter(Boolean).join("\n") || undefined,
+      amount: numericCost,
+    });
+
+    toast.success(closeForm.vehicleStatus === "manutencao"
+      ? "Manutenção encerrada e veículo mantido em manutenção."
+      : "Manutenção encerrada. Veículo agora está disponível.");
     onOpenChange(false);
   };
 
@@ -385,6 +405,22 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
                     onChange={e => setCloseForm({ ...closeForm, nextRevisionMileage: e.target.value })}
                   />
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Status do veículo após encerrar</Label>
+                <Select
+                  value={closeForm.vehicleStatus}
+                  onValueChange={(value: "disponivel" | "manutencao") =>
+                    setCloseForm({ ...closeForm, vehicleStatus: value })
+                  }
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="disponivel">Disponível</SelectItem>
+                    <SelectItem value="manutencao">Em manutenção</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">

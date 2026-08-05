@@ -610,6 +610,7 @@ export function closeVehicleMaintenance(maintenanceId: string, input: {
   notes?: string;
   nextRevisionDate?: string;
   nextRevisionMileage?: number;
+  vehicleStatus?: VehicleStatus;
 }) {
   const now = nowISO();
   let vehicleId = "";
@@ -630,7 +631,9 @@ export function closeVehicleMaintenance(maintenanceId: string, input: {
 
     return {
       ...vehicle,
-      status: hasOtherOpen ? ("manutencao" as VehicleStatus) : ("disponivel" as VehicleStatus),
+      status: hasOtherOpen
+        ? ("manutencao" as VehicleStatus)
+        : (input.vehicleStatus ?? ("disponivel" as VehicleStatus)),
       currentMileage: Math.max(vehicle.currentMileage, input.exitMileage),
       nextRevisionDate: input.nextRevisionDate || vehicle.nextRevisionDate,
       nextRevisionMileage: input.nextRevisionMileage || vehicle.nextRevisionMileage,

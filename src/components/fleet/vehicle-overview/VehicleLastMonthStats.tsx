@@ -53,15 +53,14 @@ export function VehicleLastMonthStats({ vehicleId, usages, onUsageClick }: Vehic
     <Card className="flex flex-col border-border/50 bg-card p-5">
       <h3 className="mb-5 text-xl font-bold">Último mês</h3>
       
-      <div className="mb-5">
-        <div className="space-y-1">
+      <div className="mb-5 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+        <div className="shrink-0 space-y-1">
           <p className="text-sm font-semibold text-muted-foreground">Custo</p>
           <p className="text-2xl font-bold text-red-500">R$ {stats.totalCusto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
           <p className="text-[11px] text-muted-foreground">R$ {stats.costPerDay.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} Por dia</p>
         </div>
-      </div>
 
-      <div className="flex items-center justify-between px-2 py-4">
+        <div className="grid flex-1 grid-cols-3 gap-4 lg:max-w-xl">
         <div className="flex flex-col items-center gap-2">
           <div className="relative flex items-center justify-center">
             <div className="absolute inset-0 rounded-full border-4 border-muted/20" />
@@ -96,6 +95,7 @@ export function VehicleLastMonthStats({ vehicleId, usages, onUsageClick }: Vehic
             <p className="text-[10px] text-muted-foreground uppercase font-bold">Despesas</p>
             <p className="text-base font-bold">{stats.pctDespesa}%</p>
           </div>
+        </div>
         </div>
       </div>
 
