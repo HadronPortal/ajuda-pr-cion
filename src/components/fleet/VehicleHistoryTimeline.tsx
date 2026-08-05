@@ -9,32 +9,29 @@ import {
   ClipboardCheck, 
   Bell,
   Search,
-  Download,
-  Calendar,
-  ChevronDown,
-  ChevronUp
+  Download
 } from "lucide-react";
 import { type FleetEntry, useFleetEntries } from "@/lib/fleet-entry-store";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 const TYPE_CONFIG = {
-  abastecimento: { icon: Fuel, color: "text-blue-500", bg: "bg-blue-500/10", label: "Abastecimento" },
-  despesa: { icon: Receipt, color: "text-red-500", bg: "bg-red-500/10", label: "Despesa" },
-  receita: { icon: DollarSign, color: "text-emerald-500", bg: "bg-emerald-500/10", label: "Receita" },
-  servico: { icon: Wrench, color: "text-orange-500", bg: "bg-orange-500/10", label: "Serviço" },
-  percurso: { icon: MapPinned, color: "text-indigo-500", bg: "bg-indigo-500/10", label: "Percurso" },
-  leitura: { icon: Gauge, color: "text-slate-500", bg: "bg-slate-500/10", label: "Leitura" },
-  checklist: { icon: ClipboardCheck, color: "text-purple-500", bg: "bg-purple-500/10", label: "Checklist" },
-  lembrete: { icon: Bell, color: "text-amber-500", bg: "bg-amber-500/10", label: "Lembrete" },
+  abastecimento: { icon: Fuel, color: "text-orange-500", border: "border-orange-500", label: "Abastecimento" },
+  despesa: { icon: Receipt, color: "text-red-500", border: "border-red-500", label: "Despesa" },
+  receita: { icon: DollarSign, color: "text-emerald-500", border: "border-emerald-500", label: "Receita" },
+  servico: { icon: Wrench, color: "text-orange-500", border: "border-orange-500", label: "Serviço" },
+  percurso: { icon: MapPinned, color: "text-indigo-500", border: "border-indigo-500", label: "Percurso" },
+  leitura: { icon: Gauge, color: "text-slate-500", border: "border-slate-500", label: "Leitura" },
+  checklist: { icon: ClipboardCheck, color: "text-purple-500", border: "border-purple-500", label: "Checklist" },
+  lembrete: { icon: Bell, color: "text-amber-500", border: "border-amber-500", label: "Lembrete" },
 };
 
 export function VehicleHistoryTimeline({ vehicleId }: { vehicleId: string }) {
   const allEntries = useFleetEntries();
   const [search, setSearch] = useState("");
-  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
 
   const vehicleEntries = useMemo(() => {
     return allEntries
@@ -48,7 +45,7 @@ export function VehicleHistoryTimeline({ vehicleId }: { vehicleId: string }) {
           TYPE_CONFIG[e.type]?.label.toLowerCase().includes(s)
         );
       })
-      .sort((a, b) => new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime());
+      .sort((a, b) => new Date(a.occurredAt).getTime() - new Date(b.occurredAt).getTime()); // Mais antigo primeiro conforme solicitado
   }, [allEntries, vehicleId, search]);
 
   const groups = useMemo(() => {
@@ -57,16 +54,12 @@ export function VehicleHistoryTimeline({ vehicleId }: { vehicleId: string }) {
       const date = new Date(entry.occurredAt);
       const month = date.toLocaleString('pt-BR', { month: 'long' });
       const year = date.getFullYear();
-      const key = `${month} ${year}`;
+      const key = `${month} de ${year}`;
       if (!map[key]) map[key] = [];
       map[key].push(entry);
     });
     return Object.entries(map);
   }, [vehicleEntries]);
-
-  const toggleGroup = (key: string) => {
-    setExpandedGroups(prev => ({ ...prev, [key]: !prev[key] }));
-  };
 
   const exportData = () => {
     const content = vehicleEntries.map(e => (
@@ -80,115 +73,80 @@ export function VehicleHistoryTimeline({ vehicleId }: { vehicleId: string }) {
   };
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input 
-            placeholder="Pesquisar no histórico..." 
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="pl-9 h-9"
-          />
+    <Card className="p-6 h-full flex flex-col bg-card border-border/50">
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-4">
+          <h3 className="text-xl font-bold">Histórico</h3>
+          <Search className="h-5 w-5 text-primary cursor-pointer hover:opacity-70" />
         </div>
-        <Button variant="outline" size="sm" onClick={exportData} className="gap-2 h-9">
-          <Download className="h-4 w-4" />
-          Exportar
-        </Button>
+        <Download 
+          className="h-5 w-5 text-primary cursor-pointer hover:opacity-70" 
+          onClick={exportData}
+        />
       </div>
 
-      <div className="relative space-y-8 before:absolute before:inset-0 before:ml-5 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-border before:to-transparent">
-        {groups.map(([key, entries]) => {
-          const isExpanded = expandedGroups[key] !== false;
-          return (
-            <div key={key} className="relative">
-              <div 
-                className="flex items-center gap-4 mb-6 cursor-pointer group"
-                onClick={() => toggleGroup(key)}
-              >
-                <div className="relative z-10 flex h-10 w-10 items-center justify-center rounded-full border bg-background shadow-sm transition-colors group-hover:border-primary">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                </div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-                    {key}
-                  </h3>
-                  <Badge variant="secondary" className="text-[10px] h-4 px-1.5 font-bold">
-                    {entries.length}
-                  </Badge>
-                  {isExpanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
-                </div>
-              </div>
+      <div className="relative flex-1 space-y-8 before:absolute before:inset-0 before:ml-[1.4rem] before:-translate-x-px before:h-full before:w-0.5 before:bg-border/60">
+        {groups.map(([key, entries]) => (
+          <div key={key} className="relative">
+            <div className="flex items-center gap-4 mb-8 ml-12">
+              <h4 className="text-sm font-semibold text-muted-foreground/60">{key}</h4>
+            </div>
 
-              {isExpanded && (
-                <div className="space-y-6 ml-5">
-                  {entries.map((entry) => {
-                    const config = TYPE_CONFIG[entry.type];
-                    const Icon = config.icon;
-                    return (
-                      <div key={entry.id} className="relative pl-10">
-                        <div className={cn(
-                          "absolute left-[-1.25rem] top-0 z-10 flex h-10 w-10 items-center justify-center rounded-full border bg-background shadow-sm",
-                          config.bg
-                        )}>
-                          <Icon className={cn("h-4 w-4", config.color)} />
+            <div className="space-y-12">
+              {entries.map((entry) => {
+                const config = TYPE_CONFIG[entry.type] || TYPE_CONFIG.despesa;
+                const Icon = config.icon;
+                const date = new Date(entry.occurredAt);
+                
+                return (
+                  <div key={entry.id} className="relative pl-16">
+                    {/* Linha e Círculo da Timeline */}
+                    <div className={cn(
+                      "absolute left-2 top-0 z-10 flex h-10 w-10 items-center justify-center rounded-full border-4 bg-background shadow-sm",
+                      config.border
+                    )}>
+                      <Icon className={cn("h-5 w-5", config.color)} />
+                    </div>
+                    
+                    <div className="flex flex-col gap-4 border-b border-border/40 pb-6 last:border-0">
+                      <h5 className="text-lg font-bold">{entry.title}</h5>
+                      
+                      <div className="grid grid-cols-2 gap-y-3 gap-x-8">
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium">
+                          <Calendar className="h-3.5 w-3.5" />
+                          {date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' })}
                         </div>
                         
-                        <div className="flex flex-col gap-1 p-4 rounded-xl border border-border/50 bg-muted/20 hover:bg-muted/30 transition-colors">
-                          <div className="flex items-start justify-between gap-4">
-                            <div>
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="text-[11px] font-bold uppercase text-muted-foreground/70">
-                                  {new Date(entry.occurredAt).toLocaleDateString('pt-BR')} às {new Date(entry.occurredAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                                </span>
-                                {entry.mileage && (
-                                  <Badge variant="outline" className="text-[10px] px-1.5 h-4 font-mono bg-background">
-                                    {entry.mileage.toLocaleString('pt-BR')} KM
-                                  </Badge>
-                                )}
-                              </div>
-                              <h4 className="text-sm font-bold leading-none mb-2">{entry.title}</h4>
-                            </div>
-                            {entry.amount !== undefined && (
-                              <div className="text-right">
-                                <p className="text-sm font-black tabular-nums">
-                                  {entry.amount < 0 ? '-' : ''} R$ {Math.abs(entry.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                                </p>
-                                <span className="text-[10px] text-muted-foreground uppercase font-bold">
-                                  {entry.type}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                          
-                          {entry.notes && (
-                            <p className="text-xs text-muted-foreground line-clamp-2 mt-1 italic">
-                              "{entry.notes}"
-                            </p>
-                          )}
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium">
+                          <Icon className="h-3.5 w-3.5" />
+                          {entry.fuelType || entry.type} {entry.liters ? `(${entry.liters.toLocaleString('pt-BR')} L)` : ''}
+                        </div>
 
-                          <div className="mt-3 flex flex-wrap gap-2">
-                            {entry.fuelType && (
-                              <Badge variant="secondary" className="text-[10px] font-normal">
-                                {entry.fuelType}
-                              </Badge>
-                            )}
-                            {entry.destination && (
-                              <div className="flex items-center gap-1 text-[10px] text-muted-foreground bg-background px-2 py-0.5 rounded border border-border/50">
-                                <MapPinned className="h-3 w-3" />
-                                {entry.destination}
-                              </div>
-                            )}
+                        {entry.mileage && (
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium">
+                            <Gauge className="h-3.5 w-3.5" />
+                            {entry.mileage.toLocaleString('pt-BR')} km
                           </div>
+                        )}
+
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium">
+                          <MapPinned className="h-3.5 w-3.5" />
+                          {entry.distance ? `${entry.distance.toLocaleString('pt-BR')} km/L` : '0,00 km/L'}
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
-              )}
+
+                      {entry.amount !== undefined && (
+                        <p className="text-sm font-bold text-foreground/80">
+                          R$ {entry.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          );
-        })}
+          </div>
+        ))}
 
         {vehicleEntries.length === 0 && (
           <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
@@ -197,6 +155,6 @@ export function VehicleHistoryTimeline({ vehicleId }: { vehicleId: string }) {
           </div>
         )}
       </div>
-    </div>
+    </Card>
   );
 }
