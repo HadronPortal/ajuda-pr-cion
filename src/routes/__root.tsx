@@ -46,23 +46,10 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          A barra de rolagem ainda não aparece no modal de detalhes do chamado mostrado na imagem.
+          Não foi possível carregar esta página
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground whitespace-pre-wrap">
-          Corrija especificamente esse modal:
-- Identifique o elemento interno que realmente possui `overflow-y`.
-- Aplique a scrollbar semitransparente nesse elemento, não apenas no container externo do modal.
-- Use `overflow-y: auto`.
-- Limite o conteúdo com `max-height` considerando a altura da viewport.
-- Barra visível com 6px a 8px de largura.
-- Thumb semitransparente e mais visível no hover.
-- Trilho transparente.
-- Preserve a rolagem pelo mouse, touchpad e teclado.
-- Não aumente a largura do modal nem corte o conteúdo.
-- Verifique se alguma classe como `scrollbar-hide`, `scrollbar-none` ou CSS com `display: none` ainda está sobrescrevendo a barra.
-- Preserve light e dark mode.
-
-Aplique a correção no componente compartilhado desse modal e valide visualmente com conteúdo longo.
+        <p className="mt-2 text-sm text-muted-foreground">
+          Tente novamente. Se o problema continuar, retorne à página inicial.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
