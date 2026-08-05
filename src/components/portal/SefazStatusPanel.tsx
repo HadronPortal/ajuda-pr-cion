@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { AlertTriangle, RefreshCw } from "lucide-react";
+import { AlertTriangle, ExternalLink, RefreshCw } from "lucide-react";
 import {
   Area,
   CartesianGrid,
@@ -20,6 +20,8 @@ const documentLabels: Record<FiscalDocument, string> = {
   cte: "CT-e",
   mdfe: "MDF-e",
 };
+
+const DOWNDETECTOR_SEFAZ_URL = "https://downdetector.com.br/fora-do-ar/sefaz/";
 
 function formatUpdatedAt(value?: string) {
   if (!value) return "";
@@ -131,15 +133,25 @@ export function SefazStatusPanel() {
       <header className="flex flex-wrap items-center justify-between gap-3 px-6 py-3">
         <div className="min-w-0">
           <h2 className="text-[17px] font-semibold leading-tight">
-            Falhas com a SEFAZ detectadas em tempo real
+            Disponibilidade dos autorizadores SEFAZ
           </h2>
           <p className={`mt-1 text-[11px] ${subtitle}`}>
-            {data?.source ?? "Webmania"} ·{" "}
+            Status técnico via {data?.source ?? "Webmania"} ·{" "}
             {selected ? `atualizado às ${formatUpdatedAt(selected.updatedAt)}` : "consultando..."}
           </p>
         </div>
 
         <div className="flex items-center gap-2">
+          <a
+            href={DOWNDETECTOR_SEFAZ_URL}
+            target="_blank"
+            rel="noreferrer"
+            title="Ver relatos de usuários no Downdetector"
+            className={`inline-flex h-9 cursor-pointer items-center gap-2 rounded-md border px-3 text-xs transition ${refreshBtn}`}
+          >
+            <ExternalLink className="h-3.5 w-3.5" />
+            Relatos externos
+          </a>
           <NfeConsultDialog />
           <div className={`flex rounded-md border p-0.5 ${tabsWrap}`}>
             {availableDocuments.map((document) => (

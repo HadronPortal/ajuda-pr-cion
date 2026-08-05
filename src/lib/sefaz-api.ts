@@ -178,7 +178,11 @@ function mergeWebmaniaWithLatency(
       metric: "latency" as const,
       states: document.states.map((state) => ({
         ...state,
-        responseTime: latencyByUf.get(state.uf) ?? state.responseTime,
+        // Preserve incident severity even when the latency provider answers normally.
+        responseTime:
+          state.statusCode === 1
+            ? (latencyByUf.get(state.uf) ?? state.responseTime)
+            : Math.max(state.responseTime, latencyByUf.get(state.uf) ?? 0),
       })),
     };
   });
