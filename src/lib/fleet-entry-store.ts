@@ -43,6 +43,7 @@ export type FleetEntry = {
   reminderAt?: string;
   reminderKind?: "despesa" | "servico";
   createdAt: string;
+  maintenanceId?: string;
 };
 
 const STORAGE_KEY = "procion.fleet-entries.v1";
@@ -92,4 +93,21 @@ export function createFleetEntry(input: Omit<FleetEntry, "id" | "createdAt">) {
   persist();
   listeners.forEach((listener) => listener());
   return entry;
+}
+
+export function updateFleetEntryByMaintenance(
+  maintenanceId: string,
+  changes: Partial<Omit<FleetEntry, "id" | "createdAt" | "maintenanceId">>,
+) {
+  hydrate();
+  let updated = false;
+  entries = entries.map((entry) => {
+    if (entry.maintenanceId !== maintenanceId) return entry;
+    updated = true;
+    return { ...entry, ...changes };
+  });
+  if (!updated) return false;
+  persist();
+  listeners.forEach((listener) => listener());
+  return true;
 }

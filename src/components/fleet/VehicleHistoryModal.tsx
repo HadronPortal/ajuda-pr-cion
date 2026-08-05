@@ -7,6 +7,7 @@ import {
   Fuel,
   Gauge,
   MapPin,
+  Receipt,
   Truck,
   UserRound,
   Wrench,
@@ -29,6 +30,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import { Store } from "lucide-react";
+import { type FleetEntry, useFleetEntries } from "@/lib/fleet-entry-store";
 
 // ---------------------------------------------------------------------------
 // Utilidades
@@ -98,6 +100,7 @@ export function VehicleHistoryModal({
   onOpenChange: (v: boolean) => void;
 }) {
   const allUsages = useUsages();
+  const allEntries = useFleetEntries();
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   // Filtros
@@ -134,6 +137,12 @@ export function VehicleHistoryModal({
   }, [vehicleUsages, dateFrom, dateTo, operator, statusFilter, destination]);
 
   const stats = useMemo(() => computeStats(vehicleUsages), [vehicleUsages]);
+  const vehicleEntries = useMemo(() => {
+    if (!vehicle) return [];
+    return allEntries
+      .filter((entry) => entry.vehicleId === vehicle.id)
+      .sort((a, b) => b.occurredAt.localeCompare(a.occurredAt));
+  }, [allEntries, vehicle]);
 
   const clearFilters = () => {
     setDateFrom("");
@@ -203,9 +212,10 @@ export function VehicleHistoryModal({
             {selected ? (
               <DetailView usage={selected} vehicle={vehicle} onBack={() => setSelectedId(null)} />
             ) : (
-              <Tabs defaultValue="utilizacao" className="flex min-h-0 flex-1 flex-col">
+              <Tabs defaultValue="lancamentos" className="flex min-h-0 flex-1 flex-col">
                 <div className="border-b px-6">
                   <TabsList className="h-10 w-auto">
+                    <TabsTrigger value="lancamentos">Lançamentos</TabsTrigger>
                     <TabsTrigger value="utilizacao">Utilização</TabsTrigger>
                     <TabsTrigger value="manutencao">Manutenção</TabsTrigger>
                   </TabsList>
@@ -230,6 +240,9 @@ export function VehicleHistoryModal({
                       clearFilters,
                     }}
                   />
+                </TabsContent>
+                <TabsContent value="lancamentos" className="min-h-0 flex-1 overflow-y-auto m-0 p-6">
+                  <FleetEntriesList entries={vehicleEntries} />
                 </TabsContent>
                 <TabsContent value="manutencao" className="min-h-0 flex-1 overflow-y-auto m-0 p-6">
                   <MaintenanceListView maintenanceRecords={vehicle.maintenanceRecords ?? []} />
@@ -265,6 +278,56 @@ export function VehicleHistoryModal({
         </footer>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function FleetEntriesList({ entries }: { entries: FleetEntry[] }) {
+  if (entries.length === 0) {
+    return (
+      <div className="flex h-40 flex-col items-center justify-center rounded-lg border border-dashed text-muted-foreground">
+        <Receipt className="mb-2 h-8 w-8 opacity-20" />
+        <p className="text-sm">Nenhum lançamento registrado para este veículo.</p>
+      </div>
+    );
+  }
+
+  const labels = {
+    abastecimento: "Abastecimento",
+    despesa: "Despesa",
+    servico: "Serviço",
+    percurso: "Percurso",
+    leitura: "Leitura",
+    checklist: "Checklist",
+    lembrete: "Lembrete",
+  } as const;
+
+  return (
+    <div className="space-y-3">
+      {entries.map((entry) => (
+        <Card key={entry.id} className="p-4">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0 space-y-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-sm font-medium">{entry.title}</span>
+                <Badge variant="secondary" className="h-5 text-[10px] uppercase">
+                  {labels[entry.type]}
+                </Badge>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {formatFleetDateTime(entry.occurredAt)}
+                {entry.mileage !== undefined ? ` · ${entry.mileage.toLocaleString("pt-BR")} km` : ""}
+              </p>
+              {entry.notes && <p className="whitespace-pre-line text-xs text-muted-foreground">{entry.notes}</p>}
+            </div>
+            {entry.amount !== undefined && (
+              <span className="shrink-0 text-sm font-medium">
+                {entry.amount.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+              </span>
+            )}
+          </div>
+        </Card>
+      ))}
+    </div>
   );
 }
 

@@ -573,7 +573,11 @@ export function updateVehicle(vehicleId: string, changes: Partial<Vehicle>) {
   emit();
 }
 
-export function addVehicleMaintenance(vehicleId: string, input: Omit<VehicleMaintenance, "id" | "vehicleId" | "createdAt" | "updatedAt" | "status">) {
+export function addVehicleMaintenance(
+  vehicleId: string,
+  input: Omit<VehicleMaintenance, "id" | "vehicleId" | "createdAt" | "updatedAt" | "status">,
+  vehicleStatus: VehicleStatus = "manutencao",
+) {
   const now = nowISO();
   const record: VehicleMaintenance = {
     ...input,
@@ -588,7 +592,7 @@ export function addVehicleMaintenance(vehicleId: string, input: Omit<VehicleMain
     vehicle.id === vehicleId
       ? {
           ...vehicle,
-          status: "manutencao" as VehicleStatus,
+          status: vehicleStatus,
           currentMileage: Math.max(vehicle.currentMileage, input.entryMileage),
           maintenanceRecords: [record, ...(vehicle.maintenanceRecords ?? [])],
         }

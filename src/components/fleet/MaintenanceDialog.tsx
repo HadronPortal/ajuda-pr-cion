@@ -22,7 +22,7 @@ import {
   type VehicleMaintenance,
 } from "@/lib/fleet-store";
 import { cn } from "@/lib/utils";
-import { createFleetEntry } from "@/lib/fleet-entry-store";
+import { createFleetEntry, updateFleetEntryByMaintenance } from "@/lib/fleet-entry-store";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type MaintenanceDialogProps = {
@@ -42,6 +42,7 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
     reason: "",
     workshop: "",
     notes: "",
+    vehicleStatus: "manutencao" as "manutencao" | "disponivel",
   });
 
   // Form states for closing
@@ -75,6 +76,7 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
           reason: "",
           workshop: "",
           notes: "",
+          vehicleStatus: "manutencao",
         });
       }
     }
@@ -86,15 +88,30 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
       return;
     }
     
-    addVehicleMaintenance(vehicle.id, {
+    const maintenance = addVehicleMaintenance(vehicle.id, {
       entryDate: createForm.entryDate,
       entryMileage: Number(createForm.entryMileage),
       reason: createForm.reason.trim(),
       workshop: createForm.workshop.trim(),
       notes: createForm.notes.trim() || undefined,
+    }, createForm.vehicleStatus);
+
+    createFleetEntry({
+      type: "servico",
+      vehicleId: vehicle.id,
+      occurredAt: createForm.entryDate,
+      mileage: Number(createForm.entryMileage),
+      title: createForm.reason.trim(),
+      notes: [
+        createForm.workshop.trim() ? `Oficina: ${createForm.workshop.trim()}` : "",
+        createForm.notes.trim(),
+      ].filter(Boolean).join("\n") || undefined,
+      maintenanceId: maintenance.id,
     });
 
-    toast.success("Manutenção iniciada. Veículo agora está em manutenção.");
+    toast.success(createForm.vehicleStatus === "manutencao"
+      ? "Manutenção iniciada. Veículo agora está em manutenção."
+      : "Manutenção registrada e veículo mantido disponível.");
     onOpenChange(false);
   };
 
@@ -145,9 +162,7 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
       vehicleStatus: closeForm.vehicleStatus,
     });
 
-    createFleetEntry({
-      type: "servico",
-      vehicleId: vehicle.id,
+    const historyChanges = {
       occurredAt: closeForm.exitDate,
       mileage: Number(closeForm.exitMileage),
       title: closeForm.servicesPerformed.trim() || selectedMaint.reason,
@@ -157,7 +172,16 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
         closeForm.notes.trim(),
       ].filter(Boolean).join("\n") || undefined,
       amount: numericCost,
-    });
+    };
+    const updatedHistory = updateFleetEntryByMaintenance(selectedMaint.id, historyChanges);
+    if (!updatedHistory) {
+      createFleetEntry({
+        type: "servico",
+        vehicleId: vehicle.id,
+        maintenanceId: selectedMaint.id,
+        ...historyChanges,
+      });
+    }
 
     toast.success(closeForm.vehicleStatus === "manutencao"
       ? "Manutenção encerrada e veículo mantido em manutenção."
@@ -280,6 +304,22 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
                     className="min-h-[100px] pl-9"
                   />
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Status do veículo</Label>
+                <Select
+                  value={createForm.vehicleStatus}
+                  onValueChange={(value: "manutencao" | "disponivel") =>
+                    setCreateForm({ ...createForm, vehicleStatus: value })
+                  }
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="manutencao">Em manutenção</SelectItem>
+                    <SelectItem value="disponivel">Disponível</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           ) : (

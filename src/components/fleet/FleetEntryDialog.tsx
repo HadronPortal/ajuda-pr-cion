@@ -88,7 +88,7 @@ export function FleetEntryDialog({ defaultVehicleId, triggerLabel = "Adicionar" 
           {!type ? <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             {TYPES.map(([value, label, Icon]) => <button key={value} type="button" onClick={() => setType(value)} className="flex min-h-20 flex-col items-center justify-center gap-2 rounded-md border bg-card p-3 text-sm font-medium transition hover:border-primary hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><Icon className="h-5 w-5 text-primary" />{label}</button>)}
           </div> : <div className="space-y-5">
-            <CommonFields draft={draft} set={set} vehicles={vehicles} type={type} />
+            <CommonFields draft={draft} set={set} vehicles={vehicles} type={type} lockVehicle={Boolean(defaultVehicleId)} />
             {type === "abastecimento" && <FuelFields draft={draft} set={set} operators={operatorAcronyms} />}
             {type === "despesa" && <ExpenseFields draft={draft} set={set} operators={operatorAcronyms} />}
             {type === "servico" && <ServiceFields draft={draft} set={set} operators={operatorAcronyms} />}
@@ -111,9 +111,9 @@ export function FleetEntryDialog({ defaultVehicleId, triggerLabel = "Adicionar" 
 type Setter = <K extends keyof Draft>(key: K, value: Draft[K]) => void;
 type VehicleOption = { id: string; model: string; plate: string };
 
-function CommonFields({ draft, set, vehicles, type }: { draft: Draft; set: Setter; vehicles: VehicleOption[]; type: FleetEntryType }) {
+function CommonFields({ draft, set, vehicles, type, lockVehicle }: { draft: Draft; set: Setter; vehicles: VehicleOption[]; type: FleetEntryType; lockVehicle: boolean }) {
   return <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-    <Field label="Veículo"><select value={draft.vehicleId} onChange={(e) => set("vehicleId", e.target.value)} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"><option value="">Selecione</option>{vehicles.map((v) => <option key={v.id} value={v.id}>{v.model} · {v.plate}</option>)}</select></Field>
+    {!lockVehicle && <Field label="Veículo"><select value={draft.vehicleId} onChange={(e) => set("vehicleId", e.target.value)} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"><option value="">Selecione</option>{vehicles.map((v) => <option key={v.id} value={v.id}>{v.model} · {v.plate}</option>)}</select></Field>}
     <Field label={type === "percurso" ? "Data e hora inicial" : "Data e hora"}><Input type="datetime-local" value={draft.occurredAt} onChange={(e) => set("occurredAt", e.target.value)} /></Field>
     <Field label={type === "percurso" ? "Odômetro inicial (km)" : "Odômetro (km)"}><Input inputMode="numeric" value={draft.mileage} onChange={(e) => set("mileage", e.target.value.replace(/\D/g, ""))} /></Field>
   </div>;

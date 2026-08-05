@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { useFleetEntries } from "@/lib/fleet-entry-store";
 import { Fuel, Wrench, Receipt, KeyRound, MapPin } from "lucide-react";
 import { formatFleetDateTime, type VehicleUsage } from "@/lib/fleet-store";
@@ -121,9 +120,6 @@ export function VehicleLastMonthStats({ vehicleId, usages, onUsageClick }: Vehic
         )}
       </div>
 
-      <Button variant="outline" className="mt-5 h-10 w-full rounded-full border-primary/50 text-sm font-bold uppercase tracking-wider text-primary hover:bg-primary/5">
-        Relatórios completos
-      </Button>
     </Card>
   );
 }
