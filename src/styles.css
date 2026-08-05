@@ -149,36 +149,68 @@
 
 @layer utilities {
   .app-scrollbar,
-  .kanban-scrollbar {
+  .kanban-scrollbar,
+  .modal-scrollbar {
     scrollbar-width: thin;
-    scrollbar-color: rgb(148 163 184 / 55%) transparent;
+    scrollbar-color: oklch(0.55 0.018 250 / 30%) transparent;
+    transition: scrollbar-color 0.2s ease;
+  }
+
+  .app-scrollbar:hover,
+  .kanban-scrollbar:hover,
+  .modal-scrollbar:hover {
+    scrollbar-color: oklch(0.55 0.018 250 / 50%) transparent;
   }
 
   .app-scrollbar::-webkit-scrollbar,
-  .kanban-scrollbar::-webkit-scrollbar {
-    height: 10px;
-    width: 10px;
-  }
-
-  .app-scrollbar::-webkit-scrollbar-thumb,
-  .kanban-scrollbar::-webkit-scrollbar-thumb {
-    background: rgb(148 163 184 / 55%);
-    border-radius: 999px;
-  }
-
-  .dark .app-scrollbar,
-  .dark .kanban-scrollbar {
-    scrollbar-color: rgb(100 116 139 / 70%) transparent;
-  }
-
-  .dark .app-scrollbar::-webkit-scrollbar-thumb,
-  .dark .kanban-scrollbar::-webkit-scrollbar-thumb {
-    background: rgb(100 116 139 / 70%);
+  .kanban-scrollbar::-webkit-scrollbar,
+  .modal-scrollbar::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
   }
 
   .app-scrollbar::-webkit-scrollbar-track,
-  .kanban-scrollbar::-webkit-scrollbar-track {
+  .kanban-scrollbar::-webkit-scrollbar-track,
+  .modal-scrollbar::-webkit-scrollbar-track {
     background: transparent;
+  }
+
+  .app-scrollbar::-webkit-scrollbar-thumb,
+  .kanban-scrollbar::-webkit-scrollbar-thumb,
+  .modal-scrollbar::-webkit-scrollbar-thumb {
+    background: oklch(0.55 0.018 250 / 30%);
+    border-radius: 999px;
+    transition: background 0.2s ease;
+  }
+
+  .app-scrollbar:hover::-webkit-scrollbar-thumb,
+  .kanban-scrollbar:hover::-webkit-scrollbar-thumb,
+  .modal-scrollbar:hover::-webkit-scrollbar-thumb {
+    background: oklch(0.55 0.018 250 / 50%);
+  }
+
+  .dark .app-scrollbar,
+  .dark .kanban-scrollbar,
+  .dark .modal-scrollbar {
+    scrollbar-color: oklch(0.70 0.02 250 / 30%) transparent;
+  }
+
+  .dark .app-scrollbar:hover,
+  .dark .kanban-scrollbar:hover,
+  .dark .modal-scrollbar:hover {
+    scrollbar-color: oklch(0.70 0.02 250 / 50%) transparent;
+  }
+
+  .dark .app-scrollbar::-webkit-scrollbar-thumb,
+  .dark .kanban-scrollbar::-webkit-scrollbar-thumb,
+  .dark .modal-scrollbar::-webkit-scrollbar-thumb {
+    background: oklch(0.70 0.02 250 / 30%);
+  }
+
+  .dark .app-scrollbar:hover::-webkit-scrollbar-thumb,
+  .dark .kanban-scrollbar:hover::-webkit-scrollbar-thumb,
+  .dark .modal-scrollbar:hover::-webkit-scrollbar-thumb {
+    background: oklch(0.70 0.02 250 / 50%);
   }
 
   /* Hide scrollbar visually while preserving scroll functionality */
