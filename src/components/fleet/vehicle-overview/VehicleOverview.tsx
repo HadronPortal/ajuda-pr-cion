@@ -142,7 +142,7 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
         </TabsList>
 
         <TabsContent value="overview" className="mt-6 flex flex-col gap-6">
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
             <VehicleHistoryTimeline vehicleId={vehicle.id} />
             <VehicleLastMonthStats
               vehicleId={vehicle.id}
@@ -162,7 +162,6 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
                 <Wrench className="h-5 w-5" />
                 <h3 className="text-base font-bold">Histórico de Manutenções</h3>
               </div>
-              <FleetEntryDialog defaultVehicleId={vehicle.id} triggerLabel="Nova manutenção" />
             </div>
             
             <div className="space-y-4">

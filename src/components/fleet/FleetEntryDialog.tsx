@@ -82,11 +82,11 @@ export function FleetEntryDialog({ defaultVehicleId, triggerLabel = "Adicionar" 
   return <>
     <Button onClick={() => setOpen(true)} className="h-10 gap-2"><Plus className="h-4 w-4" />{triggerLabel}</Button>
     <Dialog open={open} onOpenChange={(next) => next ? setOpen(true) : close()}>
-      <DialogContent className="flex max-h-[92vh] max-w-4xl flex-col overflow-hidden p-0 [&_button:not(:disabled)]:cursor-pointer [&_select:not(:disabled)]:cursor-pointer">
+      <DialogContent className="flex max-h-[92vh] max-w-3xl flex-col overflow-hidden p-0 [&_button:not(:disabled)]:cursor-pointer [&_select:not(:disabled)]:cursor-pointer">
         <DialogHeader className="border-b px-6 py-4"><DialogTitle>{type ? `Adicionar ${selectedLabel?.toLowerCase()}` : "Adicionar lançamento"}</DialogTitle></DialogHeader>
-        <div className="overflow-y-auto px-6 py-5 [scrollbar-color:hsl(var(--muted-foreground)/.35)_transparent] [scrollbar-width:thin]">
-          {!type ? <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {TYPES.map(([value, label, Icon]) => <button key={value} type="button" onClick={() => setType(value)} className="flex min-h-24 flex-col items-center justify-center gap-2 rounded-md border bg-card p-3 text-sm font-medium transition hover:border-primary hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><Icon className="h-5 w-5 text-primary" />{label}</button>)}
+        <div className="overflow-y-auto px-6 py-4 [scrollbar-color:hsl(var(--muted-foreground)/.35)_transparent] [scrollbar-width:thin]">
+          {!type ? <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            {TYPES.map(([value, label, Icon]) => <button key={value} type="button" onClick={() => setType(value)} className="flex min-h-20 flex-col items-center justify-center gap-2 rounded-md border bg-card p-3 text-sm font-medium transition hover:border-primary hover:bg-primary/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><Icon className="h-5 w-5 text-primary" />{label}</button>)}
           </div> : <div className="space-y-5">
             <CommonFields draft={draft} set={set} vehicles={vehicles} type={type} />
             {type === "abastecimento" && <FuelFields draft={draft} set={set} operators={operatorAcronyms} />}
@@ -102,7 +102,7 @@ export function FleetEntryDialog({ defaultVehicleId, triggerLabel = "Adicionar" 
             </div>
           </div>}
         </div>
-        <div className="flex justify-end gap-2 border-t px-6 py-3">{type && <Button variant="ghost" onClick={() => setType(null)}>Voltar</Button>}<Button variant="outline" onClick={close}>Cancelar</Button>{type && <Button onClick={save} className="gap-2"><Save className="h-4 w-4" />Salvar</Button>}</div>
+        <div className="flex justify-end gap-2 border-t px-6 py-2">{type && <Button variant="ghost" onClick={() => setType(null)}>Voltar</Button>}<Button variant="outline" onClick={close}>Cancelar</Button>{type && <Button onClick={save} className="gap-2"><Save className="h-4 w-4" />Salvar</Button>}</div>
       </DialogContent>
     </Dialog>
   </>;

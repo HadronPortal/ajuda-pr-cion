@@ -50,10 +50,10 @@ export function VehicleLastMonthStats({ vehicleId, usages, onUsageClick }: Vehic
   }, [allEntries, vehicleId]);
 
   return (
-    <Card className="p-6 flex flex-col h-full bg-card border-border/50">
-      <h3 className="text-xl font-bold mb-8">Último mês</h3>
+    <Card className="flex flex-col border-border/50 bg-card p-5">
+      <h3 className="mb-5 text-xl font-bold">Último mês</h3>
       
-      <div className="mb-12">
+      <div className="mb-5">
         <div className="space-y-1">
           <p className="text-sm font-semibold text-muted-foreground">Custo</p>
           <p className="text-2xl font-bold text-red-500">R$ {stats.totalCusto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
@@ -61,12 +61,12 @@ export function VehicleLastMonthStats({ vehicleId, usages, onUsageClick }: Vehic
         </div>
       </div>
 
-      <div className="flex justify-between items-center px-2 mb-auto py-8">
+      <div className="flex items-center justify-between px-2 py-4">
         <div className="flex flex-col items-center gap-2">
           <div className="relative flex items-center justify-center">
             <div className="absolute inset-0 rounded-full border-4 border-muted/20" />
             <div 
-              className="h-16 w-16 rounded-full border-4 border-orange-500 flex items-center justify-center bg-background"
+              className="flex h-14 w-14 items-center justify-center rounded-full border-4 border-orange-500 bg-background"
               style={{ clipPath: `inset(0 0 0 0)` }} // Simplificado, a referência mostra borda cheia
             >
               <Fuel className="h-6 w-6 text-orange-500" />
@@ -79,7 +79,7 @@ export function VehicleLastMonthStats({ vehicleId, usages, onUsageClick }: Vehic
         </div>
 
         <div className="flex flex-col items-center gap-2">
-          <div className="h-16 w-16 rounded-full border-4 border-muted/20 flex items-center justify-center bg-background">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full border-4 border-muted/20 bg-background">
             <Wrench className="h-6 w-6 text-muted-foreground" />
           </div>
           <div className="text-center">
@@ -89,7 +89,7 @@ export function VehicleLastMonthStats({ vehicleId, usages, onUsageClick }: Vehic
         </div>
 
         <div className="flex flex-col items-center gap-2">
-          <div className="h-16 w-16 rounded-full border-4 border-red-500/20 flex items-center justify-center bg-background">
+          <div className="flex h-14 w-14 items-center justify-center rounded-full border-4 border-red-500/20 bg-background">
             <Receipt className="h-6 w-6 text-red-500/50" />
           </div>
           <div className="text-center">
@@ -99,7 +99,7 @@ export function VehicleLastMonthStats({ vehicleId, usages, onUsageClick }: Vehic
         </div>
       </div>
 
-      <div className="mt-6 border-t pt-5">
+      <div className="mt-4 border-t pt-4">
         <div className="mb-3 flex items-center gap-2 text-primary">
           <KeyRound className="h-4 w-4" />
           <h4 className="text-sm font-semibold">Utilizações</h4>
@@ -121,7 +121,7 @@ export function VehicleLastMonthStats({ vehicleId, usages, onUsageClick }: Vehic
         )}
       </div>
 
-      <Button variant="outline" className="w-full mt-8 rounded-full border-primary/50 text-primary hover:bg-primary/5 h-12 text-sm font-bold uppercase tracking-wider">
+      <Button variant="outline" className="mt-5 h-10 w-full rounded-full border-primary/50 text-sm font-bold uppercase tracking-wider text-primary hover:bg-primary/5">
         Relatórios completos
       </Button>
     </Card>

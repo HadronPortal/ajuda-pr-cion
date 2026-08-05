@@ -75,8 +75,8 @@ export function VehicleHistoryTimeline({ vehicleId }: { vehicleId: string }) {
   };
 
   return (
-    <Card className="p-6 h-full flex flex-col bg-card border-border/50">
-      <div className="flex items-center justify-between mb-8">
+    <Card className="flex flex-col border-border/50 bg-card p-5">
+      <div className="mb-5 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <h3 className="text-xl font-bold">Histórico</h3>
           <Search className="h-5 w-5 text-primary cursor-pointer hover:opacity-70" />
@@ -87,33 +87,33 @@ export function VehicleHistoryTimeline({ vehicleId }: { vehicleId: string }) {
         />
       </div>
 
-      <div className="relative flex-1 space-y-8 before:absolute before:inset-0 before:ml-[1.4rem] before:-translate-x-px before:h-full before:w-0.5 before:bg-border/60">
+      <div className="relative flex-1 space-y-5 before:absolute before:inset-0 before:ml-[1.15rem] before:-translate-x-px before:h-full before:w-0.5 before:bg-border/60">
         {groups.map(([key, entries]) => (
           <div key={key} className="relative">
-            <div className="flex items-center gap-4 mb-8 ml-12">
+            <div className="mb-4 ml-10 flex items-center gap-4">
               <h4 className="text-sm font-semibold text-muted-foreground/60">{key}</h4>
             </div>
 
-            <div className="space-y-12">
+            <div className="space-y-6">
               {entries.map((entry) => {
                 const config = TYPE_CONFIG[entry.type] || TYPE_CONFIG.despesa;
                 const Icon = config.icon;
                 const date = new Date(entry.occurredAt);
                 
                 return (
-                  <div key={entry.id} className="relative pl-16">
+                  <div key={entry.id} className="relative pl-12">
                     {/* Linha e Círculo da Timeline */}
                     <div className={cn(
-                      "absolute left-2 top-0 z-10 flex h-10 w-10 items-center justify-center rounded-full border-4 bg-background shadow-sm",
+                      "absolute left-1 top-0 z-10 flex h-9 w-9 items-center justify-center rounded-full border-[3px] bg-background shadow-sm",
                       config.border
                     )}>
-                      <Icon className={cn("h-5 w-5", config.color)} />
+                      <Icon className={cn("h-4 w-4", config.color)} />
                     </div>
                     
-                    <div className="flex flex-col gap-4 border-b border-border/40 pb-6 last:border-0">
-                      <h5 className="text-lg font-bold">{entry.title}</h5>
+                    <div className="flex flex-col gap-2.5 border-b border-border/40 pb-4 last:border-0">
+                      <h5 className="text-base font-semibold">{entry.title}</h5>
                       
-                      <div className="grid grid-cols-2 gap-y-3 gap-x-8">
+                      <div className="grid grid-cols-2 gap-x-6 gap-y-2">
                         <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium">
                           <Calendar className="h-3.5 w-3.5" />
                           {date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' })}
