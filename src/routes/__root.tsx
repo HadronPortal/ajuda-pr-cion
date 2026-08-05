@@ -46,20 +46,11 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold tracking-tight text-foreground whitespace-pre-wrap">
-          Conecte este projeto ao Supabase existente da organização “CRM Prócion”.{"\n\n"}
-          Use exclusivamente o projeto com ID:{"\n"}
-          vbkbbfeujqmvgmmhmeao{"\n\n"}
-          Configure nos Secrets e no ambiente de produção:{"\n"}
-          - VITE_SUPABASE_URL{"\n"}
-          - VITE_SUPABASE_PUBLISHABLE_KEY{"\n"}
-          - SUPABASE_URL{"\n"}
-          - SUPABASE_PUBLISHABLE_KEY{"\n"}
-          - SUPABASE_SERVICE_ROLE_KEY{"\n\n"}
-          Não crie outro projeto Supabase.{"\n"}
-          Não crie ou altere tabelas, migrations, RPCs ou dados.{"\n"}
-          Não use o projeto da organização “Sistema Barbearia”.{"\n"}
-          Não coloque valores de secrets no código ou no chat.{"\n\n"}
-          Após configurar, publique novamente e valide que as requisições usam vbkbbfeujqmvgmmhmeao.supabase.co.
+          o projeto correto.{"\n\n"}
+          Não crie projeto, tabelas, migrations ou dados.{"\n"}
+          Não altere componentes ou páginas.{"\n"}
+          Não faça rollback do código.{"\n\n"}
+          Publique e valide no navegador que nenhuma requisição utiliza auafudnjwfuqecduerow e que list_crm_clients responde pelo projeto vbkbbfeujqmvgmmhmeao.
         </h1>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
