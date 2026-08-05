@@ -46,10 +46,20 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          Não foi possível carregar esta página
+          Restaure as barras de rolagem em todos os modais do sistema.
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Tente novamente. Se o problema continuar, retorne à página inicial.
+        <p className="mt-2 text-sm text-muted-foreground whitespace-pre-wrap">
+          Requisitos:
+- Manter o scroll funcional no conteúdo dos modais.
+- Exibir uma barra fina e semitransparente.
+- Aumentar levemente a opacidade no hover e durante a rolagem.
+- Preservar light e dark mode com contraste discreto.
+- Não alterar dimensões, conteúdo, cabeçalhos, rodapés ou funcionamento dos modais.
+- Não usar scrollbar completamente invisível.
+- Aplicar de forma centralizada no componente/base global dos modais, evitando estilos duplicados.
+- Validar no Chrome e Firefox.
+
+Sugestão visual: largura entre 6px e 8px, trilho transparente e indicador com aproximadamente 30% de opacidade
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
