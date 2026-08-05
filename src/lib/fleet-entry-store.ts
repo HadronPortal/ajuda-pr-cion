@@ -22,13 +22,27 @@ export type FleetEntry = {
   liters?: number;
   fuelType?: string;
   fuelLevel?: string;
+  unitPrice?: number;
+  fullTank?: boolean;
+  previousRefuelingMissing?: boolean;
+  fuelStation?: string;
+  driver?: string;
+  motive?: string;
+  paymentMethod?: string;
+  location?: string;
+  attachmentName?: string;
   origin?: string;
   destination?: string;
   distance?: number;
+  endedAt?: string;
+  endingMileage?: number;
+  routeKind?: "viagem" | "frete";
+  ratePerKm?: number;
   readingType?: string;
   readingValue?: string;
   checklistItems?: string[];
   reminderAt?: string;
+  reminderKind?: "despesa" | "servico";
   createdAt: string;
 };
 
