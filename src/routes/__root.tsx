@@ -45,13 +45,12 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground whitespace-pre-wrap">
-          o projeto correto.{"\n\n"}
-          Não crie projeto, tabelas, migrations ou dados.{"\n"}
-          Não altere componentes ou páginas.{"\n"}
-          Não faça rollback do código.{"\n\n"}
-          Publique e valide no navegador que nenhuma requisição utiliza auafudnjwfuqecduerow e que list_crm_clients responde pelo projeto vbkbbfeujqmvgmmhmeao.
+        <h1 className="text-xl font-semibold tracking-tight text-foreground">
+          Não foi possível carregar esta página
         </h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Tente novamente. Se o problema continuar, retorne à página inicial.
+        </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
             onClick={() => {
