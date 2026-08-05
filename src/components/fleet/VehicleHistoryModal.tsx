@@ -154,7 +154,7 @@ export function VehicleHistoryModal({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="flex max-h-[90vh] w-[calc(100vw-1rem)] max-w-none flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-card p-0 sm:w-[calc(100vw-2rem)] md:w-[960px] lg:w-[1040px] [&>button]:hidden">
+      <DialogContent className="flex max-h-[90vh] w-[calc(100vw-1rem)] max-w-none flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-card p-0 sm:w-[calc(100vw-2rem)] md:w-[960px] lg:w-[1040px] [&>button]:hidden [&_button:not(:disabled)]:cursor-pointer [&_select:not(:disabled)]:cursor-pointer">
         <DialogTitle className="sr-only">
           Histórico do veículo {vehicle.model} {vehicle.plate}
         </DialogTitle>

@@ -56,7 +56,7 @@ export function VehiclePickerModal({ usageId }: { usageId: string }) {
         onPointerDownOutside={preventClose}
         onInteractOutside={preventClose}
         onEscapeKeyDown={preventClose}
-        className="flex w-[calc(100vw-2rem)] max-w-[860px] max-h-[calc(100vh-32px)] flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-card p-0 [&>button]:hidden"
+        className="flex w-[calc(100vw-2rem)] max-w-[860px] max-h-[calc(100vh-32px)] flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-card p-0 [&>button]:hidden [&_button:not(:disabled)]:cursor-pointer [&_select:not(:disabled)]:cursor-pointer"
       >
         <DialogTitle className="sr-only">Selecionar veículo</DialogTitle>
         <DetailModalHeader

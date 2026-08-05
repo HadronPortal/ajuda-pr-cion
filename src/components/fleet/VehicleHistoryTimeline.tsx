@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import { 
   Fuel, 
   Receipt, 
-  DollarSign, 
   Wrench, 
   MapPinned, 
   Gauge, 
@@ -22,7 +21,6 @@ import { cn } from "@/lib/utils";
 const TYPE_CONFIG = {
   abastecimento: { icon: Fuel, color: "text-orange-500", border: "border-orange-500", label: "Abastecimento" },
   despesa: { icon: Receipt, color: "text-red-500", border: "border-red-500", label: "Despesa" },
-  receita: { icon: DollarSign, color: "text-emerald-500", border: "border-emerald-500", label: "Receita" },
   servico: { icon: Wrench, color: "text-orange-500", border: "border-orange-500", label: "Serviço" },
   percurso: { icon: MapPinned, color: "text-indigo-500", border: "border-indigo-500", label: "Percurso" },
   leitura: { icon: Gauge, color: "text-slate-500", border: "border-slate-500", label: "Leitura" },

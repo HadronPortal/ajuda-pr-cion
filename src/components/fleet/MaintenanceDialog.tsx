@@ -182,7 +182,7 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[90dvh] flex-col overflow-hidden p-0 sm:max-w-[600px]">
+      <DialogContent className="flex max-h-[90dvh] flex-col overflow-hidden p-0 sm:max-w-[600px] [&_button:not(:disabled)]:cursor-pointer [&_select:not(:disabled)]:cursor-pointer">
         <DialogHeader className="border-b border-border bg-muted/20 px-6 py-4">
           <DialogTitle className="flex items-center gap-2 text-xl">
             <Wrench className="h-5 w-5 text-primary" />

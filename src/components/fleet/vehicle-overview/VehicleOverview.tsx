@@ -279,7 +279,7 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
 
       {/* Modal Detalhes Manutenção */}
       <Dialog open={isMaintenanceDetailsOpen} onOpenChange={setIsMaintenanceDetailsOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl [&_button:not(:disabled)]:cursor-pointer [&_select:not(:disabled)]:cursor-pointer">
           {selectedMaintenance && (
             <>
               <DialogTitle className="flex items-center gap-2 text-xl font-bold">
@@ -303,7 +303,7 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
 
       {/* Modal Detalhes Utilização */}
       <Dialog open={isUsageDetailsOpen} onOpenChange={setIsUsageDetailsOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl [&_button:not(:disabled)]:cursor-pointer [&_select:not(:disabled)]:cursor-pointer">
           {selectedUsage && (
             <>
               <DialogTitle className="flex items-center gap-2 text-xl font-bold">

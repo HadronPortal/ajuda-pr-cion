@@ -91,7 +91,7 @@ export function VehicleEditorModal({ vehicle, open, onOpenChange }: Props) {
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="flex max-h-[90dvh] max-w-3xl flex-col overflow-hidden p-0 shadow-lg border-border">
+        <DialogContent className="flex max-h-[90dvh] max-w-3xl flex-col overflow-hidden p-0 shadow-lg border-border [&_button:not(:disabled)]:cursor-pointer [&_select:not(:disabled)]:cursor-pointer">
           <DialogHeader className="px-6 py-4 border-b border-border bg-muted/30">
             <div className="flex items-center justify-between">
               <DialogTitle className="flex flex-col gap-0.5">

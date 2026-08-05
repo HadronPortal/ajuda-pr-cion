@@ -1,18 +1,18 @@
 import { useState } from "react";
-import { Bell, ClipboardCheck, DollarSign, Fuel, Gauge, MapPinned, Plus, Receipt, Save, Upload, Wrench } from "lucide-react";
+import { Bell, ClipboardCheck, Fuel, Gauge, MapPinned, Plus, Receipt, Save, Upload, Wrench } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { createFleetEntry, type FleetEntryType } from "@/lib/fleet-entry-store";
 import { useVehicles } from "@/lib/fleet-store";
+import { useOperatorAcronyms } from "@/lib/collaborators-store";
 
 const TYPES = [
   ["abastecimento", "Abastecimento", Fuel], ["despesa", "Despesa", Receipt],
-  ["receita", "Receita", DollarSign], ["servico", "Serviço", Wrench],
+  ["servico", "Serviço", Wrench],
   ["percurso", "Percurso", MapPinned], ["leitura", "Leitura", Gauge],
   ["checklist", "Checklist", ClipboardCheck], ["lembrete", "Lembrete", Bell],
 ] as const;
@@ -23,7 +23,7 @@ type Draft = {
   fuelStation: string; driver: string; motive: string; paymentMethod: string; location: string;
   origin: string; destination: string; distance: string; routeKind: "viagem" | "frete"; ratePerKm: string;
   readingType: string; readingValue: string; checklistItems: string; reminderAt: string;
-  reminderKind: "despesa" | "servico"; attachmentName: string; fullTank: boolean; previousRefuelingMissing: boolean;
+  reminderKind: "despesa" | "servico"; attachmentName: string;
 };
 
 function localNow(offsetHours = 0) {
@@ -38,13 +38,13 @@ function emptyDraft(vehicleId = ""): Draft {
     title: "", notes: "", amount: "", liters: "", unitPrice: "", fuelType: "Gasolina aditivada",
     fuelStation: "", driver: "", motive: "", paymentMethod: "", location: "", origin: "", destination: "",
     distance: "", routeKind: "viagem", ratePerKm: "", readingType: "Quilometragem", readingValue: "",
-    checklistItems: "", reminderAt: "", reminderKind: "despesa", attachmentName: "", fullTank: true,
-    previousRefuelingMissing: false,
+    checklistItems: "", reminderAt: "", reminderKind: "despesa", attachmentName: "",
   };
 }
 
 export function FleetEntryDialog({ defaultVehicleId, triggerLabel = "Adicionar" }: { defaultVehicleId?: string; triggerLabel?: string }) {
   const vehicles = useVehicles();
+  const operatorAcronyms = useOperatorAcronyms();
   const [open, setOpen] = useState(false);
   const [type, setType] = useState<FleetEntryType | null>(null);
   const [draft, setDraft] = useState(() => emptyDraft(defaultVehicleId));
@@ -60,8 +60,6 @@ export function FleetEntryDialog({ defaultVehicleId, triggerLabel = "Adicionar" 
       mileage: numberValue(draft.mileage), notes: draft.notes.trim() || undefined,
       amount: moneyValue(draft.amount), liters: numberValue(draft.liters), unitPrice: moneyValue(draft.unitPrice),
       fuelType: type === "abastecimento" ? draft.fuelType : undefined,
-      fullTank: type === "abastecimento" ? draft.fullTank : undefined,
-      previousRefuelingMissing: type === "abastecimento" ? draft.previousRefuelingMissing : undefined,
       fuelStation: type === "abastecimento" ? draft.fuelStation.trim() || undefined : undefined,
       driver: draft.driver.trim() || undefined, motive: draft.motive.trim() || undefined,
       paymentMethod: draft.paymentMethod || undefined, location: draft.location.trim() || undefined,
@@ -86,7 +84,7 @@ export function FleetEntryDialog({ defaultVehicleId, triggerLabel = "Adicionar" 
   return <>
     <Button onClick={() => setOpen(true)} className="h-10 gap-2"><Plus className="h-4 w-4" />{triggerLabel}</Button>
     <Dialog open={open} onOpenChange={(next) => next ? setOpen(true) : close()}>
-      <DialogContent className="flex max-h-[92vh] max-w-4xl flex-col overflow-hidden p-0">
+      <DialogContent className="flex max-h-[92vh] max-w-4xl flex-col overflow-hidden p-0 [&_button:not(:disabled)]:cursor-pointer [&_select:not(:disabled)]:cursor-pointer">
         <DialogHeader className="border-b px-6 py-4"><DialogTitle>{type ? `Adicionar ${selectedLabel?.toLowerCase()}` : "Adicionar lançamento"}</DialogTitle></DialogHeader>
         <div className="overflow-y-auto px-6 py-5 [scrollbar-color:hsl(var(--muted-foreground)/.35)_transparent] [scrollbar-width:thin]">
           {!type ? <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -95,8 +93,7 @@ export function FleetEntryDialog({ defaultVehicleId, triggerLabel = "Adicionar" 
             <CommonFields draft={draft} set={set} vehicles={vehicles} type={type} />
             {type === "abastecimento" && <FuelFields draft={draft} set={set} />}
             {type === "despesa" && <ExpenseFields draft={draft} set={set} />}
-            {type === "receita" && <IncomeFields draft={draft} set={set} />}
-            {type === "servico" && <ServiceFields draft={draft} set={set} />}
+            {type === "servico" && <ServiceFields draft={draft} set={set} operators={operatorAcronyms} />}
             {type === "percurso" && <RouteFields draft={draft} set={set} />}
             {type === "leitura" && <ReadingFields draft={draft} set={set} />}
             {type === "checklist" && <Field label="Itens do checklist (um por linha)"><Textarea rows={6} value={draft.checklistItems} onChange={(e) => set("checklistItems", e.target.value)} placeholder={"Óleo\nFreios\nLuzes\nPneus\nDocumentos"} /></Field>}
@@ -134,19 +131,18 @@ function computeLiters(amount: string, unitPrice: string) {
 }
 
 function FuelFields({ draft, set }: { draft: Draft; set: Setter }) { return <>
-  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"><Field label="Combustível"><select className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" value={draft.fuelType} onChange={(e) => set("fuelType", e.target.value)}><option>Gasolina aditivada</option><option>Gasolina comum</option><option>Etanol</option><option>Diesel</option><option>GNV</option></select></Field><Field label="Preço por litro (R$)"><Input inputMode="decimal" value={draft.unitPrice} onChange={(e) => { const value = e.target.value; set("unitPrice", value); set("liters", computeLiters(draft.amount, value)); }} /></Field><Field label="Valor total (R$)"><Input inputMode="decimal" value={draft.amount} onChange={(e) => { const value = e.target.value; set("amount", value); set("liters", computeLiters(value, draft.unitPrice)); }} /></Field><Field label="Litros"><Input inputMode="decimal" value={draft.liters} onChange={(e) => set("liters", e.target.value)} /></Field><Field label="Posto de combustível"><Input value={draft.fuelStation} onChange={(e) => set("fuelStation", e.target.value)} /></Field><Field label="Motorista"><Input value={draft.driver} onChange={(e) => set("driver", e.target.value)} /></Field></div>
+  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"><Field label="Combustível"><select className="h-10 w-full cursor-pointer rounded-md border border-input bg-background px-3 text-sm" value={draft.fuelType} onChange={(e) => set("fuelType", e.target.value)}><option>Gasolina aditivada</option><option>Gasolina comum</option><option>Etanol</option><option>Diesel</option><option>GNV</option></select></Field><Field label="Preço por litro (R$)"><CurrencyInput value={draft.unitPrice} onChange={(value) => { set("unitPrice", value); set("liters", computeLiters(draft.amount, value)); }} /></Field><Field label="Valor total (R$)"><CurrencyInput value={draft.amount} onChange={(value) => { set("amount", value); set("liters", computeLiters(value, draft.unitPrice)); }} /></Field><Field label="Litros"><Input inputMode="decimal" value={draft.liters} onChange={(e) => set("liters", e.target.value)} /></Field><Field label="Posto de combustível"><Input value={draft.fuelStation} onChange={(e) => set("fuelStation", e.target.value)} /></Field><Field label="Motorista"><Input value={draft.driver} onChange={(e) => set("driver", e.target.value)} /></Field></div>
   <div className="grid gap-4 sm:grid-cols-2"><Field label="Motivo (opcional)"><Input value={draft.motive} onChange={(e) => set("motive", e.target.value)} /></Field><Payment draft={draft} set={set} /></div>
-  <div className="flex flex-wrap gap-6"><Check label="Está completando o tanque?" checked={draft.fullTank} onChange={(value) => set("fullTank", value)} /><Check label="Abastecimento anterior em falta?" checked={draft.previousRefuelingMissing} onChange={(value) => set("previousRefuelingMissing", value)} /></div>
   </>; }
 
-function ExpenseFields({ draft, set }: { draft: Draft; set: Setter }) { return <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"><Field label="Tipo de despesa"><Input value={draft.title} onChange={(e) => set("title", e.target.value)} placeholder="Ex.: estacionamento" /></Field><Field label="Valor (R$)"><Input inputMode="decimal" value={draft.amount} onChange={(e) => set("amount", e.target.value)} /></Field><Field label="Local (opcional)"><Input value={draft.location} onChange={(e) => set("location", e.target.value)} /></Field><Field label="Motorista"><Input value={draft.driver} onChange={(e) => set("driver", e.target.value)} /></Field><Field label="Motivo (opcional)"><Input value={draft.motive} onChange={(e) => set("motive", e.target.value)} /></Field><Payment draft={draft} set={set} /></div>; }
-function IncomeFields({ draft, set }: { draft: Draft; set: Setter }) { return <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"><Field label="Tipo de receita"><Input value={draft.title} onChange={(e) => set("title", e.target.value)} /></Field><Field label="Valor (R$)"><Input inputMode="decimal" value={draft.amount} onChange={(e) => set("amount", e.target.value)} /></Field><Field label="Motorista"><Input value={draft.driver} onChange={(e) => set("driver", e.target.value)} /></Field></div>; }
-function ServiceFields({ draft, set }: { draft: Draft; set: Setter }) { return <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"><Field label="Tipo de serviço"><Input value={draft.title} onChange={(e) => set("title", e.target.value)} /></Field><Field label="Local / oficina"><Input value={draft.location} onChange={(e) => set("location", e.target.value)} /></Field><Field label="Valor (R$)"><Input inputMode="decimal" value={draft.amount} onChange={(e) => set("amount", e.target.value)} /></Field><Field label="Motorista"><Input value={draft.driver} onChange={(e) => set("driver", e.target.value)} /></Field><Payment draft={draft} set={set} /></div>; }
-function RouteFields({ draft, set }: { draft: Draft; set: Setter }) { return <><div className="grid gap-4 sm:grid-cols-2"><Field label="Origem"><Input value={draft.origin} onChange={(e) => set("origin", e.target.value)} /></Field><Field label="Destino"><Input value={draft.destination} onChange={(e) => set("destination", e.target.value)} /></Field><Field label="Data e hora final"><Input type="datetime-local" value={draft.endedAt} onChange={(e) => set("endedAt", e.target.value)} /></Field><Field label="Odômetro final"><Input value={draft.endingMileage} onChange={(e) => set("endingMileage", e.target.value.replace(/\D/g, ""))} /></Field></div><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"><Field label="Modalidade"><select className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" value={draft.routeKind} onChange={(e) => set("routeKind", e.target.value as Draft["routeKind"])}><option value="viagem">Viagem</option><option value="frete">Frete</option></select></Field><Field label="Distância (km)"><Input value={draft.distance} onChange={(e) => set("distance", e.target.value)} /></Field><Field label="Valor por km (R$)"><Input value={draft.ratePerKm} onChange={(e) => set("ratePerKm", e.target.value)} /></Field><Field label="Motorista"><Input value={draft.driver} onChange={(e) => set("driver", e.target.value)} /></Field></div><Field label="Motivo (opcional)"><Input value={draft.motive} onChange={(e) => set("motive", e.target.value)} /></Field></>; }
+function ExpenseFields({ draft, set }: { draft: Draft; set: Setter }) { return <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"><Field label="Tipo de despesa"><Input value={draft.title} onChange={(e) => set("title", e.target.value)} placeholder="Ex.: estacionamento" /></Field><Field label="Valor (R$)"><CurrencyInput value={draft.amount} onChange={(value) => set("amount", value)} /></Field><Field label="Local (opcional)"><Input value={draft.location} onChange={(e) => set("location", e.target.value)} /></Field><Field label="Motorista"><Input value={draft.driver} onChange={(e) => set("driver", e.target.value)} /></Field><Field label="Motivo (opcional)"><Input value={draft.motive} onChange={(e) => set("motive", e.target.value)} /></Field><Payment draft={draft} set={set} /></div>; }
+function ServiceFields({ draft, set, operators }: { draft: Draft; set: Setter; operators: string[] }) { return <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"><Field label="Tipo de serviço"><Input value={draft.title} onChange={(e) => set("title", e.target.value)} /></Field><Field label="Local / oficina"><Input value={draft.location} onChange={(e) => set("location", e.target.value)} /></Field><Field label="Valor (R$)"><CurrencyInput value={draft.amount} onChange={(value) => set("amount", value)} /></Field><Field label="Motorista"><select className="h-10 w-full cursor-pointer rounded-md border border-input bg-background px-3 text-sm" value={draft.driver} onChange={(e) => set("driver", e.target.value)}><option value="">Selecione</option>{operators.map((operator) => <option key={operator} value={operator}>{operator}</option>)}</select></Field><Payment draft={draft} set={set} /></div>; }
+function RouteFields({ draft, set }: { draft: Draft; set: Setter }) { return <><div className="grid gap-4 sm:grid-cols-2"><Field label="Origem"><Input value={draft.origin} onChange={(e) => set("origin", e.target.value)} /></Field><Field label="Destino"><Input value={draft.destination} onChange={(e) => set("destination", e.target.value)} /></Field><Field label="Data e hora final"><Input type="datetime-local" value={draft.endedAt} onChange={(e) => set("endedAt", e.target.value)} /></Field><Field label="Odômetro final"><Input value={draft.endingMileage} onChange={(e) => set("endingMileage", e.target.value.replace(/\D/g, ""))} /></Field></div><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"><Field label="Modalidade"><select className="h-10 w-full cursor-pointer rounded-md border border-input bg-background px-3 text-sm" value={draft.routeKind} onChange={(e) => set("routeKind", e.target.value as Draft["routeKind"])}><option value="viagem">Viagem</option><option value="frete">Frete</option></select></Field><Field label="Distância (km)"><Input value={draft.distance} onChange={(e) => set("distance", e.target.value)} /></Field><Field label="Valor por km (R$)"><CurrencyInput value={draft.ratePerKm} onChange={(value) => set("ratePerKm", value)} /></Field><Field label="Motorista"><Input value={draft.driver} onChange={(e) => set("driver", e.target.value)} /></Field></div><Field label="Motivo (opcional)"><Input value={draft.motive} onChange={(e) => set("motive", e.target.value)} /></Field></>; }
 function ReadingFields({ draft, set }: { draft: Draft; set: Setter }) { return <div className="grid gap-4 sm:grid-cols-3"><Field label="Tipo de leitura"><Input value={draft.readingType} onChange={(e) => set("readingType", e.target.value)} /></Field><Field label="Valor"><Input value={draft.readingValue} onChange={(e) => set("readingValue", e.target.value)} /></Field><Field label="Motorista"><Input value={draft.driver} onChange={(e) => set("driver", e.target.value)} /></Field></div>; }
 function ReminderFields({ draft, set }: { draft: Draft; set: Setter }) { return <div className="grid gap-4 sm:grid-cols-3"><Field label="Categoria"><select className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" value={draft.reminderKind} onChange={(e) => set("reminderKind", e.target.value as Draft["reminderKind"])}><option value="despesa">Despesa</option><option value="servico">Serviço</option></select></Field><Field label={draft.reminderKind === "despesa" ? "Tipo de despesa" : "Tipo de serviço"}><Input value={draft.title} onChange={(e) => set("title", e.target.value)} /></Field><Field label="Lembrar em"><Input type="datetime-local" value={draft.reminderAt} onChange={(e) => set("reminderAt", e.target.value)} /></Field></div>; }
 function Payment({ draft, set }: { draft: Draft; set: Setter }) { return <Field label="Forma de pagamento (opcional)"><select className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" value={draft.paymentMethod} onChange={(e) => set("paymentMethod", e.target.value)}><option value="">Selecione</option><option>Dinheiro</option><option>Cartão de crédito</option><option>Cartão de débito</option><option>Pix</option><option>Boleto</option></select></Field>; }
-function Check({ label, checked, onChange }: { label: string; checked: boolean; onChange: (value: boolean) => void }) { return <label className="flex cursor-pointer items-center gap-2 text-sm"><Checkbox checked={checked} onCheckedChange={(value) => onChange(value === true)} />{label}</label>; }
+function CurrencyInput({ value, onChange }: { value: string; onChange: (value: string) => void }) { return <Input inputMode="decimal" placeholder="0,00" value={value} onChange={(event) => onChange(formatCurrencyInput(event.target.value))} />; }
 function Field({ label, children }: { label: string; children: React.ReactNode }) { return <div className="space-y-1.5"><Label>{label}</Label>{children}</div>; }
 function numberValue(value: string) { const parsed = Number(value.replace(",", ".")); return value.trim() && Number.isFinite(parsed) ? parsed : undefined; }
 function moneyValue(value: string) { const parsed = Number(value.replace(/\./g, "").replace(",", ".")); return value.trim() && Number.isFinite(parsed) ? parsed : undefined; }
+function formatCurrencyInput(value: string) { const digits = value.replace(/\D/g, ""); if (!digits) return ""; return (Number(digits) / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }

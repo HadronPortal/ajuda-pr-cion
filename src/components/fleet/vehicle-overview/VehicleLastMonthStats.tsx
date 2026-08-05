@@ -27,14 +27,8 @@ export function VehicleLastMonthStats({ vehicleId }: VehicleLastMonthStatsProps)
       return acc;
     }, 0);
 
-    const totalReceita = entries.reduce((acc, e) => {
-      if (e.type === 'receita') return acc + (e.amount || 0);
-      return acc;
-    }, 0);
-
     const daysCount = 30; // Mês comercial
     const costPerDay = totalCusto / daysCount;
-    const revenuePerDay = totalReceita / daysCount;
 
     const counts = {
       abastecimento: entries.filter(e => e.type === 'abastecimento').length,
@@ -45,9 +39,7 @@ export function VehicleLastMonthStats({ vehicleId }: VehicleLastMonthStatsProps)
 
     return {
       totalCusto,
-      totalReceita,
       costPerDay,
-      revenuePerDay,
       pctAbastecimento: Math.round((counts.abastecimento / totalSpecific) * 100),
       pctServico: Math.round((counts.servico / totalSpecific) * 100),
       pctDespesa: Math.round((counts.despesa / totalSpecific) * 100),
@@ -58,16 +50,11 @@ export function VehicleLastMonthStats({ vehicleId }: VehicleLastMonthStatsProps)
     <Card className="p-6 flex flex-col h-full bg-card border-border/50">
       <h3 className="text-xl font-bold mb-8">Último mês</h3>
       
-      <div className="grid grid-cols-2 gap-8 mb-12">
+      <div className="mb-12">
         <div className="space-y-1">
           <p className="text-sm font-semibold text-muted-foreground">Custo</p>
           <p className="text-2xl font-bold text-red-500">R$ {stats.totalCusto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
           <p className="text-[11px] text-muted-foreground">R$ {stats.costPerDay.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} Por dia</p>
-        </div>
-        <div className="space-y-1">
-          <p className="text-sm font-semibold text-muted-foreground">Receita</p>
-          <p className="text-2xl font-bold text-emerald-500">R$ {stats.totalReceita.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
-          <p className="text-[11px] text-muted-foreground">R$ {stats.revenuePerDay.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} Por dia</p>
         </div>
       </div>
 

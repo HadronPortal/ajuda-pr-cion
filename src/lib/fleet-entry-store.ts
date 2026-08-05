@@ -3,7 +3,6 @@ import { useSyncExternalStore } from "react";
 export type FleetEntryType =
   | "abastecimento"
   | "despesa"
-  | "receita"
   | "servico"
   | "percurso"
   | "leitura"
@@ -56,7 +55,7 @@ function hydrate() {
   hydrated = true;
   try {
     const parsed = JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? "[]");
-    if (Array.isArray(parsed)) entries = parsed;
+    if (Array.isArray(parsed)) entries = parsed.filter((entry) => entry?.type !== "receita");
   } catch {
     entries = [];
   }

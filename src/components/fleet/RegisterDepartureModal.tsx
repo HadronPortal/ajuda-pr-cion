@@ -56,7 +56,7 @@ export function RegisterDepartureModal({
         onPointerDownOutside={preventClose}
         onInteractOutside={preventClose}
         onEscapeKeyDown={preventClose}
-        className="flex w-[calc(100vw-2rem)] max-w-[620px] flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-card p-0 [&>button]:hidden"
+        className="flex w-[calc(100vw-2rem)] max-w-[620px] flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-card p-0 [&>button]:hidden [&_button:not(:disabled)]:cursor-pointer [&_select:not(:disabled)]:cursor-pointer"
       >
         <DialogTitle className="sr-only">Registrar saída do veículo</DialogTitle>
         <DetailModalHeader
