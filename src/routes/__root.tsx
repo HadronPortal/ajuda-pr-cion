@@ -46,20 +46,23 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          Restaure as barras de rolagem em todos os modais do sistema.
+          A barra de rolagem ainda não aparece no modal de detalhes do chamado mostrado na imagem.
         </h1>
         <p className="mt-2 text-sm text-muted-foreground whitespace-pre-wrap">
-          Requisitos:
-- Manter o scroll funcional no conteúdo dos modais.
-- Exibir uma barra fina e semitransparente.
-- Aumentar levemente a opacidade no hover e durante a rolagem.
-- Preservar light e dark mode com contraste discreto.
-- Não alterar dimensões, conteúdo, cabeçalhos, rodapés ou funcionamento dos modais.
-- Não usar scrollbar completamente invisível.
-- Aplicar de forma centralizada no componente/base global dos modais, evitando estilos duplicados.
-- Validar no Chrome e Firefox.
+          Corrija especificamente esse modal:
+- Identifique o elemento interno que realmente possui `overflow-y`.
+- Aplique a scrollbar semitransparente nesse elemento, não apenas no container externo do modal.
+- Use `overflow-y: auto`.
+- Limite o conteúdo com `max-height` considerando a altura da viewport.
+- Barra visível com 6px a 8px de largura.
+- Thumb semitransparente e mais visível no hover.
+- Trilho transparente.
+- Preserve a rolagem pelo mouse, touchpad e teclado.
+- Não aumente a largura do modal nem corte o conteúdo.
+- Verifique se alguma classe como `scrollbar-hide`, `scrollbar-none` ou CSS com `display: none` ainda está sobrescrevendo a barra.
+- Preserve light e dark mode.
 
-Sugestão visual: largura entre 6px e 8px, trilho transparente e indicador com aproximadamente 30% de opacidade
+Aplique a correção no componente compartilhado desse modal e valide visualmente com conteúdo longo.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
