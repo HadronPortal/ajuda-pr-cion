@@ -109,7 +109,7 @@ export function VehicleEditorModal({ vehicle, open, onOpenChange }: Props) {
             </div>
           </DialogHeader>
 
-          <div className="flex-1 overflow-y-auto px-6 py-6 hide-scrollbar space-y-8">
+          <div className="flex-1 overflow-y-auto px-6 py-6 modal-scrollbar space-y-8">
             {/* Seção: Status e Identificação Básica */}
             <section>
               <h3 className="text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-4 flex items-center gap-2">
