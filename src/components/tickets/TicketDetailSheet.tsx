@@ -114,7 +114,7 @@ const statusTone: Record<TicketStatus, string> = {
 
 const priorityTone: Record<TicketPriority, string> = {
   Alta: "bg-destructive/12 text-destructive border-destructive/20",
-  Media: "bg-warning/16 text-warning-foreground border-warning/30",
+  Media: "bg-[#e8f3ff] text-[#246cb5] border-[#bfddff] dark:bg-[#17314e] dark:text-[#9dcaff] dark:border-[#24527d]",
   Baixa: "bg-muted text-muted-foreground border-border",
 };
 
