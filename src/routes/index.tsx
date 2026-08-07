@@ -1,23 +1,3 @@
-/**
- * NÃO use Fast Visual Edit e NÃO sincronize o ambiente.
- * 
- * Altere somente o arquivo explicitamente informado.
- * 
- * É absolutamente proibido modificar:
- * - .env
- * - .env.local
- * - qualquer variável SUPABASE_*
- * - qualquer variável VITE_SUPABASE_*
- * - configurações de Cloud, Secrets ou Connectors
- * - migrations, banco de dados e Edge Functions
- * - arquivos não mencionados no pedido
- * 
- * Antes de concluir:
- * 1. Mostre a lista exata dos arquivos que serão alterados.
- * 2. Se houver qualquer arquivo além do solicitado, cancele a operação.
- * 3. Não crie commits auxiliares de configuração.
- * 4. Não altere a conexão atual do Supabase.
- */
 import { useMemo, useState } from "react";
 
 import { createFileRoute, Link } from "@tanstack/react-router";
