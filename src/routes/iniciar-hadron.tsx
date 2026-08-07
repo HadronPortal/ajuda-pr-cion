@@ -1,674 +1,205 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import {
-  BookOpenText,
-  CheckCircle2,
-  ChevronRight,
-  ClipboardCheck,
-  Code2,
-  FileCode2,
-  Filter,
-  GitBranch,
-  History,
-  ListChecks,
-  PackageCheck,
-  Rocket,
-  Search,
-  Sparkles,
-  UserRound,
-  X,
-} from "lucide-react";
+import { useGameStore } from "@/lib/game-store";
 import { AppShell } from "@/components/portal/AppShell";
-import { Breadcrumbs } from "@/components/portal/Breadcrumbs";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Info } from "lucide-react";
-import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import { Trash2, Plus, Download, FileText, Database } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { erpVersions, formatVersionDate } from "@/lib/erp-versions";
 
 export const Route = createFileRoute("/iniciar-hadron")({
-  head: () => ({ meta: [{ title: "Iniciar Hadron - CRM Procion" }] }),
-  component: HadronPage,
+  component: HadronGameAdmin,
 });
 
-type Detail = { title: string; subtitle: string; body: string; meta: string[] };
+function HadronGameAdmin() {
+  const { prizes, addPrize, removePrize, updatePrize, backgroundUrl, coverUrl } = useGameStore();
 
-const options = [
-  {
-    id: "1111",
-    title: "Cadastro de Tabelas de Tributacoes",
-    description: "Ajustes e melhorias nas regras fiscais.",
-    owner: "PRCEDU",
-    priority: "Alta",
-    status: "Correcao",
-  },
-  {
-    id: "1116",
-    title: "Cadastro de Operadores",
-    description: "Permissões e configurações dos usuários.",
-    owner: "PRCEDU",
-    priority: "Media",
-    status: "Melhoria",
-  },
-  {
-    id: "1243",
-    title: "Complementos Gerais N.C.M.",
-    description: "Manutencao dos complementos tributarios.",
-    owner: "PRCWAG",
-    priority: "Alta",
-    status: "Correcao",
-  },
-  {
-    id: "1398",
-    title: "Emissão de Nota Fiscal Eletrônica",
-    description: "Validacoes e retorno da SEFAZ.",
-    owner: "PRCJUL",
-    priority: "Baixa",
-    status: "Evolucao",
-  },
-];
+  const totalProbability = prizes.reduce((sum, p) => sum + p.probability, 0);
 
-const occurrences = [
-  {
-    type: "Problema Hadron",
-    option: "1111 - Tabelas de Tributacoes",
-    title: "Alíquota não aplicada na venda",
-    owner: "PRCEDU",
-    state: "Aguardando revisao",
-    date: "18/07/2026",
-  },
-  {
-    type: "Configuração",
-    option: "1116 - Cadastro de Operadores",
-    title: "Permissão de acesso ao financeiro",
-    owner: "PRCJUL",
-    state: "Em análise",
-    date: "17/07/2026",
-  },
-  {
-    type: "Problema Externo",
-    option: "1398 - Nota Fiscal Eletronica",
-    title: "Retorno intermitente da SEFAZ",
-    owner: "PRCWAG",
-    state: "Resolvido",
-    date: "16/07/2026",
-  },
-  {
-    type: "Solicitação/Sugestão",
-    option: "1243 - Complementos N.C.M.",
-    title: "Novo filtro por classificacao",
-    owner: "PRCGUI",
-    state: "Em desenvolvimento",
-    date: "15/07/2026",
-  },
-];
+  const handleExportCSV = () => {
+    try {
+      const headers = ["ID", "Label", "Probability", "Color"];
+      const rows = prizes.map(p => [p.id, p.label, p.probability, p.color].join(","));
+      const csvContent = [headers.join(","), ...rows].join("\n");
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", "config-roleta.csv");
+      link.click();
+      toast.success("CSV exportado com sucesso!");
+    } catch (error) {
+      toast.error("Erro ao exportar CSV.");
+    }
+  };
 
-const releases = [
-  {
-    version: "2.0.2026.07.18",
-    title: "Ajustes na emissão de NF-e",
-    module: "Vendas / NFE",
-    owner: "PRCEDU",
-    published: "18/07/2026",
-    status: "Publicado",
-  },
-  {
-    version: "2.0.2026.07.16",
-    title: "Permissoes por grupo de operadores",
-    module: "Basico / Seguranca",
-    owner: "PRCJUL",
-    published: "16/07/2026",
-    status: "Publicado",
-  },
-  {
-    version: "2.0.2026.07.14",
-    title: "Melhorias no fechamento financeiro",
-    module: "Financeiro",
-    owner: "PRCWAG",
-    published: "14/07/2026",
-    status: "Homologacao",
-  },
-];
+  const handleExportTXT = () => {
+    try {
+      const content = prizes.map(p => `${p.label}: ${p.probability}%`).join("\n");
+      const blob = new Blob([content], { type: "text/plain;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", "config-roleta.txt");
+      link.click();
+      toast.success("TXT exportado com sucesso!");
+    } catch (error) {
+      toast.error("Erro ao exportar TXT.");
+    }
+  };
 
-const articles = [
-  {
-    title: "Como configurar uma tabela de tributacao",
-    category: "Fiscal",
-    option: "1111",
-    author: "PRCEDU",
-    updated: "18/07/2026",
-    views: 284,
-  },
-  {
-    title: "Permissoes do cadastro de operadores",
-    category: "Basico",
-    option: "1116",
-    author: "PRCJUL",
-    updated: "16/07/2026",
-    views: 176,
-  },
-  {
-    title: "Tratamento de rejeicoes da NF-e",
-    category: "Vendas - NFE",
-    option: "1398",
-    author: "PRCWAG",
-    updated: "14/07/2026",
-    views: 421,
-  },
-];
-
-const operatorStats = [
-  ["PRCEDU", 11],
-  ["PRCJUL", 11],
-  ["PRCWAG", 8],
-  ["PRCWLS", 6],
-  ["PRCGUI", 2],
-  ["PRCAND", 1],
-] as const;
-
-function HadronPage() {
-  const [tab, setTab] = useState("visao-geral");
-  const [query, setQuery] = useState("");
-  const [status, setStatus] = useState("todos");
-  const [detail, setDetail] = useState<Detail | null>(null);
+  const handleBackupJSON = () => {
+    try {
+      const content = JSON.stringify({ prizes, backgroundUrl, coverUrl }, null, 2);
+      const blob = new Blob([content], { type: "application/json;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", "backup-hadron.json");
+      link.click();
+      toast.success("Backup JSON exportado com sucesso!");
+    } catch (error) {
+      toast.error("Erro ao realizar backup.");
+    }
+  };
 
   return (
     <AppShell>
-      <div className="space-y-5">
-        <header className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-          <div>
-            <Breadcrumbs items={[{ label: "Iniciar Hadron" }]} />
-            <div className="flex items-center gap-3">
-              <span className="grid h-10 w-10 place-items-center rounded-lg bg-primary text-primary-foreground shadow-sm">
-                <Rocket className="h-5 w-5" />
-              </span>
-              <div>
-                <h1 className="text-xl font-medium text-foreground">Iniciar Hadron</h1>
-                <p className="text-xs text-muted-foreground">
-                  Gestao de opcoes, ocorrencias, releases e artigos do sistema.
-                </p>
-              </div>
+      <div 
+        className="min-h-screen p-6 bg-cover bg-center transition-all"
+        style={{ backgroundImage: `url(${backgroundUrl})` }}
+      >
+        <div className="max-w-4xl mx-auto space-y-6 bg-white/90 dark:bg-slate-900/90 p-8 rounded-2xl backdrop-blur-sm shadow-xl">
+          <header className="flex items-center justify-between border-b pb-6">
+            <div>
+              <h1 className="text-3xl font-bold text-foreground">Configurações do Jogo</h1>
+              <p className="text-muted-foreground mt-1 text-lg">Desafio Robustus - Jogo da Cesta</p>
             </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="relative w-full md:w-72">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Buscar no Hadron..."
-                className="pl-9"
-              />
-            </div>
-            <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger className="w-36 cursor-pointer">
-                <Filter className="mr-2 h-4 w-4" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todos</SelectItem>
-                <SelectItem value="pendentes">Pendentes</SelectItem>
-                <SelectItem value="concluidos">Concluidos</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </header>
+            <img 
+              src={coverUrl} 
+              alt="Capa do Jogo" 
+              className="w-32 h-32 object-contain rounded-lg shadow-md border bg-white"
+            />
+          </header>
 
-        <Tabs value={tab} onValueChange={setTab}>
-          <TabsList className="h-auto w-full justify-start gap-1 overflow-x-auto rounded-lg border bg-card p-1">
-            {[
-              ["visao-geral", "Visao geral", Rocket],
-              ["opcoes", "Opcoes", ListChecks],
-              ["ocorrencias", "Ocorrências", ClipboardCheck],
-              ["releases", "Releases", GitBranch],
-              ["versoes", "Versões", History],
-              ["artigos", "Artigos", BookOpenText],
-            ].map(([value, label, Icon]) => (
-              <TabsTrigger
-                key={String(value)}
-                value={String(value)}
-                className="cursor-pointer gap-2 px-4"
+          <section className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">Configuração da Roleta</h2>
+              <Badge variant={totalProbability === 100 ? "default" : "destructive"} className="text-sm px-3 py-1">
+                Total: {totalProbability}%
+              </Badge>
+            </div>
+
+            <div className="grid gap-4">
+              {prizes.map((prize) => (
+                <Card key={prize.id} className="p-4 flex items-center gap-4 border-2">
+                  <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-1">
+                      <Label className="text-xs uppercase font-bold text-muted-foreground">Nome do Prêmio</Label>
+                      <Input 
+                        value={prize.label} 
+                        onChange={(e) => updatePrize(prize.id, { label: e.target.value })}
+                        placeholder="Ex: Ração 1kg"
+                        className="font-medium"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs uppercase font-bold text-muted-foreground">Probabilidade (%)</Label>
+                      <Input 
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={prize.probability} 
+                        onChange={(e) => updatePrize(prize.id, { probability: Number(e.target.value) })}
+                        className="font-medium"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-xs uppercase font-bold text-muted-foreground">Cor</Label>
+                      <div className="flex gap-2">
+                        <Input 
+                          type="color"
+                          value={prize.color} 
+                          onChange={(e) => updatePrize(prize.id, { color: e.target.value })}
+                          className="w-12 h-10 p-1 cursor-pointer"
+                        />
+                        <Input 
+                          value={prize.color} 
+                          onChange={(e) => updatePrize(prize.id, { color: e.target.value })}
+                          className="font-mono text-xs"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => removePrize(prize.id)}
+                    className="text-destructive hover:bg-destructive/10"
+                  >
+                    <Trash2 className="h-5 w-5" />
+                  </Button>
+                </Card>
+              ))}
+            </div>
+
+            {prizes.length < 4 ? (
+              <Button 
+                onClick={() => addPrize({ label: "Novo Prêmio", probability: 0, color: "#6366f1" })}
+                className="w-full py-6 text-lg font-semibold gap-2 border-2 border-dashed"
+                variant="outline"
               >
-                <Icon className="h-4 w-4" />
-                {String(label)}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-          <TabsContent value="visao-geral">
-            <Overview onOpen={setDetail} />
-          </TabsContent>
-          <TabsContent value="opcoes">
-            <OptionsTable query={query} onOpen={setDetail} />
-          </TabsContent>
-          <TabsContent value="ocorrencias">
-            <OccurrencesTable query={query} onOpen={setDetail} />
-          </TabsContent>
-          <TabsContent value="releases">
-            <ReleasesTable query={query} onOpen={setDetail} />
-          </TabsContent>
-          <TabsContent value="versoes">
-            <VersionsTable query={query} onOpen={setDetail} />
-          </TabsContent>
-          <TabsContent value="artigos">
-            <ArticlesTable query={query} onOpen={setDetail} />
-          </TabsContent>
-        </Tabs>
+                <Plus className="h-6 w-6" /> Adicionar Prêmio
+              </Button>
+            ) : (
+              <div className="p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg text-amber-700 dark:text-amber-400 text-center font-medium">
+                A roleta pode ter no máximo 4 prêmios.
+              </div>
+            )}
+          </section>
+
+          <section className="pt-8 border-t">
+            <h2 className="text-xl font-semibold mb-6">Gestão de Dados & Backup</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Button onClick={handleExportCSV} variant="outline" className="h-24 flex-col gap-2 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-200">
+                <Download className="h-8 w-8 text-blue-500" />
+                <div className="text-center">
+                  <div className="font-bold">Exportar CSV</div>
+                  <div className="text-[10px] text-muted-foreground">Relatório de prêmios</div>
+                </div>
+              </Button>
+              <Button onClick={handleExportTXT} variant="outline" className="h-24 flex-col gap-2 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 hover:border-emerald-200">
+                <FileText className="h-8 w-8 text-emerald-500" />
+                <div className="text-center">
+                  <div className="font-bold">Exportar TXT</div>
+                  <div className="text-[10px] text-muted-foreground">Resumo textual</div>
+                </div>
+              </Button>
+              <Button onClick={handleBackupJSON} variant="outline" className="h-24 flex-col gap-2 hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:border-purple-200">
+                <Database className="h-8 w-8 text-purple-500" />
+                <div className="text-center">
+                  <div className="font-bold">Backup JSON</div>
+                  <div className="text-[10px] text-muted-foreground">Configuração completa</div>
+                </div>
+              </Button>
+            </div>
+          </section>
+        </div>
       </div>
-
-      <Dialog open={!!detail} onOpenChange={(open) => !open && setDetail(null)}>
-        <DialogContent
-          className="max-w-2xl gap-0 overflow-hidden bg-card p-0 [&>button]:hidden"
-          onPointerDownOutside={(e) => e.preventDefault()}
-        >
-          <DialogTitle className="sr-only">{detail?.title}</DialogTitle>
-          <DetailModalHeader
-            icon={Info}
-            title={detail?.title ?? ""}
-            meta={detail?.subtitle}
-            onClose={() => setDetail(null)}
-          />
-          <div className="space-y-4 px-5 py-4">
-
-          <div className="grid gap-2 sm:grid-cols-2">
-            {detail?.meta.map((item) => (
-              <div
-                key={item}
-                className="rounded-lg border bg-background p-3 text-xs text-muted-foreground"
-              >
-                {item}
-              </div>
-            ))}
-          </div>
-          <p className="rounded-lg border bg-background p-4 text-sm leading-6 text-foreground">
-            {detail?.body}
-          </p>
-          <div className="flex justify-end">
-            <Button onClick={() => setDetail(null)} className="cursor-pointer">
-              Concluir visualizacao
-            </Button>
-          </div>
-          </div>
-        </DialogContent>
-
-      </Dialog>
     </AppShell>
   );
 }
 
-function Overview({ onOpen }: { onOpen: (d: Detail) => void }) {
-  const cards = [
-    ["Ag. revisão / ocorrência", "1 / 1", ClipboardCheck, "text-amber-600 bg-amber-500/10"],
-    ["Opções com ocorrência", "27 / 1.575", ListChecks, "text-primary bg-primary/10"],
-    ["Releases", "1.011", PackageCheck, "text-violet-600 bg-violet-500/10"],
-    ["Versão Hádron", "2.0", Code2, "text-emerald-600 bg-emerald-500/10"],
-  ] as const;
-  return (
-    <div className="mt-5 space-y-5">
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {cards.map(([label, value, Icon, color]) => (
-          <div key={label} className="rounded-lg border bg-card p-4 shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className={cn("grid h-9 w-9 place-items-center rounded-lg", color)}>
-                <Icon className="h-5 w-5" />
-              </span>
-              <span className="text-[11px] text-muted-foreground">Atualizado hoje</span>
-            </div>
-            <p className="mt-4 text-2xl font-medium">{value}</p>
-            <p className="mt-1 text-xs text-muted-foreground">{label}</p>
-          </div>
-        ))}
-      </div>
-      <div className="grid gap-5 xl:grid-cols-[1.55fr_1fr]">
-        <section className="rounded-lg border bg-card p-5 shadow-sm">
-          <SectionTitle
-            icon={Sparkles}
-            title="Opcoes em destaque"
-            subtitle="Itens que precisam de acompanhamento do time."
-          />{" "}
-          <div className="mt-4 divide-y">
-            {options.slice(0, 3).map((o) => (
-              <button
-                key={o.id}
-                onClick={() => onOpen(optionDetail(o))}
-                className="flex w-full cursor-pointer items-center gap-3 py-3 text-left hover:bg-muted/35"
-              >
-                <StatusDot tone={o.priority} />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm">
-                    {o.id} - {o.title}
-                  </p>
-                  <p className="truncate text-xs text-muted-foreground">{o.description}</p>
-                </div>
-                <Badge variant="outline">{o.owner}</Badge>
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
-              </button>
-            ))}
-          </div>
-        </section>
-        <section className="rounded-lg border bg-card p-5 shadow-sm">
-          <SectionTitle
-            icon={UserRound}
-            title="Ocorrências por operador"
-            subtitle="Distribuicao atual da fila Hadron."
-          />
-          <div className="mt-5 space-y-3">
-            {operatorStats.map(([name, count]) => (
-              <div key={name}>
-                <div className="mb-1 flex justify-between text-xs">
-                  <span>{name}</span>
-                  <span>{count}</span>
-                </div>
-                <div className="h-2 overflow-hidden rounded-full bg-muted">
-                  <div
-                    className="h-full rounded-full bg-primary"
-                    style={{ width: `${Math.max(10, (count / 11) * 100)}%` }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      </div>
-    </div>
-  );
-}
-
-function OptionsTable({ query, onOpen }: TableProps) {
-  const rows = useFiltered(options, query);
-  return (
-    <DataCard
-      title="Opcoes"
-      subtitle="Cadastros e funcionalidades monitoradas pelo time Hadron."
-      headers={["Status", "P", "Opção", "Descrição", "Responsável"]}
-    >
-      {rows.map((o) => (
-        <DataRow
-          key={o.id}
-          onClick={() => onOpen(optionDetail(o))}
-          cells={[
-            <Badge variant="outline">{o.status}</Badge>,
-            <Priority value={o.priority} />,
-            o.id,
-            <div>
-              <p>{o.title}</p>
-              <p className="text-xs text-muted-foreground">{o.description}</p>
-            </div>,
-            o.owner,
-          ]}
-        />
-      ))}
-    </DataCard>
-  );
-}
-function OccurrencesTable({ query, onOpen }: TableProps) {
-  const rows = useFiltered(occurrences, query);
-  return (
-    <DataCard
-      title="Ocorrências"
-      subtitle="Fila geral, revisoes e solucoes registradas."
-      headers={["Tipo", "Opção / formulário", "Ocorrência", "Operador", "Situação", "Data"]}
-    >
-      {rows.map((o) => (
-        <DataRow
-          key={o.title}
-          onClick={() =>
-            onOpen({
-              title: o.title,
-              subtitle: o.option,
-              body: "Registro detalhado da ocorrência, análise realizada e solução proposta pelo operador.",
-              meta: [
-                `Tipo: ${o.type}`,
-                `Operador: ${o.owner}`,
-                `Situação: ${o.state}`,
-                `Data: ${o.date}`,
-              ],
-            })
-          }
-          cells={[
-            o.type,
-            o.option,
-            o.title,
-            o.owner,
-            <Badge variant="outline">{o.state}</Badge>,
-            o.date,
-          ]}
-        />
-      ))}
-    </DataCard>
-  );
-}
-function ReleasesTable({ query, onOpen }: TableProps) {
-  const rows = useFiltered(releases, query);
-  return (
-    <DataCard
-      title="Releases"
-      subtitle="Histórico de publicações e itens em homologação."
-      headers={["Versão", "Descrição", "Módulo", "Responsável", "Publicação", "Status"]}
-    >
-      {rows.map((o) => (
-        <DataRow
-          key={o.version}
-          onClick={() =>
-            onOpen({
-              title: o.title,
-              subtitle: `Release ${o.version}`,
-              body: "Pacote de atualização com correções, melhorias e orientações de implantação.",
-              meta: [
-                `Módulo: ${o.module}`,
-                `Responsável: ${o.owner}`,
-                `Publicacao: ${o.published}`,
-                `Status: ${o.status}`,
-              ],
-            })
-          }
-          cells={[
-            o.version,
-            o.title,
-            o.module,
-            o.owner,
-            o.published,
-            <Badge variant="outline">{o.status}</Badge>,
-          ]}
-        />
-      ))}
-    </DataCard>
-  );
-}
-
-function VersionsTable({ query, onOpen }: TableProps) {
-  const normalizedQuery = query.trim().toLocaleLowerCase("pt-BR");
-  const rows = erpVersions.filter((version) =>
-    Object.values(version).some((value) =>
-      value.toLocaleLowerCase("pt-BR").includes(normalizedQuery),
-    ),
-  );
-
-  return (
-    <DataCard
-      title="Versões do ERP"
-      subtitle="Histórico oficial das versões liberadas do Hadron."
-      headers={["Versão", "Liberação", "Runtime", "Arquivos", "Base", "Alteração"]}
-    >
-      {rows.map((version) => (
-        <DataRow
-          key={version.id}
-          onClick={() =>
-            onOpen({
-              title: `Versão ${version.versao}`,
-              subtitle: `Liberada em ${formatVersionDate(version.data_versao)}`,
-              body: "Registro técnico da versão liberada do ERP Hadron.",
-              meta: [
-                `Runtime: ${formatVersionDate(version.data_runtime)}`,
-                `Arquivos: ${formatVersionDate(version.data_arq)}`,
-                `Base: ${formatVersionDate(version.data_arq_bas)}`,
-                `Alteração: ${formatVersionDate(version.data_alterar)}`,
-              ],
-            })
-          }
-          cells={[
-            version.versao,
-            formatVersionDate(version.data_versao),
-            formatVersionDate(version.data_runtime),
-            formatVersionDate(version.data_arq),
-            formatVersionDate(version.data_arq_bas),
-            formatVersionDate(version.data_alterar),
-          ]}
-        />
-      ))}
-    </DataCard>
-  );
-}
-
-function ArticlesTable({ query, onOpen }: TableProps) {
-  const rows = useFiltered(articles, query);
-  return (
-    <DataCard
-      title="Artigos"
-      subtitle="Documentacao tecnica vinculada as opcoes do Hadron."
-      headers={["Artigo", "Categoria", "Opção", "Autor", "Atualizado", "Visualizações"]}
-    >
-      {rows.map((o) => (
-        <DataRow
-          key={o.title}
-          onClick={() =>
-            onOpen({
-              title: o.title,
-              subtitle: `${o.category} - Opção ${o.option}`,
-              body: "Conteúdo técnico com orientações de configuração, validação e resolução do processo no Hádron.",
-              meta: [
-                `Autor: ${o.author}`,
-                `Atualizado: ${o.updated}`,
-                `${o.views} visualizacoes`,
-                `Opção: ${o.option}`,
-              ],
-            })
-          }
-          cells={[o.title, o.category, o.option, o.author, o.updated, o.views]}
-        />
-      ))}
-    </DataCard>
-  );
-}
-
-type TableProps = { query: string; onOpen: (d: Detail) => void };
-function useFiltered<T>(rows: T[], query: string) {
-  return useMemo(
-    () => rows.filter((r) => JSON.stringify(r).toLowerCase().includes(query.toLowerCase())),
-    [rows, query],
-  );
-}
-function optionDetail(o: (typeof options)[number]): Detail {
-  return {
-    title: o.title,
-    subtitle: `Opção ${o.id}`,
-    body: o.description,
-    meta: [
-      `Status: ${o.status}`,
-      `Prioridade: ${o.priority}`,
-      `Responsável: ${o.owner}`,
-      "Origem: CRM Hadron",
-    ],
+function Badge({ children, variant = "default", className }: { children: React.ReactNode, variant?: "default" | "destructive", className?: string }) {
+  const variants = {
+    default: "bg-primary text-primary-foreground",
+    destructive: "bg-destructive text-destructive-foreground",
   };
-}
-function SectionTitle({
-  icon: Icon,
-  title,
-  subtitle,
-}: {
-  icon: typeof Rocket;
-  title: string;
-  subtitle: string;
-}) {
   return (
-    <div className="flex items-start gap-3">
-      <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary/10 text-primary">
-        <Icon className="h-4 w-4" />
-      </span>
-      <div>
-        <h2 className="text-sm font-medium">{title}</h2>
-        <p className="text-xs text-muted-foreground">{subtitle}</p>
-      </div>
-    </div>
-  );
-}
-function StatusDot({ tone }: { tone: string }) {
-  return (
-    <span
-      className={cn(
-        "h-2.5 w-2.5 shrink-0 rounded-full",
-        tone === "Alta" ? "bg-rose-500" : tone === "Media" ? "bg-amber-500" : "bg-emerald-500",
-      )}
-    />
-  );
-}
-function Priority({ value }: { value: string }) {
-  return (
-    <span className="inline-flex items-center gap-1.5 text-xs">
-      <StatusDot tone={value} />
-      {value}
+    <span className={cn("inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset", variants[variant], className)}>
+      {children}
     </span>
-  );
-}
-function DataCard({
-  title,
-  subtitle,
-  headers,
-  children,
-}: {
-  title: string;
-  subtitle: string;
-  headers: string[];
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="mt-5 overflow-hidden rounded-lg border bg-card shadow-sm">
-      <div className="flex items-center justify-between border-b p-5">
-        <div>
-          <h2 className="text-base font-medium">{title}</h2>
-          <p className="text-xs text-muted-foreground">{subtitle}</p>
-        </div>
-        <span className="text-xs text-muted-foreground">Clique em uma linha para abrir</span>
-      </div>
-      <div className="app-scrollbar overflow-x-auto">
-        <div className="min-w-[850px]">
-          <div
-            className="grid border-b bg-muted/30 px-4 py-2.5 text-[11px] uppercase text-muted-foreground"
-            style={{ gridTemplateColumns: `repeat(${headers.length}, minmax(0, 1fr))` }}
-          >
-            {headers.map((h) => (
-              <span key={h}>{h}</span>
-            ))}
-          </div>
-          <div className="divide-y">{children}</div>
-        </div>
-      </div>
-    </section>
-  );
-}
-function DataRow({ cells, onClick }: { cells: React.ReactNode[]; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="grid w-full cursor-pointer items-center px-4 py-3 text-left text-xs transition hover:bg-muted/35"
-      style={{ gridTemplateColumns: `repeat(${cells.length}, minmax(0, 1fr))` }}
-    >
-      {cells.map((c, i) => (
-        <div key={i} className="min-w-0 pr-3">
-          {c}
-        </div>
-      ))}
-    </button>
   );
 }
