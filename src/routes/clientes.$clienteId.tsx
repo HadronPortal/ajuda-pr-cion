@@ -1,5 +1,4 @@
 import { createFileRoute, Link, useNavigate, notFound } from "@tanstack/react-router";
-import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import { ArrowLeft, Building2, History, Monitor, Network, ScrollText, SlidersHorizontal, UsersRound, Wifi } from "lucide-react";
 
@@ -62,9 +61,9 @@ type TabValue = (typeof tabs)[number];
 
 
 const searchSchema = z.object({
-  tab: fallback(z.string(), "cliente").default("cliente"),
-  from: fallback(z.string(), "").optional(),
-  ticketId: fallback(z.string(), "").optional(),
+  tab: z.string().catch("cliente").default("cliente"),
+  from: z.string().catch("").optional(),
+  ticketId: z.string().catch("").optional(),
 });
 
 
@@ -72,7 +71,7 @@ export const Route = createFileRoute("/clientes/$clienteId")({
   head: ({ params }) => ({
     meta: [{ title: `Cliente ${params.clienteId.toUpperCase()} - Portal Procion` }],
   }),
-  validateSearch: zodValidator(searchSchema),
+  validateSearch: searchSchema,
   loader: async ({ params }) => {
     const detail = await getClientDetail(params.clienteId);
     if (!detail) throw notFound();

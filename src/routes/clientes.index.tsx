@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState, type ComponentType, type ReactNode } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { z } from "zod";
 import {
   Activity,
@@ -200,17 +199,17 @@ import { CompanyLeadsTab } from "@/components/clients/CompanyLeadsTab";
 import { addLocalEvent, useLocalEventsForClient } from "@/lib/local-events-store";
 
 const clientesSearchSchema = z.object({
-  grupo: fallback(z.string(), "").optional(),
-  origem: fallback(z.string(), "").optional(),
-  q: fallback(z.string(), "").optional(),
-  campo: fallback(z.string(), "").optional(),
-  sigla: fallback(z.string(), "").optional(),
-  status: fallback(z.string(), "").optional(),
+  grupo: z.string().catch("").optional(),
+  origem: z.string().catch("").optional(),
+  q: z.string().catch("").optional(),
+  campo: z.string().catch("").optional(),
+  sigla: z.string().catch("").optional(),
+  status: z.string().catch("").optional(),
 });
 
 export const Route = createFileRoute("/clientes/")({
   head: () => ({ meta: [{ title: "Clientes - Portal Procion" }] }),
-  validateSearch: zodValidator(clientesSearchSchema),
+  validateSearch: clientesSearchSchema,
   loader: async () => {
     try {
       return { clients: await listClients(), loadFailed: false };

@@ -1,6 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
-import { fallback, zodValidator } from "@tanstack/zod-adapter";
 import { BarChart3 } from "lucide-react";
 import { AppShell } from "@/components/portal/AppShell";
 import { Breadcrumbs } from "@/components/portal/Breadcrumbs";
@@ -8,7 +7,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { TicketsAnalyticsSection } from "@/components/analytics/TicketsAnalytics";
 
 const searchSchema = z.object({
-  view: fallback(z.string(), "chamados").default("chamados"),
+  view: z.string().catch("chamados").default("chamados"),
 });
 
 export const Route = createFileRoute("/analytics")({
@@ -22,7 +21,7 @@ export const Route = createFileRoute("/analytics")({
       },
     ],
   }),
-  validateSearch: zodValidator(searchSchema),
+  validateSearch: searchSchema,
   component: AnalyticsPage,
 });
 

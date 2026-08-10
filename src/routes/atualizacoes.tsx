@@ -1,6 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { z } from "zod";
-import { fallback, zodValidator } from "@tanstack/zod-adapter";
 import { Sparkles, GitBranch } from "lucide-react";
 import { AppShell, PageHeader } from "@/components/portal/AppShell";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -8,7 +7,7 @@ import { UpdatesContent } from "@/components/portal/UpdatesContent";
 import { VersionsContent } from "@/components/portal/VersionsContent";
 
 const searchSchema = z.object({
-  aba: fallback(z.enum(["atualizacoes", "versoes"]), "atualizacoes").default("atualizacoes"),
+  aba: z.enum(["atualizacoes", "versoes"]).catch("atualizacoes").default("atualizacoes"),
 });
 
 export const Route = createFileRoute("/atualizacoes")({
@@ -21,7 +20,7 @@ export const Route = createFileRoute("/atualizacoes")({
       },
     ],
   }),
-  validateSearch: zodValidator(searchSchema),
+  validateSearch: searchSchema,
   component: UpdatesPage,
 });
 

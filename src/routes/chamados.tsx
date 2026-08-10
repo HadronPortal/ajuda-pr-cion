@@ -99,16 +99,15 @@ import {
   ticketMatchesMonthView,
 } from "@/lib/tickets-month";
 import { z } from "zod";
-import { fallback, zodValidator } from "@tanstack/zod-adapter";
 
 const chamadosSearchSchema = z.object({
-  status: fallback(z.string(), "").optional(),
-  today: fallback(z.coerce.number(), 0).optional(),
-  ticket: fallback(z.string(), "").optional(),
-  mes: fallback(z.string(), "").optional(),
-  prioridade: fallback(z.string(), "").optional(),
-  visao: fallback(z.string(), "").optional(),
-  busca: fallback(z.string(), "").optional(),
+  status: z.string().catch("").optional(),
+  today: z.coerce.number().catch(0).optional(),
+  ticket: z.string().catch("").optional(),
+  mes: z.string().catch("").optional(),
+  prioridade: z.string().catch("").optional(),
+  visao: z.string().catch("").optional(),
+  busca: z.string().catch("").optional(),
 });
 
 
@@ -123,7 +122,7 @@ export const Route = createFileRoute("/chamados")({
       },
     ],
   }),
-  validateSearch: zodValidator(chamadosSearchSchema),
+  validateSearch: chamadosSearchSchema,
   component: ChamadosRouteShell,
 });
 
