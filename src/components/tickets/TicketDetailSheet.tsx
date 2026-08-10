@@ -125,43 +125,6 @@ const sourceLabels: Record<SupportTicket["source"], string> = {
   Email: "Email",
 };
 
-const cities = [
-  ["São Paulo", "SP"],
-  ["Campinas", "SP"],
-  ["Belo Horizonte", "MG"],
-  ["Curitiba", "PR"],
-  ["Porto Alegre", "RS"],
-  ["Goiânia", "GO"],
-  ["Recife", "PE"],
-  ["Fortaleza", "CE"],
-];
-const contactRoles = ["Financeiro", "TI / Sistemas", "Compras", "Comercial", "Fiscal", "Diretoria"];
-
-function hashString(input: string) {
-  let hash = 0;
-  for (let i = 0; i < input.length; i += 1) hash = (hash * 31 + input.charCodeAt(i)) >>> 0;
-  return hash;
-}
-
-function buildMock(ticket: SupportTicket) {
-  const h = hashString(ticket.id);
-  const [city, uf] = cities[h % cities.length];
-  const phoneA = 3000 + (h % 6999);
-  const phoneB = 1000 + ((h >> 3) % 8999);
-  return {
-    city,
-
-    uf,
-    clientPhone: `(${11 + (h % 88)}) 9${phoneA}-${phoneB}`,
-    contactPhone: `(${11 + ((h >> 1) % 88)}) 9${phoneB}-${phoneA}`,
-    contactRole: contactRoles[h % contactRoles.length],
-    files: [
-      { name: "print-erro.png", size: "182 KB" },
-      { name: "log-operacao.txt", size: "24 KB" },
-    ],
-  };
-}
-
 function formatDateTime(iso: string) {
   return new Date(iso).toLocaleString("pt-BR", {
     day: "2-digit",
@@ -281,7 +244,6 @@ export function TicketDetailSheet({
     return () => window.clearInterval(timer);
   }, [open, ticketId]);
 
-  const mock = useMemo(() => (ticket ? buildMock(ticket) : null), [ticket]);
   const sla = useMemo(() => (ticket ? computeSla(ticket, clockNow) : null), [ticket, clockNow]);
   const attendanceTime = useMemo(
     () => (ticket ? computeAttendanceTime(ticket, clockNow) : null),
@@ -300,28 +262,26 @@ export function TicketDetailSheet({
   const { clients: loadedClients } = useClients({ onlyActive: false });
   // Resolve o cliente pela sigla real do chamado (ou da empresa/subempresa),
   // nunca apenas por UUID/companyId — chamados importados podem não tê-los.
-  const clientSlug = useMemo(() => {
+  const resolvedClient = useMemo(() => {
     const candidates = [ticket?.clientCode, ticket?.clientName]
       .map((v) => (typeof v === "string" ? v.trim().toLowerCase() : ""))
       .filter(Boolean);
     if (!candidates.length) return null;
-    const pool: Array<{ id: string; acronym: string }> = [
-      ...loadedClients,
-      ...clientRows,
-    ];
+    const pool = [...loadedClients, ...clientRows];
     for (const code of candidates) {
       const found = pool.find(
         (c) => c.id?.toLowerCase() === code || c.acronym?.toLowerCase() === code,
       );
-      if (found) return found.id;
+      if (found) return found;
     }
     return null;
   }, [ticket?.clientCode, ticket?.clientName, loadedClients]);
+  const clientSlug = resolvedClient?.id ?? null;
 
 
 
 
-  if (!ticket || !mock || !sla || !attendanceTime) return null;
+  if (!ticket || !sla || !attendanceTime) return null;
 
   const timelineEvents = events.filter((e) => e.kind !== "note");
 
@@ -774,7 +734,7 @@ export function TicketDetailSheet({
 
                     <p className="mt-0.5 text-[11.5px] text-muted-foreground">
                       <MapPin className="mr-1 inline h-3 w-3" />
-                      {mock.city} - {mock.uf}
+                      {resolvedClient?.city || "Localização não informada"}
                     </p>
                     <p className="mt-0.5 text-[11px] text-muted-foreground">
                       Código {ticket.clientCode || "—"}
@@ -785,11 +745,15 @@ export function TicketDetailSheet({
                     <p className="text-[13.5px] font-semibold text-foreground truncate">
                       {ticket.contact}
                     </p>
-                    <p className="mt-0.5 text-[11.5px] text-muted-foreground">{mock.contactRole}</p>
-                    <p className="mt-0.5 inline-flex items-center gap-1 text-[11.5px] text-muted-foreground">
-                      <Phone className="h-3 w-3" />
-                      {mock.contactPhone}
-                    </p>
+                    {ticket.contactRole && (
+                      <p className="mt-0.5 text-[11.5px] text-muted-foreground">{ticket.contactRole}</p>
+                    )}
+                    {ticket.contactPhone && (
+                      <p className="mt-0.5 inline-flex items-center gap-1 text-[11.5px] text-muted-foreground">
+                        <Phone className="h-3 w-3" />
+                        {ticket.contactPhone}
+                      </p>
+                    )}
                   </Section>
 
                   <Section title="Módulo" icon={Folder} compact>

@@ -157,12 +157,6 @@ if (!clientsOnly && clientIds.size) {
 }
 let contacts = 0;
 const contactValues = [];
-const contactTypesByClient = new Map();
-const markContactType = (clientId, type) => {
-  const types = contactTypesByClient.get(clientId) || new Set();
-  types.add(type);
-  contactTypesByClient.set(clientId, types);
-};
 for (const [type, records] of clientsOnly ? [] : [["phone", data.phones], ["email", data.emails]]) {
   const occurrences = new Map();
   for (const row of records) {
@@ -186,33 +180,6 @@ for (const [type, records] of clientsOnly ? [] : [["phone", data.phones], ["emai
     for (const clientId of targetClientIds) {
       contactValues.push([clientId, `json:${base}:${occurrence}`, name,
         type === "email" ? value : null, type === "phone" ? value : null, JSON.stringify(row)]);
-      markContactType(clientId, type);
-      contacts++;
-    }
-  }
-}
-
-// Clientes mais recentes podem não existir nos JSONs específicos de contatos.
-// Nesses casos, preserva como fallback os dados de contabilidade do próprio cliente.
-if (!clientsOnly) {
-  for (const row of data.clients) {
-    const clientId = clientIds.get(String(row.cli_id));
-    if (!clientId) continue;
-    const accountant = jsonObject(row.cli_contador);
-    const types = contactTypesByClient.get(clientId) || new Set();
-    const accountantName = text(accountant.cli_ctd_res) || text(accountant.cli_ctd_nome) || "Contabilidade";
-    const accountantPhone = text(accountant.cli_ctd_tel);
-    const accountantEmail = text(accountant.cli_ctd_email);
-    if (!types.has("phone") && accountantPhone) {
-      contactValues.push([clientId, "json:client-accountant:phone", accountantName,
-        null, accountantPhone, JSON.stringify({ source: "tab_clientes.cli_contador", ...accountant })]);
-      markContactType(clientId, "phone");
-      contacts++;
-    }
-    if (!types.has("email") && accountantEmail?.includes("@")) {
-      contactValues.push([clientId, "json:client-accountant:email", accountantName,
-        accountantEmail, null, JSON.stringify({ source: "tab_clientes.cli_contador", ...accountant })]);
-      markContactType(clientId, "email");
       contacts++;
     }
   }

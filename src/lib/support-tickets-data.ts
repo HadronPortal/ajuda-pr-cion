@@ -34,6 +34,8 @@ export type SupportTicket = {
   clientCode: string;
   clientName: string;
   contact: string;
+  contactPhone?: string | null;
+  contactRole?: string | null;
   subject: string;
   module: string;
   source: "Telefone" | "Portal do cliente" | "WhatsApp" | "Email";
