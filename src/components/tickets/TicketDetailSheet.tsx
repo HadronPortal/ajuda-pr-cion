@@ -486,7 +486,7 @@ export function TicketDetailSheet({
                       Ações
                     </p>
                   )}
-                  {isFinalized ? (
+                  {isFinalized && (
                     <SideItem
                       icon={Plus}
                       label="Criar outro chamado"
@@ -497,13 +497,14 @@ export function TicketDetailSheet({
                         createAnotherTicket();
                       }}
                     />
-                  ) : (
-                    <>
+                  )}
                   <SideItem
                     icon={TicketCloseIcon}
                     label="Finalizar"
                     collapsed={navCollapsed}
                     active={activeAction === "encerrar"}
+                    disabled={isFinalized}
+                    title={isFinalized ? "Chamado finalizado" : undefined}
                     onClick={() => {
                       setActiveAction("encerrar");
                       setCloseOpen(true);
@@ -514,7 +515,7 @@ export function TicketDetailSheet({
                     label="Transferir chamado"
                     collapsed={navCollapsed}
                     active={activeAction === "assumir"}
-                    disabled={!canTransfer}
+                    disabled={isFinalized || !canTransfer}
                     title={transferBlockReason ?? undefined}
                     onClick={() => {
                       setActiveAction("assumir");
@@ -526,6 +527,8 @@ export function TicketDetailSheet({
                     label="Agendar evento"
                     collapsed={navCollapsed}
                     active={activeAction === "agendar"}
+                    disabled={isFinalized}
+                    title={isFinalized ? "Chamado finalizado" : undefined}
                     onClick={() => {
                       setActiveAction("agendar");
                       setScheduleOpen(true);
@@ -537,6 +540,8 @@ export function TicketDetailSheet({
                     nowrap
                     collapsed={navCollapsed}
                     active={activeAction === "encaminhar"}
+                    disabled={isFinalized}
+                    title={isFinalized ? "Chamado finalizado" : undefined}
                     onClick={() => {
                       setActiveAction("encaminhar");
                       setForwardOpen(true);
@@ -547,13 +552,13 @@ export function TicketDetailSheet({
                     label="Iniciar atendimento"
                     collapsed={navCollapsed}
                     active={activeAction === "atender"}
+                    disabled={isFinalized}
+                    title={isFinalized ? "Chamado finalizado" : undefined}
                     onClick={() => {
                       setActiveAction("atender");
                       handleAttend();
                     }}
                   />
-                    </>
-                  )}
                 </div>
 
                 {isMine && (
@@ -576,40 +581,47 @@ export function TicketDetailSheet({
 
               {/* Mobile action bar (topo, rolável) */}
               <div className="flex shrink-0 items-center gap-2 overflow-x-auto border-b border-border bg-card px-3 py-2 md:hidden">
-                {isFinalized ? (
+                {isFinalized && (
                   <MobileAction
                     icon={Plus}
                     label="Criar outro chamado"
                     onClick={createAnotherTicket}
                     highlight
                   />
-                ) : (
-                  <>
+                )}
                 <MobileAction
                   icon={TicketCloseIcon}
                   label="Finalizar"
+                  disabled={isFinalized}
+                  title={isFinalized ? "Chamado finalizado" : undefined}
                   onClick={() => setCloseOpen(true)}
                 />
                 <MobileAction
                   icon={TicketAssumeIcon}
                   label="Transferir"
-                  disabled={!canTransfer}
+                  disabled={isFinalized || !canTransfer}
                   title={transferBlockReason ?? undefined}
                   onClick={openTransfer}
                 />
                 <MobileAction
                   icon={TicketScheduleIcon}
                   label="Agendar"
+                  disabled={isFinalized}
+                  title={isFinalized ? "Chamado finalizado" : undefined}
                   onClick={() => setScheduleOpen(true)}
                 />
                 <MobileAction
                   icon={TicketForwardIcon}
                   label="Enviar a especialista"
+                  disabled={isFinalized}
+                  title={isFinalized ? "Chamado finalizado" : undefined}
                   onClick={() => setForwardOpen(true)}
                 />
                 <MobileAction
                   icon={TicketAttendIcon}
                   label="Iniciar atendimento"
+                  disabled={isFinalized}
+                  title={isFinalized ? "Chamado finalizado" : undefined}
                   onClick={handleAttend}
                   highlight
                 />
@@ -618,8 +630,6 @@ export function TicketDetailSheet({
                   label="Timeline"
                   onClick={() => setTimelineOpen(true)}
                 />
-                  </>
-                )}
               </div>
 
               {/* Main content */}
