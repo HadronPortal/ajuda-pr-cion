@@ -9,7 +9,8 @@ set stage = case stage
   when 'convertido' then 'negocio_fechado'
   when 'descartado' then 'sem_interesse'
   else stage
-end;
+end
+where stage in ('em_analise', 'qualificado', 'convertido', 'descartado');
 
 alter table public.company_leads
   add constraint company_leads_stage_check
