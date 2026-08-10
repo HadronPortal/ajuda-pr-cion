@@ -117,7 +117,8 @@ const statusTone: Record<TicketStatus, string> = {
 const priorityTone: Record<TicketPriority, string> = {
   Alta: "bg-destructive/12 text-destructive border-destructive/20",
   Media: "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/30",
-  Baixa: "bg-muted text-muted-foreground border-border",
+  Baixa:
+    "bg-[#eaf4ff] text-[#246cb5] border-[#bfdcff] dark:bg-[#17314e] dark:text-[#9dcaff] dark:border-[#24527d]",
 };
 
 const sourceLabels: Record<SupportTicket["source"], string> = {

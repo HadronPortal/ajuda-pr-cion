@@ -53,7 +53,8 @@ const priorityChip: Record<TicketPriority, string> = {
   Alta: "bg-destructive/12 text-destructive border-destructive/25",
   Media:
     "bg-[#fff4d1] text-[#8a6300] border-[#f2d97a] dark:bg-[#3a2f10] dark:text-[#f3d66d] dark:border-[#5c4a1c]",
-  Baixa: "bg-muted text-muted-foreground border-border",
+  Baixa:
+    "bg-[#eaf4ff] text-[#246cb5] border-[#bfdcff] dark:bg-[#17314e] dark:text-[#9dcaff] dark:border-[#24527d]",
 };
 
 function formatDateTime(iso: string) {
