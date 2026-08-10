@@ -114,10 +114,11 @@ async function hydrateFromSupabase() {
     }
     if (!snapshot.tickets.length) return;
 
-    tickets = snapshot.tickets;
     Object.assign(events, groupSnapshot(snapshot.events));
     Object.assign(internalNotes, groupSnapshot(snapshot.notes));
+    tickets = snapshot.tickets;
     tickets.forEach(ensureSeed);
+    tickets = tickets.map((ticket) => restoreAttendanceTiming(ticket, events[ticket.id] ?? []));
     emit();
   } catch (error) {
     console.error("[tickets-store] Não foi possível carregar os chamados do Supabase.", error);
@@ -133,6 +134,86 @@ let eventCounter = 0;
 const nextEventId = () => `evt-${Date.now().toString(36)}-${++eventCounter}`;
 
 const nowIso = () => new Date().toISOString();
+
+function attendancePatch(
+  ticket: SupportTicket | undefined,
+  nextStatus: TicketStatus,
+  at = nowIso(),
+): Partial<SupportTicket> {
+  if (!ticket) return {};
+  const accumulated = Math.max(0, Number(ticket.attendanceElapsedSeconds) || 0);
+  const runningSince = ticket.attendanceRunningSince
+    ? new Date(ticket.attendanceRunningSince).getTime()
+    : Number.NaN;
+  const atTime = new Date(at).getTime();
+  const elapsedNow =
+    Number.isFinite(runningSince) && Number.isFinite(atTime)
+      ? Math.max(0, Math.round((atTime - runningSince) / 1000))
+      : 0;
+
+  if (nextStatus === "Ocupado") {
+    return {
+      attendanceStartedAt: ticket.attendanceStartedAt ?? at,
+      attendanceRunningSince: ticket.attendanceRunningSince ?? at,
+      attendanceElapsedSeconds: accumulated,
+    };
+  }
+
+  if (ticket.attendanceRunningSince) {
+    return {
+      attendanceRunningSince: null,
+      attendanceElapsedSeconds: accumulated + elapsedNow,
+    };
+  }
+  return {};
+}
+
+function restoreAttendanceTiming(ticket: SupportTicket, ticketEvents: TicketEvent[]): SupportTicket {
+  if (ticket.attendanceStartedAt) return ticket;
+
+  let startedAt: string | null = null;
+  let runningSince: string | null = null;
+  let elapsedSeconds = 0;
+  const ordered = [...ticketEvents].sort((a, b) => a.when.localeCompare(b.when));
+
+  for (const event of ordered) {
+    if (event.kind === "attend") {
+      startedAt ??= event.when;
+      runningSince ??= event.when;
+      continue;
+    }
+    const statusKeepsRunning =
+      event.kind === "status" && event.description.toLowerCase().includes('"ocupado"');
+    const pausesAttendance =
+      event.kind === "closed" ||
+      event.kind === "forwarded" ||
+      event.kind === "scheduled" ||
+      (event.kind === "status" && !statusKeepsRunning);
+    if (pausesAttendance && runningSince) {
+      elapsedSeconds += Math.max(
+        0,
+        Math.round((new Date(event.when).getTime() - new Date(runningSince).getTime()) / 1000),
+      );
+      runningSince = null;
+    }
+  }
+
+  if (!startedAt) return ticket;
+  if (ticket.status !== "Ocupado" && runningSince) {
+    const boundary = ticket.closedAt ?? ticket.updatedAt;
+    elapsedSeconds += Math.max(
+      0,
+      Math.round((new Date(boundary).getTime() - new Date(runningSince).getTime()) / 1000),
+    );
+    runningSince = null;
+  }
+  return {
+    ...ticket,
+    attendanceStartedAt: startedAt,
+    attendanceRunningSince: runningSince,
+    attendanceElapsedSeconds: elapsedSeconds,
+  };
+}
 
 function nextTicketSequence() {
   const sequences = tickets
@@ -414,11 +495,14 @@ export const ticketsStore = {
 
   attendTicket(id: string) {
     const op = operator();
-    updateTicket(id, {
+    const existing = tickets.find((ticket) => ticket.id === id);
+    const patch: Partial<SupportTicket> = {
       owner: op,
       status: "Ocupado",
       lockedBy: op,
-    });
+      ...attendancePatch(existing, "Ocupado"),
+    };
+    updateTicket(id, patch);
     pushEvent(id, {
       kind: "attend",
       when: nowIso(),
@@ -429,7 +513,7 @@ export const ticketsStore = {
     emit();
     persistUpdate(
       id,
-      { owner: op, status: "Ocupado", lockedBy: op },
+      patch,
       {
         kind: "attend",
         actor: op,
@@ -443,8 +527,12 @@ export const ticketsStore = {
     const op = operator();
     const existing = tickets.find((t) => t.id === id);
     // Ao finalizar pelo seletor de status, congela o SLA na hora exata.
-    const patch: Partial<SupportTicket> =
-      status === "Finalizado" ? { status, closedAt: existing?.closedAt ?? nowIso() } : { status };
+    const at = nowIso();
+    const patch: Partial<SupportTicket> = {
+      status,
+      ...attendancePatch(existing, status, at),
+      ...(status === "Finalizado" ? { closedAt: existing?.closedAt ?? at } : {}),
+    };
     updateTicket(id, patch);
     pushEvent(id, {
       kind: "status",
@@ -472,7 +560,13 @@ export const ticketsStore = {
     const existing = tickets.find((t) => t.id === id);
     // Nunca redefine uma finalização já registrada.
     const closedAt = existing?.closedAt ?? nowIso();
-    updateTicket(id, { status: "Finalizado", lockedBy: undefined, closedAt });
+    const patch: Partial<SupportTicket> = {
+      status: "Finalizado",
+      lockedBy: undefined,
+      closedAt,
+      ...attendancePatch(existing, "Finalizado", closedAt),
+    };
+    updateTicket(id, patch);
     pushEvent(id, {
       kind: "closed",
       when: closedAt,
@@ -483,7 +577,7 @@ export const ticketsStore = {
     emit();
     persistUpdate(
       id,
-      { status: "Finalizado", lockedBy: undefined, closedAt },
+      patch,
       {
         kind: "closed",
         actor: op,
@@ -549,11 +643,17 @@ export const ticketsStore = {
         (input.reminder ? " Lembrete ativo." : "") +
         (input.description ? ` ${input.description}` : ""),
     });
-    updateTicket(id, { status: "Agendamento", owner: input.responsible });
+    const existing = tickets.find((ticket) => ticket.id === id);
+    const patch: Partial<SupportTicket> = {
+      status: "Agendamento",
+      owner: input.responsible,
+      ...attendancePatch(existing, "Agendamento"),
+    };
+    updateTicket(id, patch);
     emit();
     persistUpdate(
       id,
-      { status: "Agendamento", owner: input.responsible },
+      patch,
       {
         kind: "scheduled",
         actor: op,
@@ -581,11 +681,14 @@ export const ticketsStore = {
     },
   ) {
     const op = operator();
-    updateTicket(id, {
+    const existing = tickets.find((ticket) => ticket.id === id);
+    const patch: Partial<SupportTicket> = {
       status: "Com especialista",
       priority: input.priority,
       lockedBy: undefined,
-    });
+      ...attendancePatch(existing, "Com especialista"),
+    };
+    updateTicket(id, patch);
     pushEvent(id, {
       kind: "forwarded",
       when: nowIso(),
@@ -604,11 +707,7 @@ export const ticketsStore = {
     emit();
     persistUpdate(
       id,
-      {
-        status: "Com especialista",
-        priority: input.priority,
-        lockedBy: undefined,
-      },
+      patch,
       {
         kind: "forwarded",
         actor: op,

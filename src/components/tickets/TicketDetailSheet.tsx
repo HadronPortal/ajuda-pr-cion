@@ -1,4 +1,4 @@
-import { forwardRef, useMemo, useRef, useState, type ComponentType } from "react";
+import { forwardRef, useEffect, useMemo, useRef, useState, type ComponentType } from "react";
 import { toast } from "sonner";
 import {
   AlertCircle,
@@ -232,7 +232,7 @@ const TicketForwardIcon = createMaskedActionIcon(specialistIconUrl);
 const TicketTimelineIcon = History;
 
 import { getModuleIcon } from "@/lib/ticket-icons";
-import { computeSla } from "@/lib/ticket-sla";
+import { computeAttendanceTime, computeSla, formatElapsedTime } from "@/lib/ticket-sla";
 
 export function TicketDetailSheet({
   ticketId,
@@ -273,13 +273,25 @@ export function TicketDetailSheet({
     "encerrar" | "assumir" | "agendar" | "encaminhar" | "atender" | "timeline"
   >("atender");
 
+  const [clockNow, setClockNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (!open) return;
+    setClockNow(Date.now());
+    const timer = window.setInterval(() => setClockNow(Date.now()), 30_000);
+    return () => window.clearInterval(timer);
+  }, [open, ticketId]);
+
   const mock = useMemo(() => (ticket ? buildMock(ticket) : null), [ticket]);
-  const sla = useMemo(() => (ticket ? computeSla(ticket) : null), [ticket]);
+  const sla = useMemo(() => (ticket ? computeSla(ticket, clockNow) : null), [ticket, clockNow]);
+  const attendanceTime = useMemo(
+    () => (ticket ? computeAttendanceTime(ticket, clockNow) : null),
+    [ticket, clockNow],
+  );
   // Descrição real informada na abertura do chamado (sem texto padrão).
   const ticketDescription = useMemo(() => {
     const raw = ticket?.description;
     return typeof raw === "string" ? raw.replace(/\r\n/g, "\n").trim() : "";
-  }, [ticket?.id, ticket?.description]);
+  }, [ticket?.description]);
   const summaryState = useTicketSummary(
     ticket?.id,
     ticketDescription,
@@ -309,7 +321,7 @@ export function TicketDetailSheet({
 
 
 
-  if (!ticket || !mock || !sla) return null;
+  if (!ticket || !mock || !sla || !attendanceTime) return null;
 
   const timelineEvents = events.filter((e) => e.kind !== "note");
 
@@ -598,7 +610,7 @@ export function TicketDetailSheet({
               <div className="modal-scrollbar flex-1 min-w-0 overflow-y-auto rounded-2xl border border-border bg-card px-5 py-5 md:px-6">
                 {/* Resumo */}
                 <Section title="Resumo do chamado" icon={LayoutGrid}>
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
                     <MiniStat label="Status">
                       <Badge
                         className={cn(
@@ -619,7 +631,7 @@ export function TicketDetailSheet({
                         {ticket.priority}
                       </Badge>
                     </MiniStat>
-                    <MiniStat label="SLA">
+                    <MiniStat label="SLA de espera">
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex min-w-0 flex-col">
                           <span
@@ -662,6 +674,44 @@ export function TicketDetailSheet({
                           aria-hidden
                         >
                           <Clock3 className="h-4 w-4 sm:h-[18px] sm:w-[18px]" />
+                        </div>
+                      </div>
+                    </MiniStat>
+                    <MiniStat label="Tempo de atendimento">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex min-w-0 flex-col">
+                          <span className="text-[18px] font-bold leading-none text-foreground sm:text-[20px]">
+                            {attendanceTime.started
+                              ? formatElapsedTime(attendanceTime.seconds)
+                              : "Não iniciado"}
+                          </span>
+                          <span
+                            className={cn(
+                              "mt-1 text-[10px] font-medium",
+                              attendanceTime.running ? "text-success" : "text-muted-foreground",
+                            )}
+                          >
+                            {attendanceTime.running
+                              ? "Em atendimento"
+                              : attendanceTime.started
+                                ? "Contagem pausada"
+                                : "Aguardando início"}
+                          </span>
+                        </div>
+                        <div
+                          className={cn(
+                            "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border sm:h-9 sm:w-9",
+                            attendanceTime.running
+                              ? "border-success/25 bg-success/10 text-success"
+                              : "border-border bg-muted text-muted-foreground",
+                          )}
+                          aria-hidden
+                        >
+                          {attendanceTime.running ? (
+                            <PlayCircle className="h-4 w-4 sm:h-[18px] sm:w-[18px]" />
+                          ) : (
+                            <Clock3 className="h-4 w-4 sm:h-[18px] sm:w-[18px]" />
+                          )}
                         </div>
                       </div>
                     </MiniStat>
