@@ -94,6 +94,7 @@ import { Link } from "@tanstack/react-router";
 import { clientRows } from "@/routes/clientes.index";
 import { useClients } from "@/lib/clients-store";
 import { snapshotCurrentChamadosForTicket } from "@/lib/return-to-ticket";
+import { formatPhoneDisplay } from "@/lib/client-contacts";
 
 const statusTone: Record<TicketStatus, string> = {
   Atrasado: "bg-destructive/12 text-destructive border-destructive/20",
@@ -640,7 +641,7 @@ export function TicketDetailSheet({
                     <MiniStat label="Tempo de atendimento">
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex min-w-0 flex-col">
-                          <span className="text-[18px] font-bold leading-none text-foreground sm:text-[20px]">
+                          <span className="text-[18px] font-normal leading-none text-foreground sm:text-[20px]">
                             {attendanceTime.started
                               ? formatElapsedTime(attendanceTime.seconds)
                               : "Não iniciado"}
@@ -711,7 +712,7 @@ export function TicketDetailSheet({
                   <Section title="Cliente" icon={Building2} compact>
                     {(() => {
                       const nameNode = (
-                        <p className="text-[13.5px] font-semibold text-foreground truncate">
+                        <p className="text-[12px] font-normal leading-snug text-foreground break-words">
                           {ticket.clientName || "Cliente não vinculado"}
                         </p>
                       );
@@ -742,16 +743,13 @@ export function TicketDetailSheet({
                   </Section>
 
                   <Section title="Contato" icon={UserRound} compact>
-                    <p className="text-[13.5px] font-semibold text-foreground truncate">
+                    <p className="text-[13px] font-normal text-foreground truncate">
                       {ticket.contact}
                     </p>
-                    {ticket.contactRole && (
-                      <p className="mt-0.5 text-[11.5px] text-muted-foreground">{ticket.contactRole}</p>
-                    )}
                     {ticket.contactPhone && (
                       <p className="mt-0.5 inline-flex items-center gap-1 text-[11.5px] text-muted-foreground">
                         <Phone className="h-3 w-3" />
-                        {ticket.contactPhone}
+                        {formatPhoneDisplay(ticket.contactPhone)}
                       </p>
                     )}
                   </Section>
@@ -760,7 +758,7 @@ export function TicketDetailSheet({
                     <div className="flex items-center gap-1.5">
                       <ModuleKnowledgeLink
                         module={ticket.module}
-                        className="truncate text-[13.5px] font-semibold text-foreground"
+                        className="truncate text-[13px] font-normal text-foreground"
                         returnToTicketId={ticket.id}
                         onBeforeNavigate={() => snapshotCurrentChamadosForTicket(ticket.id)}
                       />

@@ -344,6 +344,7 @@ function NewTicketPage() {
       clientCode: effectiveClientCode,
       clientName: effectiveClientName,
       contact: form.contactName,
+      contactPhone: form.phoneValue,
       subject: form.subject,
       module: `${form.module} - ${form.submodule}`,
       source: form.source,

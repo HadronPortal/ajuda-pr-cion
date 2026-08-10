@@ -69,6 +69,7 @@ export type CreateTicketInput = {
   clientCode: string;
   clientName: string;
   contact: string;
+  contactPhone?: string | null;
   subject: string;
   module: string;
   source: SupportTicket["source"];
@@ -436,6 +437,7 @@ export const ticketsStore = {
       clientCode: input.clientCode.trim().toUpperCase(),
       clientName: input.clientName.trim(),
       contact: input.contact.trim(),
+      contactPhone: input.contactPhone?.trim() || null,
       subject: input.subject.trim(),
       module: input.module.trim(),
       source: input.source,
