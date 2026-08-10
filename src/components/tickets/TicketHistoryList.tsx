@@ -136,8 +136,8 @@ export function TicketHistoryList({
 
               <article className="grid min-h-[82px] grid-cols-1 gap-3 rounded-lg border border-border bg-card px-3.5 py-3 shadow-[0_5px_16px_rgba(20,30,45,0.05)] dark:border-[#25384a] dark:bg-[#102335] dark:shadow-[0_8px_20px_rgba(0,0,0,0.18)] sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
                 <div className="min-w-0">
-                  <div className="flex min-w-0 items-start gap-2">
-                    <h3 className="min-w-0 flex-1 break-words text-[11.5px] font-medium uppercase leading-[1.35] text-foreground dark:text-[#eef4fa]">
+                  <div className="flex min-w-0 flex-wrap items-center gap-2">
+                    <h3 className="truncate text-[11.5px] font-medium uppercase text-foreground dark:text-[#eef4fa]">
                       {item.title}
                     </h3>
                     <span
