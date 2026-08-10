@@ -91,7 +91,7 @@ import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import { ModuleKnowledgeLink } from "@/lib/module-link";
 import { kbArticlesFull } from "@/lib/kb-data";
 import { RichTextEditor } from "@/components/ui/rich-text-editor";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { clientRows } from "@/routes/clientes.index";
 import { useClients } from "@/lib/clients-store";
 import { snapshotCurrentChamadosForTicket } from "@/lib/return-to-ticket";
@@ -209,6 +209,7 @@ export function TicketDetailSheet({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const navigate = useNavigate();
   const ticket = useTicket(ticketId);
   const allTickets = useTickets();
   const events = useTicketEvents(ticketId);
@@ -251,7 +252,7 @@ export function TicketDetailSheet({
   const [navCollapsed, setNavCollapsed] = useState(true);
   const [selectedHistory, setSelectedHistory] = useState<PastAttendance | null>(null);
   const [activeAction, setActiveAction] = useState<
-    "encerrar" | "assumir" | "agendar" | "encaminhar" | "atender" | "timeline"
+    "encerrar" | "assumir" | "agendar" | "encaminhar" | "atender" | "timeline" | "novo"
   >("atender");
 
   const [clockNow, setClockNow] = useState(() => Date.now());
@@ -304,6 +305,17 @@ export function TicketDetailSheet({
   const timelineEvents = events.filter((e) => e.kind !== "note");
 
   const isMine = ticket.owner === currentUser.operator || ticket.lockedBy === currentUser.operator;
+  const isFinalized = ticket.status === "Finalizado";
+  const createAnotherTicket = () => {
+    onOpenChange(false);
+    void navigate({
+      to: "/chamados/novo",
+      search: {
+        cliente: ticket.clientCode || undefined,
+        empresa: ticket.companyId || undefined,
+      },
+    });
+  };
 
   const handleAttend = () => {
     ticketsStore.attendTicket(ticket.id);
@@ -474,6 +486,19 @@ export function TicketDetailSheet({
                       Ações
                     </p>
                   )}
+                  {isFinalized ? (
+                    <SideItem
+                      icon={Plus}
+                      label="Criar outro chamado"
+                      collapsed={navCollapsed}
+                      active={activeAction === "novo"}
+                      onClick={() => {
+                        setActiveAction("novo");
+                        createAnotherTicket();
+                      }}
+                    />
+                  ) : (
+                    <>
                   <SideItem
                     icon={TicketCloseIcon}
                     label="Finalizar"
@@ -527,6 +552,8 @@ export function TicketDetailSheet({
                       handleAttend();
                     }}
                   />
+                    </>
+                  )}
                 </div>
 
                 {isMine && (
@@ -549,6 +576,15 @@ export function TicketDetailSheet({
 
               {/* Mobile action bar (topo, rolável) */}
               <div className="flex shrink-0 items-center gap-2 overflow-x-auto border-b border-border bg-card px-3 py-2 md:hidden">
+                {isFinalized ? (
+                  <MobileAction
+                    icon={Plus}
+                    label="Criar outro chamado"
+                    onClick={createAnotherTicket}
+                    highlight
+                  />
+                ) : (
+                  <>
                 <MobileAction
                   icon={TicketCloseIcon}
                   label="Finalizar"
@@ -582,6 +618,8 @@ export function TicketDetailSheet({
                   label="Timeline"
                   onClick={() => setTimelineOpen(true)}
                 />
+                  </>
+                )}
               </div>
 
               {/* Main content */}

@@ -49,6 +49,10 @@ import type { ClientRow } from "@/routes/clientes.index";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/chamados/novo")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    cliente: typeof search.cliente === "string" ? search.cliente : undefined,
+    empresa: typeof search.empresa === "string" ? search.empresa : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Novo chamado — CRM Prócion" },
@@ -187,6 +191,7 @@ const initialForm: FormState = {
 
 function NewTicketPage() {
   const navigate = useNavigate();
+  const { cliente: prefillClientCode, empresa: prefillCompanyId } = Route.useSearch();
   const [form, setForm] = useState<FormState>(initialForm);
   const [client, setClient] = useState<ClientRow | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -203,6 +208,24 @@ function NewTicketPage() {
   useEffect(() => {
     void loadClients().catch(() => undefined);
   }, []);
+
+  useEffect(() => {
+    if (!prefillClientCode || client) return;
+    let cancelled = false;
+    void loadClients()
+      .then((rows) => {
+        if (cancelled) return;
+        const code = prefillClientCode.trim().toUpperCase();
+        const found = rows.find((row) => row.acronym.trim().toUpperCase() === code);
+        if (!found) return;
+        setClient(found);
+        setForm((prev) => ({ ...prev, clientId: found.id, companyId: "" }));
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [prefillClientCode, client]);
 
   const submodules = modulesMap[form.module] ?? [];
   // Somente colaboradores ativos (sem rescisão) podem ser escolhidos como responsável.
@@ -254,9 +277,13 @@ function NewTicketPage() {
         setPhones(bundle.phones);
         setCompanies(bundle.companies);
         // Se houver apenas uma empresa, seleciona automaticamente.
+        const requestedCompany = prefillCompanyId
+          ? bundle.companies.find((company) => company.id === prefillCompanyId)?.id
+          : undefined;
         setForm((prev) => ({
           ...prev,
-          companyId: bundle.companies.length === 1 ? bundle.companies[0].id : "",
+          companyId:
+            requestedCompany ?? (bundle.companies.length === 1 ? bundle.companies[0].id : ""),
         }));
       })
       .catch((err: unknown) => {
@@ -270,7 +297,7 @@ function NewTicketPage() {
     return () => {
       cancelled = true;
     };
-  }, [client?.acronym]);
+  }, [client?.acronym, prefillCompanyId]);
 
   const requiredMissing =
     !form.clientId ||

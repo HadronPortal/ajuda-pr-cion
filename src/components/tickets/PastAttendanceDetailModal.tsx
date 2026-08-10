@@ -153,8 +153,22 @@ export function PastAttendanceDetailModal({
   const h = hashString(attendance.id);
   const channel = CHANNELS[h % CHANNELS.length];
   const category = CATEGORIES[h % CATEGORIES.length];
-  const durationMinutes = 30 + (h % 240);
-  const closedAt = addMinutes(attendance.date, durationMinutes);
+  const fallbackDurationMinutes = 30 + (h % 240);
+  const closedAt = attendance.closedAt || addMinutes(attendance.date, fallbackDurationMinutes);
+  const openedTime = new Date(attendance.date).getTime();
+  const closedTime = new Date(closedAt).getTime();
+  const startedTime = attendance.attendanceStartedAt
+    ? new Date(attendance.attendanceStartedAt).getTime()
+    : Number.NaN;
+  const durationMinutes = Math.max(0, Math.round((closedTime - openedTime) / 60000));
+  const waitingMinutes = Number.isFinite(startedTime)
+    ? Math.max(0, Math.round((startedTime - openedTime) / 60000))
+    : null;
+  const attendanceMinutes = Number.isFinite(attendance.attendanceElapsedSeconds)
+    ? Math.max(0, Math.round((attendance.attendanceElapsedSeconds ?? 0) / 60))
+    : Number.isFinite(startedTime)
+      ? Math.max(0, Math.round((closedTime - startedTime) / 60000))
+      : null;
   const problem = PROBLEM_TEMPLATES[h % PROBLEM_TEMPLATES.length];
   const solution = SOLUTION_TEMPLATES[h % SOLUTION_TEMPLATES.length];
   const ModuleIcon = getModuleIconByName(attendance.module);
@@ -290,6 +304,20 @@ export function PastAttendanceDetailModal({
                 icon={Clock}
                 label="Tempo total"
                 value={formatDuration(durationMinutes)}
+              />
+              <InfoRow
+                icon={Clock}
+                label="Tempo para iniciar atendimento"
+                value={waitingMinutes === null ? "Não informado" : formatDuration(waitingMinutes)}
+              />
+              <InfoRow
+                icon={Clock}
+                label="Tempo de atendimento até finalizar"
+                value={
+                  attendanceMinutes === null
+                    ? "Não informado"
+                    : formatDuration(attendanceMinutes)
+                }
               />
               <InfoRow
                 icon={UserRound}

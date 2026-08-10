@@ -36,6 +36,9 @@ export type PastAttendance = {
   protocol: string;
   description: string;
   contact: string;
+  closedAt?: string | null;
+  attendanceStartedAt?: string | null;
+  attendanceElapsedSeconds?: number;
 };
 
 export type ClosurePayload = {
@@ -171,12 +174,25 @@ function attendancePatch(
 }
 
 function restoreAttendanceTiming(ticket: SupportTicket, ticketEvents: TicketEvent[]): SupportTicket {
-  if (ticket.attendanceStartedAt) return ticket;
+  const ordered = [...ticketEvents].sort((a, b) => a.when.localeCompare(b.when));
+  const closedEvent = [...ordered]
+    .reverse()
+    .find(
+      (event) =>
+        event.kind === "closed" ||
+        (event.kind === "status" &&
+          /finaliz|conclu|encerr|fechad|resolvid/i.test(event.description)),
+    );
+  const closedAt =
+    ticket.closedAt ??
+    closedEvent?.when ??
+    (ticket.status === "Finalizado" ? ticket.updatedAt : null);
+
+  if (ticket.attendanceStartedAt) return { ...ticket, closedAt };
 
   let startedAt: string | null = null;
   let runningSince: string | null = null;
   let elapsedSeconds = 0;
-  const ordered = [...ticketEvents].sort((a, b) => a.when.localeCompare(b.when));
 
   for (const event of ordered) {
     if (event.kind === "attend") {
@@ -200,9 +216,9 @@ function restoreAttendanceTiming(ticket: SupportTicket, ticketEvents: TicketEven
     }
   }
 
-  if (!startedAt) return ticket;
+  if (!startedAt) return { ...ticket, closedAt };
   if (ticket.status !== "Ocupado" && runningSince) {
-    const boundary = ticket.closedAt ?? ticket.updatedAt;
+    const boundary = closedAt ?? ticket.updatedAt;
     elapsedSeconds += Math.max(
       0,
       Math.round((new Date(boundary).getTime() - new Date(runningSince).getTime()) / 1000),
@@ -214,6 +230,7 @@ function restoreAttendanceTiming(ticket: SupportTicket, ticketEvents: TicketEven
     attendanceStartedAt: startedAt,
     attendanceRunningSince: runningSince,
     attendanceElapsedSeconds: elapsedSeconds,
+    closedAt,
   };
 }
 
@@ -633,6 +650,8 @@ export const ticketsStore = {
       reminder?: boolean;
     },
   ) {
+    const current = tickets.find((ticket) => ticket.id === id);
+    if (current?.status === "Finalizado") return;
     const op = operator();
     pushEvent(id, {
       kind: "scheduled",
@@ -684,6 +703,8 @@ export const ticketsStore = {
       relatedForms: string[];
     },
   ) {
+    const current = tickets.find((ticket) => ticket.id === id);
+    if (current?.status === "Finalizado") return;
     const op = operator();
     const existing = tickets.find((ticket) => ticket.id === id);
     const patch: Partial<SupportTicket> = {
@@ -841,5 +862,8 @@ export function ticketToPastAttendance(t: SupportTicket): PastAttendance {
     protocol: t.protocol,
     description: t.subject,
     contact: t.contact || "Não informado",
+    closedAt: t.closedAt ?? null,
+    attendanceStartedAt: t.attendanceStartedAt ?? null,
+    attendanceElapsedSeconds: t.attendanceElapsedSeconds,
   };
 }

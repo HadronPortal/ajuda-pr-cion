@@ -211,6 +211,10 @@ function ForwardSpecialistModalContent({
     setRelatedForms([]);
   };
   const submit = () => {
+    if (ticket.status === "Finalizado") {
+      toast.error("Chamado finalizado não pode ser enviado a um especialista.");
+      return;
+    }
     if (!module || !submodule) {
       toast.error("Selecione módulo e submódulo.");
       return;

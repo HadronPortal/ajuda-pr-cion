@@ -88,6 +88,10 @@ export function ScheduleEventModal({
   };
 
   const submit = () => {
+    if (ticket.status === "Finalizado") {
+      toast.error("Chamado finalizado não pode receber novos agendamentos.");
+      return;
+    }
     if (!date || !startTime || !endTime || !responsible || !module || !submodule) {
       toast.error("Preencha os campos obrigatórios.");
       return;
