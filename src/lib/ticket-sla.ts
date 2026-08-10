@@ -1,7 +1,7 @@
 import type { SupportTicket, TicketStatus } from "./support-tickets-data";
 
-/** Meta padrão de atendimento, em horas. */
-export const SLA_TARGET_HOURS = 24;
+/** Tempo máximo de espera até o início do atendimento: 30 minutos. */
+export const SLA_TARGET_HOURS = 0.5;
 
 export type SlaTone = "ok" | "warn" | "late";
 
@@ -11,6 +11,8 @@ export type SlaResult = {
   tone: SlaTone;
   /** Horas decorridas arredondadas (compatível com a exibição atual). */
   hours: number;
+  /** Minutos decorridos, usados na apresentação do SLA de espera. */
+  minutes: number;
   /** Horas decorridas com precisão, para relatórios/indicadores. */
   exactHours: number;
   /** Instante usado como limite do cálculo. */
@@ -124,6 +126,7 @@ export function computeSla(ticket: SupportTicket, now = Date.now()): SlaResult {
     pct,
     tone,
     hours: Math.round(exactHours),
+    minutes: Math.round(exactHours * 60),
     exactHours,
     boundaryAt: boundary.at,
     stopped: boundary.stopped,

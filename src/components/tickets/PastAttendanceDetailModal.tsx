@@ -20,6 +20,7 @@ import {
   Tag,
   Truck,
   UserRound,
+  Users,
   Wallet,
 } from "lucide-react";
 import {
@@ -293,6 +294,11 @@ export function PastAttendanceDetailModal({
                 icon={UserRound}
                 label="Atendente responsável"
                 value={attendance.operator}
+              />
+              <InfoRow
+                icon={Users}
+                label="Solicitante"
+                value={attendance.contact || "Não informado"}
               />
               <InfoRow icon={Layers} label="Prioridade" value={attendance.priority} />
               <InfoRow icon={FileText} label="Protocolo" value={attendance.protocol} />

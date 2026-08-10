@@ -35,6 +35,7 @@ export type PastAttendance = {
   date: string;
   protocol: string;
   description: string;
+  contact: string;
 };
 
 export type ClosurePayload = {
@@ -271,6 +272,7 @@ function seedHistory(ticket: SupportTicket): PastAttendance[] {
       date: dateBase.toISOString(),
       protocol: `PRC-${1780000000 + ((h + i * 137) % 9999999)}`,
       description: "Atendimento anterior deste cliente relacionado ao módulo.",
+      contact: ticket.contact || "Não informado",
     });
   }
   return arr;
@@ -838,5 +840,6 @@ export function ticketToPastAttendance(t: SupportTicket): PastAttendance {
     date: t.openedAt,
     protocol: t.protocol,
     description: t.subject,
+    contact: t.contact || "Não informado",
   };
 }

@@ -336,7 +336,7 @@ export function TransferTicketModal({
                 )}
               >
                 <CalendarClock className="h-3 w-3" />
-                SLA {sla.pct}% · {sla.hours}h
+                SLA {sla.pct}% · {sla.minutes}min
                 {sla.tone === "late" && <span className="ml-1 uppercase">· vencido</span>}
               </span>
             </>

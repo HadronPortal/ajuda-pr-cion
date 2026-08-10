@@ -68,7 +68,8 @@ import {
   ticketsStore,
   useTicket,
   useTicketEvents,
-  useTicketHistory,
+  useTickets,
+  ticketToPastAttendance,
   useTicketNotes,
   type ClosurePayload,
   type TicketEvent,
@@ -208,9 +209,24 @@ export function TicketDetailSheet({
   onOpenChange: (open: boolean) => void;
 }) {
   const ticket = useTicket(ticketId);
-  const historyList = useTicketHistory(ticketId);
+  const allTickets = useTickets();
   const events = useTicketEvents(ticketId);
   const notes = useTicketNotes(ticketId);
+  const historyList = useMemo(() => {
+    if (!ticket?.clientCode) return [];
+    const clientCode = ticket.clientCode.trim().toUpperCase();
+    return allTickets
+      .filter(
+        (item) =>
+          item.clientCode.trim().toUpperCase() === clientCode && item.status === "Finalizado",
+      )
+      .sort(
+        (a, b) =>
+          new Date(b.closedAt || b.updatedAt).getTime() -
+          new Date(a.closedAt || a.updatedAt).getTime(),
+      )
+      .map(ticketToPastAttendance);
+  }, [allTickets, ticket?.clientCode]);
 
   const [note, setNote] = useState("");
   const [closeOpen, setCloseOpen] = useState(false);
@@ -604,7 +620,7 @@ export function TicketDetailSheet({
                             {sla.pct}%
                           </span>
                           <span className="mt-1 text-[10px] text-muted-foreground">
-                            {sla.hours}h decorridas
+                            {sla.minutes}min decorridos
                           </span>
                           <span
                             className={cn(
@@ -1065,7 +1081,7 @@ function CloseTicketDialog({
                 )}
               >
                 <CalendarClock className="h-3 w-3" />
-                SLA {sla.pct}% · {sla.hours}h
+                SLA {sla.pct}% · {sla.minutes}min
                 {sla.tone === "late" && (
                   <span className="ml-1 uppercase">· vencido</span>
                 )}
