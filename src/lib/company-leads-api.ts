@@ -1,6 +1,14 @@
 import { supabase } from "@/lib/supabase";
 
-export type CompanyLeadStage = "novo" | "em_analise" | "qualificado" | "descartado" | "convertido";
+export type CompanyLeadStage =
+  | "novo"
+  | "prospeccao"
+  | "relacionamento"
+  | "proposta"
+  | "negociacao"
+  | "demonstracao"
+  | "negocio_fechado"
+  | "sem_interesse";
 
 export type CompanyLead = {
   id: string;

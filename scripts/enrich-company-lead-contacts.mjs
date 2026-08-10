@@ -171,7 +171,11 @@ try {
             raw_payload->>'email' email, raw_payload->>'phone' phone, phone_secondary
        from public.company_leads
       where ($2::boolean or coalesce((raw_payload->>'contact_enriched_at')::timestamptz, '-infinity') < now() - interval '30 days')
-      order by case stage when 'qualificado' then 0 when 'em_analise' then 1 else 2 end,
+      order by case
+        when stage in ('negociacao', 'proposta', 'demonstracao') then 0
+        when stage in ('relacionamento', 'prospeccao') then 1
+        else 2
+      end,
                relevance_score desc, opened_at desc nulls last
       limit $1`,
     [LIMIT, REFRESH],

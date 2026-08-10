@@ -71,10 +71,13 @@ const COLUMNS_STORAGE_KEY = "procion:company-leads:columns";
 
 const stageLabels: Record<CompanyLeadStage, string> = {
   novo: "Novo",
-  em_analise: "Em análise",
-  qualificado: "Qualificado",
-  descartado: "Descartado",
-  convertido: "Convertido",
+  prospeccao: "Prospecção",
+  relacionamento: "Relacionamento",
+  proposta: "Proposta",
+  negociacao: "Negociação",
+  demonstracao: "Demonstração",
+  negocio_fechado: "Negócio Fechado",
+  sem_interesse: "Sem Interesse",
 };
 
 type ColumnKey =
@@ -377,8 +380,8 @@ export function CompanyLeadsTab() {
     }
   };
 
-  const qualified = useMemo(
-    () => leads.filter((lead) => lead.stage === "qualificado").length,
+  const inProgress = useMemo(
+    () => leads.filter((lead) => !["novo", "sem_interesse"].includes(lead.stage)).length,
     [leads],
   );
 
@@ -978,7 +981,7 @@ export function CompanyLeadsTab() {
         </span>
         <span className="inline-flex items-center gap-2">
           <Target className="h-4 w-4 text-emerald-600" />
-          <strong>{qualified}</strong> qualificados
+          <strong>{inProgress}</strong> em andamento
         </span>
       </div>
 
