@@ -38,6 +38,7 @@ const stages: Array<{ value: CompanyLeadStage; label: string }> = [
   { value: "negocio_fechado", label: "Negócio fechado" },
   { value: "sem_interesse", label: "Sem interesse" },
 ];
+const visibleStages = stages.filter((item) => item.value !== "sem_interesse");
 
 function CommercialContactsPage() {
   const [rows, setRows] = useState<CompanyLead[]>([]);
@@ -60,7 +61,7 @@ function CommercialContactsPage() {
         ? query.eq("stage", stage)
         : query.in(
             "stage",
-            stages.map((item) => item.value),
+            visibleStages.map((item) => item.value),
           );
       const term = search.trim().replace(/[,%()]/g, " ");
       if (term)
@@ -99,9 +100,10 @@ function CommercialContactsPage() {
   async function changeStage(lead: CompanyLead, next: CompanyLeadStage) {
     try {
       await companyLeadsApi.updateStage(lead.id, next);
-      setRows((current) =>
-        current.map((row) => (row.id === lead.id ? { ...row, stage: next } : row)),
-      );
+      setRows((current) => {
+        if (next === "sem_interesse") return current.filter((row) => row.id !== lead.id);
+        return current.map((row) => (row.id === lead.id ? { ...row, stage: next } : row));
+      });
       toast.success("Etapa comercial atualizada.");
     } catch {
       toast.error("Não foi possível atualizar a etapa.");
@@ -132,7 +134,7 @@ function CommercialContactsPage() {
           className="h-11 rounded-md border border-input bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
         >
           <option value="">Todas as etapas</option>
-          {stages.map((item) => (
+          {visibleStages.map((item) => (
             <option key={item.value} value={item.value}>
               {item.label}
             </option>
@@ -142,7 +144,15 @@ function CommercialContactsPage() {
 
       <div className="overflow-hidden rounded-lg border bg-card">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[1120px] text-left text-sm">
+          <table className="w-full min-w-[1180px] table-fixed text-left text-xs xl:min-w-0">
+            <colgroup>
+              <col className="w-[25%]" />
+              <col className="w-[24%]" />
+              <col className="w-[14%]" />
+              <col className="w-[20%]" />
+              <col className="w-[13%]" />
+              <col className="w-[4%]" />
+            </colgroup>
             <thead className="border-b bg-muted/35 text-xs uppercase text-muted-foreground">
               <tr>
                 <th className="px-5 py-3 font-medium">Empresa</th>
@@ -171,54 +181,69 @@ function CommercialContactsPage() {
               ) : (
                 rows.map((lead) => (
                   <tr key={lead.id} className="transition-colors hover:bg-muted/25">
-                    <td className="max-w-[340px] px-5 py-4">
+                    <td className="min-w-0 px-4 py-3">
                       <button
                         type="button"
                         onClick={() => openDetails(lead)}
-                        className="text-left hover:text-primary"
+                        className="block w-full min-w-0 text-left hover:text-primary"
                       >
-                        <span className="block font-medium">
+                        <span
+                          className="block truncate text-[13px] font-medium"
+                          title={lead.trade_name || lead.legal_name}
+                        >
                           {lead.trade_name || lead.legal_name}
                         </span>
-                        <span className="mt-0.5 block truncate text-xs text-muted-foreground">
+                        <span
+                          className="mt-0.5 block truncate text-[11px] text-muted-foreground"
+                          title={`${lead.legal_name} · ${lead.cnpj}`}
+                        >
                           {lead.legal_name} · {lead.cnpj}
                         </span>
                       </button>
                     </td>
-                    <td className="px-5 py-4 text-muted-foreground">
+                    <td className="min-w-0 px-4 py-3 text-[12px] text-muted-foreground">
                       {lead.phone && (
-                        <span className="flex items-center gap-2">
-                          <Phone className="h-3.5 w-3.5" />
-                          {lead.phone}
+                        <span className="flex min-w-0 items-center gap-1.5">
+                          <Phone className="h-3.5 w-3.5 shrink-0" />
+                          <span className="truncate" title={lead.phone}>
+                            {lead.phone}
+                          </span>
                         </span>
                       )}
                       {lead.email && (
-                        <span className="mt-1 flex items-center gap-2">
-                          <Mail className="h-3.5 w-3.5" />
-                          {lead.email}
+                        <span className="mt-1 flex min-w-0 items-center gap-1.5">
+                          <Mail className="h-3.5 w-3.5 shrink-0" />
+                          <span className="truncate" title={lead.email}>
+                            {lead.email}
+                          </span>
                         </span>
                       )}
                       {!lead.phone && !lead.email && "Não informado"}
                     </td>
-                    <td className="px-5 py-4">
-                      <span className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4 text-muted-foreground" />
-                        {lead.city} - {lead.state}
+                    <td className="min-w-0 px-4 py-3">
+                      <span className="flex min-w-0 items-center gap-1.5">
+                        <MapPin className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                        <span className="truncate" title={`${lead.city} - ${lead.state}`}>
+                          {lead.city} - {lead.state}
+                        </span>
                       </span>
                     </td>
-                    <td className="max-w-[260px] px-5 py-4">
-                      <span className="block truncate">
+                    <td className="min-w-0 px-4 py-3">
+                      <span
+                        className="block truncate text-[12px]"
+                        title={lead.cnae_description || "Não informada"}
+                      >
                         {lead.cnae_description || "Não informada"}
                       </span>
-                      <span className="text-xs text-muted-foreground">{lead.cnae_code}</span>
+                      <span className="text-[11px] text-muted-foreground">{lead.cnae_code}</span>
                     </td>
-                    <td className="px-5 py-4">
+                    <td className="px-3 py-3">
                       <select
                         value={lead.stage}
                         onChange={(event) =>
                           changeStage(lead, event.target.value as CompanyLeadStage)
                         }
-                        className="h-9 rounded-md border border-input bg-background px-2 text-sm"
+                        className="h-8 w-full min-w-0 rounded-md border border-input bg-background px-2 text-xs"
                       >
                         {stages.map((item) => (
                           <option key={item.value} value={item.value}>
@@ -227,7 +252,7 @@ function CommercialContactsPage() {
                         ))}
                       </select>
                     </td>
-                    <td className="px-5 py-4">
+                    <td className="px-2 py-3 text-center">
                       <Button
                         variant="ghost"
                         size="icon"
