@@ -31,7 +31,6 @@ import { Route as ComercialContatosRouteImport } from './routes/comercial.contat
 import { Route as ClientesClienteIdRouteImport } from './routes/clientes.$clienteId'
 import { Route as ChamadosNovoRouteImport } from './routes/chamados.novo'
 import { Route as BaseDeConhecimentoSlugRouteImport } from './routes/base-de-conhecimento.$slug'
-import { Route as ComercialContatosLeadIdRouteImport } from './routes/comercial.contatos.$leadId'
 import { Route as ApiPublicTestPlacesRouteImport } from './routes/api/public/test-places'
 
 const VersoesRoute = VersoesRouteImport.update({
@@ -144,11 +143,6 @@ const BaseDeConhecimentoSlugRoute = BaseDeConhecimentoSlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => BaseDeConhecimentoRoute,
 } as any)
-const ComercialContatosLeadIdRoute = ComercialContatosLeadIdRouteImport.update({
-  id: '/$leadId',
-  path: '/$leadId',
-  getParentRoute: () => ComercialContatosRoute,
-} as any)
 const ApiPublicTestPlacesRoute = ApiPublicTestPlacesRouteImport.update({
   id: '/api/public/test-places',
   path: '/api/public/test-places',
@@ -172,14 +166,13 @@ export interface FileRoutesByFullPath {
   '/base-de-conhecimento/$slug': typeof BaseDeConhecimentoSlugRoute
   '/chamados/novo': typeof ChamadosNovoRoute
   '/clientes/$clienteId': typeof ClientesClienteIdRoute
-  '/comercial/contatos': typeof ComercialContatosRouteWithChildren
+  '/comercial/contatos': typeof ComercialContatosRoute
   '/frota/$vehicleId': typeof FrotaVehicleIdRoute
   '/kanban/$boardId': typeof KanbanBoardIdRoute
   '/base-de-conhecimento/': typeof BaseDeConhecimentoIndexRoute
   '/clientes/': typeof ClientesIndexRoute
   '/frota/': typeof FrotaIndexRoute
   '/api/public/test-places': typeof ApiPublicTestPlacesRoute
-  '/comercial/contatos/$leadId': typeof ComercialContatosLeadIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -196,14 +189,13 @@ export interface FileRoutesByTo {
   '/base-de-conhecimento/$slug': typeof BaseDeConhecimentoSlugRoute
   '/chamados/novo': typeof ChamadosNovoRoute
   '/clientes/$clienteId': typeof ClientesClienteIdRoute
-  '/comercial/contatos': typeof ComercialContatosRouteWithChildren
+  '/comercial/contatos': typeof ComercialContatosRoute
   '/frota/$vehicleId': typeof FrotaVehicleIdRoute
   '/kanban/$boardId': typeof KanbanBoardIdRoute
   '/base-de-conhecimento': typeof BaseDeConhecimentoIndexRoute
   '/clientes': typeof ClientesIndexRoute
   '/frota': typeof FrotaIndexRoute
   '/api/public/test-places': typeof ApiPublicTestPlacesRoute
-  '/comercial/contatos/$leadId': typeof ComercialContatosLeadIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -223,14 +215,13 @@ export interface FileRoutesById {
   '/base-de-conhecimento/$slug': typeof BaseDeConhecimentoSlugRoute
   '/chamados/novo': typeof ChamadosNovoRoute
   '/clientes/$clienteId': typeof ClientesClienteIdRoute
-  '/comercial/contatos': typeof ComercialContatosRouteWithChildren
+  '/comercial/contatos': typeof ComercialContatosRoute
   '/frota/$vehicleId': typeof FrotaVehicleIdRoute
   '/kanban/$boardId': typeof KanbanBoardIdRoute
   '/base-de-conhecimento/': typeof BaseDeConhecimentoIndexRoute
   '/clientes/': typeof ClientesIndexRoute
   '/frota/': typeof FrotaIndexRoute
   '/api/public/test-places': typeof ApiPublicTestPlacesRoute
-  '/comercial/contatos/$leadId': typeof ComercialContatosLeadIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -258,7 +249,6 @@ export interface FileRouteTypes {
     | '/clientes/'
     | '/frota/'
     | '/api/public/test-places'
-    | '/comercial/contatos/$leadId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -282,7 +272,6 @@ export interface FileRouteTypes {
     | '/clientes'
     | '/frota'
     | '/api/public/test-places'
-    | '/comercial/contatos/$leadId'
   id:
     | '__root__'
     | '/'
@@ -308,7 +297,6 @@ export interface FileRouteTypes {
     | '/clientes/'
     | '/frota/'
     | '/api/public/test-places'
-    | '/comercial/contatos/$leadId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -326,7 +314,7 @@ export interface RootRouteChildren {
   MinhaContaRoute: typeof MinhaContaRoute
   VersoesRoute: typeof VersoesRoute
   ClientesClienteIdRoute: typeof ClientesClienteIdRoute
-  ComercialContatosRoute: typeof ComercialContatosRouteWithChildren
+  ComercialContatosRoute: typeof ComercialContatosRoute
   ClientesIndexRoute: typeof ClientesIndexRoute
   ApiPublicTestPlacesRoute: typeof ApiPublicTestPlacesRoute
 }
@@ -487,13 +475,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BaseDeConhecimentoSlugRouteImport
       parentRoute: typeof BaseDeConhecimentoRoute
     }
-    '/comercial/contatos/$leadId': {
-      id: '/comercial/contatos/$leadId'
-      path: '/$leadId'
-      fullPath: '/comercial/contatos/$leadId'
-      preLoaderRoute: typeof ComercialContatosLeadIdRouteImport
-      parentRoute: typeof ComercialContatosRoute
-    }
     '/api/public/test-places': {
       id: '/api/public/test-places'
       path: '/api/public/test-places'
@@ -552,17 +533,6 @@ const KanbanRouteChildren: KanbanRouteChildren = {
 const KanbanRouteWithChildren =
   KanbanRoute._addFileChildren(KanbanRouteChildren)
 
-interface ComercialContatosRouteChildren {
-  ComercialContatosLeadIdRoute: typeof ComercialContatosLeadIdRoute
-}
-
-const ComercialContatosRouteChildren: ComercialContatosRouteChildren = {
-  ComercialContatosLeadIdRoute: ComercialContatosLeadIdRoute,
-}
-
-const ComercialContatosRouteWithChildren =
-  ComercialContatosRoute._addFileChildren(ComercialContatosRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AnalyticsRoute: AnalyticsRoute,
@@ -578,7 +548,7 @@ const rootRouteChildren: RootRouteChildren = {
   MinhaContaRoute: MinhaContaRoute,
   VersoesRoute: VersoesRoute,
   ClientesClienteIdRoute: ClientesClienteIdRoute,
-  ComercialContatosRoute: ComercialContatosRouteWithChildren,
+  ComercialContatosRoute: ComercialContatosRoute,
   ClientesIndexRoute: ClientesIndexRoute,
   ApiPublicTestPlacesRoute: ApiPublicTestPlacesRoute,
 }
