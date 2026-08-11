@@ -515,9 +515,14 @@ export const ticketsStore = {
   },
 
   attendTicket(id: string) {
-    const op = operator();
-    const existing = tickets.find((ticket) => ticket.id === id);
-    const patch: Partial<SupportTicket> = {
+      const op = operator();
+      const existing = tickets.find((ticket) => ticket.id === id);
+      if (!existing || (existing.status === "Ocupado" && existing.attendanceRunningSince)) return;
+      const resumed = Boolean(existing.attendanceStartedAt);
+      const description = resumed
+        ? `${op} retomou atendimento.`
+        : `${op} iniciou atendimento.`;
+      const patch: Partial<SupportTicket> = {
       owner: op,
       status: "Ocupado",
       lockedBy: op,
@@ -525,21 +530,21 @@ export const ticketsStore = {
     };
     updateTicket(id, patch);
     pushEvent(id, {
-      kind: "attend",
-      when: nowIso(),
-      actor: op,
-      actorType: "suporte",
-      description: `${op} iniciou atendimento.`,
+        kind: "attend",
+        when: nowIso(),
+        actor: op,
+        actorType: "suporte",
+        description,
     });
     emit();
     persistUpdate(
       id,
       patch,
       {
-        kind: "attend",
-        actor: op,
-        actorType: "suporte",
-        description: `${op} iniciou atendimento.`,
+          kind: "attend",
+          actor: op,
+          actorType: "suporte",
+          description,
       },
     );
   },

@@ -418,8 +418,13 @@ export function TicketDetailSheet({
   };
 
   const handleAttend = () => {
+    if (ticket.status === "Ocupado" && ticket.attendanceRunningSince) {
+      toast.info("O atendimento já está em andamento.");
+      return;
+    }
+    const resumed = Boolean(ticket.attendanceStartedAt);
     ticketsStore.attendTicket(ticket.id);
-    toast.success("Atendimento iniciado");
+    toast.success(resumed ? "Atendimento retomado" : "Atendimento iniciado");
   };
   // status change removed from side menu; substituted by "Agendar evento" and "Encaminhar a especialista"
   const handleSaveNote = () => {

@@ -716,7 +716,7 @@ function CalendarPage() {
         onOpenChange={(next) => {
           if (!next) setDetailEvent(null);
         }}
-        canEdit={detailIsLocal}
+        canEdit={detailIsLocal && detailTone !== "cancelled" && detailTone !== "done"}
         canCancel={detailTone !== "cancelled" && detailTone !== "done"}
         onEdit={(event) => {
           setDetailEvent(null);

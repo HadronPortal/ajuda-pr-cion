@@ -296,6 +296,11 @@ export function EventDetailsModal({
                   <span className="whitespace-pre-wrap">{plainText(event.description)}</span>
                 </Info>
               )}
+              {tone === "cancelled" && event.cancellationReason && (
+                <Info icon={X} label="Motivo do cancelamento" className="sm:col-span-2">
+                  <span className="whitespace-pre-wrap">{plainText(event.cancellationReason)}</span>
+                </Info>
+              )}
               {vehicle && (
                 <Info icon={Car} label="Veículo reservado" className="sm:col-span-2">
                   {vehicle.model} · {vehicle.plate}

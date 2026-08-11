@@ -248,7 +248,9 @@ export function TicketTimelineList({
                 className={`mt-2 ${titleSize} font-semibold uppercase tracking-normal`}
                 style={{ color: presentation.color }}
               >
-                {presentation.label}
+                {event.kind === "attend" && /retomou atendimento/i.test(event.description)
+                  ? "Atendimento retomado"
+                  : presentation.label}
               </h3>
               {/<[a-z][\s\S]*>/i.test(event.description) ? (
                 <div
