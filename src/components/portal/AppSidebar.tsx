@@ -1,7 +1,15 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { ProcionLogo } from "./ProcionLogo";
-import { CalendarDays, ChevronLeft, ChevronRight, MessageSquare } from "lucide-react";
-import type { ComponentType } from "react";
+import {
+  BriefcaseBusiness,
+  CalendarDays,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ContactRound,
+  MessageSquare,
+} from "lucide-react";
+import { useState, type ComponentType } from "react";
 import dashboardIconUrl from "@/assets/menu-dashboard-solid.png";
 import ticketsIconUrl from "@/assets/menu-tickets-solid.png";
 import baseIconUrl from "@/assets/menu-base-solid.png";
@@ -25,6 +33,7 @@ type NavItem = {
   label: string;
   icon: NavIcon;
   exact?: boolean;
+  children?: Array<{ to: string; label: string; icon?: NavIcon }>;
 };
 
 function createMaskedMenuIcon(maskUrl: string): NavIcon {
@@ -56,8 +65,21 @@ const HadronIcon = createMaskedMenuIcon(hadronIconUrl);
 
 const nav: NavItem[] = [
   { to: "/", label: "Dashboard", icon: DashboardIcon, exact: true },
-  { to: "/chamados", label: "Chamados", icon: TicketsIcon },
-  { to: "/calendario", label: "Calendário", icon: CalendarIcon },
+  {
+    to: "/chamados",
+    label: "Chamados",
+    icon: TicketsIcon,
+    children: [
+      { to: "/chamados", label: "Chamados", icon: TicketsIcon },
+      { to: "/calendario", label: "Calendário", icon: CalendarIcon },
+    ],
+  },
+  {
+    to: "/comercial/contatos",
+    label: "Comercial",
+    icon: BriefcaseBusiness,
+    children: [{ to: "/comercial/contatos", label: "Contatos", icon: ContactRound }],
+  },
   { to: "/frota", label: "Frota", icon: FleetIcon },
   { to: "/iniciar-hadron", label: "Hadron", icon: HadronIcon },
   { to: "/base-de-conhecimento", label: "Base", icon: BaseIcon },
@@ -68,6 +90,7 @@ const nav: NavItem[] = [
 ];
 
 function isActivePath(pathname: string, item: NavItem) {
+  if (item.children?.some((child) => pathname.startsWith(child.to))) return true;
   if (item.to === "/kanban") return pathname === "/kanban";
   return item.exact ? pathname === item.to : pathname.startsWith(item.to);
 }
@@ -75,6 +98,7 @@ function isActivePath(pathname: string, item: NavItem) {
 export function AppSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const collapsed = useSidebarCollapsed();
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
 
   return (
     <aside
@@ -113,33 +137,74 @@ export function AppSidebar() {
           {nav.map((item) => {
             const active = isActivePath(pathname, item);
             const Icon = item.icon;
+            const expanded = Boolean(item.children && (openGroups[item.to] ?? active));
 
             return (
               <li key={item.to}>
-                <Link
-                  to={item.to}
-                  title={collapsed ? item.label : undefined}
-                  className={cn(
-                    "group relative flex h-12 items-center gap-4 rounded-l-lg rounded-r-[26px] px-4 text-[15px] font-semibold transition-all",
-                    collapsed && "mx-auto w-12 justify-center rounded-2xl px-0",
-                    active
-                      ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-[0_14px_30px_rgba(11,151,196,0.12)]"
-                      : "text-sidebar-foreground hover:bg-sidebar-accent/45 hover:text-sidebar-accent-foreground",
-                  )}
-                >
-                  {active && !collapsed && (
-                    <span className="absolute -left-4 top-1/2 h-9 w-1.5 -translate-y-1/2 rounded-r-full bg-primary" />
-                  )}
-                  <Icon
+                <div className="relative">
+                  <Link
+                    to={item.to}
+                    title={collapsed ? item.label : undefined}
                     className={cn(
-                      "h-[22px] w-[22px] shrink-0 transition-colors",
+                      "group relative flex h-12 items-center gap-4 rounded-l-lg rounded-r-[26px] px-4 text-[15px] font-semibold transition-all",
+                      collapsed && "mx-auto w-12 justify-center rounded-2xl px-0",
                       active
-                        ? "text-primary"
-                        : "text-sidebar-foreground/70 group-hover:text-primary dark:text-sidebar-foreground/85",
+                        ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-[0_14px_30px_rgba(11,151,196,0.12)]"
+                        : "text-sidebar-foreground hover:bg-sidebar-accent/45 hover:text-sidebar-accent-foreground",
                     )}
-                  />
-                  {!collapsed && <span className="min-w-0 flex-1 truncate">{item.label}</span>}
-                </Link>
+                  >
+                    {active && !collapsed && (
+                      <span className="absolute -left-4 top-1/2 h-9 w-1.5 -translate-y-1/2 rounded-r-full bg-primary" />
+                    )}
+                    <Icon
+                      className={cn(
+                        "h-[22px] w-[22px] shrink-0 transition-colors",
+                        active
+                          ? "text-primary"
+                          : "text-sidebar-foreground/70 group-hover:text-primary dark:text-sidebar-foreground/85",
+                      )}
+                    />
+                    {!collapsed && <span className="min-w-0 flex-1 truncate">{item.label}</span>}
+                  </Link>
+                  {!collapsed && item.children && (
+                    <button
+                      type="button"
+                      className="absolute right-3 top-2 grid h-8 w-8 place-items-center rounded-full text-sidebar-foreground/65 hover:bg-sidebar-accent hover:text-primary"
+                      onClick={() =>
+                        setOpenGroups((current) => ({ ...current, [item.to]: !expanded }))
+                      }
+                      aria-label={expanded ? `Recolher ${item.label}` : `Expandir ${item.label}`}
+                    >
+                      <ChevronDown
+                        className={cn("h-4 w-4 transition-transform", expanded && "rotate-180")}
+                      />
+                    </button>
+                  )}
+                </div>
+                {!collapsed && item.children && expanded && (
+                  <ul className="ml-7 mt-1 space-y-1 border-l border-sidebar-border pl-3">
+                    {item.children.map((child) => {
+                      const childActive = pathname.startsWith(child.to);
+                      const ChildIcon = child.icon;
+                      return (
+                        <li key={child.to}>
+                          <Link
+                            to={child.to}
+                            className={cn(
+                              "flex h-9 items-center gap-2.5 rounded-md px-3 text-sm transition-colors",
+                              childActive
+                                ? "bg-sidebar-accent/70 font-semibold text-primary"
+                                : "text-sidebar-foreground/70 hover:bg-sidebar-accent/40 hover:text-sidebar-accent-foreground",
+                            )}
+                          >
+                            {ChildIcon && <ChildIcon className="h-4 w-4 shrink-0" />}
+                            <span className="truncate">{child.label}</span>
+                          </Link>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
               </li>
             );
           })}
