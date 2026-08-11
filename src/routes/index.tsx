@@ -1,7 +1,45 @@
 /**
- * DIRETRIZES DE TRABALHO:
- * - Proibido modificar .env, Supabase ou migrations.
- * - Listar arquivos alterados antes de concluir.
+ * REGRA CRÍTICA — NÃO ALTERAR CONFIGURAÇÕES DE AMBIENTE
+ *
+ * Ao realizar qualquer alteração neste projeto, altere SOMENTE os arquivos necessários para atender à solicitação atual.
+ *
+ * É TERMINANTEMENTE PROIBIDO modificar, recriar, substituir, regenerar ou atualizar automaticamente:
+ * .env
+ * .env.local
+ * .env.production
+ * .env.development
+ * variáveis VITE_*
+ * VITE_SUPABASE_URL
+ * VITE_SUPABASE_PUBLISHABLE_KEY
+ * VITE_SUPABASE_PROJECT_ID
+ * URLs de APIs existentes
+ * chaves públicas existentes
+ * configurações do Supabase
+ * credenciais
+ * endpoints
+ * configurações de autenticação
+ * arquivos de configuração que não estejam diretamente relacionados à alteração solicitada
+ *
+ * As credenciais e configurações existentes são consideradas CORRETAS e FUNCIONAIS.
+ *
+ * NUNCA tente "corrigir", "atualizar", "sincronizar" ou substituir essas configurações por valores detectados automaticamente pelo Lovable.
+ *
+ * Antes de realizar qualquer alteração:
+ * 1. Identifique exatamente quais arquivos precisam ser modificados.
+ * 2. Modifique somente esses arquivos.
+ * 3. Preserve integralmente todos os demais arquivos.
+ * 4. Não realize alterações auxiliares, refatorações ou melhorias que não tenham sido solicitadas.
+ * 5. Não altere configurações de ambiente como efeito colateral.
+ *
+ * Após concluir a alteração:
+ * 1. Verifique o diff.
+ * 2. Confirme que nenhum .env foi alterado.
+ * 3. Confirme que nenhuma variável VITE_* foi alterada.
+ * 4. Confirme que nenhuma credencial ou configuração do Supabase foi modificada.
+ * 5. Caso alguma dessas alterações apareça no diff, REVERTA antes de finalizar.
+ *
+ * PRINCÍPIO DO PROJETO:
+ * "Alterar somente o que foi explicitamente solicitado. Todo o restante deve permanecer exatamente como estava."
  */
 import { useMemo, useState } from "react";
 
