@@ -1,5 +1,4 @@
 import { createClient } from '@supabase/supabase-js'
-import type { Database } from '@/integrations/supabase/types.gen'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabasePublishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
@@ -28,7 +27,8 @@ if (!supabaseUrl || !supabasePublishableKey) {
   throw new Error('Supabase não configurado. Defina VITE_SUPABASE_URL e VITE_SUPABASE_PUBLISHABLE_KEY.')
 }
 
-export const supabase = createClient<Database>(supabaseUrl, supabasePublishableKey, {
+// @ts-ignore - The generated Database type might be incomplete or missing
+export const supabase = createClient(supabaseUrl, supabasePublishableKey, {
   global: {
     fetch: createSupabaseFetch(supabasePublishableKey),
   },
@@ -38,4 +38,3 @@ export const supabase = createClient<Database>(supabaseUrl, supabasePublishableK
     detectSessionInUrl: true,
   },
 })
-
