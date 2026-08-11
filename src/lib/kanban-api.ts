@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 
 // Client-side wrapper around the `kanban-api` Supabase Edge Function.
 // The Edge Function uses SUPABASE_SERVICE_ROLE_KEY on the server; the
