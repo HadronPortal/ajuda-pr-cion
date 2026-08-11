@@ -1,0 +1,34 @@
+name: Protect CRM environment
+
+on:
+  push:
+    branches: [main]
+    paths: [.env]
+
+permissions:
+  contents: write
+
+jobs:
+  restore-crm-env:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Restore protected CRM environment
+        shell: bash
+        run: |
+          git show 4746349:.env > /tmp/crm.env
+          if cmp -s .env /tmp/crm.env; then
+            exit 0
+          fi
+
+          cp /tmp/crm.env .env
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .env
+          git commit -m "fix: restaura ambiente protegido do CRM [skip ci]"
+          git push
