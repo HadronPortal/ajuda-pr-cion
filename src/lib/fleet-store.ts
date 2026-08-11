@@ -122,6 +122,8 @@ export type VehicleReservation = {
   updatedAt: string;
 };
 
+export const VEHICLE_RESERVATION_BUFFER_MS = 60 * 60 * 1000;
+
 export type VehicleUsage = {
   id: string;
   vehicleId?: string;
@@ -400,16 +402,8 @@ function persistRuntimeRecords() {
     window.localStorage.setItem(
       RUNTIME_STORAGE_KEY,
       JSON.stringify({
-        usages: usages.filter(
-          (usage) =>
-            String(usage.appointmentId ?? "").startsWith("ticket-") ||
-            String(usage.appointmentId ?? "").startsWith("local-"),
-        ),
-        reservations: reservations.filter(
-          (reservation) =>
-            String(reservation.eventId ?? "").startsWith("ticket-") ||
-            String(reservation.eventId ?? "").startsWith("local-"),
-        ),
+        usages: usages.filter((usage) => usage.appointmentId !== undefined),
+        reservations: reservations.filter((reservation) => reservation.eventId !== undefined),
       }),
     );
   } catch {
@@ -485,7 +479,11 @@ export function hasReservationConflict(
     if (r.id === ignoreReservationId) return false;
     if (r.vehicleId !== vehicleId) return false;
     if (r.status !== "pre_agendado") return false;
-    return r.startAt < endAt && r.endAt > startAt;
+    const reservedFrom = new Date(r.startAt).getTime() - VEHICLE_RESERVATION_BUFFER_MS;
+    const reservedUntil = new Date(r.endAt).getTime();
+    const requestedFrom = new Date(startAt).getTime();
+    const requestedUntil = new Date(endAt).getTime();
+    return requestedFrom < reservedUntil && requestedUntil > reservedFrom;
   });
 }
 
@@ -503,9 +501,21 @@ export function createReservation(input: {
   if (conflict) return { error: "conflict", conflict };
 
   const vehicle = getVehicleById(input.vehicleId);
-  if (vehicle?.status === "manutencao") {
-    // Para simplificar o retorno sem mudar a assinatura radicalmente:
-    return { error: "conflict", conflict: { id: "indisponivel" } as any };
+  if (vehicle?.status === "manutencao" || vehicle?.status === "em_uso") {
+    const now = nowISO();
+    return {
+      error: "conflict",
+      conflict: {
+        id: "indisponivel",
+        vehicleId: input.vehicleId,
+        operatorId: input.operatorId,
+        startAt: input.startAt,
+        endAt: input.endAt,
+        status: "pre_agendado",
+        createdAt: now,
+        updatedAt: now,
+      },
+    };
   }
   const now = nowISO();
   const reservation: VehicleReservation = {

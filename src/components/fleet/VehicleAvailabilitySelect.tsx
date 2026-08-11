@@ -32,10 +32,9 @@ export function evaluateVehicle(
   windowStart: string | null,
   windowEnd: string | null,
 ): VehicleAvailability {
+  if (vehicle.status === "em_uso") return { key: "em_uso", label: "Em uso" };
   if (vehicle.status === "manutencao") return { key: "indisponivel", label: "Em manutenção" };
-  if (!windowStart || !windowEnd) {
-    if (vehicle.status === "em_uso") return { key: "em_uso", label: "Em uso" };
-  } else if (hasConflict(vehicle.id, windowStart, windowEnd)) {
+  if (windowStart && windowEnd && hasConflict(vehicle.id, windowStart, windowEnd)) {
     return { key: "em_uso", label: "Em uso no período" };
   }
   const reservations = getActiveReservationsByVehicle(vehicle.id);
@@ -95,17 +94,34 @@ export function VehicleAvailabilitySelect({
   value: string;
   onChange: (value: string) => void;
 }) {
-  const { vehicles, availability } = useVehicleAvailability(date, startTime, endTime);
+  const { vehicles, availability, windowStart, windowEnd } = useVehicleAvailability(
+    date,
+    startTime,
+    endTime,
+  );
 
   useEffect(() => {
     if (value === NO_VEHICLE) return;
     const info = availability.get(value);
     if (!info) return;
     if (isUnavailable(info)) {
+      const conflict =
+        windowStart && windowEnd
+          ? hasReservationConflict(value, windowStart, windowEnd)
+          : undefined;
       onChange(NO_VEHICLE);
-      toast.info("Veículo indisponível no período selecionado. Escolha outro.");
+      if (conflict) {
+        toast.error("Este veículo já possui um agendamento.", {
+          description: `Agendado para ${new Date(conflict.startAt).toLocaleString("pt-BR", {
+            dateStyle: "short",
+            timeStyle: "short",
+          })}. O veículo fica bloqueado a partir de 1 hora antes.`,
+        });
+      } else {
+        toast.info("Veículo indisponível no período selecionado. Escolha outro.");
+      }
     }
-  }, [availability, value, onChange]);
+  }, [availability, value, onChange, windowStart, windowEnd]);
 
   const selected = availability.get(value);
 
@@ -124,7 +140,7 @@ export function VehicleAvailabilitySelect({
             const label = info?.label ?? VEHICLE_STATUS_LABEL[vehicle.status];
             const disabled = isUnavailable(info);
             return (
-              <option key={vehicle.id} value={vehicle.id} disabled={disabled}>
+              <option key={vehicle.id} value={vehicle.id}>
                 {vehicle.model} · {vehicle.plate} — {label}
                 {disabled ? " (indisponível)" : ""}
               </option>
@@ -134,7 +150,7 @@ export function VehicleAvailabilitySelect({
       </div>
       {value !== NO_VEHICLE && selected?.key === "pre_agendado" && selected.conflict && (
         <p className="mt-1 text-[11px] text-destructive">
-          Conflito com outra pré-reserva no período informado.
+          O veículo fica bloqueado desde 1 hora antes de outro agendamento.
         </p>
       )}
     </>

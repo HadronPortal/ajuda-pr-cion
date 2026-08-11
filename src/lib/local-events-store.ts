@@ -5,6 +5,7 @@ import { listCrmCalendarEvents, saveCrmCalendarEvent } from "@/lib/calendar-api"
 import {
   createReservation,
   createUsageForAppointment,
+  getReservationsSnapshot,
   getUsageByAppointment,
   removeFleetRecordsForAppointments,
 } from "@/lib/fleet-store";
@@ -54,6 +55,51 @@ function write(next: CalendarEvent[]) {
     /* armazenamento indisponível: mantém apenas em memória */
   }
   listeners.forEach((listener) => listener());
+}
+
+function syncFleetReservation(event: CalendarEvent) {
+  if (
+    !event.vehicleId ||
+    !event.needsDisplacement ||
+    (event.status && event.status !== "Agendado")
+  ) {
+    return;
+  }
+
+  const scheduledStartAt = `${event.date}T${event.time}:00`;
+  const expectedReturnAt = `${event.date}T${event.end}:00`;
+  const destination = event.address
+    ? `${event.client ?? event.title} - ${event.address}`
+    : (event.client ?? event.title);
+
+  if (!getUsageByAppointment(event.id)) {
+    createUsageForAppointment({
+      appointmentId: event.id,
+      operatorId: event.responsible ?? event.operator,
+      vehicleId: event.vehicleId,
+      client: event.client,
+      destination,
+      scheduledStartAt,
+      expectedReturnAt,
+    });
+  }
+
+  const hasReservation = getReservationsSnapshot().some(
+    (reservation) =>
+      String(reservation.eventId) === String(event.id) &&
+      reservation.status === "pre_agendado",
+  );
+  if (!hasReservation) {
+    createReservation({
+      vehicleId: event.vehicleId,
+      operatorId: event.responsible ?? event.operator ?? "",
+      startAt: scheduledStartAt,
+      endAt: expectedReturnAt,
+      eventId: event.id,
+      customerId: event.clientId,
+      destination,
+    });
+  }
 }
 
 export function addLocalEvent(event: Omit<CalendarEvent, "id"> & { id?: string | number }) {
@@ -138,6 +184,7 @@ function hydratePersistedEvents() {
 
       if (removedIds.length) removeFleetRecordsForAppointments(removedIds);
       write(persisted);
+      persisted.forEach(syncFleetReservation);
     })
     .catch((error) => {
       console.error("[calendar] Nao foi possivel carregar os agendamentos salvos.", error);
