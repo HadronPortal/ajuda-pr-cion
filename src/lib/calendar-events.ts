@@ -112,6 +112,24 @@ export const EVENT_TONE_STYLES: Record<
   },
 };
 
+/** Converte a data e o horario locais do agendamento em um instante valido. */
+export function eventStartInstant(
+  event: Pick<CalendarEvent, "date" | "time">,
+): Date | null {
+  const clock = (event.time || "00:00").slice(0, 5);
+  const parsed = new Date(`${event.date}T${clock}:00`);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+/** Informa se o horario inicial do agendamento ja foi atingido. */
+export function hasEventStarted(
+  event: Pick<CalendarEvent, "date" | "time">,
+  now: Date = new Date(),
+): boolean {
+  const instant = eventStartInstant(event);
+  return Boolean(instant && instant.getTime() <= now.getTime());
+}
+
 /** Instante final (ou inicial) real do evento. */
 function eventInstant(event: Pick<CalendarEvent, "date" | "time" | "end">) {
   const clock = (event.end || event.time || "00:00").slice(0, 5);

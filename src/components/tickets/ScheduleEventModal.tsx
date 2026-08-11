@@ -24,7 +24,7 @@ import { ticketsStore } from "@/lib/tickets-store";
 import type { SupportTicket } from "@/lib/support-tickets-data";
 import { modulesMap, moduleOptions, splitModule } from "@/lib/modules-map";
 import { addLocalEvent } from "@/lib/local-events-store";
-import type { EventType } from "@/lib/calendar-events";
+import { hasEventStarted, type EventType } from "@/lib/calendar-events";
 import { createReservation } from "@/lib/fleet-store";
 import { CorrectionHint } from "@/components/ui/smart-text";
 import { useSpellCorrection } from "@/lib/spellcheck";
@@ -95,6 +95,10 @@ export function ScheduleEventModal({
     }
     if (!date || !startTime || !endTime || !responsible || !module || !submodule) {
       toast.error("Preencha os campos obrigatórios.");
+      return;
+    }
+    if (hasEventStarted({ date, time: startTime })) {
+      toast.error("Esse horário já passou. Escolha um horário futuro.");
       return;
     }
     if (endTime <= startTime) {

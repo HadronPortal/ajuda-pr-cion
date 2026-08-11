@@ -47,6 +47,7 @@ import {
   PLATFORM_OPTIONS,
   ROOM_OPTIONS,
   TYPE_ICON,
+  hasEventStarted,
   type CalendarEvent,
   type EventType,
 } from "@/lib/calendar-events";
@@ -145,6 +146,10 @@ export function CreateEventDialog({
   const submit = () => {
     if (!title.trim()) { toast.error("Informe o título do agendamento."); return; }
     if (!date || !startTime || !endTime) { toast.error("Preencha data e horários."); return; }
+    if (hasEventStarted({ date, time: startTime })) {
+      toast.error("Esse horário já passou. Escolha um horário futuro.");
+      return;
+    }
     if (endTime <= startTime) { toast.error("O horário final deve ser posterior ao inicial."); return; }
     onCreate({
       date, time: startTime, end: endTime, type,

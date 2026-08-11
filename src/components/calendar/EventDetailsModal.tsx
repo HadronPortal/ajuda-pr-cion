@@ -36,6 +36,7 @@ import {
   EVENT_TONE_STYLES,
   TYPE_ICON,
   getEventTone,
+  hasEventStarted,
   type CalendarEvent,
 } from "@/lib/calendar-events";
 import { formatFleetDateTime, getVehicleById, useUsages, useReservations } from "@/lib/fleet-store";
@@ -115,6 +116,14 @@ export function EventDetailsModal({
   const tickets = useTickets();
   const usages = useUsages();
   const reservations = useReservations();
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    if (!open) return;
+    setNow(new Date());
+    const timer = window.setInterval(() => setNow(new Date()), 15_000);
+    return () => window.clearInterval(timer);
+  }, [open, event?.id]);
 
   useEffect(() => {
     if (!event) return;
@@ -152,6 +161,7 @@ export function EventDetailsModal({
   if (!event) return null;
 
   const tone = getEventTone(event);
+  const eventHasStarted = hasEventStarted(event, now);
   const toneStyle = EVENT_TONE_STYLES[tone];
   const Icon = TYPE_ICON[event.type];
 
@@ -350,7 +360,7 @@ export function EventDetailsModal({
                 Retirar veículo
               </Button>
             )}
-            {!hideFooterActions && canEdit && (
+            {!hideFooterActions && canEdit && !eventHasStarted && (
               <Button
                 variant="outline"
                 className="h-9 cursor-pointer"
