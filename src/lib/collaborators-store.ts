@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { supabase } from "./supabase";
+import { supabase } from "@/integrations/supabase/client";
 
 /**
  * Fonte única de colaboradores do site.
@@ -85,7 +85,7 @@ export async function fetchCollaborators(force = false): Promise<Collaborator[]>
   if (cache && !force) return cache;
   if (pending && !force) return pending;
   pending = (async () => {
-    const { data, error } = await supabase.rpc("list_colaboradores");
+    const { data, error } = await (supabase as any).rpc("list_colaboradores");
     if (error) throw error;
     const rows = ((data ?? []) as RawCollaborator[]).map(mapRow);
     rows.sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
