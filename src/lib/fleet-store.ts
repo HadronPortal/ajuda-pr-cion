@@ -417,6 +417,18 @@ function persistRuntimeRecords() {
   }
 }
 
+export function removeFleetRecordsForAppointments(appointmentIds: Array<string | number>) {
+  if (appointmentIds.length === 0) return;
+  hydrateRuntimeRecords();
+  const ids = new Set(appointmentIds.map(String));
+  usages = usages.filter((usage) => !ids.has(String(usage.appointmentId ?? "")));
+  reservations = reservations.filter(
+    (reservation) => !ids.has(String(reservation.eventId ?? "")),
+  );
+  persistRuntimeRecords();
+  emit();
+}
+
 // -----------------------------------------------------------------------------
 // Pub-sub
 // -----------------------------------------------------------------------------

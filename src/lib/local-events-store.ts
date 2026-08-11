@@ -4,11 +4,13 @@ import {
   createReservation,
   createUsageForAppointment,
   getUsageByAppointment,
+  removeFleetRecordsForAppointments,
 } from "@/lib/fleet-store";
 
 
 const STORAGE_KEY = "procion.local-calendar-events.v2";
 const CHANGE_EVENT = "procion:calendar-events-changed";
+const TEST_EVENTS_CLEANUP_KEY = "procion.test-events-cleanup.2026-08-11";
 
 const EMPTY: CalendarEvent[] = [];
 
@@ -21,9 +23,25 @@ function read(): CalendarEvent[] {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     const parsed = raw ? JSON.parse(raw) : [];
-    cache = Array.isArray(parsed)
+    const events = Array.isArray(parsed)
       ? (parsed.filter((item) => item && typeof item === "object") as CalendarEvent[])
       : EMPTY;
+
+    if (!window.localStorage.getItem(TEST_EVENTS_CLEANUP_KEY)) {
+      const testEventIds = events
+        .map((event) => event.id)
+        .filter((id) => {
+          const value = String(id);
+          return value.startsWith("local-") || value.startsWith("ticket-");
+        });
+      cache = events.filter((event) => !testEventIds.includes(event.id));
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(cache));
+      removeFleetRecordsForAppointments(testEventIds);
+      window.localStorage.setItem(TEST_EVENTS_CLEANUP_KEY, new Date().toISOString());
+      return cache;
+    }
+
+    cache = events;
   } catch {
     cache = EMPTY;
   }
