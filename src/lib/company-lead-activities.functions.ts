@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 

@@ -20,7 +20,7 @@ import {
   type CompanyLeadDetails,
   type CompanyLeadStage,
 } from "@/lib/company-leads-api";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/comercial/contatos")({ component: CommercialContactsPage });
 
