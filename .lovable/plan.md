@@ -1,64 +1,36 @@
-# Kanban: tela de quadros + roteamento por boardId
+# Plano: Página de Detalhes do Lead Comercial
 
-## Objetivo
-Transformar `/kanban` numa tela de listagem de quadros ("Meus Quadros") e mover o board atual para `/kanban/$boardId`, sem alterar o visual interno do board.
+Este plano implementa uma nova página de detalhes para leads comerciais no módulo **Comercial > Contatos**, substituindo o modal atual e adicionando novas seções de informações e histórico de atividades.
 
-## Rotas
-- `/kanban` → nova tela **Meus Quadros** (grid, busca, filtros Todos/Meus/Favoritos, botão Criar quadro).
-- `/kanban/$boardId` → board atual (renomear o arquivo `kanban.tsx` para `kanban.$boardId.tsx` mantendo todo o comportamento; adicionar header com botão "← Meus Quadros" e o nome do quadro).
-- Menu lateral continua apontando para `/kanban` (só muda o destino do clique — abre a lista).
+## Mudanças
 
-## Edge Function `kanban-api` (novas ações)
-Adicionar em `supabase/functions/kanban-api/index.ts`:
-- `listBoards` — retorna boards não arquivados com contagem de colunas, cartões ativos, membros (avatares) e `updated_at`.
-- `getBoard({ boardId })` — metadados do quadro.
-- `createBoard({ name, description, color, visibility, memberIds })` — cria board + coluna padrão + vincula usuário como admin.
-- `updateBoard({ id, name?, description?, color? })`.
-- `duplicateBoard({ id })` — clona board, colunas e cartões.
-- `archiveBoard({ id })` / `deleteBoard({ id })`.
-- `listAvailableMembers({ query? })`.
-- `addBoardMember` / `updateBoardMemberRole` / `removeBoardMember`.
-- **`loadBoard` passa a exigir `boardId`** (remove seleção automática do último).
+### Backend (Supabase)
+- **Não haverá alterações estruturais no banco**, seguindo as restrições.
+- Utilização da RPC existente `company_lead_details` para carregar dados.
+- Utilização da tabela `company_lead_activities` para a timeline (com fallback caso a tabela não exista ou esteja vazia).
 
-Favoritos: coluna `is_favorite` em `kanban_board_members` (ou tabela `kanban_board_favorites` se preferir) — migração adicionada.
+### Frontend
+- **Nova Rota**: Criação de `src/routes/comercial.contatos.$leadId.tsx` para exibição em tela cheia.
+- **Navegação**: Refatoração da listagem em `src/routes/comercial.contatos.tsx` para abrir a nova rota em uma nova aba (`target="_blank"`) ao clicar em uma empresa, preservando o estado da listagem original.
+- **Layout de Detalhes**:
+    - Cabeçalho padronizado com `DetailModalHeader`.
+    - Seção unificada de **Localização e Contato**.
+    - Seção dedicada de **Atividade da Empresa** (CNAE Principal e Secundários).
+    - Seção de **Quadro Societário**.
+    - Seção de **Atividades** com timeline vertical decrescente (mais recente primeiro), mostrando tipos reais (Prospecção, Relacionamento, etc.).
+- **Componentes**: Criação de `src/components/commercial/LeadTimeline.tsx` e `src/components/commercial/LeadDetailView.tsx`.
+- **API**: Criação de `src/lib/company-lead-activities.functions.ts` para buscar atividades via servidor.
 
-## Front
+## Detalhes Técnicos
+- Uso de `tanstack/react-router` para a nova rota dinâmica.
+- Preservação do tema light/dark através das classes globais do projeto.
+- Normalização de Cidade/UF usando `normalizeCityUf`.
+- Implementação de cópia para clipboard em telefones e e-mails.
+- Tratamento de campos nulos exibindo "Não informado".
 
-### `src/lib/kanban-api.ts`
-Novos wrappers: `listBoards`, `createBoard`, `updateBoard`, `duplicateBoard`, `archiveBoard`, `deleteBoard`, `listAvailableMembers`, `addBoardMember`, `updateBoardMemberRole`, `removeBoardMember`, `toggleBoardFavorite`. `loadKanbanBoard(boardId)` passa a receber id.
-
-### `src/routes/kanban.tsx` (nova tela)
-- `AppShell` + header (título, subtítulo, busca, botão Criar quadro).
-- Tabs "Todos / Meus quadros / Favoritos".
-- Grid responsiva de `BoardCard`: nome, descrição, faixa colorida/capa, contagem de listas/cartões, avatares dos membros, `updated_at`, estrela de favorito, menu ⋯ (Renomear, Editar descrição, Gerenciar membros, Duplicar, Arquivar, Excluir com modal).
-- Estados: loading (skeleton), vazio, erro com "Tentar novamente".
-- Cursor `pointer` em todas as áreas clicáveis.
-- React Query para `listBoards` + invalidação após mutações.
-
-### `src/routes/kanban.$boardId.tsx`
-Conteúdo atual do `kanban.tsx`, com:
-- `useParams` para obter `boardId`.
-- `loadKanbanBoard({ boardId })`.
-- Header extra com botão "← Meus Quadros" (Link para `/kanban`) e nome do quadro.
-- Nenhuma outra mudança de layout/drag/drawers.
-
-### Modais novos (`src/components/kanban/`)
-- `CreateBoardModal.tsx` — nome*, descrição, cor (paleta), visibilidade (privado/equipe), membros iniciais.
-- `ManageMembersModal.tsx` — busca, lista disponíveis/adicionados, funções (admin/membro/observador), adicionar/alterar/remover.
-- `DeleteBoardConfirm.tsx` — confirmação em modal próprio.
-- Todos: fechar só por X ou Cancelar (`onInteractOutside` prevenido).
-
-## Regras respeitadas
-- Sem dados simulados; tudo via Edge Function.
-- Sem `localStorage` para boards/membros/cartões.
-- Visual interno do Kanban preservado.
-- Light/dark preservado.
-- Chaves privadas ficam apenas na Edge Function.
-
-## Deploy
-Após implementar: redeploy da Edge Function (via `EXTERNAL_SUPABASE_ACCESS_TOKEN` como antes) e do frontend.
-
-## Validação
-Fluxo completo: menu → lista → criar quadro → adicionar membros → abrir → criar coluna/cartão → mover → voltar → abrir outro → F5 (persistência).
-
-Confirma que posso implementar assim?
+## Arquivos Alterados
+- `src/routes/comercial.contatos.tsx` (Refatoração da listagem e navegação)
+- `src/routes/comercial.contatos.$leadId.tsx` (Nova rota de detalhes)
+- `src/lib/company-lead-activities.functions.ts` (Serviço de atividades)
+- `src/components/commercial/LeadDetailView.tsx` (Componente principal de visualização)
+- `src/components/commercial/LeadTimeline.tsx` (Timeline de atividades)
