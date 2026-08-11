@@ -1,4 +1,11 @@
 import { useMemo, useState } from "react";
+/**
+ * DIRETRIZES DE TRABALHO:
+ * - Não altere .env, configurações do Supabase, migrations ou esquemas de banco de dados.
+ * - Faça EXCLUSIVAMENTE a alteração solicitada.
+ * - Antes de concluir, liste todos os arquivos alterados.
+ * - Caso identifique erros de conexão com o banco ou Edge Functions, não tente corrigir alterando credenciais.
+ */
 
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
