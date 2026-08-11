@@ -517,11 +517,8 @@ export const ticketsStore = {
   attendTicket(id: string) {
       const op = operator();
       const existing = tickets.find((ticket) => ticket.id === id);
-      if (!existing || (existing.status === "Ocupado" && existing.attendanceRunningSince)) return;
-      const resumed = Boolean(existing.attendanceStartedAt);
-      const description = resumed
-        ? `${op} retomou atendimento.`
-        : `${op} iniciou atendimento.`;
+      if (!existing || existing.attendanceStartedAt) return;
+      const description = `${op} iniciou atendimento.`;
       const patch: Partial<SupportTicket> = {
       owner: op,
       status: "Ocupado",

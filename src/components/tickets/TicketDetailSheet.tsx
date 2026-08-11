@@ -320,7 +320,14 @@ export function TicketDetailSheet({
 
   if (!ticket || !sla || !attendanceTime) return null;
 
-  const timelineEvents = events.filter((e) => e.kind !== "note");
+  const firstAttendanceEventId = [...events]
+    .filter((event) => event.kind === "attend")
+    .sort((left, right) => left.when.localeCompare(right.when))[0]?.id;
+  const timelineEvents = events.filter(
+    (event) =>
+      event.kind !== "note" &&
+      (event.kind !== "attend" || event.id === firstAttendanceEventId),
+  );
 
   const findScheduledEvent = (timelineEvent: TicketEvent) => {
     const candidates = localCalendarEvents.filter(
@@ -418,13 +425,12 @@ export function TicketDetailSheet({
   };
 
   const handleAttend = () => {
-    if (ticket.status === "Ocupado" && ticket.attendanceRunningSince) {
-      toast.info("O atendimento já está em andamento.");
+    if (ticket.attendanceStartedAt) {
+      toast.info("O atendimento deste chamado já foi iniciado.");
       return;
     }
-    const resumed = Boolean(ticket.attendanceStartedAt);
     ticketsStore.attendTicket(ticket.id);
-    toast.success(resumed ? "Atendimento retomado" : "Atendimento iniciado");
+    toast.success("Atendimento iniciado");
   };
   // status change removed from side menu; substituted by "Agendar evento" and "Encaminhar a especialista"
   const handleSaveNote = () => {
@@ -657,8 +663,14 @@ export function TicketDetailSheet({
                     label="Iniciar atendimento"
                     collapsed={navCollapsed}
                     active={activeAction === "atender"}
-                    disabled={isFinalized}
-                    title={isFinalized ? "Chamado finalizado" : undefined}
+                    disabled={isFinalized || Boolean(ticket.attendanceStartedAt)}
+                    title={
+                      isFinalized
+                        ? "Chamado finalizado"
+                        : ticket.attendanceStartedAt
+                          ? "Atendimento já iniciado"
+                          : undefined
+                    }
                     onClick={() => {
                       setActiveAction("atender");
                       handleAttend();
@@ -725,8 +737,14 @@ export function TicketDetailSheet({
                 <MobileAction
                   icon={TicketAttendIcon}
                   label="Iniciar atendimento"
-                  disabled={isFinalized}
-                  title={isFinalized ? "Chamado finalizado" : undefined}
+                  disabled={isFinalized || Boolean(ticket.attendanceStartedAt)}
+                  title={
+                    isFinalized
+                      ? "Chamado finalizado"
+                      : ticket.attendanceStartedAt
+                        ? "Atendimento já iniciado"
+                        : undefined
+                  }
                   onClick={handleAttend}
                   highlight
                 />
