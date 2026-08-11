@@ -217,7 +217,7 @@ function InfoField({
   icon: Icon,
 }: {
   label: string;
-  value?: string | null;
+  value?: string | number | null;
   icon?: any;
 }) {
   return (
