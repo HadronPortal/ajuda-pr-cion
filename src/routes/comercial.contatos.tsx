@@ -73,7 +73,7 @@ function CommercialContactsPage() {
         setRows([]);
         setHasNextPage(false);
       } else {
-        const mapped = (data || []).map((row) => mapLeadRow(row));
+        const mapped = (data || []).map((row: any) => mapLeadRow(row));
         setHasNextPage(mapped.length > PAGE_SIZE);
         setRows(mapped.slice(0, PAGE_SIZE));
       }
