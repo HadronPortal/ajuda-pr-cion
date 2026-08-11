@@ -51,7 +51,7 @@ function CommercialContactsPage() {
     let active = true;
     const timer = window.setTimeout(async () => {
       setLoading(true);
-      let query = supabase
+      let query = (supabase as any)
         .from("company_leads")
         .select(leadColumns)
         .range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
