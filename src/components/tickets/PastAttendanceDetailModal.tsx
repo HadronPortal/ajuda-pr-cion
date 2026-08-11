@@ -32,7 +32,11 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import type { SupportTicket, TicketPriority } from "@/lib/support-tickets-data";
-import type { PastAttendance, TicketEvent } from "@/lib/tickets-store";
+import {
+  useTicketEvents,
+  type PastAttendance,
+  type TicketEvent,
+} from "@/lib/tickets-store";
 import { TicketTimelineList } from "./TicketTimelineList";
 
 function getModuleIconByName(module: string): typeof FileText {
@@ -111,6 +115,28 @@ function formatDuration(minutes: number) {
   return `${h}h ${m.toString().padStart(2, "0")}min`;
 }
 
+function plainText(value: string) {
+  if (typeof document === "undefined") return value.replace(/<[^>]*>/g, " ").trim();
+  const element = document.createElement("div");
+  element.innerHTML = value;
+  return (element.textContent || element.innerText || "").trim();
+}
+
+function getClosureSolution(events: TicketEvent[]) {
+  const closedEvent = [...events]
+    .reverse()
+    .find(
+      (event) =>
+        event.kind === "closed" &&
+        event.description.trim().toLowerCase().startsWith("chamado finalizado por"),
+    );
+  if (!closedEvent) return "Solução não informada.";
+
+  const separator = closedEvent.description.indexOf(". ");
+  if (separator < 0) return "Solução não informada.";
+  return plainText(closedEvent.description.slice(separator + 2)) || "Solução não informada.";
+}
+
 function InfoRow({
   icon: Icon,
   label,
@@ -148,6 +174,7 @@ export function PastAttendanceDetailModal({
   attendance: PastAttendance | null;
   ticket: SupportTicket | null;
 }) {
+  const recordedEvents = useTicketEvents(attendance?.id);
   if (!attendance) return null;
 
   const h = hashString(attendance.id);
@@ -169,11 +196,11 @@ export function PastAttendanceDetailModal({
     : Number.isFinite(startedTime)
       ? Math.max(0, Math.round((closedTime - startedTime) / 60000))
       : null;
-  const problem = PROBLEM_TEMPLATES[h % PROBLEM_TEMPLATES.length];
-  const solution = SOLUTION_TEMPLATES[h % SOLUTION_TEMPLATES.length];
+  const problem = plainText(attendance.description?.trim() || "") || "Descrição não informada.";
+  const solution = getClosureSolution(recordedEvents);
   const ModuleIcon = getModuleIconByName(attendance.module);
 
-  const timelineEvents: TicketEvent[] = [
+  const fallbackTimelineEvents: TicketEvent[] = [
     {
       id: `${attendance.id}-evt-created`,
       kind: "created",
@@ -216,6 +243,8 @@ export function PastAttendanceDetailModal({
     },
   ];
 
+  const timelineEvents = recordedEvents.length > 0 ? recordedEvents : fallbackTimelineEvents;
+
   const copySolution = async () => {
     try {
       await navigator.clipboard.writeText(solution);
@@ -227,7 +256,7 @@ export function PastAttendanceDetailModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[90vh] w-[calc(100vw-1rem)] max-w-none flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-card p-0 shadow-[0_30px_80px_rgba(0,0,0,0.35)] sm:w-[calc(100vw-2rem)] md:w-[880px] lg:w-[960px] [&>button]:hidden">
+      <DialogContent className="flex max-h-[90vh] w-[calc(100vw-1rem)] max-w-none flex-col gap-0 !overflow-hidden rounded-2xl border border-border bg-card p-0 shadow-[0_30px_80px_rgba(0,0,0,0.35)] sm:w-[calc(100vw-2rem)] md:w-[880px] lg:w-[960px] [&>button]:hidden">
         <DialogTitle className="sr-only">
           Detalhes do atendimento {attendance.protocol}
         </DialogTitle>

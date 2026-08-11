@@ -462,7 +462,7 @@ export function TicketDetailSheet({
               event.preventDefault();
             }
           }}
-          className="grid max-h-none w-[92vw] max-w-[1500px] gap-4 border-0 bg-transparent p-0 shadow-none xl:grid-cols-[minmax(0,1fr)_360px] xl:gap-6 [&>button]:hidden"
+          className="grid max-h-none w-[92vw] max-w-[1500px] gap-4 !overflow-visible border-0 bg-transparent p-0 shadow-none xl:grid-cols-[minmax(0,1fr)_360px] xl:gap-6 [&>button]:hidden"
         >
           <DialogTitle className="sr-only">Detalhes do chamado {ticket.protocol}</DialogTitle>
 

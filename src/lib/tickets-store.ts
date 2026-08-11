@@ -862,7 +862,7 @@ export function ticketToPastAttendance(t: SupportTicket): PastAttendance {
     operator: t.owner,
     date: t.openedAt,
     protocol: t.protocol,
-    description: t.subject,
+    description: t.description?.trim() || t.subject,
     contact: t.contact || "Não informado",
     closedAt: t.closedAt ?? null,
     attendanceStartedAt: t.attendanceStartedAt ?? null,
