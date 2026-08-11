@@ -341,6 +341,9 @@ export function CompanyLeadsTab() {
   };
 
   const updateStage = async (lead: CompanyLead, stage: CompanyLeadStage) => {
+    // Apenas permitido na aba Prospecção via grid/kanban (se implementado)
+    // Mas aqui na listagem de contatos comerciais a regra pede para remover o seletor editável.
+    // Esta função permanece para uso em outros contextos se necessário.
     const previous = leads;
     setLeads((items) => items.map((item) => (item.id === lead.id ? { ...item, stage } : item)));
     try {
