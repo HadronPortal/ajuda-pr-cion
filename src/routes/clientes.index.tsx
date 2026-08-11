@@ -2398,7 +2398,7 @@ function SupportRowsCompact({
           size="sm"
           className="h-8 cursor-pointer rounded-full bg-primary px-4 text-xs font-medium text-primary-foreground hover:bg-primary/90"
         >
-          <Link to="/chamados/novo" search={{}}>Novo chamado</Link>
+          <Link to="/chamados/novo" search={() => ({})}>Novo chamado</Link>
         </Button>
       </div>
     );

@@ -341,6 +341,9 @@ export function CompanyLeadsTab() {
   };
 
   const updateStage = async (lead: CompanyLead, stage: CompanyLeadStage) => {
+    // Apenas permitido na aba Prospecção via grid/kanban (se implementado)
+    // Mas aqui na listagem de contatos comerciais a regra pede para remover o seletor editável.
+    // Esta função permanece para uso em outros contextos se necessário.
     const previous = leads;
     setLeads((items) => items.map((item) => (item.id === lead.id ? { ...item, stage } : item)));
     try {
@@ -590,7 +593,7 @@ export function CompanyLeadsTab() {
           <Badge
             variant="outline"
             className={cn(
-              "font-medium",
+              "font-medium pointer-events-none cursor-default",
               lead.stage === "negocio_fechado"
                 ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
                 : lead.stage === "sem_interesse"
@@ -1265,14 +1268,14 @@ export function CompanyLeadsTab() {
                     </Button>
                   </div>
                   <div className="grid gap-x-8 gap-y-4 sm:grid-cols-2">
-                    <div>
+                    <div className="sm:col-span-2">
                       <div className="text-xs uppercase text-muted-foreground">CNAE principal</div>
                       <div className="mt-1 text-sm">
                         {selectedLead.cnae_code || "Não informado"} ·{" "}
                         {selectedLead.cnae_description || "Sem descrição"}
                       </div>
                     </div>
-                    <div>
+                    <div className="sm:col-span-2">
                       <div className="text-xs uppercase text-muted-foreground">
                         CNAEs secundários
                       </div>
