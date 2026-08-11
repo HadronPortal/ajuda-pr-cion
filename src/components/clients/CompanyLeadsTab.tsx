@@ -1268,14 +1268,14 @@ export function CompanyLeadsTab() {
                     </Button>
                   </div>
                   <div className="grid gap-x-8 gap-y-4 sm:grid-cols-2">
-                    <div>
+                    <div className="sm:col-span-2">
                       <div className="text-xs uppercase text-muted-foreground">CNAE principal</div>
                       <div className="mt-1 text-sm">
                         {selectedLead.cnae_code || "Não informado"} ·{" "}
                         {selectedLead.cnae_description || "Sem descrição"}
                       </div>
                     </div>
-                    <div>
+                    <div className="sm:col-span-2">
                       <div className="text-xs uppercase text-muted-foreground">
                         CNAEs secundários
                       </div>
