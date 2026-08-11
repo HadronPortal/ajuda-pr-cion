@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
@@ -27,7 +27,7 @@ export type CompanyLeadActivity = {
 export const getLeadActivities = createServerFn({ method: "GET" })
   .inputValidator((data) => z.object({ leadId: z.string().uuid() }).parse(data))
   .handler(async ({ data }) => {
-    const { data: activities, error } = await supabase
+    const { data: activities, error } = await (supabase as any)
       .from("company_lead_activities")
       .select("*")
       .eq("lead_id", data.leadId)

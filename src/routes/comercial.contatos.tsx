@@ -20,7 +20,7 @@ import {
   type CompanyLeadDetails,
   type CompanyLeadStage,
 } from "@/lib/company-leads-api";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/comercial/contatos")({ component: CommercialContactsPage });
 
@@ -51,7 +51,7 @@ function CommercialContactsPage() {
     let active = true;
     const timer = window.setTimeout(async () => {
       setLoading(true);
-      let query = supabase
+      let query = (supabase as any)
         .from("company_leads")
         .select(leadColumns)
         .range(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
@@ -73,7 +73,7 @@ function CommercialContactsPage() {
         setRows([]);
         setHasNextPage(false);
       } else {
-        const mapped = (data || []).map((row) => mapLeadRow(row));
+        const mapped = (data || []).map((row: any) => mapLeadRow(row));
         setHasNextPage(mapped.length > PAGE_SIZE);
         setRows(mapped.slice(0, PAGE_SIZE));
       }

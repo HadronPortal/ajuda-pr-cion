@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 
 // Client-side wrapper around the `kanban-api` Supabase Edge Function.
 // The Edge Function uses SUPABASE_SERVICE_ROLE_KEY on the server; the
@@ -159,7 +159,7 @@ export type BoardMember = {
 
 export const loadKanbanBoard = async (input: Wrapped<{ boardId: string }>) => {
   const { boardId } = unwrap(input);
-  const { data, error } = await supabase.rpc("load_kanban_board_payload", {
+  const { data, error } = await (supabase as any).rpc("load_kanban_board_payload", {
     target_board_id: boardId,
   });
   if (error || !data) throw new KanbanUnavailableError();
@@ -281,7 +281,7 @@ export const saveKanbanCard = async (input: Wrapped<{
   relatedVersions?: Array<{ id: string; version: string; date: string; note: string }>;
 }>) => {
   const payload = unwrap(input);
-  const { data, error } = await supabase.rpc("save_kanban_card_payload_v2", {
+  const { data, error } = await (supabase as any).rpc("save_kanban_card_payload_v2", {
     payload,
   });
 
