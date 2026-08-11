@@ -439,11 +439,13 @@ function CalendarPage() {
     setSelectedDate(dateKey(next.getFullYear(), next.getMonth(), 1));
   };
 
-  const detailIsLocal = detailEvent ? isLocalEvent(detailEvent.id) : false;
+  const detailIsLocal = detailEvent
+    ? isLocalEvent(detailEvent.id) || Boolean(detailEvent.editable)
+    : false;
   const detailTone = detailEvent ? getEventTone(detailEvent) : null;
 
   const persistEvent = (event: CalendarEvent) => {
-    if (isLocalEvent(event.id)) updateLocalEvent(event.id, event);
+    if (isLocalEvent(event.id) || event.editable) updateLocalEvent(event.id, event);
     else addLocalEvent(event);
     setDetailEvent(event);
   };

@@ -51,6 +51,7 @@ export type CalendarEvent = {
   report?: EventReport;
   cancellationReason?: string;
   cancelledAt?: string;
+  editable?: boolean;
 };
 
 /** Convidado do agendamento, sempre originado de tab_colaboradores. */

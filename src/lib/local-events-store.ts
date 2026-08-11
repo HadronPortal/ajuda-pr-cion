@@ -1,5 +1,7 @@
-import { useSyncExternalStore } from "react";
+import { useEffect, useSyncExternalStore } from "react";
+import { toast } from "sonner";
 import type { CalendarEvent } from "@/lib/calendar-events";
+import { listCrmCalendarEvents, saveCrmCalendarEvent } from "@/lib/calendar-api";
 import {
   createReservation,
   createUsageForAppointment,
@@ -7,14 +9,14 @@ import {
   removeFleetRecordsForAppointments,
 } from "@/lib/fleet-store";
 
-
 const STORAGE_KEY = "procion.local-calendar-events.v2";
 const CHANGE_EVENT = "procion:calendar-events-changed";
-const TEST_EVENTS_CLEANUP_KEY = "procion.test-events-cleanup.2026-08-11";
+const TEST_EVENTS_CLEANUP_KEY = "procion.test-events-cleanup.2026-08-11-v2";
 
 const EMPTY: CalendarEvent[] = [];
 
 let cache: CalendarEvent[] | null = null;
+let hydrationPromise: Promise<void> | null = null;
 const listeners = new Set<() => void>();
 
 function read(): CalendarEvent[] {
@@ -28,13 +30,8 @@ function read(): CalendarEvent[] {
       : EMPTY;
 
     if (!window.localStorage.getItem(TEST_EVENTS_CLEANUP_KEY)) {
-      const testEventIds = events
-        .map((event) => event.id)
-        .filter((id) => {
-          const value = String(id);
-          return value.startsWith("local-") || value.startsWith("ticket-");
-        });
-      cache = events.filter((event) => !testEventIds.includes(event.id));
+      const testEventIds = events.map((event) => event.id);
+      cache = [];
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(cache));
       removeFleetRecordsForAppointments(testEventIds);
       window.localStorage.setItem(TEST_EVENTS_CLEANUP_KEY, new Date().toISOString());
@@ -62,10 +59,16 @@ function write(next: CalendarEvent[]) {
 export function addLocalEvent(event: Omit<CalendarEvent, "id"> & { id?: string | number }) {
   const created: CalendarEvent = {
     ...event,
-    id: event.id ?? `local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    id: event.id ?? crypto.randomUUID(),
     status: event.status ?? "Agendado",
+    editable: true,
   };
   write([...read(), created]);
+  void saveCrmCalendarEvent(created).catch((error) => {
+    write(read().filter((item) => String(item.id) !== String(created.id)));
+    console.error("[calendar] Nao foi possivel salvar o agendamento no Supabase.", error);
+    toast.error("Nao foi possivel salvar o agendamento no banco.");
+  });
 
   if (created.needsDisplacement && !getUsageByAppointment(created.id)) {
     const destination = created.address
@@ -99,7 +102,6 @@ export function addLocalEvent(event: Omit<CalendarEvent, "id"> & { id?: string |
     }
   }
 
-
   return created;
 }
 
@@ -110,12 +112,33 @@ export function updateLocalEvent(
 ): CalendarEvent | null {
   const current = read();
   const index = current.findIndex((event) => String(event.id) === String(id));
-  if (index < 0) return null;
-  const updated = { ...current[index], ...patch, id: current[index].id };
+  const base = index >= 0 ? current[index] : ({ ...patch, id } as CalendarEvent);
+  const updated = { ...base, ...patch, id, editable: true };
   const next = [...current];
-  next[index] = updated;
+  if (index >= 0) next[index] = updated;
+  else next.push(updated);
   write(next);
+  void saveCrmCalendarEvent(updated).catch((error) => {
+    write(current);
+    console.error("[calendar] Nao foi possivel atualizar o agendamento no Supabase.", error);
+    toast.error("Nao foi possivel atualizar o agendamento no banco.");
+  });
   return updated;
+}
+
+function hydratePersistedEvents() {
+  if (typeof window === "undefined" || hydrationPromise) return;
+  hydrationPromise = listCrmCalendarEvents()
+    .then((events) => {
+      const persisted = events.filter((event) => event.editable);
+      if (!persisted.length) return;
+      const merged = new Map(read().map((event) => [String(event.id), event]));
+      persisted.forEach((event) => merged.set(String(event.id), event));
+      write([...merged.values()]);
+    })
+    .catch((error) => {
+      console.error("[calendar] Nao foi possivel carregar os agendamentos salvos.", error);
+    });
 }
 
 /** Indica se o evento é local (editável/cancelável pelo usuário). */
@@ -145,7 +168,11 @@ function subscribe(listener: () => void) {
 }
 
 export function useLocalEvents(): CalendarEvent[] {
-  return useSyncExternalStore(subscribe, read, () => EMPTY);
+  const events = useSyncExternalStore(subscribe, read, () => EMPTY);
+  useEffect(() => {
+    hydratePersistedEvents();
+  }, []);
+  return events;
 }
 
 export function useLocalEventsForClient(clientId?: string): CalendarEvent[] {

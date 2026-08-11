@@ -34,7 +34,6 @@ const selectClass =
   "h-9 w-full cursor-pointer rounded-md border border-input bg-background px-3 text-[13px] outline-none focus:ring-2 focus:ring-ring";
 const preventOutsideClose = (event: Event) => event.preventDefault();
 
-
 export function ScheduleEventModal({
   open,
   onOpenChange,
@@ -55,7 +54,10 @@ export function ScheduleEventModal({
   const [module, setModule] = useState(defaults.module);
   const [submodule, setSubmodule] = useState(defaults.submodule);
   const [description, setDescription] = useState("");
-  const descriptionCorrection = useSpellCorrection({ value: description, onChange: setDescription });
+  const descriptionCorrection = useSpellCorrection({
+    value: description,
+    onChange: setDescription,
+  });
   const [reminder, setReminder] = useState(true);
 
   const availableSubs = modulesMap[module] ?? [];
@@ -65,7 +67,6 @@ export function ScheduleEventModal({
     windowStart,
     windowEnd,
   } = useVehicleAvailability(date, startTime, endTime);
-
 
   const changeModule = (value: string) => {
     setModule(value);
@@ -103,7 +104,7 @@ export function ScheduleEventModal({
 
     let vehicleLabel: string | undefined;
     let reservationId: string | undefined;
-    const eventId = `ticket-${ticket.id}-${Date.now()}`;
+    const eventId = crypto.randomUUID();
 
     if (vehicleId !== NO_VEHICLE) {
       const vehicle = vehicles.find((v) => v.id === vehicleId);
@@ -282,7 +283,6 @@ export function ScheduleEventModal({
                   onChange={setVehicleId}
                 />
               </Field>
-
             )}
           </div>
           <Field label="Observações">
@@ -298,8 +298,11 @@ export function ScheduleEventModal({
               placeholder="Objetivo, orientações e informações para o atendimento..."
               className="min-h-[64px] w-full resize-none rounded-md border border-input bg-background p-2.5 text-[13px] outline-none focus:ring-2 focus:ring-ring"
             />
-            <CorrectionHint correcting={descriptionCorrection.correcting} corrected={descriptionCorrection.corrected} onUndo={descriptionCorrection.undo} />
-
+            <CorrectionHint
+              correcting={descriptionCorrection.correcting}
+              corrected={descriptionCorrection.corrected}
+              onUndo={descriptionCorrection.undo}
+            />
           </Field>
         </div>
         <DialogFooter className="flex shrink-0 items-center justify-between gap-3 border-t border-border bg-card px-5 py-2.5 sm:justify-between">

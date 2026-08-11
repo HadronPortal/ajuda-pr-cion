@@ -1,19 +1,7 @@
 import { supabase } from "@/lib/supabase";
+import type { CalendarEvent } from "@/lib/calendar-events";
 
-export type CrmCalendarEvent = {
-  id: string;
-  date: string;
-  time: string;
-  end: string;
-  type: "Visita presencial" | "Reunião remota" | "Reunião na Prócion" | "Pessoal";
-  origin: "Administração" | "Suporte" | "Comercial";
-  operator: string;
-  title: string;
-  client?: string;
-  status?: "Agendado" | "Concluído" | "Cancelado";
-  description?: string;
-  guests?: string[];
-};
+export type CrmCalendarEvent = CalendarEvent;
 
 const typeLabels: Record<string, CrmCalendarEvent["type"]> = {
   visit: "Visita presencial",
@@ -48,8 +36,31 @@ export async function listCrmCalendarEvents(): Promise<CrmCalendarEvent[]> {
     status: statusLabels[String(event.status || "")] || "Agendado",
     description: event.description ? String(event.description) : undefined,
     guests: event.guests
-      ? String(event.guests).split(/[,;]+/).map((guest) => guest.trim()).filter(Boolean)
+      ? String(event.guests)
+          .split(/[,;]+/)
+          .map((guest) => guest.trim())
+          .filter(Boolean)
       : undefined,
+    clientId: event.clientId ? String(event.clientId) : undefined,
+    ticketId: event.ticketId ? String(event.ticketId) : undefined,
+    responsible: event.responsible ? String(event.responsible) : undefined,
+    vehicleId: event.vehicleId ? String(event.vehicleId) : undefined,
+    address: event.address ? String(event.address) : undefined,
+    meetingLink: event.meetingLink ? String(event.meetingLink) : undefined,
+    platform: event.platform ? String(event.platform) : undefined,
+    room: event.room ? String(event.room) : undefined,
+    cancellationReason: event.cancellationReason ? String(event.cancellationReason) : undefined,
+    cancelledAt: event.cancelledAt ? String(event.cancelledAt) : undefined,
+    report:
+      event.report && typeof event.report === "object"
+        ? (event.report as CalendarEvent["report"])
+        : undefined,
+    editable: Boolean(event.editable),
   }));
 }
 
+export async function saveCrmCalendarEvent(event: CalendarEvent): Promise<string> {
+  const { data, error } = await supabase.rpc("save_crm_calendar_event", { p_event: event });
+  if (error) throw error;
+  return String(data);
+}
