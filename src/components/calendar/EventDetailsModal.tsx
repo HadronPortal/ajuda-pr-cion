@@ -1,9 +1,18 @@
-import { useMemo, type ReactNode } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type Dispatch,
+  type ReactNode,
+  type SetStateAction,
+} from "react";
 import { useNavigate } from "@tanstack/react-router";
 import {
   CalendarDays,
   Car,
+  CheckCircle2,
   ExternalLink,
+  FileText,
   KeyRound,
   Link2,
   MapPin,
@@ -16,6 +25,10 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogTitle } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import { cn } from "@/lib/utils";
 import {
@@ -62,6 +75,7 @@ export function EventDetailsModal({
   onOpenChange,
   onEdit,
   onCancelEvent,
+  onSaveReport,
   canEdit = false,
   canCancel = false,
   onPickupVehicle,
@@ -71,15 +85,46 @@ export function EventDetailsModal({
   onOpenChange: (open: boolean) => void;
   onEdit?: (event: CalendarEvent) => void;
   onCancelEvent?: (event: CalendarEvent) => void;
+  onSaveReport?: (event: CalendarEvent, completed: boolean) => void;
   canEdit?: boolean;
   canCancel?: boolean;
   /** Disponível apenas quando existe veículo reservado e a retirada é possível. */
   onPickupVehicle?: (event: CalendarEvent) => void;
 }) {
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+  const [report, setReport] = useState({
+    permission: "Clientes" as "Público" | "Clientes" | "Empresa",
+    priority: "Baixa" as "Baixa" | "Média" | "Alta",
+    option: "",
+    version: "",
+    startedAt: "",
+    endedAt: "",
+    contact: "",
+    notes: "",
+    completed: false,
+  });
   const navigate = useNavigate();
   const tickets = useTickets();
   const usages = useUsages();
   const reservations = useReservations();
+
+  useEffect(() => {
+    if (!event) return;
+    setCancelReason(event.cancellationReason ?? "");
+    setReport({
+      permission: event.report?.permission ?? "Clientes",
+      priority: event.report?.priority ?? "Baixa",
+      option: event.report?.option ?? "",
+      version: event.report?.version ?? "",
+      startedAt: event.report?.startedAt ?? event.time,
+      endedAt: event.report?.endedAt ?? event.end,
+      contact: event.report?.contact ?? "",
+      notes: event.report?.notes ?? "",
+      completed: event.report?.completed ?? false,
+    });
+  }, [event]);
 
   const protocol = event ? (event.protocol ?? protocolFromTitle(event.title)) : undefined;
   const ticket = useMemo(() => {
@@ -118,195 +163,471 @@ export function EventDetailsModal({
     (!usage || usage.status === "aguardando_retirada") &&
     tone !== "cancelled";
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        onPointerDownOutside={preventOutsideClose}
-        onInteractOutside={preventOutsideClose}
-        style={{ maxHeight: "calc(100vh - 3rem)" }}
-        className="flex w-[calc(100vw-2rem)] max-w-[680px] flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-card p-0 shadow-[0_30px_80px_rgba(0,0,0,0.35)] [&>button]:hidden"
-      >
-        <DialogTitle className="sr-only">Detalhes do agendamento</DialogTitle>
-        <DetailModalHeader
-          dense
-          icon={Icon}
-          title={event.title}
-          protocol={protocol ?? ticket?.protocol}
-          onClose={() => onOpenChange(false)}
-          meta={
-            <>
-              <span>{formatDate(event.date)}</span>
-              <span>·</span>
-              <span className="tabular-nums">
-                {event.time} às {event.end}
-              </span>
-            </>
-          }
-          chips={
-            <>
-              <Badge variant="secondary" className="h-5 px-1.5 text-[10px]">
-                {event.type}
-              </Badge>
-              <span
-                className={cn(
-                  "rounded px-1.5 py-0.5 text-[10px] font-medium",
-                  toneStyle.soft,
-                  toneStyle.text,
-                )}
-              >
-                {EVENT_TONE_LABEL[tone]}
-              </span>
-            </>
-          }
-        />
+  const submitReport = (completed: boolean) => {
+    onSaveReport?.(
+      {
+        ...event,
+        status: completed || report.completed ? "Concluído" : event.status,
+        report: {
+          ...report,
+          completed: completed || report.completed,
+          completedAt: new Date().toISOString(),
+        },
+      },
+      completed,
+    );
+    setReportOpen(false);
+  };
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Info icon={CalendarDays} label="Data">
-              {formatDate(event.date)}
-            </Info>
-            <Info icon={CalendarDays} label="Horário">
-              <span className="tabular-nums">
-                {event.time} às {event.end}
-              </span>
-            </Info>
-            <Info icon={UserRound} label="Responsável">
-              {event.responsible || event.operator || "—"}
-            </Info>
-            <Info icon={Ticket} label="Origem">
-              {event.origin}
-            </Info>
-            {(event.client || ticket?.clientName) && (
-              <Info icon={UsersRound} label="Cliente / empresa" className="sm:col-span-2">
-                {event.client ||
-                  [ticket?.clientCode, ticket?.clientName].filter(Boolean).join(" · ")}
+  return (
+    <>
+      <Dialog open={open && !cancelOpen && !reportOpen} onOpenChange={onOpenChange}>
+        <DialogContent
+          onPointerDownOutside={preventOutsideClose}
+          onInteractOutside={preventOutsideClose}
+          style={{ maxHeight: "calc(100vh - 3rem)" }}
+          className="flex w-[calc(100vw-2rem)] max-w-[680px] flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-card p-0 shadow-[0_30px_80px_rgba(0,0,0,0.35)] [&>button]:hidden"
+        >
+          <DialogTitle className="sr-only">Detalhes do agendamento</DialogTitle>
+          <DetailModalHeader
+            dense
+            icon={Icon}
+            title={event.title}
+            protocol={protocol ?? ticket?.protocol}
+            onClose={() => onOpenChange(false)}
+            meta={
+              <>
+                <span>{formatDate(event.date)}</span>
+                <span>·</span>
+                <span className="tabular-nums">
+                  {event.time} às {event.end}
+                </span>
+              </>
+            }
+            chips={
+              <>
+                <Badge variant="secondary" className="h-5 px-1.5 text-[10px]">
+                  {event.type}
+                </Badge>
+                <span
+                  className={cn(
+                    "rounded px-1.5 py-0.5 text-[10px] font-medium",
+                    toneStyle.soft,
+                    toneStyle.text,
+                  )}
+                >
+                  {EVENT_TONE_LABEL[tone]}
+                </span>
+              </>
+            }
+          />
+
+          <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Info icon={CalendarDays} label="Data">
+                {formatDate(event.date)}
               </Info>
-            )}
-            {guestLabels.length > 0 && (
-              <Info icon={UsersRound} label="Convidados" className="sm:col-span-2">
-                <span className="flex flex-wrap gap-1">
-                  {guestLabels.map((label) => (
-                    <Badge key={label} variant="secondary" className="h-5 px-1.5 text-[10px]">
-                      {label}
-                    </Badge>
-                  ))}
+              <Info icon={CalendarDays} label="Horário">
+                <span className="tabular-nums">
+                  {event.time} às {event.end}
                 </span>
               </Info>
-            )}
-            {event.address && (
-              <Info icon={MapPin} label="Endereço" className="sm:col-span-2">
-                {event.address}
+              <Info icon={UserRound} label="Responsável">
+                {event.responsible || event.operator || "—"}
               </Info>
-            )}
-            {event.meetingLink && (
-              <Info icon={Link2} label="Link da reunião" className="sm:col-span-2">
-                <a
-                  href={event.meetingLink}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="cursor-pointer text-blue-600 no-underline hover:opacity-80 dark:text-blue-400"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {event.meetingLink}
-                </a>
+              <Info icon={Ticket} label="Origem">
+                {event.origin}
               </Info>
-            )}
-            {event.room && (
-              <Info icon={MapPin} label="Sala">
-                {event.room}
-              </Info>
-            )}
-            {event.platform && (
-              <Info icon={Link2} label="Plataforma">
-                {event.platform}
-              </Info>
-            )}
-            {event.description && (
-              <Info icon={CalendarDays} label="Descrição e observações" className="sm:col-span-2">
-                <span className="whitespace-pre-wrap">{plainText(event.description)}</span>
-              </Info>
-            )}
-            {vehicle && (
-              <Info icon={Car} label="Veículo reservado" className="sm:col-span-2">
-                {vehicle.model} · {vehicle.plate}
-              </Info>
-            )}
-            {vehicle && (
-              <>
-                <Info icon={Car} label="Saída prevista">
-                  {formatFleetDateTime(departureRef) || "—"}
+              {(event.client || ticket?.clientName) && (
+                <Info icon={UsersRound} label="Cliente / empresa" className="sm:col-span-2">
+                  {event.client ||
+                    [ticket?.clientCode, ticket?.clientName].filter(Boolean).join(" · ")}
                 </Info>
-                <Info icon={Car} label="Devolução prevista">
-                  {formatFleetDateTime(returnRef) || "—"}
+              )}
+              {guestLabels.length > 0 && (
+                <Info icon={UsersRound} label="Convidados" className="sm:col-span-2">
+                  <span className="flex flex-wrap gap-1">
+                    {guestLabels.map((label) => (
+                      <Badge key={label} variant="secondary" className="h-5 px-1.5 text-[10px]">
+                        {label}
+                      </Badge>
+                    ))}
+                  </span>
                 </Info>
-              </>
-            )}
+              )}
+              {event.address && (
+                <Info icon={MapPin} label="Endereço" className="sm:col-span-2">
+                  {event.address}
+                </Info>
+              )}
+              {event.meetingLink && (
+                <Info icon={Link2} label="Link da reunião" className="sm:col-span-2">
+                  <a
+                    href={event.meetingLink}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="cursor-pointer text-blue-600 no-underline hover:opacity-80 dark:text-blue-400"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {event.meetingLink}
+                  </a>
+                </Info>
+              )}
+              {event.room && (
+                <Info icon={MapPin} label="Sala">
+                  {event.room}
+                </Info>
+              )}
+              {event.platform && (
+                <Info icon={Link2} label="Plataforma">
+                  {event.platform}
+                </Info>
+              )}
+              {event.description && (
+                <Info icon={CalendarDays} label="Descrição e observações" className="sm:col-span-2">
+                  <span className="whitespace-pre-wrap">{plainText(event.description)}</span>
+                </Info>
+              )}
+              {vehicle && (
+                <Info icon={Car} label="Veículo reservado" className="sm:col-span-2">
+                  {vehicle.model} · {vehicle.plate}
+                </Info>
+              )}
+              {vehicle && (
+                <>
+                  <Info icon={Car} label="Saída prevista">
+                    {formatFleetDateTime(departureRef) || "—"}
+                  </Info>
+                  <Info icon={Car} label="Devolução prevista">
+                    {formatFleetDateTime(returnRef) || "—"}
+                  </Info>
+                </>
+              )}
+            </div>
           </div>
-        </div>
 
-        <DialogFooter className="flex-wrap gap-2 border-t border-border bg-card px-5 py-3">
-          {ticket && (
+          <DialogFooter className="flex-wrap gap-2 border-t border-border bg-card px-5 py-3">
+            {ticket && (
+              <Button
+                variant="outline"
+                className="h-9 cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onOpenChange(false);
+                  navigate({ to: "/chamados", search: { ticket: ticket.id } });
+                }}
+              >
+                <ExternalLink className="mr-1.5 h-4 w-4" />
+                Ver chamado
+              </Button>
+            )}
+            {canPickup && (
+              <Button
+                className="h-9 cursor-pointer bg-blue-600 text-white hover:bg-blue-700"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onPickupVehicle?.(event);
+                }}
+              >
+                <KeyRound className="mr-1.5 h-4 w-4" />
+                Retirar veículo
+              </Button>
+            )}
+            {canEdit && (
+              <Button
+                variant="outline"
+                className="h-9 cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit?.(event);
+                }}
+              >
+                <Pencil className="mr-1.5 h-4 w-4" />
+                Editar agendamento
+              </Button>
+            )}
+            {canCancel && (
+              <Button
+                variant="outline"
+                className="h-9 cursor-pointer border-rose-300 text-rose-600 hover:bg-rose-50 dark:border-rose-900 dark:text-rose-400 dark:hover:bg-rose-950/40"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setCancelOpen(true);
+                }}
+              >
+                <X className="mr-1.5 h-4 w-4" />
+                Cancelar agendamento
+              </Button>
+            )}
+            {canCancel && onSaveReport && (
+              <Button
+                className="h-9 cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setReportOpen(true);
+                }}
+              >
+                <FileText className="mr-1.5 h-4 w-4" />
+                Relatório
+              </Button>
+            )}
             <Button
-              variant="outline"
+              variant="ghost"
               className="h-9 cursor-pointer"
-              onClick={(e) => {
-                e.stopPropagation();
-                onOpenChange(false);
-                navigate({ to: "/chamados", search: { ticket: ticket.id } });
-              }}
+              onClick={() => onOpenChange(false)}
             >
-              <ExternalLink className="mr-1.5 h-4 w-4" />
-              Ver chamado
+              Fechar
             </Button>
-          )}
-          {canPickup && (
-            <Button
-              className="h-9 cursor-pointer bg-blue-600 text-white hover:bg-blue-700"
-              onClick={(e) => {
-                e.stopPropagation();
-                onPickupVehicle?.(event);
-              }}
-            >
-              <KeyRound className="mr-1.5 h-4 w-4" />
-              Retirar veículo
-            </Button>
-          )}
-          {canEdit && (
-            <Button
-              variant="outline"
-              className="h-9 cursor-pointer"
-              onClick={(e) => {
-                e.stopPropagation();
-                onEdit?.(event);
-              }}
-            >
-              <Pencil className="mr-1.5 h-4 w-4" />
-              Editar agendamento
-            </Button>
-          )}
-          {canCancel && (
-            <Button
-              variant="outline"
-              className="h-9 cursor-pointer border-rose-300 text-rose-600 hover:bg-rose-50 dark:border-rose-900 dark:text-rose-400 dark:hover:bg-rose-950/40"
-              onClick={(e) => {
-                e.stopPropagation();
-                onCancelEvent?.(event);
-              }}
-            >
-              <X className="mr-1.5 h-4 w-4" />
-              Cancelar agendamento
-            </Button>
-          )}
-          <Button
-            variant="ghost"
-            className="h-9 cursor-pointer"
-            onClick={() => onOpenChange(false)}
-          >
-            Fechar
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <CancelEventDialog
+        open={cancelOpen}
+        onOpenChange={setCancelOpen}
+        reason={cancelReason}
+        onReasonChange={setCancelReason}
+        onConfirm={() => {
+          onCancelEvent?.({
+            ...event,
+            cancellationReason: cancelReason.trim(),
+            cancelledAt: new Date().toISOString(),
+          });
+          setCancelOpen(false);
+        }}
+      />
+      <EventReportDialog
+        open={reportOpen}
+        onOpenChange={setReportOpen}
+        event={event}
+        report={report}
+        setReport={setReport}
+        onSave={submitReport}
+      />
+    </>
+  );
+}
+
+type ReportDraft = {
+  permission: "Público" | "Clientes" | "Empresa";
+  priority: "Baixa" | "Média" | "Alta";
+  option: string;
+  version: string;
+  startedAt: string;
+  endedAt: string;
+  contact: string;
+  notes: string;
+  completed: boolean;
+};
+
+function CancelEventDialog({
+  open,
+  onOpenChange,
+  reason,
+  onReasonChange,
+  onConfirm,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  reason: string;
+  onReasonChange: (reason: string) => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="w-[calc(100vw-2rem)] max-w-lg gap-0 overflow-hidden p-0">
+        <DialogTitle className="border-b border-border px-5 py-4 text-base">
+          Cancelar agendamento
+        </DialogTitle>
+        <div className="space-y-2 px-5 py-5">
+          <Label htmlFor="calendar-cancel-reason">Motivo do cancelamento</Label>
+          <Textarea
+            id="calendar-cancel-reason"
+            value={reason}
+            onChange={(e) => onReasonChange(e.target.value)}
+            placeholder="Informe por que o agendamento foi cancelado"
+            className="min-h-28 resize-none"
+          />
+        </div>
+        <DialogFooter className="border-t border-border px-5 py-3">
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>
+            Voltar
+          </Button>
+          <Button variant="destructive" disabled={!reason.trim()} onClick={onConfirm}>
+            Confirmar cancelamento
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function EventReportDialog({
+  open,
+  onOpenChange,
+  event,
+  report,
+  setReport,
+  onSave,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  event: CalendarEvent;
+  report: ReportDraft;
+  setReport: Dispatch<SetStateAction<ReportDraft>>;
+  onSave: (completed: boolean) => void;
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="flex max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-3xl flex-col gap-0 overflow-hidden p-0">
+        <DialogTitle className="border-b border-border px-5 py-4 text-base">
+          Relatório do agendamento
+        </DialogTitle>
+        <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-5">
+          <div className="rounded-lg border border-border bg-muted/20 px-4 py-3 text-sm">
+            <p className="font-medium">{event.title}</p>
+            <p className="mt-1 text-muted-foreground">
+              {formatDate(event.date)} · {event.time} às {event.end}
+            </p>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <SelectField
+              label="Permissão"
+              value={report.permission}
+              options={["Público", "Clientes", "Empresa"]}
+              onChange={(permission) =>
+                setReport((p) => ({ ...p, permission: permission as ReportDraft["permission"] }))
+              }
+            />
+            <SelectField
+              label="Prioridade"
+              value={report.priority}
+              options={["Baixa", "Média", "Alta"]}
+              onChange={(priority) =>
+                setReport((p) => ({ ...p, priority: priority as ReportDraft["priority"] }))
+              }
+            />
+          </div>
+          <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-border px-3 py-2.5 text-sm">
+            <Checkbox
+              checked={report.completed}
+              onCheckedChange={(completed) =>
+                setReport((p) => ({ ...p, completed: completed === true }))
+              }
+            />
+            <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+            Concluir agendamento ao salvar
+          </label>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field
+              label="Opção/formulário"
+              value={report.option}
+              onChange={(option) => setReport((p) => ({ ...p, option }))}
+            />
+            <Field
+              label="Versão do Hádron"
+              value={report.version}
+              onChange={(version) => setReport((p) => ({ ...p, version }))}
+              placeholder="Ex.: 2.0 - 30/07/2026"
+            />
+            <Field
+              label="Horário inicial"
+              type="time"
+              value={report.startedAt}
+              onChange={(startedAt) => setReport((p) => ({ ...p, startedAt }))}
+            />
+            <Field
+              label="Horário final"
+              type="time"
+              value={report.endedAt}
+              onChange={(endedAt) => setReport((p) => ({ ...p, endedAt }))}
+            />
+            <div className="sm:col-span-2">
+              <Field
+                label="Contato"
+                value={report.contact}
+                onChange={(contact) => setReport((p) => ({ ...p, contact }))}
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="calendar-report-notes">Observação</Label>
+            <Textarea
+              id="calendar-report-notes"
+              value={report.notes}
+              onChange={(e) => setReport((p) => ({ ...p, notes: e.target.value }))}
+              className="min-h-32 resize-none"
+              placeholder="Descreva o atendimento realizado"
+            />
+          </div>
+        </div>
+        <DialogFooter className="flex-wrap border-t border-border px-5 py-3">
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>
+            Fechar
+          </Button>
+          <Button variant="outline" onClick={() => onSave(false)}>
+            Salvar e continuar
+          </Button>
+          <Button onClick={() => onSave(true)}>Salvar e finalizar</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function Field({
+  label,
+  value,
+  onChange,
+  type = "text",
+  placeholder,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  type?: string;
+  placeholder?: string;
+}) {
+  const id = `event-report-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
+  return (
+    <div className="space-y-2">
+      <Label htmlFor={id}>{label}</Label>
+      <Input
+        id={id}
+        type={type}
+        value={value}
+        placeholder={placeholder}
+        onChange={(e) => onChange(e.target.value)}
+      />
+    </div>
+  );
+}
+
+function SelectField({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  options: string[];
+  onChange: (value: string) => void;
+}) {
+  const id = `event-report-${label.toLowerCase()}`;
+  return (
+    <div className="space-y-2">
+      <Label htmlFor={id}>{label}</Label>
+      <select
+        id={id}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring"
+      >
+        {options.map((option) => (
+          <option key={option}>{option}</option>
+        ))}
+      </select>
+    </div>
   );
 }
 

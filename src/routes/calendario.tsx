@@ -289,7 +289,12 @@ function CalendarPage() {
   const [selectedDate, setSelectedDate] = useState(todayKey);
   const localEvents = useLocalEvents();
   const [events, setEvents] = useState<CalendarEvent[]>(importedEvents);
-  const allEvents = useMemo(() => [...events, ...localEvents], [events, localEvents]);
+  const allEvents = useMemo(() => {
+    const merged = new Map<string, CalendarEvent>();
+    events.forEach((event) => merged.set(String(event.id), event));
+    localEvents.forEach((event) => merged.set(String(event.id), event));
+    return Array.from(merged.values());
+  }, [events, localEvents]);
   const [createOpen, setCreateOpen] = useState(false);
   const [agendaOpen, setAgendaOpen] = useState(false);
   const [detailEvent, setDetailEvent] = useState<CalendarEvent | null>(null);
@@ -437,11 +442,28 @@ function CalendarPage() {
   const detailIsLocal = detailEvent ? isLocalEvent(detailEvent.id) : false;
   const detailTone = detailEvent ? getEventTone(detailEvent) : null;
 
+  const persistEvent = (event: CalendarEvent) => {
+    if (isLocalEvent(event.id)) updateLocalEvent(event.id, event);
+    else addLocalEvent(event);
+    setDetailEvent(event);
+  };
+
   const handleCancelEvent = (event: CalendarEvent) => {
-    updateLocalEvent(event.id, { status: "Cancelado" });
+    persistEvent({ ...event, status: "Cancelado" });
     cancelReservationByEvent(event.id);
     setDetailEvent(null);
     toast.success("Agendamento cancelado");
+  };
+
+  const handleSaveReport = (event: CalendarEvent, completed: boolean) => {
+    persistEvent(event);
+    if (completed || event.report?.completed) {
+      cancelReservationByEvent(event.id);
+      setDetailEvent(null);
+      toast.success("Relatório salvo e agendamento concluído");
+      return;
+    }
+    toast.success("Relatório salvo");
   };
 
   const handlePickupFromDetail = (event: CalendarEvent) => {
@@ -461,7 +483,6 @@ function CalendarPage() {
     setDetailEvent(null);
     fleetActions.openPickup(usage.id);
   };
-
 
   return (
     <AppShell>
@@ -655,7 +676,6 @@ function CalendarPage() {
               </div>
             </section>
           </div>
-
         </SheetContent>
       </Sheet>
 
@@ -697,12 +717,13 @@ function CalendarPage() {
           if (!next) setDetailEvent(null);
         }}
         canEdit={detailIsLocal}
-        canCancel={detailIsLocal && detailTone !== "cancelled" && detailTone !== "done"}
+        canCancel={detailTone !== "cancelled" && detailTone !== "done"}
         onEdit={(event) => {
           setDetailEvent(null);
           setEditingEvent(event);
         }}
         onCancelEvent={handleCancelEvent}
+        onSaveReport={handleSaveReport}
         onPickupVehicle={handlePickupFromDetail}
       />
 
@@ -957,7 +978,13 @@ function CalendarEventPill({ event }: { event: CalendarEvent }) {
   );
 }
 
-function AgendaItem({ event, onOpen }: { event: CalendarEvent; onOpen: (e: CalendarEvent) => void }) {
+function AgendaItem({
+  event,
+  onOpen,
+}: {
+  event: CalendarEvent;
+  onOpen: (e: CalendarEvent) => void;
+}) {
   const tone = getEventTone(event);
   const toneStyle = EVENT_TONE_STYLES[tone];
   const Icon = typeStyles[event.type].icon;
@@ -1070,7 +1097,6 @@ function AgendaItem({ event, onOpen }: { event: CalendarEvent; onOpen: (e: Calen
     </div>
   );
 }
-
 
 // ---------------------------------------------------------------------------
 // Create event dialog

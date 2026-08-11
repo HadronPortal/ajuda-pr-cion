@@ -4,6 +4,19 @@ export type EventType = "Visita presencial" | "Reunião remota" | "Reunião na P
 
 export type EventStatus = "Agendado" | "Concluído" | "Cancelado";
 
+export type EventReport = {
+  permission: "Público" | "Clientes" | "Empresa";
+  priority: "Baixa" | "Média" | "Alta";
+  option: string;
+  version: string;
+  startedAt: string;
+  endedAt: string;
+  contact: string;
+  notes: string;
+  completedAt: string;
+  completed: boolean;
+};
+
 export type CalendarEvent = {
   id: string | number;
   date: string;
@@ -35,6 +48,9 @@ export type CalendarEvent = {
   ticketId?: string;
   /** Protocolo do chamado vinculado. */
   protocol?: string;
+  report?: EventReport;
+  cancellationReason?: string;
+  cancelledAt?: string;
 };
 
 /** Convidado do agendamento, sempre originado de tab_colaboradores. */
@@ -44,7 +60,6 @@ export type EventGuest = {
   email: string | null;
   acronym: string | null;
 };
-
 
 export const PLATFORM_OPTIONS = ["Google Meet", "Microsoft Teams", "Zoom", "AnyDesk"];
 export const ROOM_OPTIONS = ["Sala Diretoria", "Sala Reuniões 1", "Sala Reuniões 2", "Auditório"];
@@ -121,4 +136,3 @@ export function getEventTone(
   if (status === "Agendado" && instant && instant.getTime() >= now.getTime()) return "upcoming";
   return "other";
 }
-
