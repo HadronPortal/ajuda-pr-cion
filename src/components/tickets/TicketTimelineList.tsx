@@ -112,6 +112,7 @@ export function TicketTimelineList({
   onEventSelect,
   onEventCancel,
   onEventReport,
+  getScheduledEventStatus,
 }: {
   events: TicketEvent[];
   variant?: Variant;
@@ -120,6 +121,7 @@ export function TicketTimelineList({
   onEventSelect?: (event: TicketEvent) => void;
   onEventCancel?: (event: TicketEvent) => void;
   onEventReport?: (event: TicketEvent) => void;
+  getScheduledEventStatus?: (event: TicketEvent) => "active" | "completed" | "cancelled";
 }) {
   const sorted = useMemo(() => {
     // Ordena por data/hora real decrescente (mais recente primeiro).
@@ -174,6 +176,9 @@ export function TicketTimelineList({
         const Icon = presentation.icon;
         const isLast = index === sorted.length - 1;
         const isSelectable = event.kind === "scheduled" && Boolean(onEventSelect);
+        const scheduledStatus =
+          event.kind === "scheduled" ? (getScheduledEventStatus?.(event) ?? "active") : "active";
+        const isScheduledActive = scheduledStatus === "active";
 
         return (
           <li
@@ -271,7 +276,7 @@ export function TicketTimelineList({
                     <CalendarClock className="h-3.5 w-3.5" />
                     Ver agendamento
                   </button>
-                  {onEventCancel && (
+                  {isScheduledActive && onEventCancel && (
                     <button
                       type="button"
                       className="inline-flex cursor-pointer items-center gap-1 font-medium text-rose-600 hover:underline dark:text-rose-400"
@@ -284,7 +289,7 @@ export function TicketTimelineList({
                       Cancelar
                     </button>
                   )}
-                  {onEventReport && (
+                  {isScheduledActive && onEventReport && (
                     <button
                       type="button"
                       className="inline-flex cursor-pointer items-center gap-1 font-medium text-primary hover:underline"
@@ -296,6 +301,22 @@ export function TicketTimelineList({
                       <FileText className="h-3.5 w-3.5" />
                       Relatório
                     </button>
+                  )}
+                  {!isScheduledActive && (
+                    <span
+                      className={`inline-flex items-center gap-1 font-medium ${
+                        scheduledStatus === "completed"
+                          ? "text-emerald-600 dark:text-emerald-400"
+                          : "text-rose-600 dark:text-rose-400"
+                      }`}
+                    >
+                      {scheduledStatus === "completed" ? (
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                      ) : (
+                        <Ban className="h-3.5 w-3.5" />
+                      )}
+                      {scheduledStatus === "completed" ? "Concluído" : "Cancelado"}
+                    </span>
                   )}
                 </div>
               )}

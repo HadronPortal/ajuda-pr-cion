@@ -81,6 +81,7 @@ export function EventDetailsModal({
   onPickupVehicle,
   initialAction = "details",
   onViewTicket,
+  hideFooterActions = false,
 }: {
   event: CalendarEvent | null;
   open: boolean;
@@ -94,6 +95,7 @@ export function EventDetailsModal({
   onPickupVehicle?: (event: CalendarEvent) => void;
   initialAction?: "details" | "cancel" | "report";
   onViewTicket?: (ticketId: string) => void;
+  hideFooterActions?: boolean;
 }) {
   const [cancelOpen, setCancelOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
@@ -313,7 +315,7 @@ export function EventDetailsModal({
           </div>
 
           <DialogFooter className="flex-wrap gap-2 border-t border-border bg-card px-5 py-3">
-            {ticket && (
+            {!hideFooterActions && ticket && (
               <Button
                 variant="outline"
                 className="h-9 cursor-pointer"
@@ -331,7 +333,7 @@ export function EventDetailsModal({
                 Ver chamado
               </Button>
             )}
-            {canPickup && (
+            {!hideFooterActions && canPickup && (
               <Button
                 className="h-9 cursor-pointer bg-blue-600 text-white hover:bg-blue-700"
                 onClick={(e) => {
@@ -343,7 +345,7 @@ export function EventDetailsModal({
                 Retirar veículo
               </Button>
             )}
-            {canEdit && (
+            {!hideFooterActions && canEdit && (
               <Button
                 variant="outline"
                 className="h-9 cursor-pointer"
@@ -356,7 +358,7 @@ export function EventDetailsModal({
                 Editar agendamento
               </Button>
             )}
-            {canCancel && (
+            {!hideFooterActions && canCancel && (
               <Button
                 variant="outline"
                 className="h-9 cursor-pointer border-rose-300 text-rose-600 hover:bg-rose-50 dark:border-rose-900 dark:text-rose-400 dark:hover:bg-rose-950/40"
@@ -369,7 +371,7 @@ export function EventDetailsModal({
                 Cancelar agendamento
               </Button>
             )}
-            {canCancel && onSaveReport && (
+            {!hideFooterActions && canCancel && onSaveReport && (
               <Button
                 className="h-9 cursor-pointer"
                 onClick={(e) => {

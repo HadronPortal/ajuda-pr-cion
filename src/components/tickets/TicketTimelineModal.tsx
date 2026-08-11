@@ -13,6 +13,7 @@ export function TicketTimelineModal({
   onEventSelect,
   onEventCancel,
   onEventReport,
+  getScheduledEventStatus,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
@@ -21,6 +22,7 @@ export function TicketTimelineModal({
   onEventSelect?: (event: TicketEvent) => void;
   onEventCancel?: (event: TicketEvent) => void;
   onEventReport?: (event: TicketEvent) => void;
+  getScheduledEventStatus?: (event: TicketEvent) => "active" | "completed" | "cancelled";
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -54,6 +56,7 @@ export function TicketTimelineModal({
             onEventSelect={onEventSelect}
             onEventCancel={onEventCancel}
             onEventReport={onEventReport}
+            getScheduledEventStatus={getScheduledEventStatus}
           />
         </div>
       </DialogContent>

@@ -322,7 +322,7 @@ export function TicketDetailSheet({
 
   const timelineEvents = events.filter((e) => e.kind !== "note");
 
-  const resolveScheduledEvent = (timelineEvent: TicketEvent) => {
+  const findScheduledEvent = (timelineEvent: TicketEvent) => {
     const candidates = localCalendarEvents.filter(
       (calendarEvent) => String(calendarEvent.ticketId ?? "") === String(ticket.id),
     );
@@ -347,12 +347,25 @@ export function TicketDetailSheet({
         : Number.POSITIVE_INFINITY;
       return leftDistance - rightDistance;
     })[0];
-    const calendarEvent = exact ?? closest;
+    return exact ?? closest ?? null;
+  };
+
+  const resolveScheduledEvent = (timelineEvent: TicketEvent) => {
+    const calendarEvent = findScheduledEvent(timelineEvent);
     if (!calendarEvent) {
       toast.error("Não foi possível localizar os detalhes deste agendamento.");
       return null;
     }
     return calendarEvent;
+  };
+
+  const getScheduledEventStatus = (timelineEvent: TicketEvent) => {
+    const calendarEvent = findScheduledEvent(timelineEvent);
+    if (!calendarEvent) return "active" as const;
+    const normalized = String(calendarEvent.status ?? "").toLocaleLowerCase("pt-BR");
+    if (normalized.includes("cancel")) return "cancelled" as const;
+    if (normalized.includes("conclu")) return "completed" as const;
+    return "active" as const;
   };
 
   const openScheduledEventAction = (
@@ -988,6 +1001,7 @@ export function TicketDetailSheet({
                         onEventSelect={openScheduledEvent}
                         onEventCancel={cancelScheduledEvent}
                         onEventReport={reportScheduledEvent}
+                        getScheduledEventStatus={getScheduledEventStatus}
                       />
                     </div>
                   </Section>
@@ -1066,6 +1080,7 @@ export function TicketDetailSheet({
         onEventSelect={openScheduledEvent}
         onEventCancel={cancelScheduledEvent}
         onEventReport={reportScheduledEvent}
+        getScheduledEventStatus={getScheduledEventStatus}
       />
 
       <EventDetailsModal
@@ -1085,6 +1100,7 @@ export function TicketDetailSheet({
           setSelectedCalendarEvent(null);
           setCalendarEventAction("details");
         }}
+        hideFooterActions
       />
 
       <PastAttendanceDetailModal
