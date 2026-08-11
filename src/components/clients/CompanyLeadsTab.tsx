@@ -593,7 +593,7 @@ export function CompanyLeadsTab() {
           <Badge
             variant="outline"
             className={cn(
-              "font-medium",
+              "font-medium pointer-events-none cursor-default",
               lead.stage === "negocio_fechado"
                 ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
                 : lead.stage === "sem_interesse"
