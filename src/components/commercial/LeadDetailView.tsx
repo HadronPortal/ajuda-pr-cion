@@ -1,4 +1,4 @@
-import { Building2, Copy, Globe, Mail, MapPin, Phone, UsersRound, Briefcase } from "lucide-react";
+import { Building2, Copy, Globe, Mail, MapPin, Phone, UsersRound, Briefcase, Activity } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
