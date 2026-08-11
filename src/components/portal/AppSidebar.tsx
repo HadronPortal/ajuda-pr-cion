@@ -165,7 +165,7 @@ export function AppSidebar() {
                         });
                       }}
                       className={cn(
-                        "group relative mx-auto flex h-12 w-12 items-center justify-center rounded-2xl transition-all",
+                        "group relative mx-auto flex h-12 w-12 cursor-pointer items-center justify-center rounded-2xl transition-all",
                         active
                           ? "bg-sidebar-accent text-primary shadow-[0_14px_30px_rgba(11,151,196,0.12)]"
                           : "text-sidebar-foreground hover:bg-sidebar-accent/45 hover:text-primary",
@@ -179,6 +179,7 @@ export function AppSidebar() {
                       title={collapsed ? item.label : undefined}
                       className={cn(
                         "group relative flex h-12 items-center gap-4 rounded-l-lg rounded-r-[26px] px-4 text-[15px] font-semibold transition-all",
+                        (item.label === "Chamados" || item.label === "Comercial") && "cursor-pointer",
                         collapsed && "mx-auto w-12 justify-center rounded-2xl px-0",
                         active
                           ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-[0_14px_30px_rgba(11,151,196,0.12)]"
