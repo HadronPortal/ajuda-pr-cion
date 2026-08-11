@@ -1,3 +1,8 @@
+/**
+ * DIRETRIZES DE TRABALHO:
+ * - Proibido modificar .env, Supabase ou migrations.
+ * - Listar arquivos alterados antes de concluir.
+ */
 import { useMemo, useState } from "react";
 
 import { createFileRoute, Link } from "@tanstack/react-router";
