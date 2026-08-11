@@ -99,6 +99,10 @@ export function AppSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const collapsed = useSidebarCollapsed();
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+  const [collapsedFlyout, setCollapsedFlyout] = useState<{
+    item: NavItem;
+    top: number;
+  } | null>(null);
 
   return (
     <aside
@@ -142,30 +146,59 @@ export function AppSidebar() {
             return (
               <li key={item.to}>
                 <div className="relative">
-                  <Link
-                    to={item.to}
-                    title={collapsed ? item.label : undefined}
-                    className={cn(
-                      "group relative flex h-12 items-center gap-4 rounded-l-lg rounded-r-[26px] px-4 text-[15px] font-semibold transition-all",
-                      collapsed && "mx-auto w-12 justify-center rounded-2xl px-0",
-                      active
-                        ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-[0_14px_30px_rgba(11,151,196,0.12)]"
-                        : "text-sidebar-foreground hover:bg-sidebar-accent/45 hover:text-sidebar-accent-foreground",
-                    )}
-                  >
-                    {active && !collapsed && (
-                      <span className="absolute -left-4 top-1/2 h-9 w-1.5 -translate-y-1/2 rounded-r-full bg-primary" />
-                    )}
-                    <Icon
+                  {collapsed && item.children ? (
+                    <button
+                      type="button"
+                      title={item.label}
+                      aria-label={`Abrir opções de ${item.label}`}
+                      aria-expanded={collapsedFlyout?.item.to === item.to}
+                      onClick={(event) => {
+                        if (collapsedFlyout?.item.to === item.to) {
+                          setCollapsedFlyout(null);
+                          return;
+                        }
+                        const rect = event.currentTarget.getBoundingClientRect();
+                        const height = item.children!.length * 40 + 58;
+                        setCollapsedFlyout({
+                          item,
+                          top: Math.max(12, Math.min(rect.top, window.innerHeight - height - 12)),
+                        });
+                      }}
                       className={cn(
-                        "h-[22px] w-[22px] shrink-0 transition-colors",
+                        "group relative mx-auto flex h-12 w-12 items-center justify-center rounded-2xl transition-all",
                         active
-                          ? "text-primary"
-                          : "text-sidebar-foreground/70 group-hover:text-primary dark:text-sidebar-foreground/85",
+                          ? "bg-sidebar-accent text-primary shadow-[0_14px_30px_rgba(11,151,196,0.12)]"
+                          : "text-sidebar-foreground hover:bg-sidebar-accent/45 hover:text-primary",
                       )}
-                    />
-                    {!collapsed && <span className="min-w-0 flex-1 truncate">{item.label}</span>}
-                  </Link>
+                    >
+                      <Icon className="h-[22px] w-[22px] shrink-0" />
+                    </button>
+                  ) : (
+                    <Link
+                      to={item.to}
+                      title={collapsed ? item.label : undefined}
+                      className={cn(
+                        "group relative flex h-12 items-center gap-4 rounded-l-lg rounded-r-[26px] px-4 text-[15px] font-semibold transition-all",
+                        collapsed && "mx-auto w-12 justify-center rounded-2xl px-0",
+                        active
+                          ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-[0_14px_30px_rgba(11,151,196,0.12)]"
+                          : "text-sidebar-foreground hover:bg-sidebar-accent/45 hover:text-sidebar-accent-foreground",
+                      )}
+                    >
+                      {active && !collapsed && (
+                        <span className="absolute -left-4 top-1/2 h-9 w-1.5 -translate-y-1/2 rounded-r-full bg-primary" />
+                      )}
+                      <Icon
+                        className={cn(
+                          "h-[22px] w-[22px] shrink-0 transition-colors",
+                          active
+                            ? "text-primary"
+                            : "text-sidebar-foreground/70 group-hover:text-primary dark:text-sidebar-foreground/85",
+                        )}
+                      />
+                      {!collapsed && <span className="min-w-0 flex-1 truncate">{item.label}</span>}
+                    </Link>
+                  )}
                   {!collapsed && item.children && (
                     <button
                       type="button"
@@ -210,6 +243,43 @@ export function AppSidebar() {
           })}
         </ul>
       </nav>
+
+      {collapsed && collapsedFlyout && collapsedFlyout.item.children && (
+        <div
+          className="fixed left-[94px] z-50 w-52 overflow-hidden rounded-md border border-border bg-popover text-popover-foreground shadow-xl"
+          style={{ top: collapsedFlyout.top }}
+          role="menu"
+          aria-label={collapsedFlyout.item.label}
+        >
+          <div className="border-b border-border px-4 py-3 text-sm font-semibold">
+            {collapsedFlyout.item.label}
+          </div>
+          <ul className="p-1.5">
+            {collapsedFlyout.item.children.map((child) => {
+              const ChildIcon = child.icon;
+              const childActive = pathname.startsWith(child.to);
+              return (
+                <li key={child.to}>
+                  <Link
+                    to={child.to}
+                    role="menuitem"
+                    onClick={() => setCollapsedFlyout(null)}
+                    className={cn(
+                      "flex h-10 items-center gap-3 rounded-md px-3 text-sm transition-colors",
+                      childActive
+                        ? "bg-accent font-semibold text-primary"
+                        : "text-popover-foreground hover:bg-accent hover:text-accent-foreground",
+                    )}
+                  >
+                    {ChildIcon && <ChildIcon className="h-4 w-4 shrink-0" />}
+                    <span className="truncate">{child.label}</span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
 
       {!collapsed && (
         <div className="animate-fade-in px-6 pb-5">
