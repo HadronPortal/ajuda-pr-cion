@@ -97,8 +97,9 @@ import { useClients } from "@/lib/clients-store";
 import { snapshotCurrentChamadosForTicket } from "@/lib/return-to-ticket";
 import { formatPhoneDisplay } from "@/lib/client-contacts";
 import { EventDetailsModal } from "@/components/calendar/EventDetailsModal";
-import { useLocalEvents } from "@/lib/local-events-store";
+import { updateLocalEvent, useLocalEvents } from "@/lib/local-events-store";
 import type { CalendarEvent } from "@/lib/calendar-events";
+import { cancelReservationByEvent } from "@/lib/fleet-store";
 
 const statusTone: Record<TicketStatus, string> = {
   Atrasado: "bg-destructive/12 text-destructive border-destructive/20",
@@ -252,6 +253,9 @@ export function TicketDetailSheet({
   const [notesOpen, setNotesOpen] = useState(false);
   const [timelineOpen, setTimelineOpen] = useState(false);
   const [selectedCalendarEvent, setSelectedCalendarEvent] = useState<CalendarEvent | null>(null);
+  const [calendarEventAction, setCalendarEventAction] = useState<
+    "details" | "cancel" | "report"
+  >("details");
   const localCalendarEvents = useLocalEvents();
   const [descriptionOpen, setDescriptionOpen] = useState(false);
   const [navCollapsed, setNavCollapsed] = useState(true);
@@ -318,7 +322,7 @@ export function TicketDetailSheet({
 
   const timelineEvents = events.filter((e) => e.kind !== "note");
 
-  const openScheduledEvent = (timelineEvent: TicketEvent) => {
+  const resolveScheduledEvent = (timelineEvent: TicketEvent) => {
     const candidates = localCalendarEvents.filter(
       (calendarEvent) => String(calendarEvent.ticketId ?? "") === String(ticket.id),
     );
@@ -346,10 +350,45 @@ export function TicketDetailSheet({
     const calendarEvent = exact ?? closest;
     if (!calendarEvent) {
       toast.error("Não foi possível localizar os detalhes deste agendamento.");
+      return null;
+    }
+    return calendarEvent;
+  };
+
+  const openScheduledEventAction = (
+    timelineEvent: TicketEvent,
+    action: "details" | "cancel" | "report",
+  ) => {
+    const calendarEvent = resolveScheduledEvent(timelineEvent);
+    if (!calendarEvent) return;
+    setTimelineOpen(false);
+    setCalendarEventAction(action);
+    setSelectedCalendarEvent(calendarEvent);
+  };
+
+  const openScheduledEvent = (timelineEvent: TicketEvent) =>
+    openScheduledEventAction(timelineEvent, "details");
+  const cancelScheduledEvent = (timelineEvent: TicketEvent) =>
+    openScheduledEventAction(timelineEvent, "cancel");
+  const reportScheduledEvent = (timelineEvent: TicketEvent) =>
+    openScheduledEventAction(timelineEvent, "report");
+
+  const handleCancelScheduledEvent = (calendarEvent: CalendarEvent) => {
+    updateLocalEvent(calendarEvent.id, { ...calendarEvent, status: "Cancelado" });
+    cancelReservationByEvent(calendarEvent.id);
+    setSelectedCalendarEvent(null);
+    toast.success("Agendamento cancelado");
+  };
+
+  const handleSaveScheduledReport = (calendarEvent: CalendarEvent, completed: boolean) => {
+    updateLocalEvent(calendarEvent.id, calendarEvent);
+    if (completed || calendarEvent.report?.completed) {
+      cancelReservationByEvent(calendarEvent.id);
+      setSelectedCalendarEvent(null);
+      toast.success("Relatório salvo e agendamento concluído");
       return;
     }
-    setTimelineOpen(false);
-    setSelectedCalendarEvent(calendarEvent);
+    toast.success("Relatório salvo");
   };
 
   const isMine = ticket.owner === currentUser.operator || ticket.lockedBy === currentUser.operator;
@@ -947,6 +986,8 @@ export function TicketDetailSheet({
                         variant="compact"
                         limit={5}
                         onEventSelect={openScheduledEvent}
+                        onEventCancel={cancelScheduledEvent}
+                        onEventReport={reportScheduledEvent}
                       />
                     </div>
                   </Section>
@@ -1023,13 +1064,26 @@ export function TicketDetailSheet({
         ticket={ticket}
         events={timelineEvents}
         onEventSelect={openScheduledEvent}
+        onEventCancel={cancelScheduledEvent}
+        onEventReport={reportScheduledEvent}
       />
 
       <EventDetailsModal
         event={selectedCalendarEvent}
         open={selectedCalendarEvent !== null}
         onOpenChange={(nextOpen) => {
-          if (!nextOpen) setSelectedCalendarEvent(null);
+          if (!nextOpen) {
+            setSelectedCalendarEvent(null);
+            setCalendarEventAction("details");
+          }
+        }}
+        initialAction={calendarEventAction}
+        canCancel
+        onCancelEvent={handleCancelScheduledEvent}
+        onSaveReport={handleSaveScheduledReport}
+        onViewTicket={() => {
+          setSelectedCalendarEvent(null);
+          setCalendarEventAction("details");
         }}
       />
 

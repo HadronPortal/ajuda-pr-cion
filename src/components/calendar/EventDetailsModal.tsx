@@ -79,6 +79,8 @@ export function EventDetailsModal({
   canEdit = false,
   canCancel = false,
   onPickupVehicle,
+  initialAction = "details",
+  onViewTicket,
 }: {
   event: CalendarEvent | null;
   open: boolean;
@@ -90,6 +92,8 @@ export function EventDetailsModal({
   canCancel?: boolean;
   /** Disponível apenas quando existe veículo reservado e a retirada é possível. */
   onPickupVehicle?: (event: CalendarEvent) => void;
+  initialAction?: "details" | "cancel" | "report";
+  onViewTicket?: (ticketId: string) => void;
 }) {
   const [cancelOpen, setCancelOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
@@ -124,7 +128,9 @@ export function EventDetailsModal({
       notes: event.report?.notes ?? "",
       completed: event.report?.completed ?? false,
     });
-  }, [event]);
+    setCancelOpen(initialAction === "cancel");
+    setReportOpen(initialAction === "report");
+  }, [event, initialAction]);
 
   const protocol = event ? (event.protocol ?? protocolFromTitle(event.title)) : undefined;
   const ticket = useMemo(() => {
@@ -314,7 +320,11 @@ export function EventDetailsModal({
                 onClick={(e) => {
                   e.stopPropagation();
                   onOpenChange(false);
-                  navigate({ to: "/chamados", search: { ticket: ticket.id } });
+                  if (onViewTicket) {
+                    onViewTicket(ticket.id);
+                    return;
+                  }
+                  void navigate({ to: "/chamados", search: { ticket: ticket.id } });
                 }}
               >
                 <ExternalLink className="mr-1.5 h-4 w-4" />

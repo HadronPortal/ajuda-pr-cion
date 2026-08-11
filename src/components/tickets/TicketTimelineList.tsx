@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import {
   CalendarClock,
+  Ban,
   CheckCircle2,
   FileText,
   MessageSquare,
@@ -109,12 +110,16 @@ export function TicketTimelineList({
   limit,
   emptyLabel = "Nenhum evento registrado ainda.",
   onEventSelect,
+  onEventCancel,
+  onEventReport,
 }: {
   events: TicketEvent[];
   variant?: Variant;
   limit?: number;
   emptyLabel?: string;
   onEventSelect?: (event: TicketEvent) => void;
+  onEventCancel?: (event: TicketEvent) => void;
+  onEventReport?: (event: TicketEvent) => void;
 }) {
   const sorted = useMemo(() => {
     // Ordena por data/hora real decrescente (mais recente primeiro).
@@ -254,17 +259,45 @@ export function TicketTimelineList({
                 {event.actor} · {event.actorType}
               </p>
               {isSelectable && (
-                <button
-                  type="button"
-                  className={`mt-2 inline-flex cursor-pointer items-center gap-1 font-medium text-primary hover:underline ${metaSize}`}
-                  onClick={(clickEvent) => {
-                    clickEvent.stopPropagation();
-                    onEventSelect?.(event);
-                  }}
-                >
-                  <CalendarClock className="h-3.5 w-3.5" />
-                  Ver agendamento
-                </button>
+                <div className={`mt-2 flex flex-wrap items-center gap-3 ${metaSize}`}>
+                  <button
+                    type="button"
+                    className="inline-flex cursor-pointer items-center gap-1 font-medium text-primary hover:underline"
+                    onClick={(clickEvent) => {
+                      clickEvent.stopPropagation();
+                      onEventSelect?.(event);
+                    }}
+                  >
+                    <CalendarClock className="h-3.5 w-3.5" />
+                    Ver agendamento
+                  </button>
+                  {onEventCancel && (
+                    <button
+                      type="button"
+                      className="inline-flex cursor-pointer items-center gap-1 font-medium text-rose-600 hover:underline dark:text-rose-400"
+                      onClick={(clickEvent) => {
+                        clickEvent.stopPropagation();
+                        onEventCancel(event);
+                      }}
+                    >
+                      <Ban className="h-3.5 w-3.5" />
+                      Cancelar
+                    </button>
+                  )}
+                  {onEventReport && (
+                    <button
+                      type="button"
+                      className="inline-flex cursor-pointer items-center gap-1 font-medium text-primary hover:underline"
+                      onClick={(clickEvent) => {
+                        clickEvent.stopPropagation();
+                        onEventReport(event);
+                      }}
+                    >
+                      <FileText className="h-3.5 w-3.5" />
+                      Relatório
+                    </button>
+                  )}
+                </div>
               )}
             </article>
           </li>
