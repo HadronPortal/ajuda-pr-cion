@@ -281,7 +281,7 @@ export const saveKanbanCard = async (input: Wrapped<{
   relatedVersions?: Array<{ id: string; version: string; date: string; note: string }>;
 }>) => {
   const payload = unwrap(input);
-  const { data, error } = await supabase.rpc("save_kanban_card_payload_v2", {
+  const { data, error } = await (supabase as any).rpc("save_kanban_card_payload_v2", {
     payload,
   });
 
