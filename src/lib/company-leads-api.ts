@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 
 export type CompanyLeadStage =
   | "novo"
@@ -154,7 +154,7 @@ function buildFilterPayload(filters: CompanyLeadFilters) {
 
 export const companyLeadsApi = {
   async list(query: CompanyLeadsQuery): Promise<LeadsResponse> {
-    let { data, error } = await (supabase as any).rpc("company_leads_search", {
+    let { data, error } = await supabase.rpc("company_leads_search", {
       p_filters: buildFilterPayload(query.filters),
       p_sort: query.sort,
       p_direction: query.direction,
@@ -162,7 +162,7 @@ export const companyLeadsApi = {
       p_offset: query.offset,
     });
     if (error?.code === "PGRST202") {
-      const legacyResult = await (supabase as any).rpc("company_leads_search", {
+      const legacyResult = await supabase.rpc("company_leads_search", {
         p_filters: buildFilterPayload(query.filters),
         p_sort_key: query.sort,
         p_sort_dir: query.direction,
@@ -192,7 +192,7 @@ export const companyLeadsApi = {
   },
 
   async details(id: string): Promise<CompanyLeadDetails> {
-    const { data, error } = await (supabase as any).rpc("company_lead_details", { p_id: id });
+    const { data, error } = await supabase.rpc("company_lead_details", { p_id: id });
     if (error) throw error;
     if (!data) throw new Error("Lead não encontrado.");
     return data as CompanyLeadDetails;
@@ -212,7 +212,7 @@ export const companyLeadsApi = {
   },
 
   async updateStage(id: string, stage: CompanyLeadStage) {
-    const { error } = await (supabase as any).rpc("company_leads_update_stage", {
+    const { error } = await supabase.rpc("company_leads_update_stage", {
       p_id: id,
       p_stage: stage,
     });

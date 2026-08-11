@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 import { normalizeCityName } from "@/lib/br-city";
 import type { ClientRow } from "@/routes/clientes.index";
 
@@ -404,7 +404,7 @@ export function mapDatabaseClient(c: DatabaseClient): ClientRow {
 export async function listClients(): Promise<ClientRow[]> {
   const rows: DatabaseClient[] = [];
   for (let offset = 0; ; offset += 500) {
-    const { data, error } = await (supabase as any).rpc("list_crm_clients", {
+    const { data, error } = await supabase.rpc("list_crm_clients", {
       p_limit: 500,
       p_offset: offset,
     });
@@ -416,7 +416,7 @@ export async function listClients(): Promise<ClientRow[]> {
 }
 
 export async function getClient(acronym: string): Promise<ClientRow | null> {
-  const { data, error } = await (supabase as any).rpc("get_crm_client", { client_acronym: acronym });
+  const { data, error } = await supabase.rpc("get_crm_client", { client_acronym: acronym });
   if (error) throw error;
   return data?.client ? mapDatabaseClient(data.client) : null;
 }
@@ -431,13 +431,13 @@ export async function getClientDetail(acronym: string): Promise<ClientDetail | n
     { data: groupCompanyData, error: groupCompanyError },
     { data: hadronInfoData, error: hadronInfoError },
   ] = await Promise.all([
-    (supabase as any).rpc("get_crm_client", { client_acronym: acronym }),
-    (supabase as any).rpc("get_crm_client_ticket_activity", { client_acronym: acronym }),
-    (supabase as any).rpc("get_crm_client_params", { client_acronym: acronym }),
-    (supabase as any).rpc("get_crm_client_events", { client_acronym: acronym }),
-    (supabase as any).rpc("get_crm_client_logs", { client_acronym: acronym }),
-    (supabase as any).rpc("get_crm_client_group_companies", { client_acronym: acronym }),
-    (supabase as any).rpc("get_crm_client_hadron_info", { client_acronym: acronym }),
+    supabase.rpc("get_crm_client", { client_acronym: acronym }),
+    supabase.rpc("get_crm_client_ticket_activity", { client_acronym: acronym }),
+    supabase.rpc("get_crm_client_params", { client_acronym: acronym }),
+    supabase.rpc("get_crm_client_events", { client_acronym: acronym }),
+    supabase.rpc("get_crm_client_logs", { client_acronym: acronym }),
+    supabase.rpc("get_crm_client_group_companies", { client_acronym: acronym }),
+    supabase.rpc("get_crm_client_hadron_info", { client_acronym: acronym }),
   ]);
   if (error) throw error;
   if (activityError) throw activityError;
