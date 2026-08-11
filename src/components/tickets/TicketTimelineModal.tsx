@@ -10,11 +10,13 @@ export function TicketTimelineModal({
   onOpenChange,
   ticket,
   events,
+  onEventSelect,
 }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   ticket: SupportTicket;
   events: TicketEvent[];
+  onEventSelect?: (event: TicketEvent) => void;
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -42,7 +44,7 @@ export function TicketTimelineModal({
         />
 
         <div className="min-h-0 flex-1 overflow-y-auto bg-card px-4 py-7 sm:px-7 md:px-10">
-          <TicketTimelineList events={events} variant="full" />
+          <TicketTimelineList events={events} variant="full" onEventSelect={onEventSelect} />
         </div>
       </DialogContent>
     </Dialog>

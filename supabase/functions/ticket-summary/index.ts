@@ -42,9 +42,18 @@ const SYSTEM_PROMPT = [
   "nomes de opções/telas do Hádron e contexto relevante, exatamente como escritos.",
   "Não use saudações, títulos, markdown decorativo nem comentários sobre o resumo.",
   "Se o texto for muito curto, apenas reescreva-o de forma objetiva.",
+  "A pessoa solicitante/contato do cliente é quem relata a dúvida ou problema.",
+  "O operador de suporte apenas registrou o chamado: nunca atribua a ele a dúvida, necessidade ou problema do cliente.",
 ].join(" ");
 
-async function generateSummary(description: string) {
+type SummaryContext = {
+  requester?: string | null;
+  requesterPhone?: string | null;
+  operator?: string | null;
+  company?: string | null;
+};
+
+async function generateSummary(description: string, context?: SummaryContext) {
   const apiKey = Deno.env.get("LOVABLE_API_KEY");
   if (!apiKey) throw new Error("LOVABLE_API_KEY ausente");
 
@@ -59,7 +68,16 @@ async function generateSummary(description: string) {
       model: "google/gemini-3.6-flash",
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
-        { role: "user", content: description },
+        {
+          role: "user",
+          content: [
+            `Descrição original: ${description}`,
+            `Solicitante/contato do cliente: ${context?.requester || "não informado"}`,
+            `Telefone do solicitante: ${context?.requesterPhone || "não informado"}`,
+            `Empresa: ${context?.company || "não informada"}`,
+            `Operador que apenas registrou o chamado: ${context?.operator || "não informado"}`,
+          ].join("\n"),
+        },
       ],
     }),
   });
@@ -83,6 +101,8 @@ serve(async (req) => {
     const body = (await req.json().catch(() => ({}))) as {
       ticketId?: string;
       force?: boolean;
+      summaryVersion?: number;
+      context?: SummaryContext;
     };
     const ticketId = typeof body.ticketId === "string" ? body.ticketId.trim() : "";
     if (!ticketId) return json({ error: "TICKET_ID_REQUIRED" }, 400);
@@ -102,13 +122,19 @@ serve(async (req) => {
     const description = (row.description ?? "").replace(/\r\n/g, "\n").trim();
     if (!description) return json({ summary: null, description: null });
 
-    const hash = await sha256(description);
+    const hash = await sha256(
+      JSON.stringify({
+        version: body.summaryVersion ?? 2,
+        description,
+        context: body.context ?? {},
+      }),
+    );
     // Só chama o modelo quando não há resumo ou quando a descrição mudou.
     if (!body.force && row.summary && row.summaryHash === hash) {
       return json({ summary: row.summary, description, cached: true });
     }
 
-    const summary = await generateSummary(description);
+    const summary = await generateSummary(description, body.context);
     const { error: saveError } = await admin.rpc("support_set_description_summary", {
       ticket_key: ticketId,
       summary,

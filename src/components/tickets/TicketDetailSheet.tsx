@@ -96,6 +96,9 @@ import { clientRows } from "@/routes/clientes.index";
 import { useClients } from "@/lib/clients-store";
 import { snapshotCurrentChamadosForTicket } from "@/lib/return-to-ticket";
 import { formatPhoneDisplay } from "@/lib/client-contacts";
+import { EventDetailsModal } from "@/components/calendar/EventDetailsModal";
+import { useLocalEvents } from "@/lib/local-events-store";
+import type { CalendarEvent } from "@/lib/calendar-events";
 
 const statusTone: Record<TicketStatus, string> = {
   Atrasado: "bg-destructive/12 text-destructive border-destructive/20",
@@ -248,6 +251,8 @@ export function TicketDetailSheet({
   const [historyOpen, setHistoryOpen] = useState(false);
   const [notesOpen, setNotesOpen] = useState(false);
   const [timelineOpen, setTimelineOpen] = useState(false);
+  const [selectedCalendarEvent, setSelectedCalendarEvent] = useState<CalendarEvent | null>(null);
+  const localCalendarEvents = useLocalEvents();
   const [descriptionOpen, setDescriptionOpen] = useState(false);
   const [navCollapsed, setNavCollapsed] = useState(true);
   const [selectedHistory, setSelectedHistory] = useState<PastAttendance | null>(null);
@@ -277,6 +282,15 @@ export function TicketDetailSheet({
     ticket?.id,
     ticketDescription,
     ticket?.descriptionSummary ?? null,
+    {
+      requester: ticket?.contact,
+      requesterPhone: ticket?.contactPhone,
+      operator:
+        ticketDescription.match(/\bOperador:\s*([A-Z0-9]+)/i)?.[1] ||
+        ticket?.owner ||
+        ticket?.attendant,
+      company: ticket?.companyName || ticket?.clientName,
+    },
   );
   const { clients: loadedClients } = useClients({ onlyActive: false });
   // Resolve o cliente pela sigla real do chamado (ou da empresa/subempresa),
@@ -303,6 +317,40 @@ export function TicketDetailSheet({
   if (!ticket || !sla || !attendanceTime) return null;
 
   const timelineEvents = events.filter((e) => e.kind !== "note");
+
+  const openScheduledEvent = (timelineEvent: TicketEvent) => {
+    const candidates = localCalendarEvents.filter(
+      (calendarEvent) => String(calendarEvent.ticketId ?? "") === String(ticket.id),
+    );
+    const scheduleMatch = timelineEvent.description.match(
+      /para\s+(\d{4}-\d{2}-\d{2}),\s+das\s+(\d{2}:\d{2})/i,
+    );
+    const exact = scheduleMatch
+      ? candidates.find(
+          (calendarEvent) =>
+            calendarEvent.date === scheduleMatch[1] && calendarEvent.time === scheduleMatch[2],
+        )
+      : undefined;
+    const timelineTimestamp = new Date(timelineEvent.when).getTime();
+    const closest = [...candidates].sort((left, right) => {
+      const leftTimestamp = Number(String(left.id).split("-").at(-1));
+      const rightTimestamp = Number(String(right.id).split("-").at(-1));
+      const leftDistance = Number.isFinite(leftTimestamp)
+        ? Math.abs(leftTimestamp - timelineTimestamp)
+        : Number.POSITIVE_INFINITY;
+      const rightDistance = Number.isFinite(rightTimestamp)
+        ? Math.abs(rightTimestamp - timelineTimestamp)
+        : Number.POSITIVE_INFINITY;
+      return leftDistance - rightDistance;
+    })[0];
+    const calendarEvent = exact ?? closest;
+    if (!calendarEvent) {
+      toast.error("Não foi possível localizar os detalhes deste agendamento.");
+      return;
+    }
+    setTimelineOpen(false);
+    setSelectedCalendarEvent(calendarEvent);
+  };
 
   const isMine = ticket.owner === currentUser.operator || ticket.lockedBy === currentUser.operator;
   const isFinalized = ticket.status === "Finalizado";
@@ -894,7 +942,12 @@ export function TicketDetailSheet({
                       )}
                     </div>
                     <div className="rounded-xl border border-border bg-card px-3 py-3">
-                      <TicketTimelineList events={timelineEvents} variant="compact" limit={5} />
+                      <TicketTimelineList
+                        events={timelineEvents}
+                        variant="compact"
+                        limit={5}
+                        onEventSelect={openScheduledEvent}
+                      />
                     </div>
                   </Section>
                 </div>
@@ -969,6 +1022,15 @@ export function TicketDetailSheet({
         onOpenChange={setTimelineOpen}
         ticket={ticket}
         events={timelineEvents}
+        onEventSelect={openScheduledEvent}
+      />
+
+      <EventDetailsModal
+        event={selectedCalendarEvent}
+        open={selectedCalendarEvent !== null}
+        onOpenChange={(nextOpen) => {
+          if (!nextOpen) setSelectedCalendarEvent(null);
+        }}
       />
 
       <PastAttendanceDetailModal

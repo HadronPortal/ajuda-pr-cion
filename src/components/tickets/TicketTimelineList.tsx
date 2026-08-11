@@ -108,11 +108,13 @@ export function TicketTimelineList({
   variant = "full",
   limit,
   emptyLabel = "Nenhum evento registrado ainda.",
+  onEventSelect,
 }: {
   events: TicketEvent[];
   variant?: Variant;
   limit?: number;
   emptyLabel?: string;
+  onEventSelect?: (event: TicketEvent) => void;
 }) {
   const sorted = useMemo(() => {
     // Ordena por data/hora real decrescente (mais recente primeiro).
@@ -166,11 +168,26 @@ export function TicketTimelineList({
         const presentation = timelineEventPresentation[event.kind];
         const Icon = presentation.icon;
         const isLast = index === sorted.length - 1;
+        const isSelectable = event.kind === "scheduled" && Boolean(onEventSelect);
 
         return (
           <li
             key={event.id}
-            className={`relative grid ${rowMinH} ${colTemplate}`}
+            className={`relative grid ${rowMinH} ${colTemplate} ${isSelectable ? "cursor-pointer rounded-lg transition-colors hover:bg-muted/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" : ""}`}
+            role={isSelectable ? "button" : undefined}
+            tabIndex={isSelectable ? 0 : undefined}
+            title={isSelectable ? "Abrir detalhes do agendamento" : undefined}
+            onClick={isSelectable ? () => onEventSelect?.(event) : undefined}
+            onKeyDown={
+              isSelectable
+                ? (keyboardEvent) => {
+                    if (keyboardEvent.key === "Enter" || keyboardEvent.key === " ") {
+                      keyboardEvent.preventDefault();
+                      onEventSelect?.(event);
+                    }
+                  }
+                : undefined
+            }
           >
             {!isLast && (
               <span
@@ -236,6 +253,19 @@ export function TicketTimelineList({
               <p className={`mt-1 ${metaSize} text-muted-foreground`}>
                 {event.actor} · {event.actorType}
               </p>
+              {isSelectable && (
+                <button
+                  type="button"
+                  className={`mt-2 inline-flex cursor-pointer items-center gap-1 font-medium text-primary hover:underline ${metaSize}`}
+                  onClick={(clickEvent) => {
+                    clickEvent.stopPropagation();
+                    onEventSelect?.(event);
+                  }}
+                >
+                  <CalendarClock className="h-3.5 w-3.5" />
+                  Ver agendamento
+                </button>
+              )}
             </article>
           </li>
         );

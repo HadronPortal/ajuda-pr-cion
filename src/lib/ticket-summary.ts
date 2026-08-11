@@ -6,17 +6,41 @@ type SummaryState = {
   summary: string | null;
 };
 
+export type TicketSummaryContext = {
+  requester?: string | null;
+  requesterPhone?: string | null;
+  operator?: string | null;
+  company?: string | null;
+};
+
 const cache = new Map<string, SummaryState>();
 const inflight = new Map<string, Promise<SummaryState>>();
 
 const IDLE: SummaryState = { status: "idle", summary: null };
 
-async function fetchSummary(ticketId: string): Promise<SummaryState> {
+function correctRequesterAttribution(
+  summary: string | null,
+  context?: TicketSummaryContext,
+) {
+  if (!summary) return summary;
+  const requester = context?.requester?.trim();
+  if (!requester) return summary;
+  return summary.replace(
+    /\bO operador\s+PRC[A-Z0-9]+\s+(?=(?:possui|tem|relata|relatou|solicita|solicitou|precisa|informa|informou|questiona|pede)\b)/gi,
+    `O solicitante ${requester} `,
+  );
+}
+
+async function fetchSummary(
+  ticketId: string,
+  context?: TicketSummaryContext,
+): Promise<SummaryState> {
   const { data, error } = await supabase.functions.invoke("ticket-summary", {
-    body: { ticketId },
+    body: { ticketId, context, summaryVersion: 2 },
   });
   if (error) throw error;
-  const summary = (data as { summary?: string | null } | null)?.summary ?? null;
+  const rawSummary = (data as { summary?: string | null } | null)?.summary ?? null;
+  const summary = correctRequesterAttribution(rawSummary, context);
   return { status: summary ? "ready" : "error", summary };
 }
 
@@ -29,10 +53,17 @@ export function useTicketSummary(
   ticketId: string | null | undefined,
   description: string,
   knownSummary?: string | null,
+  context?: TicketSummaryContext,
 ): SummaryState {
-  const key = ticketId ?? "";
+  const contextKey = JSON.stringify(context ?? {});
+  const key = ticketId ? `${ticketId}:requester-v2:${contextKey}` : "";
   const [state, setState] = useState<SummaryState>(() => {
-    if (knownSummary) return { status: "ready", summary: knownSummary };
+    if (knownSummary) {
+      return {
+        status: "ready",
+        summary: correctRequesterAttribution(knownSummary, context),
+      };
+    }
     return cache.get(key) ?? IDLE;
   });
 
@@ -41,11 +72,6 @@ export function useTicketSummary(
       setState(IDLE);
       return;
     }
-    if (knownSummary) {
-      setState({ status: "ready", summary: knownSummary });
-      return;
-    }
-
     const cached = cache.get(key);
     if (cached && cached.status !== "loading") {
       setState(cached);
@@ -57,7 +83,7 @@ export function useTicketSummary(
 
     const promise =
       inflight.get(key) ??
-      fetchSummary(key)
+      fetchSummary(ticketId!, context)
         .catch((error): SummaryState => {
           console.error(`[ticket-summary] Falha ao gerar resumo do chamado ${key}.`, error);
           return { status: "error", summary: null };
@@ -76,7 +102,7 @@ export function useTicketSummary(
     return () => {
       active = false;
     };
-  }, [key, description, knownSummary]);
+  }, [key, ticketId, description, knownSummary, contextKey]);
 
   return state;
 }
