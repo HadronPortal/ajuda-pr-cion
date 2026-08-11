@@ -9,6 +9,7 @@ import {
   ChevronRight,
   Columns3,
   Eye,
+  ExternalLink,
   LoaderCircle,
   MapPin,
   RefreshCw,
@@ -212,6 +213,13 @@ const formatCurrency = (value: number | null) =>
   value == null
     ? "Não informado"
     : new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
+
+const streetViewUrl = (lead: CompanyLeadDetails) => {
+  const address = [lead.address, lead.neighborhood, lead.city, lead.state, lead.postal_code]
+    .filter(Boolean)
+    .join(", ");
+  return `https://www.google.com/maps?q=${encodeURIComponent(address)}&layer=c`;
+};
 
 const openedLabels: Record<number, string> = {
   0: "Qualquer data",
@@ -731,9 +739,7 @@ export function CompanyLeadsTab() {
                       setFilters((value) => ({
                         ...value,
                         taxRegime,
-                        ...(taxRegime
-                          ? { openedWithinDays: 0, openedFrom: "", openedTo: "" }
-                          : {}),
+                        ...(taxRegime ? { openedWithinDays: 0, openedFrom: "", openedTo: "" } : {}),
                       }));
                     }}
                     className="h-9 w-full cursor-pointer rounded-md border border-input bg-background px-3 text-sm"
@@ -1182,9 +1188,24 @@ export function CompanyLeadsTab() {
                 </section>
                 <Separator />
                 <section>
-                  <div className="mb-3 flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-primary" />
-                    <h3 className="text-sm font-semibold">Endereço</h3>
+                  <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4 text-primary" />
+                      <h3 className="text-sm font-semibold">Endereço</h3>
+                    </div>
+                    {(selectedLead.address || selectedLead.city) && (
+                      <Button asChild type="button" variant="outline" size="sm">
+                        <a
+                          href={streetViewUrl(selectedLead)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="cursor-pointer"
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                          Ver no Street View
+                        </a>
+                      </Button>
+                    )}
                   </div>
                   <div className="grid gap-x-8 gap-y-4 sm:grid-cols-2">
                     <div className="sm:col-span-2">
@@ -1246,12 +1267,12 @@ export function CompanyLeadsTab() {
                       <div className="text-xs uppercase text-muted-foreground">Telefones</div>
                       <div className="mt-1 space-y-1 text-sm">
                         <div>
-                        {[
-                          formatPhone(selectedLead.phone),
-                          formatPhone(selectedLead.phone_secondary),
-                        ]
-                          .filter((value) => value !== "—")
-                          .join(" · ") || "Não informado pela Receita Federal"}
+                          {[
+                            formatPhone(selectedLead.phone),
+                            formatPhone(selectedLead.phone_secondary),
+                          ]
+                            .filter((value) => value !== "—")
+                            .join(" · ") || "Não informado pela Receita Federal"}
                         </div>
                         {selectedLead.additional_phones?.map((item) => (
                           <div key={`${item.phone}-${item.source_url}`}>
