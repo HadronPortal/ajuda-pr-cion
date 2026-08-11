@@ -159,7 +159,7 @@ export type BoardMember = {
 
 export const loadKanbanBoard = async (input: Wrapped<{ boardId: string }>) => {
   const { boardId } = unwrap(input);
-  const { data, error } = await supabase.rpc("load_kanban_board_payload", {
+  const { data, error } = await (supabase as any).rpc("load_kanban_board_payload", {
     target_board_id: boardId,
   });
   if (error || !data) throw new KanbanUnavailableError();
