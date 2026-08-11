@@ -587,17 +587,21 @@ export function CompanyLeadsTab() {
         );
       case "stage":
         return (
-          <select
-            value={lead.stage}
-            onChange={(event) => void updateStage(lead, event.target.value as CompanyLeadStage)}
-            className="h-7 cursor-pointer rounded-md border border-input bg-background px-1.5 text-xs"
+          <Badge
+            variant="outline"
+            className={cn(
+              "font-medium",
+              lead.stage === "negocio_fechado"
+                ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+                : lead.stage === "sem_interesse"
+                  ? "border-destructive/50 bg-destructive/10 text-destructive"
+                  : lead.stage === "negociacao" || lead.stage === "proposta"
+                    ? "border-amber-500/50 bg-amber-500/10 text-amber-700 dark:text-amber-400"
+                    : "border-primary/50 bg-primary/10 text-primary",
+            )}
           >
-            {Object.entries(stageLabels).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
+            {stageLabels[lead.stage] || lead.stage}
+          </Badge>
         );
       case "source":
         return <div className="truncate text-xs text-muted-foreground">{lead.source}</div>;
@@ -1188,28 +1192,13 @@ export function CompanyLeadsTab() {
                 </section>
                 <Separator />
                 <section>
-                  <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-primary" />
-                      <h3 className="text-sm font-semibold">Endereço</h3>
-                    </div>
-                    {(selectedLead.address || selectedLead.city) && (
-                      <Button asChild type="button" variant="outline" size="sm">
-                        <a
-                          href={googleMapsAddressUrl(selectedLead)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="cursor-pointer"
-                        >
-                          <ExternalLink className="h-4 w-4" />
-                          Pesquisar endereço no Maps
-                        </a>
-                      </Button>
-                    )}
+                  <div className="mb-3 flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-primary" />
+                    <h3 className="text-sm font-semibold">Contato e localização</h3>
                   </div>
                   <div className="grid gap-x-8 gap-y-4 sm:grid-cols-2">
                     <div className="sm:col-span-2">
-                      <div className="text-xs uppercase text-muted-foreground">Logradouro</div>
+                      <div className="text-xs uppercase text-muted-foreground">Endereço</div>
                       <div className="mt-1 text-sm">{selectedLead.address || "Não informado"}</div>
                     </div>
                     <div>
@@ -1230,12 +1219,40 @@ export function CompanyLeadsTab() {
                         {selectedLead.postal_code || "Não informado"}
                       </div>
                     </div>
+                    <div>
+                      <div className="text-xs uppercase text-muted-foreground">Telefone principal</div>
+                      <div className="mt-1 text-sm">
+                        {formatPhone(selectedLead.phone) !== "—"
+                          ? formatPhone(selectedLead.phone)
+                          : "Não informado"}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-xs uppercase text-muted-foreground">Telefone adicional</div>
+                      <div className="mt-1 text-sm">
+                        {formatPhone(selectedLead.phone_secondary) !== "—"
+                          ? formatPhone(selectedLead.phone_secondary)
+                          : "Não informado"}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-xs uppercase text-muted-foreground">E-mail</div>
+                      <div className="mt-1 break-all text-sm lowercase">
+                        {selectedLead.email || "Não informado"}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-xs uppercase text-muted-foreground">Site</div>
+                      <div className="mt-1 text-sm">
+                        {selectedLead.website || "Não informado"}
+                      </div>
+                    </div>
                   </div>
                 </section>
                 <Separator />
                 <section>
                   <div className="mb-3 flex items-center justify-between gap-3">
-                    <h3 className="text-sm font-semibold">Atividades e contatos</h3>
+                    <h3 className="text-sm font-semibold">Atividade da empresa</h3>
                     <Button
                       type="button"
                       variant="outline"
@@ -1261,39 +1278,6 @@ export function CompanyLeadsTab() {
                       </div>
                       <div className="mt-1 text-sm">
                         {selectedLead.secondary_cnaes?.join(", ") || "Nenhum informado"}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-xs uppercase text-muted-foreground">Telefones</div>
-                      <div className="mt-1 space-y-1 text-sm">
-                        <div>
-                          {[
-                            formatPhone(selectedLead.phone),
-                            formatPhone(selectedLead.phone_secondary),
-                          ]
-                            .filter((value) => value !== "—")
-                            .join(" · ") || "Não informado pela Receita Federal"}
-                        </div>
-                        {selectedLead.additional_phones?.map((item) => (
-                          <div key={`${item.phone}-${item.source_url}`}>
-                            {formatPhone(item.phone)}{" "}
-                            <span className="text-xs text-muted-foreground">· {item.source}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-xs uppercase text-muted-foreground">E-mail</div>
-                      <div className="mt-1 space-y-1 break-all text-sm lowercase">
-                        <div>{selectedLead.email || "Não informado pela Receita Federal"}</div>
-                        {selectedLead.additional_emails?.map((item) => (
-                          <div key={`${item.email}-${item.source_url}`}>
-                            {item.email}{" "}
-                            <span className="text-xs normal-case text-muted-foreground">
-                              · {item.source}
-                            </span>
-                          </div>
-                        ))}
                       </div>
                     </div>
                   </div>
