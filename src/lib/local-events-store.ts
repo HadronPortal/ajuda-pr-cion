@@ -131,10 +131,13 @@ function hydratePersistedEvents() {
   hydrationPromise = listCrmCalendarEvents()
     .then((events) => {
       const persisted = events.filter((event) => event.editable);
-      if (!persisted.length) return;
-      const merged = new Map(read().map((event) => [String(event.id), event]));
-      persisted.forEach((event) => merged.set(String(event.id), event));
-      write([...merged.values()]);
+      const persistedIds = new Set(persisted.map((event) => String(event.id)));
+      const removedIds = read()
+        .filter((event) => !persistedIds.has(String(event.id)))
+        .map((event) => event.id);
+
+      if (removedIds.length) removeFleetRecordsForAppointments(removedIds);
+      write(persisted);
     })
     .catch((error) => {
       console.error("[calendar] Nao foi possivel carregar os agendamentos salvos.", error);
