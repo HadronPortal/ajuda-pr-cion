@@ -214,11 +214,11 @@ const formatCurrency = (value: number | null) =>
     ? "Não informado"
     : new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
 
-const streetViewUrl = (lead: CompanyLeadDetails) => {
+const googleMapsAddressUrl = (lead: CompanyLeadDetails) => {
   const address = [lead.address, lead.neighborhood, lead.city, lead.state, lead.postal_code]
     .filter(Boolean)
     .join(", ");
-  return `https://www.google.com/maps?q=${encodeURIComponent(address)}&layer=c`;
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
 };
 
 const openedLabels: Record<number, string> = {
@@ -1196,13 +1196,13 @@ export function CompanyLeadsTab() {
                     {(selectedLead.address || selectedLead.city) && (
                       <Button asChild type="button" variant="outline" size="sm">
                         <a
-                          href={streetViewUrl(selectedLead)}
+                          href={googleMapsAddressUrl(selectedLead)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="cursor-pointer"
                         >
                           <ExternalLink className="h-4 w-4" />
-                          Ver no Street View
+                          Pesquisar endereço no Maps
                         </a>
                       </Button>
                     )}
