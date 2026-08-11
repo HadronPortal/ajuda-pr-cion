@@ -1,4 +1,4 @@
-import { supabase } from "./supabase";
+import { supabase } from "@/integrations/supabase/client";
 import type { SupportTicket } from "./support-tickets-data";
 import type { InternalNote, TicketEvent } from "./tickets-store";
 import type { TicketMessage } from "./ticket-messages-store";
@@ -11,7 +11,7 @@ export type SupportSnapshot = {
 };
 
 async function rpc<T>(name: string, args?: Record<string, unknown>): Promise<T> {
-  const { data, error } = await supabase.rpc(name, args);
+  const { data, error } = await (supabase as any).rpc(name, args);
   if (error) throw error;
   return data as T;
 }
