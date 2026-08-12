@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   Building2,
   ChevronLeft,
@@ -90,13 +90,6 @@ function CommercialContactsPage() {
 
   useEffect(() => setPage(0), [search, stage]);
 
-  async function openDetails(lead: CompanyLead) {
-    try {
-      setSelected(await companyLeadsApi.details(lead.id));
-    } catch {
-      toast.error("Não foi possível abrir os detalhes da empresa.");
-    }
-  }
 
   async function changeStage(lead: CompanyLead, next: CompanyLeadStage) {
     try {
@@ -183,13 +176,15 @@ function CommercialContactsPage() {
                 rows.map((lead) => (
                   <tr key={lead.id} className="transition-colors hover:bg-muted/25">
                     <td className="min-w-0 px-4 py-3">
-                      <button
-                        type="button"
-                        onClick={() => openDetails(lead)}
-                        className="block w-full min-w-0 text-left hover:text-primary"
+                      <Link
+                        to="/comercial/contatos/$leadId"
+                        params={{ leadId: lead.id }}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block w-full min-w-0 text-left hover:text-primary group"
                       >
                         <span
-                          className="block truncate text-[13px] font-medium"
+                          className="block truncate text-[13px] font-medium group-hover:underline"
                           title={lead.trade_name || lead.legal_name}
                         >
                           {lead.trade_name || lead.legal_name}
@@ -200,7 +195,7 @@ function CommercialContactsPage() {
                         >
                           {lead.legal_name} · {lead.cnpj}
                         </span>
-                      </button>
+                      </Link>
                     </td>
                     <td className="min-w-0 px-4 py-3 text-[12px] text-muted-foreground">
                       {lead.phone && (
@@ -245,10 +240,17 @@ function CommercialContactsPage() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => openDetails(lead)}
+                        asChild
                         title="Ver detalhes"
                       >
-                        <Eye className="h-4 w-4" />
+                        <Link 
+                          to="/comercial/contatos/$leadId" 
+                          params={{ leadId: lead.id }}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Link>
                       </Button>
                     </td>
                   </tr>
@@ -285,90 +287,6 @@ function CommercialContactsPage() {
         </div>
       </div>
 
-      <Dialog open={Boolean(selected)} onOpenChange={(open) => !open && setSelected(null)}>
-        <DialogContent className="app-scrollbar max-h-[88vh] max-w-4xl overflow-y-auto">
-          {selected && (
-            <>
-              <DialogHeader className="border-b pb-4">
-                <DialogTitle className="flex items-center gap-3 text-xl">
-                  <span className="grid h-10 w-10 place-items-center rounded-md bg-primary/10 text-primary">
-                    <Building2 className="h-5 w-5" />
-                  </span>
-                  {selected.trade_name || selected.legal_name}
-                </DialogTitle>
-                <p className="text-sm text-muted-foreground">
-                  {selected.legal_name} · {selected.cnpj}
-                </p>
-              </DialogHeader>
-              <div className="grid gap-6 py-2 md:grid-cols-2">
-                <DetailSection
-                  title="Empresa"
-                  icon={Building2}
-                  items={[
-                    ["Situação cadastral", selected.registration_status],
-                    [
-                      "Data de abertura",
-                      selected.opened_at
-                        ? new Date(`${selected.opened_at}T12:00:00`).toLocaleDateString("pt-BR")
-                        : null,
-                    ],
-                    ["Porte", selected.company_size],
-                    ["Natureza jurídica", selected.legal_nature],
-                    [
-                      "Capital social",
-                      selected.capital_social != null
-                        ? selected.capital_social.toLocaleString("pt-BR", {
-                            style: "currency",
-                            currency: "BRL",
-                          })
-                        : null,
-                    ],
-                    [
-                      "Etapa comercial",
-                      stages.find((item) => item.value === selected.stage)?.label,
-                    ],
-                  ]}
-                />
-                <DetailSection
-                  title="Localização e contato"
-                  icon={MapPin}
-                  items={[
-                    ["Endereço", selected.address],
-                    ["Bairro", selected.neighborhood],
-                    ["Cidade / UF", `${selected.city} - ${selected.state}`],
-                    ["CEP", selected.postal_code],
-                    ["Telefone principal", selected.phone],
-                    ["Telefone adicional", selected.phone_secondary],
-                    ["E-mail", selected.email],
-                    ["Site", selected.website],
-                  ]}
-                />
-                <DetailSection
-                  title="Atividade"
-                  icon={Phone}
-                  items={[
-                    [
-                      "CNAE principal",
-                      [selected.cnae_code, selected.cnae_description].filter(Boolean).join(" · "),
-                    ],
-                  ]}
-                />
-                <DetailSection
-                  title={`Quadro societário (${selected.partners.length})`}
-                  icon={UsersRound}
-                  items={
-                    selected.partners.length
-                      ? selected.partners
-                          .slice(0, 8)
-                          .map((partner) => [partner.qualification || partner.type, partner.name])
-                      : [["Sócios", "Nenhum sócio informado na base importada"]]
-                  }
-                />
-              </div>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
     </AppShell>
   );
 }
@@ -385,29 +303,3 @@ function mapLeadRow(row: Record<string, unknown>): CompanyLead {
   };
 }
 
-function DetailSection({
-  title,
-  icon: Icon,
-  items,
-}: {
-  title: string;
-  icon: typeof Building2;
-  items: Array<[string, string | null | undefined]>;
-}) {
-  return (
-    <section className="rounded-lg border p-4">
-      <h3 className="mb-4 flex items-center gap-2 font-semibold">
-        <Icon className="h-4 w-4 text-primary" />
-        {title}
-      </h3>
-      <dl className="grid gap-3 sm:grid-cols-2">
-        {items.map(([label, value], index) => (
-          <div key={`${label}-${index}`} className="min-w-0">
-            <dt className="text-xs uppercase text-muted-foreground">{label}</dt>
-            <dd className="mt-1 break-words text-sm">{value || "Não informado"}</dd>
-          </div>
-        ))}
-      </dl>
-    </section>
-  );
-}
