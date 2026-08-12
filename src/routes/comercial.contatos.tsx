@@ -238,21 +238,8 @@ function CommercialContactsPage() {
                       </span>
                       <span className="text-[11px] text-muted-foreground">{lead.cnae_code}</span>
                     </td>
-                    <td className="px-3 py-3">
-                      <div
-                        className={cn(
-                          "inline-flex rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition-colors",
-                          lead.stage === "negocio_fechado"
-                            ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
-                            : lead.stage === "sem_interesse"
-                              ? "border-destructive/50 bg-destructive/10 text-destructive"
-                              : lead.stage === "negociacao" || lead.stage === "proposta"
-                                ? "border-amber-500/50 bg-amber-500/10 text-amber-700 dark:text-amber-400"
-                                : "border-primary/50 bg-primary/10 text-primary",
-                        )}
-                      >
-                        {stages.find((item) => item.value === lead.stage)?.label || lead.stage}
-                      </div>
+                    <td className="px-5 py-3 text-[12px]">
+                      {stages.find((item) => item.value === lead.stage)?.label || lead.stage}
                     </td>
                     <td className="px-2 py-3 text-center">
                       <Button
@@ -343,27 +330,27 @@ function CommercialContactsPage() {
                   ]}
                 />
                 <DetailSection
-                  title="Localização"
+                  title="Localização e contato"
                   icon={MapPin}
                   items={[
                     ["Endereço", selected.address],
                     ["Bairro", selected.neighborhood],
                     ["Cidade / UF", `${selected.city} - ${selected.state}`],
                     ["CEP", selected.postal_code],
+                    ["Telefone principal", selected.phone],
+                    ["Telefone adicional", selected.phone_secondary],
+                    ["E-mail", selected.email],
+                    ["Site", selected.website],
                   ]}
                 />
                 <DetailSection
-                  title="Atividade e contatos"
+                  title="Atividade"
                   icon={Phone}
                   items={[
                     [
                       "CNAE principal",
                       [selected.cnae_code, selected.cnae_description].filter(Boolean).join(" · "),
                     ],
-                    ["Telefone", selected.phone],
-                    ["Telefone adicional", selected.phone_secondary],
-                    ["E-mail", selected.email],
-                    ["Site", selected.website],
                   ]}
                 />
                 <DetailSection
