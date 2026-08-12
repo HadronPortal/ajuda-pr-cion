@@ -1,14 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState, useMemo } from "react";
-import { 
-  Building2, 
-  ChevronLeft, 
-  MapPin, 
-  Phone, 
-  Mail, 
-  Globe, 
-  Clock, 
-  User, 
+import {
+  Building2,
+  ChevronLeft,
+  MapPin,
+  Phone,
+  Mail,
+  Globe,
+  Clock,
+  User,
   Calendar,
   History,
   FileText,
@@ -19,25 +19,14 @@ import {
   Briefcase,
   AlertTriangle,
   CheckCircle,
-  Pencil
+  Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/portal/AppShell";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import {
   Dialog,
   DialogContent,
@@ -49,14 +38,19 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { 
-  companyLeadsApi, 
-  type CompanyLeadDetails, 
-  type CompanyLeadStage 
+import {
+  companyLeadsApi,
+  type CompanyLeadDetails,
+  type CompanyLeadStage,
 } from "@/lib/company-leads-api";
-import { updateLeadStatus, updateLeadCommercialData } from "@/lib/lead-actions.functions";
-
 
 export const Route = createFileRoute("/comercial/contatos/$leadId")({
   component: LeadDetailsPage,
@@ -89,11 +83,14 @@ function LeadDetailsPage() {
   const [lead, setLead] = useState<CompanyLeadDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
-  
+
   // Dialog states
   const [showInactivateDialog, setShowInactivateDialog] = useState(false);
   const [showCloseDealDialog, setShowCloseDealDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [inactivationReason, setInactivationReason] = useState("");
+  const [inactivationNotes, setInactivationNotes] = useState("");
+  const [conversionForm, setConversionForm] = useState<Record<string, string>>({});
 
   // Edit form state
   const [editForm, setEditForm] = useState({
@@ -101,11 +98,20 @@ function LeadDetailsPage() {
     phone: "",
     email: "",
     website: "",
-    notes: ""
+    notes: "",
+    stage: "novo",
+    priority: "baixa",
+    activities: "",
+    branch: "",
+    company_size: "",
+    terminals: "",
+    address: "",
+    address_number: "",
+    neighborhood: "",
+    city: "",
+    state: "",
+    postal_code: "",
   });
-
-  const updateStatusFn = useServerFn(updateLeadStatus);
-  const updateCommercialFn = useServerFn(updateLeadCommercialData);
 
   const loadLead = async () => {
     try {
@@ -117,8 +123,21 @@ function LeadDetailsPage() {
         phone: data.phone || "",
         email: data.email || "",
         website: data.website || "",
-        notes: "" // Assuming notes isn't in lead details yet but we provide the field
+        notes: "", // Assuming notes isn't in lead details yet but we provide the field
+        stage: data.stage,
+        priority: String(data.commercial_data?.priority || "baixa"),
+        activities: String(data.commercial_data?.activities || data.notes || ""),
+        branch: String(data.commercial_data?.branch || ""),
+        company_size: data.company_size || "",
+        terminals: String(data.commercial_data?.terminals || ""),
+        address: data.address || "",
+        address_number: String(data.commercial_data?.address_number || ""),
+        neighborhood: data.neighborhood || "",
+        city: data.city || "",
+        state: data.state || "",
+        postal_code: data.postal_code || "",
       });
+      setConversionForm((data.conversion_data || {}) as Record<string, string>);
     } catch (err) {
       console.error(err);
       toast.error("Não foi possível carregar os detalhes do lead.");
@@ -134,7 +153,10 @@ function LeadDetailsPage() {
   const handleInactivate = async () => {
     setActionLoading(true);
     try {
-      await updateStatusFn({ data: { id: leadId, status: "inativo" } });
+      await companyLeadsApi.saveAction(leadId, "inactivate", {
+        reason: inactivationReason,
+        notes: inactivationNotes,
+      });
       toast.success("Lead inativado com sucesso.");
       await loadLead();
       setShowInactivateDialog(false);
@@ -148,7 +170,7 @@ function LeadDetailsPage() {
   const handleCloseDeal = async () => {
     setActionLoading(true);
     try {
-      await updateStatusFn({ data: { id: leadId, stage: "negocio_fechado" } });
+      await companyLeadsApi.saveAction(leadId, "close_deal", conversionForm, true);
       toast.success("Negócio fechado com sucesso!");
       await loadLead();
       setShowCloseDealDialog(false);
@@ -159,11 +181,25 @@ function LeadDetailsPage() {
     }
   };
 
+  const handleSaveDealDraft = async () => {
+    setActionLoading(true);
+    try {
+      await companyLeadsApi.saveAction(leadId, "close_deal", conversionForm, false);
+      toast.success("Rascunho do negócio salvo.");
+      await loadLead();
+      setShowCloseDealDialog(false);
+    } catch {
+      toast.error("Erro ao salvar o negócio.");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   const handleEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     setActionLoading(true);
     try {
-      await updateCommercialFn({ data: { id: leadId, ...editForm } });
+      await companyLeadsApi.saveAction(leadId, "edit", editForm);
       toast.success("Dados atualizados com sucesso.");
       await loadLead();
       setShowEditDialog(false);
@@ -210,7 +246,10 @@ function LeadDetailsPage() {
           title={lead.trade_name || lead.legal_name}
           protocol={lead.cnpj}
           chips={
-            <Badge variant="outline" className={cn("text-[10px] font-semibold uppercase", stageColors[lead.stage])}>
+            <Badge
+              variant="outline"
+              className={cn("text-[10px] font-semibold uppercase", stageColors[lead.stage])}
+            >
               {stageLabels[lead.stage]}
             </Badge>
           }
@@ -229,9 +268,9 @@ function LeadDetailsPage() {
           }
           trailing={
             <div className="flex flex-wrap items-center gap-2">
-              <Button 
-                size="sm" 
-                variant="destructive" 
+              <Button
+                size="sm"
+                variant="destructive"
                 className="h-8 text-xs gap-1.5"
                 onClick={() => setShowInactivateDialog(true)}
                 disabled={actionLoading}
@@ -239,9 +278,9 @@ function LeadDetailsPage() {
                 <AlertTriangle className="h-3.5 w-3.5" />
                 Inativar
               </Button>
-              
-              <Button 
-                size="sm" 
+
+              <Button
+                size="sm"
                 className="h-8 text-xs bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 border-none"
                 onClick={() => setShowCloseDealDialog(true)}
                 disabled={actionLoading}
@@ -250,9 +289,9 @@ function LeadDetailsPage() {
                 Negócio fechado
               </Button>
 
-              <Button 
-                size="sm" 
-                variant="outline" 
+              <Button
+                size="sm"
+                variant="outline"
                 className="h-8 text-xs gap-1.5 border-primary text-primary hover:bg-primary/5"
                 onClick={() => setShowEditDialog(true)}
                 disabled={actionLoading}
@@ -261,7 +300,12 @@ function LeadDetailsPage() {
                 Editar
               </Button>
 
-              <Button size="sm" asChild variant="ghost" className="h-8 text-xs gap-1.5 border border-input hover:bg-accent">
+              <Button
+                size="sm"
+                asChild
+                variant="ghost"
+                className="h-8 text-xs gap-1.5 border border-input hover:bg-accent"
+              >
                 <Link to="/comercial/contatos">
                   <ArrowLeft className="h-3.5 w-3.5" />
                   Voltar
@@ -272,108 +316,260 @@ function LeadDetailsPage() {
           onClose={() => window.close()}
         />
 
-        {/* Inactivate Confirmation */}
-        <AlertDialog open={showInactivateDialog} onOpenChange={setShowInactivateDialog}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Inativar lead?</AlertDialogTitle>
-              <AlertDialogDescription>
-                Esta ação alterará o status do lead para "inativo". Os dados do lead não serão excluídos.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel disabled={actionLoading}>Cancelar</AlertDialogCancel>
-              <AlertDialogAction 
+        <Dialog open={showInactivateDialog} onOpenChange={setShowInactivateDialog}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Inativar contato</DialogTitle>
+              <DialogDescription>
+                Registre o motivo sem excluir o histórico comercial.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-2">
+              <FieldSelect
+                label="Motivo"
+                value={inactivationReason}
+                onChange={setInactivationReason}
+                options={inactivationReasons}
+              />
+              <Field
+                label="Observação"
+                value={inactivationNotes}
+                onChange={setInactivationNotes}
+                textarea
+              />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowInactivateDialog(false)}>
+                Cancelar
+              </Button>
+              <Button
+                variant="destructive"
                 onClick={handleInactivate}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                disabled={actionLoading}
+                disabled={actionLoading || !inactivationReason}
               >
-                {actionLoading ? "Inativando..." : "Confirmar"}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+                Inativar
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
-        {/* Close Deal Confirmation */}
-        <AlertDialog open={showCloseDealDialog} onOpenChange={setShowCloseDealDialog}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Confirmar fechamento de negócio?</AlertDialogTitle>
-              <AlertDialogDescription>
-                Iso atualizará a etapa comercial para "Negócio fechado".
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel disabled={actionLoading}>Cancelar</AlertDialogCancel>
-              <AlertDialogAction 
-                onClick={handleCloseDeal}
+        <Dialog open={showCloseDealDialog} onOpenChange={setShowCloseDealDialog}>
+          <DialogContent className="max-h-[92vh] max-w-5xl overflow-y-auto modal-scrollbar">
+            <DialogHeader>
+              <DialogTitle>Negócio fechado</DialogTitle>
+              <DialogDescription>
+                Preencha os dados para converter este contato em cliente.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-6 py-2">
+              <FormSection title="Cliente e empresa">
+                {closeDealCompanyFields.map(([label, key]) => (
+                  <Field
+                    key={key}
+                    label={label}
+                    value={conversionForm[key] || closeDealFallback(lead, key)}
+                    onChange={(v) => setConversionFormField(setConversionForm, key, v)}
+                  />
+                ))}
+              </FormSection>
+              <FormSection title="Endereço e contatos">
+                {closeDealContactFields.map(([label, key]) => (
+                  <Field
+                    key={key}
+                    label={label}
+                    value={conversionForm[key] || closeDealFallback(lead, key)}
+                    onChange={(v) => setConversionFormField(setConversionForm, key, v)}
+                  />
+                ))}
+              </FormSection>
+              <FormSection title="Responsável e contabilidade">
+                {closeDealResponsibleFields.map(([label, key]) => (
+                  <Field
+                    key={key}
+                    label={label}
+                    value={conversionForm[key] || ""}
+                    onChange={(v) => setConversionFormField(setConversionForm, key, v)}
+                  />
+                ))}
+              </FormSection>
+              <FormSection title="Implantação do Hádron">
+                {closeDealHadronFields.map(([label, key]) => (
+                  <Field
+                    key={key}
+                    label={label}
+                    value={conversionForm[key] || ""}
+                    onChange={(v) => setConversionFormField(setConversionForm, key, v)}
+                  />
+                ))}
+              </FormSection>
+              <Field
+                label="Observação"
+                value={conversionForm.notes || ""}
+                onChange={(v) => setConversionFormField(setConversionForm, "notes", v)}
+                textarea
+              />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowCloseDealDialog(false)}>
+                Voltar
+              </Button>
+              <Button variant="secondary" onClick={handleSaveDealDraft}>
+                Salvar
+              </Button>
+              <Button
                 className="bg-emerald-600 text-white hover:bg-emerald-700"
-                disabled={actionLoading}
+                onClick={handleCloseDeal}
               >
-                {actionLoading ? "Processando..." : "Confirmar"}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+                Salvar e finalizar
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* Edit Form Dialog */}
         <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-h-[92vh] max-w-4xl overflow-y-auto modal-scrollbar">
             <form onSubmit={handleEdit}>
               <DialogHeader>
                 <DialogTitle>Editar dados comerciais</DialogTitle>
                 <DialogDescription>
-                  Altere apenas campos comerciais permitidos. Dados da Receita Federal não podem ser editados por aqui.
+                  Altere apenas campos comerciais permitidos. Dados da Receita Federal não podem ser
+                  editados por aqui.
                 </DialogDescription>
               </DialogHeader>
-              <div className="grid gap-4 py-4">
+              <div className="grid gap-4 py-4 sm:grid-cols-2 lg:grid-cols-3">
+                <FieldSelect
+                  label="Etapa"
+                  value={editForm.stage}
+                  onChange={(stage) => setEditForm((current) => ({ ...current, stage }))}
+                  options={Object.keys(stageLabels)}
+                  labels={stageLabels}
+                />
+                <FieldSelect
+                  label="Prioridade"
+                  value={editForm.priority}
+                  onChange={(priority) => setEditForm((current) => ({ ...current, priority }))}
+                  options={["baixa", "media", "alta"]}
+                />
                 <div className="grid gap-2">
                   <Label htmlFor="trade_name">Nome Fantasia</Label>
-                  <Input 
-                    id="trade_name" 
-                    value={editForm.trade_name} 
-                    onChange={e => setEditForm(prev => ({ ...prev, trade_name: e.target.value }))}
+                  <Input
+                    id="trade_name"
+                    value={editForm.trade_name}
+                    onChange={(e) =>
+                      setEditForm((prev) => ({ ...prev, trade_name: e.target.value }))
+                    }
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
                     <Label htmlFor="phone">Telefone</Label>
-                    <Input 
-                      id="phone" 
-                      value={editForm.phone} 
-                      onChange={e => setEditForm(prev => ({ ...prev, phone: e.target.value }))}
+                    <Input
+                      id="phone"
+                      value={editForm.phone}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, phone: e.target.value }))}
                     />
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="email">E-mail</Label>
-                    <Input 
-                      id="email" 
+                    <Input
+                      id="email"
                       type="email"
-                      value={editForm.email} 
-                      onChange={e => setEditForm(prev => ({ ...prev, email: e.target.value }))}
+                      value={editForm.email}
+                      onChange={(e) => setEditForm((prev) => ({ ...prev, email: e.target.value }))}
                     />
                   </div>
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="website">Website</Label>
-                  <Input 
-                    id="website" 
-                    value={editForm.website} 
-                    onChange={e => setEditForm(prev => ({ ...prev, website: e.target.value }))}
+                  <Input
+                    id="website"
+                    value={editForm.website}
+                    onChange={(e) => setEditForm((prev) => ({ ...prev, website: e.target.value }))}
+                  />
+                </div>
+                <Field
+                  label="Ramo"
+                  value={editForm.branch}
+                  onChange={(branch) => setEditForm((current) => ({ ...current, branch }))}
+                />
+                <Field
+                  label="Porte"
+                  value={editForm.company_size}
+                  onChange={(company_size) =>
+                    setEditForm((current) => ({ ...current, company_size }))
+                  }
+                />
+                <Field
+                  label="Terminais"
+                  value={editForm.terminals}
+                  onChange={(terminals) => setEditForm((current) => ({ ...current, terminals }))}
+                />
+                <Field
+                  label="CEP"
+                  value={editForm.postal_code}
+                  onChange={(postal_code) =>
+                    setEditForm((current) => ({ ...current, postal_code }))
+                  }
+                />
+                <Field
+                  label="Endereço"
+                  value={editForm.address}
+                  onChange={(address) => setEditForm((current) => ({ ...current, address }))}
+                />
+                <Field
+                  label="Número"
+                  value={editForm.address_number}
+                  onChange={(address_number) =>
+                    setEditForm((current) => ({ ...current, address_number }))
+                  }
+                />
+                <Field
+                  label="Bairro"
+                  value={editForm.neighborhood}
+                  onChange={(neighborhood) =>
+                    setEditForm((current) => ({ ...current, neighborhood }))
+                  }
+                />
+                <Field
+                  label="Cidade"
+                  value={editForm.city}
+                  onChange={(city) => setEditForm((current) => ({ ...current, city }))}
+                />
+                <Field
+                  label="UF"
+                  value={editForm.state}
+                  onChange={(state) =>
+                    setEditForm((current) => ({ ...current, state: state.toUpperCase() }))
+                  }
+                />
+                <div className="sm:col-span-2 lg:col-span-3">
+                  <Field
+                    label="Atividades"
+                    value={editForm.activities}
+                    onChange={(activities) =>
+                      setEditForm((current) => ({ ...current, activities }))
+                    }
+                    textarea
                   />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="notes">Observações</Label>
-                  <Textarea 
-                    id="notes" 
+                  <Textarea
+                    id="notes"
                     className="resize-none"
-                    value={editForm.notes} 
-                    onChange={e => setEditForm(prev => ({ ...prev, notes: e.target.value }))}
+                    value={editForm.notes}
+                    onChange={(e) => setEditForm((prev) => ({ ...prev, notes: e.target.value }))}
                   />
                 </div>
               </div>
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setShowEditDialog(false)} disabled={actionLoading}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowEditDialog(false)}
+                  disabled={actionLoading}
+                >
                   Cancelar
                 </Button>
                 <Button type="submit" disabled={actionLoading}>
@@ -384,13 +580,10 @@ function LeadDetailsPage() {
           </DialogContent>
         </Dialog>
 
-
-
         <main className="flex-1 overflow-hidden p-6">
           <div className="grid h-full grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 overflow-hidden">
             {/* Coluna Principal - Timeline e Dados */}
             <div className="flex flex-col gap-6 overflow-y-auto pr-2 custom-scrollbar modal-scrollbar">
-              
               {/* Timeline de Atividades */}
               <section className="rounded-xl border bg-card shadow-sm overflow-hidden flex-shrink-0">
                 <div className="border-b px-5 py-3 bg-muted/30">
@@ -419,12 +612,17 @@ function LeadDetailsPage() {
                   <InfoItem label="Situação Cadastral" value={lead.registration_status} />
                   <InfoItem label="Porte" value={lead.company_size} />
                   <InfoItem label="Natureza Jurídica" value={lead.legal_nature} />
-                  <InfoItem label="CNAE Principal" value={`${lead.cnae_code} - ${lead.cnae_description}`} />
+                  <InfoItem
+                    label="CNAE Principal"
+                    value={`${lead.cnae_code} - ${lead.cnae_description}`}
+                  />
                   <div className="sm:col-span-2 lg:col-span-3">
-                    <dt className="text-[10px] font-bold uppercase text-muted-foreground mb-1">Quadro Societário</dt>
+                    <dt className="text-[10px] font-bold uppercase text-muted-foreground mb-1">
+                      Quadro Societário
+                    </dt>
                     <dd className="text-sm">
-                      {lead.partners?.length > 0 
-                        ? lead.partners.map(p => p.name).join(", ") 
+                      {lead.partners?.length > 0
+                        ? lead.partners.map((p) => p.name).join(", ")
                         : "Não informado"}
                     </dd>
                   </div>
@@ -456,22 +654,40 @@ function LeadDetailsPage() {
             <aside className="overflow-y-auto pr-2 custom-scrollbar modal-scrollbar">
               <div className="flex flex-col gap-6">
                 <section className="rounded-xl border bg-card p-5 shadow-sm space-y-6">
-                  <h3 className="text-xs font-bold uppercase text-muted-foreground tracking-wider border-b pb-2">Status do Lead</h3>
-                  
+                  <h3 className="text-xs font-bold uppercase text-muted-foreground tracking-wider border-b pb-2">
+                    Status do Lead
+                  </h3>
+
                   <div className="space-y-4">
                     <SideInfoItem label="Etapa Comercial" value={stageLabels[lead.stage]} />
-                    <SideInfoItem label="Prioridade" value={lead.relevance_score >= 8 ? "Alta" : lead.relevance_score >= 5 ? "Média" : "Baixa"} />
+                    <SideInfoItem
+                      label="Prioridade"
+                      value={
+                        lead.relevance_score >= 8
+                          ? "Alta"
+                          : lead.relevance_score >= 5
+                            ? "Média"
+                            : "Baixa"
+                      }
+                    />
                     <SideInfoItem label="Data de Retorno" value="Não agendada" />
-                    
+
                     <div className="h-px bg-border my-2" />
-                    
-                    <SideInfoItem label="Data de Cadastro" value={lead.discovered_at ? new Date(lead.discovered_at).toLocaleDateString("pt-BR") : "—"} />
+
+                    <SideInfoItem
+                      label="Data de Cadastro"
+                      value={
+                        lead.discovered_at
+                          ? new Date(lead.discovered_at).toLocaleDateString("pt-BR")
+                          : "—"
+                      }
+                    />
                     <SideInfoItem label="Última Atualização" value="Hoje" />
                     <SideInfoItem label="Operador de Registro" value={lead.source} />
                     <SideInfoItem label="Operador da Última Alteração" value="PRCGGC" />
-                    
+
                     <div className="h-px bg-border my-2" />
-                    
+
                     <SideInfoItem label="Primeiro Contato" value="—" />
                     <SideInfoItem label="Quantidade de Ligações" value="0" />
                     <SideInfoItem label="Quantidade de E-mails" value="0" />
@@ -498,6 +714,171 @@ function InfoItem({ label, value }: { label: string; value?: string | null }) {
   );
 }
 
+const inactivationReasons = [
+  "Preço fora do mercado",
+  "Sem investimento no momento",
+  "Problema(s) financeiro(s)",
+  "Não irá trocar de sistema",
+  "Problemas de conversão de dados, sem compatibilidade",
+  "Optou por outro sistema",
+  "Empresa fechou",
+  "Outro (descreva)",
+];
+
+const closeDealCompanyFields = [
+  ["Nome (apelido)", "nickname"],
+  ["Sigla", "acronym"],
+  ["E-mail do responsável (Admin.)", "admin_email"],
+  ["Nome (Admin.)", "admin_name"],
+  ["Sigla do grupo", "group_acronym"],
+  ["Unidade de atendimento", "service_unit"],
+  ["CNPJ", "cnpj"],
+  ["Razão social", "legal_name"],
+  ["Nome fantasia", "trade_name"],
+  ["Inscrição estadual", "state_registration"],
+  ["Inscrição municipal", "city_registration"],
+  ["CNAE", "cnae"],
+  ["ANTT (transportadora)", "antt"],
+  ["Regime de apuração", "tax_regime"],
+  ["Ramo", "branch"],
+  ["Porte", "company_size"],
+  ["Site", "website"],
+] as const;
+const closeDealContactFields = [
+  ["CEP", "postal_code"],
+  ["Endereço", "address"],
+  ["Número", "address_number"],
+  ["Complemento", "address_complement"],
+  ["Bairro", "neighborhood"],
+  ["Cidade", "city"],
+  ["UF", "state"],
+  ["Telefone", "phone"],
+  ["Contato do telefone", "phone_contact"],
+  ["E-mail", "email"],
+  ["Contato do e-mail", "email_contact"],
+] as const;
+const closeDealResponsibleFields = [
+  ["Responsável", "responsible_name"],
+  ["CPF", "responsible_cpf"],
+  ["RG", "responsible_rg"],
+  ["CEP do responsável", "responsible_postal_code"],
+  ["Endereço do responsável", "responsible_address"],
+  ["Número", "responsible_number"],
+  ["Complemento", "responsible_complement"],
+  ["Bairro", "responsible_neighborhood"],
+  ["Cidade", "responsible_city"],
+  ["UF", "responsible_state"],
+  ["Escritório", "accounting_office"],
+  ["Contador", "accountant_name"],
+  ["Telefone do contador", "accountant_phone"],
+  ["E-mail do contador", "accountant_email"],
+] as const;
+const closeDealHadronFields = [
+  ["Responsável PRC 1", "hadron_responsible_1"],
+  ["Responsável PRC 2", "hadron_responsible_2"],
+  ["Tempo de instalação", "installation_time"],
+  ["Terminais", "terminals"],
+  ["Configuração de rede", "network"],
+  ["Módulos contratados", "modules"],
+  ["Documentos fiscais", "fiscal_documents"],
+  ["Homologação de NF-e", "nfe_validation"],
+  ["Importação de dados", "data_import"],
+  ["Boleto bancário", "bank_slip"],
+  ["Bancos para cobrança", "banks"],
+  ["Aplicativos web", "web_apps"],
+] as const;
+
+function closeDealFallback(lead: CompanyLeadDetails, key: string) {
+  const values: Record<string, string> = {
+    cnpj: lead.cnpj,
+    legal_name: lead.legal_name,
+    trade_name: lead.trade_name || "",
+    cnae: lead.cnae_code || "",
+    company_size: lead.company_size || "",
+    website: lead.website || "",
+    postal_code: lead.postal_code || "",
+    address: lead.address || "",
+    neighborhood: lead.neighborhood || "",
+    city: lead.city,
+    state: lead.state,
+    phone: lead.phone || "",
+    email: lead.email || "",
+  };
+  return values[key] || "";
+}
+
+function setConversionFormField(
+  setter: React.Dispatch<React.SetStateAction<Record<string, string>>>,
+  key: string,
+  value: string,
+) {
+  setter((current) => ({ ...current, [key]: value }));
+}
+
+function FormSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <fieldset className="grid gap-4 rounded-md border p-4 sm:grid-cols-2 lg:grid-cols-3">
+      <legend className="px-2 text-sm font-semibold">{title}</legend>
+      {children}
+    </fieldset>
+  );
+}
+
+function Field({
+  label,
+  value,
+  onChange,
+  textarea = false,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  textarea?: boolean;
+}) {
+  return (
+    <label className={cn("grid gap-1.5", textarea && "sm:col-span-2 lg:col-span-3")}>
+      <span className="text-xs font-medium text-muted-foreground">{label}</span>
+      {textarea ? (
+        <Textarea value={value} onChange={(event) => onChange(event.target.value)} />
+      ) : (
+        <Input value={value} onChange={(event) => onChange(event.target.value)} />
+      )}
+    </label>
+  );
+}
+
+function FieldSelect({
+  label,
+  value,
+  onChange,
+  options,
+  labels,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  options: readonly string[];
+  labels?: Record<string, string>;
+}) {
+  return (
+    <label className="grid gap-1.5">
+      <span className="text-xs font-medium text-muted-foreground">{label}</span>
+      <Select value={value} onValueChange={onChange}>
+        <SelectTrigger>
+          <SelectValue placeholder="Selecione" />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map((option) => (
+            <SelectItem key={option} value={option}>
+              {labels?.[option] || option}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </label>
+  );
+}
+
 function SideInfoItem({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col gap-0.5">
@@ -516,7 +897,7 @@ function Timeline({ lead }: { lead: CompanyLeadDetails }) {
       description: "Empresa identificada via prospecção ativa.",
       at: lead.discovered_at || new Date().toISOString(),
       actor: lead.source,
-      status: "Concluído"
+      status: "Concluído",
     },
     {
       id: "2",
@@ -525,8 +906,8 @@ function Timeline({ lead }: { lead: CompanyLeadDetails }) {
       description: `Etapa comercial definida como ${stageLabels[lead.stage]}.`,
       at: new Date().toISOString(),
       actor: "PRCGGC",
-      status: "Concluído"
-    }
+      status: "Concluído",
+    },
   ];
 
   return (
@@ -534,7 +915,11 @@ function Timeline({ lead }: { lead: CompanyLeadDetails }) {
       {items.map((item) => (
         <div key={item.id} className="relative pl-10">
           <div className="absolute left-0 top-0 h-9 w-9 rounded-full bg-background border-2 border-primary flex items-center justify-center z-10">
-            {item.kind === 'created' ? <Plus className="h-4 w-4 text-primary" /> : <History className="h-4 w-4 text-primary" />}
+            {item.kind === "created" ? (
+              <Plus className="h-4 w-4 text-primary" />
+            ) : (
+              <History className="h-4 w-4 text-primary" />
+            )}
           </div>
           <div className="flex flex-col gap-1">
             <div className="flex items-center justify-between gap-2">

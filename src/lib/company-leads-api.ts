@@ -57,6 +57,10 @@ export type CompanyLeadPartner = {
 };
 
 export type CompanyLeadDetails = CompanyLead & {
+  commercial_data?: Record<string, string | number | boolean | null>;
+  conversion_data?: Record<string, unknown>;
+  conversion_status?: string | null;
+  inactivation_reason?: string | null;
   company_root: string | null;
   branch_type: string | null;
   secondary_cnaes: string[];
@@ -231,6 +235,23 @@ export const companyLeadsApi = {
       p_stage: input.stage,
       p_assigned_to: input.assignedTo?.trim() || null,
       p_notes: input.notes?.trim() || null,
+    });
+    if (error) throw error;
+    if (!data) throw new Error("Lead não encontrado.");
+    return data as CompanyLeadDetails;
+  },
+
+  async saveAction(
+    id: string,
+    action: "edit" | "inactivate" | "close_deal",
+    payload: Record<string, unknown>,
+    finalize = false,
+  ) {
+    const { data, error } = await supabase.rpc("company_leads_save_action", {
+      p_id: id,
+      p_action: action,
+      p_payload: payload,
+      p_finalize: finalize,
     });
     if (error) throw error;
     if (!data) throw new Error("Lead não encontrado.");

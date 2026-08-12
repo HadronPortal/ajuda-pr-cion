@@ -594,17 +594,24 @@ export function CompanyLeadsTab() {
         );
       case "stage":
         return (
-          <select
+          <Select
             value={lead.stage}
-            onChange={(event) => void updateStage(lead, event.target.value as CompanyLeadStage)}
-            className="h-7 cursor-pointer rounded-md border border-input bg-background px-1.5 text-xs"
+            onValueChange={(value) => void updateStage(lead, value as CompanyLeadStage)}
           >
-            {Object.entries(stageLabels).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger
+              className="h-7 min-w-[132px] cursor-pointer px-2 text-xs"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent onClick={(event) => event.stopPropagation()}>
+              {Object.entries(stageLabels).map(([value, label]) => (
+                <SelectItem key={value} value={value} className="cursor-pointer text-xs">
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         );
       case "source":
         return <div className="truncate text-xs text-muted-foreground">{lead.source}</div>;
