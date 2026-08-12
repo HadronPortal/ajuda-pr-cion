@@ -348,9 +348,6 @@ export function CompanyLeadsTab() {
   };
 
   const updateStage = async (lead: CompanyLead, stage: CompanyLeadStage) => {
-    // Apenas permitido na aba Prospecção via grid/kanban (se implementado)
-    // Mas aqui na listagem de contatos comerciais a regra pede para remover o seletor editável.
-    // Esta função permanece para uso em outros contextos se necessário.
     const previous = leads;
     setLeads((items) => items.map((item) => (item.id === lead.id ? { ...item, stage } : item)));
     try {
@@ -597,21 +594,17 @@ export function CompanyLeadsTab() {
         );
       case "stage":
         return (
-          <Badge
-            variant="outline"
-            className={cn(
-              "font-medium pointer-events-none cursor-default",
-              lead.stage === "negocio_fechado"
-                ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
-                : lead.stage === "sem_interesse"
-                  ? "border-destructive/50 bg-destructive/10 text-destructive"
-                  : lead.stage === "negociacao" || lead.stage === "proposta"
-                    ? "border-amber-500/50 bg-amber-500/10 text-amber-700 dark:text-amber-400"
-                    : "border-primary/50 bg-primary/10 text-primary",
-            )}
+          <select
+            value={lead.stage}
+            onChange={(event) => void updateStage(lead, event.target.value as CompanyLeadStage)}
+            className="h-7 cursor-pointer rounded-md border border-input bg-background px-1.5 text-xs"
           >
-            {stageLabels[lead.stage] || lead.stage}
-          </Badge>
+            {Object.entries(stageLabels).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
         );
       case "source":
         return <div className="truncate text-xs text-muted-foreground">{lead.source}</div>;
