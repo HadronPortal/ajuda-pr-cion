@@ -31,7 +31,7 @@ import { Route as ComercialContatosRouteImport } from './routes/comercial.contat
 import { Route as ClientesClienteIdRouteImport } from './routes/clientes.$clienteId'
 import { Route as ChamadosNovoRouteImport } from './routes/chamados.novo'
 import { Route as BaseDeConhecimentoSlugRouteImport } from './routes/base-de-conhecimento.$slug'
-import { Route as ComercialContatosLeadIdRouteImport } from './routes/comercial.contatos.$leadId'
+import { Route as ComercialContatosLeadIdRouteImport } from './routes/comercial/contatos/$leadId'
 import { Route as ApiPublicTestPlacesRouteImport } from './routes/api/public/test-places'
 
 const VersoesRoute = VersoesRouteImport.update({
