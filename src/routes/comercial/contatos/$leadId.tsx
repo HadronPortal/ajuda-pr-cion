@@ -240,7 +240,7 @@ export function LeadDetailsPage() {
 
   return (
     <AppShell fullWidth>
-      <div className="flex flex-col h-screen bg-background overflow-hidden">
+      <div className="min-h-screen bg-background">
         <DetailModalHeader
           icon={Briefcase}
           title={lead.trade_name || lead.legal_name}
@@ -313,7 +313,6 @@ export function LeadDetailsPage() {
               </Button>
             </div>
           }
-          onClose={() => window.close()}
         />
 
         <Dialog open={showInactivateDialog} onOpenChange={setShowInactivateDialog}>
@@ -580,10 +579,10 @@ export function LeadDetailsPage() {
           </DialogContent>
         </Dialog>
 
-        <main className="flex-1 overflow-hidden p-6">
-          <div className="grid h-full grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 overflow-hidden">
+        <main className="p-6">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">
             {/* Coluna Principal - Timeline e Dados */}
-            <div className="flex flex-col gap-6 overflow-y-auto pr-2 custom-scrollbar modal-scrollbar">
+            <div className="flex min-w-0 flex-col gap-6">
               {/* Timeline de Atividades */}
               <section className="rounded-xl border bg-card shadow-sm overflow-hidden flex-shrink-0">
                 <div className="border-b px-5 py-3 bg-muted/30">
@@ -651,7 +650,7 @@ export function LeadDetailsPage() {
             </div>
 
             {/* Painel Lateral */}
-            <aside className="overflow-y-auto pr-2 custom-scrollbar modal-scrollbar">
+            <aside>
               <div className="flex flex-col gap-6">
                 <section className="rounded-xl border bg-card p-5 shadow-sm space-y-6">
                   <h3 className="text-xs font-bold uppercase text-muted-foreground tracking-wider border-b pb-2">

@@ -29,7 +29,7 @@ export function DetailModalHeader({
   chips?: ReactNode;
   /** Conteúdo alinhado à direita no desktop e quebrado para linha abaixo em telas menores. */
   trailing?: ReactNode;
-  onClose: () => void;
+  onClose?: () => void;
   /** Versão ainda mais compacta (menos padding vertical). */
   dense?: boolean;
   /** Classe da faixa vertical à esquerda. */
@@ -49,16 +49,18 @@ export function DetailModalHeader({
       <div className="relative overflow-hidden rounded-xl border border-border bg-card shadow-[0_1px_2px_rgba(15,23,42,0.04),0_4px_12px_rgba(15,23,42,0.05)]">
         <span aria-hidden className={cn("absolute left-0 top-0 h-full w-1", accentClassName)} />
 
-        <div className="absolute right-2 top-2 z-10 flex items-center gap-1">
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Fechar"
-            className="grid h-7 w-7 cursor-pointer place-items-center rounded-md text-muted-foreground transition hover:bg-accent hover:text-foreground"
-          >
-            <X className="h-3.5 w-3.5" />
-          </button>
-        </div>
+        {onClose && (
+          <div className="absolute right-2 top-2 z-10 flex items-center gap-1">
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Fechar"
+              className="grid h-7 w-7 cursor-pointer place-items-center rounded-md text-muted-foreground transition hover:bg-accent hover:text-foreground"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        )}
 
         <div
           className={cn(

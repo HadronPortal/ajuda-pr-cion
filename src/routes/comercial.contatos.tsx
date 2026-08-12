@@ -234,11 +234,15 @@ function CommercialContactsPage() {
                       {stages.find((item) => item.value === lead.stage)?.label || lead.stage}
                     </td>
                     <td className="px-2 py-3 text-center">
-                      <Button variant="ghost" size="icon" asChild title="Ver detalhes">
-                        <Link to="/comercial/contatos/$leadId" params={{ leadId: lead.id }}>
-                          <Eye className="h-4 w-4" />
-                        </Link>
-                      </Button>
+                      <Link
+                        to="/comercial/contatos/$leadId"
+                        params={{ leadId: lead.id }}
+                        title="Ver detalhes"
+                        aria-label={`Ver detalhes de ${lead.trade_name || lead.legal_name}`}
+                        className="mx-auto grid h-9 w-9 cursor-pointer place-items-center rounded-md text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Link>
                     </td>
                   </tr>
                 ))
