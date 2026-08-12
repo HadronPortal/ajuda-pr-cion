@@ -22,6 +22,7 @@ import {
   type CompanyLeadDetails,
   type CompanyLeadStage,
 } from "@/lib/company-leads-api";
+import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/comercial/contatos")({ component: CommercialContactsPage });
@@ -238,19 +239,20 @@ function CommercialContactsPage() {
                       <span className="text-[11px] text-muted-foreground">{lead.cnae_code}</span>
                     </td>
                     <td className="px-3 py-3">
-                      <select
-                        value={lead.stage}
-                        onChange={(event) =>
-                          changeStage(lead, event.target.value as CompanyLeadStage)
-                        }
-                        className="h-8 w-full min-w-0 rounded-md border border-input bg-background px-2 text-xs"
+                      <div
+                        className={cn(
+                          "inline-flex rounded-full border px-2.5 py-0.5 text-[11px] font-medium transition-colors",
+                          lead.stage === "negocio_fechado"
+                            ? "border-emerald-500/50 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+                            : lead.stage === "sem_interesse"
+                              ? "border-destructive/50 bg-destructive/10 text-destructive"
+                              : lead.stage === "negociacao" || lead.stage === "proposta"
+                                ? "border-amber-500/50 bg-amber-500/10 text-amber-700 dark:text-amber-400"
+                                : "border-primary/50 bg-primary/10 text-primary",
+                        )}
                       >
-                        {stages.map((item) => (
-                          <option key={item.value} value={item.value}>
-                            {item.label}
-                          </option>
-                        ))}
-                      </select>
+                        {stages.find((item) => item.value === lead.stage)?.label || lead.stage}
+                      </div>
                     </td>
                     <td className="px-2 py-3 text-center">
                       <Button
