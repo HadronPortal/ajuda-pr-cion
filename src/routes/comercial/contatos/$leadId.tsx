@@ -134,7 +134,7 @@ function LeadDetailsPage() {
   const handleInactivate = async () => {
     setActionLoading(true);
     try {
-      await updateStatusFn({ id: leadId, status: "inativo" });
+      await updateStatusFn({ data: { id: leadId, status: "inativo" } });
       toast.success("Lead inativado com sucesso.");
       await loadLead();
       setShowInactivateDialog(false);
@@ -148,7 +148,7 @@ function LeadDetailsPage() {
   const handleCloseDeal = async () => {
     setActionLoading(true);
     try {
-      await updateStatusFn({ id: leadId, stage: "negocio_fechado" });
+      await updateStatusFn({ data: { id: leadId, stage: "negocio_fechado" } });
       toast.success("Negócio fechado com sucesso!");
       await loadLead();
       setShowCloseDealDialog(false);
@@ -163,7 +163,7 @@ function LeadDetailsPage() {
     e.preventDefault();
     setActionLoading(true);
     try {
-      await updateCommercialFn({ id: leadId, ...editForm });
+      await updateCommercialFn({ data: { id: leadId, ...editForm } });
       toast.success("Dados atualizados com sucesso.");
       await loadLead();
       setShowEditDialog(false);
