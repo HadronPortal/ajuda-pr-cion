@@ -37,6 +37,13 @@ import {
 
 import { Separator } from "@/components/ui/separator";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   companyLeadsApi,
   type CompanyLead,
   type CompanyLeadFilters,
@@ -698,20 +705,27 @@ export function CompanyLeadsTab() {
                   <span className="text-xs font-medium text-muted-foreground">
                     Situação cadastral
                   </span>
-                  <select
-                    value={filters.registrationStatus}
-                    onChange={(event) =>
-                      setFilters((value) => ({ ...value, registrationStatus: event.target.value }))
+                  <Select
+                    value={filters.registrationStatus || "all"}
+                    onValueChange={(registrationStatus) =>
+                      setFilters((value) => ({
+                        ...value,
+                        registrationStatus: registrationStatus === "all" ? "" : registrationStatus,
+                      }))
                     }
-                    className="h-9 w-full cursor-pointer rounded-md border border-input bg-background px-3 text-sm"
                   >
-                    <option value="">Todas</option>
-                    {registrationStatusOptions.map((option) => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas</SelectItem>
+                      {registrationStatusOptions.map((option) => (
+                        <SelectItem key={option} value={option}>
+                          {option}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   {filters.taxRegime && !["0", "3"].includes(filters.taxRegime) && (
                     <span className="block text-[11px] leading-4 text-muted-foreground">
                       Dados da publicação anual da Receita Federal, exercício 2022.
@@ -720,61 +734,79 @@ export function CompanyLeadsTab() {
                 </label>
                 <label className="block space-y-1.5">
                   <span className="text-xs font-medium text-muted-foreground">Porte</span>
-                  <select
-                    value={filters.companySize}
-                    onChange={(event) =>
-                      setFilters((value) => ({ ...value, companySize: event.target.value }))
+                  <Select
+                    value={filters.companySize || "all"}
+                    onValueChange={(companySize) =>
+                      setFilters((value) => ({
+                        ...value,
+                        companySize: companySize === "all" ? "" : companySize,
+                      }))
                     }
-                    className="h-9 w-full cursor-pointer rounded-md border border-input bg-background px-3 text-sm"
                   >
-                    <option value="">Todos</option>
-                    {companySizeOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      {companySizeOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </label>
                 <label className="block space-y-1.5">
                   <span className="text-xs font-medium text-muted-foreground">
                     Regime tributário
                   </span>
-                  <select
-                    value={filters.taxRegime ?? ""}
-                    onChange={(event) => {
-                      const taxRegime = event.target.value;
+                  <Select
+                    value={filters.taxRegime || "all"}
+                    onValueChange={(selectedTaxRegime) => {
+                      const taxRegime = selectedTaxRegime === "all" ? "" : selectedTaxRegime;
                       setFilters((value) => ({
                         ...value,
                         taxRegime,
                         ...(taxRegime ? { openedWithinDays: 0, openedFrom: "", openedTo: "" } : {}),
                       }));
                     }}
-                    className="h-9 w-full cursor-pointer rounded-md border border-input bg-background px-3 text-sm"
                   >
-                    <option value="">Todos</option>
-                    {Object.entries(taxRegimeLabels).map(([value, label]) => (
-                      <option key={value} value={value}>
-                        {label}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      {Object.entries(taxRegimeLabels).map(([value, label]) => (
+                        <SelectItem key={value} value={value}>
+                          {label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </label>
                 <label className="block space-y-1.5">
                   <span className="text-xs font-medium text-muted-foreground">Etapa do lead</span>
-                  <select
-                    value={filters.stage}
-                    onChange={(event) =>
-                      setFilters((value) => ({ ...value, stage: event.target.value }))
+                  <Select
+                    value={filters.stage || "all"}
+                    onValueChange={(stage) =>
+                      setFilters((value) => ({
+                        ...value,
+                        stage: stage === "all" ? "" : stage,
+                      }))
                     }
-                    className="h-9 w-full cursor-pointer rounded-md border border-input bg-background px-3 text-sm"
                   >
-                    <option value="">Todas</option>
-                    {Object.entries(stageLabels).map(([value, label]) => (
-                      <option key={value} value={value}>
-                        {label}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas</SelectItem>
+                      {Object.entries(stageLabels).map(([value, label]) => (
+                        <SelectItem key={value} value={value}>
+                          {label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </label>
                 <label className="block space-y-1.5">
                   <span className="text-xs font-medium text-muted-foreground">CNAE</span>
@@ -1223,7 +1255,9 @@ export function CompanyLeadsTab() {
                       </div>
                     </div>
                     <div>
-                      <div className="text-xs uppercase text-muted-foreground">Telefone principal</div>
+                      <div className="text-xs uppercase text-muted-foreground">
+                        Telefone principal
+                      </div>
                       <div className="mt-1 text-sm">
                         {formatPhone(selectedLead.phone) !== "—"
                           ? formatPhone(selectedLead.phone)
@@ -1231,7 +1265,9 @@ export function CompanyLeadsTab() {
                       </div>
                     </div>
                     <div>
-                      <div className="text-xs uppercase text-muted-foreground">Telefone adicional</div>
+                      <div className="text-xs uppercase text-muted-foreground">
+                        Telefone adicional
+                      </div>
                       <div className="mt-1 text-sm">
                         {formatPhone(selectedLead.phone_secondary) !== "—"
                           ? formatPhone(selectedLead.phone_secondary)
@@ -1246,9 +1282,7 @@ export function CompanyLeadsTab() {
                     </div>
                     <div>
                       <div className="text-xs uppercase text-muted-foreground">Site</div>
-                      <div className="mt-1 text-sm">
-                        {selectedLead.website || "Não informado"}
-                      </div>
+                      <div className="mt-1 text-sm">{selectedLead.website || "Não informado"}</div>
                     </div>
                   </div>
                 </section>
