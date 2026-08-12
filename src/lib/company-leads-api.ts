@@ -40,6 +40,8 @@ export type CompanyLead = {
   tax_regime_source?: string | null;
   relevance_score: number;
   stage: CompanyLeadStage;
+  assigned_to?: string | null;
+  notes?: string | null;
   source: string;
   source_url: string | null;
   discovered_at: string;
@@ -218,5 +220,20 @@ export const companyLeadsApi = {
     });
     if (error) throw error;
     return { success: true };
+  },
+
+  async updateCommercial(
+    id: string,
+    input: { stage: CompanyLeadStage; assignedTo?: string; notes?: string },
+  ) {
+    const { data, error } = await supabase.rpc("company_leads_update_commercial", {
+      p_id: id,
+      p_stage: input.stage,
+      p_assigned_to: input.assignedTo?.trim() || null,
+      p_notes: input.notes?.trim() || null,
+    });
+    if (error) throw error;
+    if (!data) throw new Error("Lead não encontrado.");
+    return data as CompanyLeadDetails;
   },
 };
