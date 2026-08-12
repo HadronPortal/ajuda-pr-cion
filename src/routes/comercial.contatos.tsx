@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import {
   Building2,
   ChevronLeft,
@@ -25,7 +25,7 @@ import {
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 
-export const Route = createFileRoute("/comercial/contatos")({ component: CommercialContactsPage });
+export const Route = createFileRoute("/comercial/contatos")({ component: CommercialContactsRoute });
 
 const PAGE_SIZE = 25;
 const leadColumns =
@@ -40,6 +40,16 @@ const stages: Array<{ value: CompanyLeadStage; label: string }> = [
   { value: "sem_interesse", label: "Sem interesse" },
 ];
 const visibleStages = stages.filter((item) => item.value !== "sem_interesse");
+
+function CommercialContactsRoute() {
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+
+  if (pathname !== "/comercial/contatos" && pathname.startsWith("/comercial/contatos/")) {
+    return <Outlet />;
+  }
+
+  return <CommercialContactsPage />;
+}
 
 function CommercialContactsPage() {
   const [rows, setRows] = useState<CompanyLead[]>([]);
