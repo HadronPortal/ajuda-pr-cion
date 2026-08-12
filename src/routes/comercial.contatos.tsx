@@ -90,7 +90,6 @@ function CommercialContactsPage() {
 
   useEffect(() => setPage(0), [search, stage]);
 
-
   async function changeStage(lead: CompanyLead, next: CompanyLeadStage) {
     try {
       await companyLeadsApi.updateStage(lead.id, next);
@@ -244,10 +243,8 @@ function CommercialContactsPage() {
                         title="Ver detalhes"
                       >
                         <Link 
-                          to="/comercial/contatos/$leadId" 
+                          to="/comercial/contato/$leadId" 
                           params={{ leadId: lead.id }}
-                          target="_blank"
-                          rel="noopener noreferrer"
                         >
                           <Eye className="h-4 w-4" />
                         </Link>
