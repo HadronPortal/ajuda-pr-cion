@@ -1,11 +1,6 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
+import { LeadDetailsPage } from "./comercial/contatos/$leadId";
 
 export const Route = createFileRoute("/comercial/contato/$leadId")({
-  beforeLoad: ({ params }) => {
-    throw redirect({
-      to: "/comercial/contatos/$leadId",
-      params: { leadId: params.leadId },
-      replace: true,
-    });
-  },
+  component: LeadDetailsPage,
 });

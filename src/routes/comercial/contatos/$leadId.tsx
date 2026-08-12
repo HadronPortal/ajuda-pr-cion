@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useEffect, useState, useMemo } from "react";
 import {
   Building2,
@@ -78,8 +78,8 @@ const stageColors: Record<CompanyLeadStage, string> = {
   sem_interesse: "bg-rose-500/10 text-rose-600 border-rose-200",
 };
 
-function LeadDetailsPage() {
-  const { leadId } = Route.useParams();
+export function LeadDetailsPage() {
+  const { leadId } = useParams({ strict: false });
   const [lead, setLead] = useState<CompanyLeadDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
