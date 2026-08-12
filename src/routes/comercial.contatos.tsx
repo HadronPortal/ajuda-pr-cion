@@ -178,8 +178,6 @@ function CommercialContactsPage() {
                       <Link
                         to="/comercial/contatos/$leadId"
                         params={{ leadId: lead.id }}
-                        target="_blank"
-                        rel="noopener noreferrer"
                         className="block w-full min-w-0 text-left hover:text-primary group"
                       >
                         <span
@@ -236,16 +234,8 @@ function CommercialContactsPage() {
                       {stages.find((item) => item.value === lead.stage)?.label || lead.stage}
                     </td>
                     <td className="px-2 py-3 text-center">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        asChild
-                        title="Ver detalhes"
-                      >
-                        <Link 
-                          to="/comercial/contato/$leadId" 
-                          params={{ leadId: lead.id }}
-                        >
+                      <Button variant="ghost" size="icon" asChild title="Ver detalhes">
+                        <Link to="/comercial/contatos/$leadId" params={{ leadId: lead.id }}>
                           <Eye className="h-4 w-4" />
                         </Link>
                       </Button>
@@ -283,7 +273,6 @@ function CommercialContactsPage() {
           </div>
         </div>
       </div>
-
     </AppShell>
   );
 }
@@ -299,4 +288,3 @@ function mapLeadRow(row: Record<string, unknown>): CompanyLead {
     tax_regime: typeof payload.tax_regime === "string" ? payload.tax_regime : null,
   };
 }
-
