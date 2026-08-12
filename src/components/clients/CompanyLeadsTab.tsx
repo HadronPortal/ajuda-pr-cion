@@ -1197,7 +1197,7 @@ export function CompanyLeadsTab() {
                 <section>
                   <div className="mb-3 flex items-center gap-2">
                     <MapPin className="h-4 w-4 text-primary" />
-                    <h3 className="text-sm font-semibold">Contato e localização</h3>
+                    <h3 className="text-sm font-semibold">Localização e contato</h3>
                   </div>
                   <div className="grid gap-x-8 gap-y-4 sm:grid-cols-2">
                     <div className="sm:col-span-2">
@@ -1255,7 +1255,7 @@ export function CompanyLeadsTab() {
                 <Separator />
                 <section>
                   <div className="mb-3 flex items-center justify-between gap-3">
-                    <h3 className="text-sm font-semibold">Atividade da empresa</h3>
+                    <h3 className="text-sm font-semibold">Atividade</h3>
                     <Button
                       type="button"
                       variant="outline"
