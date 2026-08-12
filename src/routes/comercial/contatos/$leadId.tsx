@@ -16,20 +16,47 @@ import {
   AlertCircle,
   Plus,
   ArrowLeft,
-  Briefcase
+  Briefcase,
+  AlertTriangle,
+  CheckCircle,
+  Pencil
 } from "lucide-react";
 import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
 import { AppShell } from "@/components/portal/AppShell";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { 
   companyLeadsApi, 
   type CompanyLeadDetails, 
   type CompanyLeadStage 
 } from "@/lib/company-leads-api";
+import { updateLeadStatus, updateLeadCommercialData } from "@/lib/lead-actions.functions";
+
 
 export const Route = createFileRoute("/comercial/contatos/$leadId")({
   component: LeadDetailsPage,
@@ -61,22 +88,91 @@ function LeadDetailsPage() {
   const { leadId } = Route.useParams();
   const [lead, setLead] = useState<CompanyLeadDetails | null>(null);
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
+  
+  // Dialog states
+  const [showInactivateDialog, setShowInactivateDialog] = useState(false);
+  const [showCloseDealDialog, setShowCloseDealDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+
+  // Edit form state
+  const [editForm, setEditForm] = useState({
+    trade_name: "",
+    phone: "",
+    email: "",
+    website: "",
+    notes: ""
+  });
+
+  const updateStatusFn = useServerFn(updateLeadStatus);
+  const updateCommercialFn = useServerFn(updateLeadCommercialData);
+
+  const loadLead = async () => {
+    try {
+      setLoading(true);
+      const data = await companyLeadsApi.details(leadId);
+      setLead(data);
+      setEditForm({
+        trade_name: data.trade_name || "",
+        phone: data.phone || "",
+        email: data.email || "",
+        website: data.website || "",
+        notes: "" // Assuming notes isn't in lead details yet but we provide the field
+      });
+    } catch (err) {
+      console.error(err);
+      toast.error("Não foi possível carregar os detalhes do lead.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    async function load() {
-      try {
-        setLoading(true);
-        const data = await companyLeadsApi.details(leadId);
-        setLead(data);
-      } catch (err) {
-        console.error(err);
-        toast.error("Não foi possível carregar os detalhes do lead.");
-      } finally {
-        setLoading(false);
-      }
-    }
-    load();
+    loadLead();
   }, [leadId]);
+
+  const handleInactivate = async () => {
+    setActionLoading(true);
+    try {
+      await updateStatusFn({ id: leadId, status: "inativo" });
+      toast.success("Lead inativado com sucesso.");
+      await loadLead();
+      setShowInactivateDialog(false);
+    } catch (err) {
+      toast.error("Erro ao inativar lead.");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleCloseDeal = async () => {
+    setActionLoading(true);
+    try {
+      await updateStatusFn({ id: leadId, stage: "negocio_fechado" });
+      toast.success("Negócio fechado com sucesso!");
+      await loadLead();
+      setShowCloseDealDialog(false);
+    } catch (err) {
+      toast.error("Erro ao atualizar etapa.");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setActionLoading(true);
+    try {
+      await updateCommercialFn({ id: leadId, ...editForm });
+      toast.success("Dados atualizados com sucesso.");
+      await loadLead();
+      setShowEditDialog(false);
+    } catch (err) {
+      toast.error("Erro ao atualizar dados.");
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -133,12 +229,41 @@ function LeadDetailsPage() {
           }
           trailing={
             <div className="flex items-center gap-2">
-              <Button size="sm" variant="outline" className="h-8 text-xs">
-                Ações Comerciais
+              <Button 
+                size="sm" 
+                variant="destructive" 
+                className="h-8 text-xs gap-1.5"
+                onClick={() => setShowInactivateDialog(true)}
+                disabled={actionLoading}
+              >
+                <AlertTriangle className="h-3.5 w-3.5" />
+                Inativar
               </Button>
-              <Button size="sm" asChild className="h-8 text-xs">
+              
+              <Button 
+                size="sm" 
+                className="h-8 text-xs bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 border-none"
+                onClick={() => setShowCloseDealDialog(true)}
+                disabled={actionLoading}
+              >
+                <CheckCircle className="h-3.5 w-3.5" />
+                Negócio fechado
+              </Button>
+
+              <Button 
+                size="sm" 
+                variant="outline" 
+                className="h-8 text-xs gap-1.5 border-primary text-primary hover:bg-primary/5"
+                onClick={() => setShowEditDialog(true)}
+                disabled={actionLoading}
+              >
+                <Pencil className="h-3.5 w-3.5" />
+                Editar
+              </Button>
+
+              <Button size="sm" asChild variant="ghost" className="h-8 text-xs gap-1.5">
                 <Link to="/comercial/contatos">
-                  <ArrowLeft className="h-3.5 w-3.5 mr-1.5" />
+                  <ArrowLeft className="h-3.5 w-3.5" />
                   Voltar
                 </Link>
               </Button>
@@ -146,6 +271,119 @@ function LeadDetailsPage() {
           }
           onClose={() => window.close()}
         />
+
+        {/* Inactivate Confirmation */}
+        <AlertDialog open={showInactivateDialog} onOpenChange={setShowInactivateDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Inativar lead?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Esta ação alterará o status do lead para "inativo". Os dados do lead não serão excluídos.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={actionLoading}>Cancelar</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={handleInactivate}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                disabled={actionLoading}
+              >
+                {actionLoading ? "Inativando..." : "Confirmar"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Close Deal Confirmation */}
+        <AlertDialog open={showCloseDealDialog} onOpenChange={setShowCloseDealDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirmar fechamento de negócio?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Iso atualizará a etapa comercial para "Negócio fechado".
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={actionLoading}>Cancelar</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={handleCloseDeal}
+                className="bg-emerald-600 text-white hover:bg-emerald-700"
+                disabled={actionLoading}
+              >
+                {actionLoading ? "Processando..." : "Confirmar"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Edit Form Dialog */}
+        <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+          <DialogContent className="max-w-md">
+            <form onSubmit={handleEdit}>
+              <DialogHeader>
+                <DialogTitle>Editar dados comerciais</DialogTitle>
+                <DialogDescription>
+                  Altere apenas campos comerciais permitidos. Dados da Receita Federal não podem ser editados por aqui.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="trade_name">Nome Fantasia</Label>
+                  <Input 
+                    id="trade_name" 
+                    value={editForm.trade_name} 
+                    onChange={e => setEditForm(prev => ({ ...prev, trade_name: e.target.value }))}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="phone">Telefone</Label>
+                    <Input 
+                      id="phone" 
+                      value={editForm.phone} 
+                      onChange={e => setEditForm(prev => ({ ...prev, phone: e.target.value }))}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="email">E-mail</Label>
+                    <Input 
+                      id="email" 
+                      type="email"
+                      value={editForm.email} 
+                      onChange={e => setEditForm(prev => ({ ...prev, email: e.target.value }))}
+                    />
+                  </div>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="website">Website</Label>
+                  <Input 
+                    id="website" 
+                    value={editForm.website} 
+                    onChange={e => setEditForm(prev => ({ ...prev, website: e.target.value }))}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="notes">Observações</Label>
+                  <Textarea 
+                    id="notes" 
+                    className="resize-none"
+                    value={editForm.notes} 
+                    onChange={e => setEditForm(prev => ({ ...prev, notes: e.target.value }))}
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setShowEditDialog(false)} disabled={actionLoading}>
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={actionLoading}>
+                  {actionLoading ? "Salvando..." : "Salvar alterações"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+
 
 
         <main className="flex-1 overflow-hidden p-6">
