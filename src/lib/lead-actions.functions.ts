@@ -13,7 +13,7 @@ export const updateLeadStatus = createServerFn({ method: "POST" })
     if (data.status) updateData.registration_status = data.status;
     if (data.stage) updateData.stage = data.stage;
 
-    const { error } = await supabaseAdmin
+    const { error } = await (supabaseAdmin as any)
       .from("company_leads")
       .update(updateData)
       .eq("id", data.id);
@@ -34,7 +34,7 @@ export const updateLeadCommercialData = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { id, ...fields } = data;
-    const { error } = await supabaseAdmin
+    const { error } = await (supabaseAdmin as any)
       .from("company_leads")
       .update(fields)
       .eq("id", id);
@@ -42,4 +42,5 @@ export const updateLeadCommercialData = createServerFn({ method: "POST" })
     if (error) throw error;
     return { success: true };
   });
+
 
