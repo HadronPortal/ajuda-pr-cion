@@ -228,7 +228,7 @@ function LeadDetailsPage() {
             </>
           }
           trailing={
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Button 
                 size="sm" 
                 variant="destructive" 
@@ -261,7 +261,7 @@ function LeadDetailsPage() {
                 Editar
               </Button>
 
-              <Button size="sm" asChild variant="ghost" className="h-8 text-xs gap-1.5">
+              <Button size="sm" asChild variant="ghost" className="h-8 text-xs gap-1.5 border border-input hover:bg-accent">
                 <Link to="/comercial/contatos">
                   <ArrowLeft className="h-3.5 w-3.5" />
                   Voltar
