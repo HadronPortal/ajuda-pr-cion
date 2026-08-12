@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   Building2,
   ChevronLeft,
@@ -183,13 +183,15 @@ function CommercialContactsPage() {
                 rows.map((lead) => (
                   <tr key={lead.id} className="transition-colors hover:bg-muted/25">
                     <td className="min-w-0 px-4 py-3">
-                      <button
-                        type="button"
-                        onClick={() => openDetails(lead)}
-                        className="block w-full min-w-0 text-left hover:text-primary"
+                      <Link
+                        to="/comercial/contatos/$leadId"
+                        params={{ leadId: lead.id }}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block w-full min-w-0 text-left hover:text-primary group"
                       >
                         <span
-                          className="block truncate text-[13px] font-medium"
+                          className="block truncate text-[13px] font-medium group-hover:underline"
                           title={lead.trade_name || lead.legal_name}
                         >
                           {lead.trade_name || lead.legal_name}
@@ -200,7 +202,7 @@ function CommercialContactsPage() {
                         >
                           {lead.legal_name} · {lead.cnpj}
                         </span>
-                      </button>
+                      </Link>
                     </td>
                     <td className="min-w-0 px-4 py-3 text-[12px] text-muted-foreground">
                       {lead.phone && (
@@ -245,10 +247,17 @@ function CommercialContactsPage() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => openDetails(lead)}
+                        asChild
                         title="Ver detalhes"
                       >
-                        <Eye className="h-4 w-4" />
+                        <Link 
+                          to="/comercial/contatos/$leadId" 
+                          params={{ leadId: lead.id }}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Link>
                       </Button>
                     </td>
                   </tr>
