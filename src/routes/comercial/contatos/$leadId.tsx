@@ -14,13 +14,16 @@ import {
   FileText,
   MessageSquare,
   AlertCircle,
-  Plus
+  Plus,
+  ArrowLeft,
+  Briefcase
 } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/portal/AppShell";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import { cn } from "@/lib/utils";
 import { 
   companyLeadsApi, 
@@ -106,39 +109,44 @@ function LeadDetailsPage() {
   return (
     <AppShell fullWidth>
       <div className="flex flex-col h-screen bg-background overflow-hidden">
-        {/* Cabeçalho Fixo */}
-        <header className="border-b bg-card px-6 py-4 flex-shrink-0">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <Button asChild variant="ghost" size="icon" className="h-8 w-8">
-                <Link to="/comercial/contatos">
-                  <ChevronLeft className="h-5 w-5" />
-                </Link>
-              </Button>
-              <div>
-                <h1 className="text-xl font-bold tracking-tight">
-                  {lead.trade_name || lead.legal_name}
-                </h1>
-                <div className="flex items-center gap-2 mt-1">
-                  <Badge variant="outline" className={cn("text-[10px] font-semibold uppercase", stageColors[lead.stage])}>
-                    {stageLabels[lead.stage]}
-                  </Badge>
-                  <span className="text-xs text-muted-foreground">
-                    CNPJ: {lead.cnpj}
-                  </span>
-                </div>
-              </div>
-            </div>
+        <DetailModalHeader
+          icon={Briefcase}
+          title={lead.trade_name || lead.legal_name}
+          protocol={lead.cnpj}
+          chips={
+            <Badge variant="outline" className={cn("text-[10px] font-semibold uppercase", stageColors[lead.stage])}>
+              {stageLabels[lead.stage]}
+            </Badge>
+          }
+          meta={
+            <>
+              <span className="flex items-center gap-1">
+                <Building2 className="h-3 w-3" />
+                {lead.legal_name}
+              </span>
+              <span className="mx-1">•</span>
+              <span className="flex items-center gap-1">
+                <MapPin className="h-3 w-3" />
+                {lead.city} - {lead.state}
+              </span>
+            </>
+          }
+          trailing={
             <div className="flex items-center gap-2">
-              <Button size="sm" variant="outline">
+              <Button size="sm" variant="outline" className="h-8 text-xs">
                 Ações Comerciais
               </Button>
-              <Button size="sm" asChild>
-                <Link to="/comercial/contatos">Voltar</Link>
+              <Button size="sm" asChild className="h-8 text-xs">
+                <Link to="/comercial/contatos">
+                  <ArrowLeft className="h-3.5 w-3.5 mr-1.5" />
+                  Voltar
+                </Link>
               </Button>
             </div>
-          </div>
-        </header>
+          }
+          onClose={() => window.close()}
+        />
+
 
         <main className="flex-1 overflow-hidden p-6">
           <div className="grid h-full grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 overflow-hidden">
