@@ -79,7 +79,7 @@ const stageColors: Record<CompanyLeadStage, string> = {
 };
 
 export function LeadDetailsPage() {
-  const { leadId } = useParams({ from: "/comercial/contatos/$leadId" });
+  const { leadId } = useParams({ strict: false });
   const [lead, setLead] = useState<CompanyLeadDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
@@ -282,13 +282,11 @@ export function LeadDetailsPage() {
               <Button
                 size="sm"
                 className="h-8 text-xs bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 border-none"
-                asChild
+                onClick={() => setShowCloseDealDialog(true)}
                 disabled={actionLoading}
               >
-                <Link to="/comercial/contatos/$leadId/fechamento" params={{ leadId }}>
-                  <CheckCircle className="h-3.5 w-3.5" />
-                  Negócio fechado
-                </Link>
+                <CheckCircle className="h-3.5 w-3.5" />
+                Negócio fechado
               </Button>
 
               <Button
