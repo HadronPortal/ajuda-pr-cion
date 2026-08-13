@@ -38,6 +38,8 @@ import { VehicleLastMonthStats } from "./VehicleLastMonthStats";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { VehicleEditorModal } from "../VehicleEditorModal";
 import { MaintenanceDialog } from "../MaintenanceDialog";
+import { OccurrenceDialog } from "../OccurrenceDialog";
+import { useFleetEntries } from "@/lib/fleet-entry-store";
 
 interface VehicleOverviewProps {
   vehicle: Vehicle;
@@ -50,6 +52,8 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [isMaintenanceOpen, setIsMaintenanceOpen] = useState(false);
+  const [isOccurrenceOpen, setIsOccurrenceOpen] = useState(false);
+  const fleetEntries = useFleetEntries();
   const [selectedUsage, setSelectedUsage] = useState<any>(null);
   const [isUsageDetailsOpen, setIsUsageDetailsOpen] = useState(false);
 
@@ -60,6 +64,9 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
   }, [usages, vehicle.id]);
 
   const lastUsage = vehicleUsages.find((u) => u.status === "devolvido");
+  const occurrences = fleetEntries.filter(
+    (entry) => entry.vehicleId === vehicle.id && entry.type === "ocorrencia",
+  );
 
   return (
     <div className="flex flex-col gap-6 p-6">
@@ -160,6 +167,11 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
         open={isMaintenanceOpen}
         onOpenChange={setIsMaintenanceOpen}
       />
+      <OccurrenceDialog
+        vehicleId={vehicle.id}
+        open={isOccurrenceOpen}
+        onOpenChange={setIsOccurrenceOpen}
+      />
 
       {/* Main Content Area */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -189,13 +201,51 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
                 <AlertTriangle className="h-5 w-5" />
                 <h3 className="text-base font-bold">Ocorrências</h3>
               </div>
-              <FleetEntryDialog defaultVehicleId={vehicle.id} triggerLabel="Nova ocorrência" />
+              <Button className="gap-2" onClick={() => setIsOccurrenceOpen(true)}>
+                <AlertTriangle className="h-4 w-4" /> Nova ocorrência
+              </Button>
             </div>
-
-            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground border border-dashed rounded-lg">
-              <AlertTriangle className="h-8 w-8 mb-2 opacity-20" />
-              <p className="text-sm">Nenhuma ocorrência registrada.</p>
-            </div>
+            {occurrences.length === 0 ? (
+              <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-12 text-muted-foreground">
+                <AlertTriangle className="mb-2 h-8 w-8 opacity-20" />
+                <p className="text-sm">Nenhuma ocorrência registrada.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {occurrences.map((entry) => (
+                  <div
+                    key={entry.id}
+                    className="grid gap-3 rounded-md border p-4 sm:grid-cols-[1fr_auto]"
+                  >
+                    <div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-medium">{entry.title}</span>
+                        <Badge
+                          variant={
+                            entry.occurrenceSeverity === "alta" ? "destructive" : "secondary"
+                          }
+                        >
+                          {entry.occurrenceSeverity === "alta"
+                            ? "Alta"
+                            : entry.occurrenceSeverity === "media"
+                              ? "Média"
+                              : "Baixa"}
+                        </Badge>
+                      </div>
+                      <p className="mt-1 text-sm text-muted-foreground">{entry.notes}</p>
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        {[entry.driver, entry.location, entry.occurrenceReference]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </p>
+                    </div>
+                    <time className="text-xs text-muted-foreground">
+                      {formatFleetDateTime(entry.occurredAt)}
+                    </time>
+                  </div>
+                ))}
+              </div>
+            )}
           </Card>
         </TabsContent>
       </Tabs>
