@@ -37,19 +37,20 @@ import {
   X,
   XCircle,
 } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogTitle } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import finishIconUrl from "@/assets/ticket-finalize-v4.png";
 import transferIconUrl from "@/assets/ticket-transfer-solid.png";
 import startAttendanceIconUrl from "@/assets/ticket-start-solid.png";
@@ -120,7 +121,8 @@ const statusTone: Record<TicketStatus, string> = {
 
 const priorityTone: Record<TicketPriority, string> = {
   Alta: "bg-destructive/12 text-destructive border-destructive/20",
-  Media: "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/30",
+  Media:
+    "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/30",
   Baixa:
     "bg-[#eaf4ff] text-[#246cb5] border-[#bfdcff] dark:bg-[#17314e] dark:text-[#9dcaff] dark:border-[#24527d]",
 };
@@ -141,7 +143,6 @@ function formatDateTime(iso: string) {
     minute: "2-digit",
   });
 }
-
 
 const slaTextTone: Record<"ok" | "warn" | "late", string> = {
   ok: "text-success",
@@ -253,9 +254,9 @@ export function TicketDetailSheet({
   const [notesOpen, setNotesOpen] = useState(false);
   const [timelineOpen, setTimelineOpen] = useState(false);
   const [selectedCalendarEvent, setSelectedCalendarEvent] = useState<CalendarEvent | null>(null);
-  const [calendarEventAction, setCalendarEventAction] = useState<
-    "details" | "cancel" | "report"
-  >("details");
+  const [calendarEventAction, setCalendarEventAction] = useState<"details" | "cancel" | "report">(
+    "details",
+  );
   const localCalendarEvents = useLocalEvents();
   const [descriptionOpen, setDescriptionOpen] = useState(false);
   const [navCollapsed, setNavCollapsed] = useState(true);
@@ -315,9 +316,6 @@ export function TicketDetailSheet({
   }, [ticket?.clientCode, ticket?.clientName, loadedClients]);
   const clientSlug = resolvedClient?.id ?? null;
 
-
-
-
   if (!ticket || !sla || !attendanceTime) return null;
 
   const firstAttendanceEventId = [...events]
@@ -325,8 +323,7 @@ export function TicketDetailSheet({
     .sort((left, right) => left.when.localeCompare(right.when))[0]?.id;
   const timelineEvents = events.filter(
     (event) =>
-      event.kind !== "note" &&
-      (event.kind !== "attend" || event.id === firstAttendanceEventId),
+      event.kind !== "note" && (event.kind !== "attend" || event.id === firstAttendanceEventId),
   );
 
   const findScheduledEvent = (timelineEvent: TicketEvent) => {
@@ -894,8 +891,6 @@ export function TicketDetailSheet({
                   )}
                 </Section>
 
-
-
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                   <Section title="Cliente" icon={Building2} compact>
                     {(() => {
@@ -972,7 +967,6 @@ export function TicketDetailSheet({
                     )}
                   </Section>
                 </div>
-
 
                 {/* Datas e responsável — card próprio */}
                 <div className="mt-4 grid grid-cols-1 gap-3 rounded-2xl border border-border bg-card p-3 shadow-[0_6px_18px_rgba(25,29,51,0.04)] sm:grid-cols-3">
@@ -1086,14 +1080,12 @@ export function TicketDetailSheet({
             </p>
           </div>
           <DialogFooter className="border-t border-border bg-card px-5 py-3">
-
             <Button variant="outline" size="sm" onClick={() => setDescriptionOpen(false)}>
               Fechar
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
 
       <TicketTimelineModal
         open={timelineOpen}
@@ -1286,17 +1278,19 @@ function CloseTicketDialog({
               >
                 <CalendarClock className="h-3 w-3" />
                 SLA {sla.pct}% · {sla.minutes}min
-                {sla.tone === "late" && (
-                  <span className="ml-1 uppercase">· vencido</span>
-                )}
+                {sla.tone === "late" && <span className="ml-1 uppercase">· vencido</span>}
               </span>
             </>
           }
           meta={
             <span className="inline-flex items-center gap-1">
               <span className="font-semibold text-primary">{ticket.clientCode || "—"}</span>
-              <span aria-hidden className="text-border">·</span>
-              <span className="truncate text-foreground">{ticket.clientName || "Cliente não vinculado"}</span>
+              <span aria-hidden className="text-border">
+                ·
+              </span>
+              <span className="truncate text-foreground">
+                {ticket.clientName || "Cliente não vinculado"}
+              </span>
             </span>
           }
         />
@@ -1312,25 +1306,21 @@ function CloseTicketDialog({
             />
           </Field>
           <Field label="Permissão">
-            <select
+            <Select
               value={permission}
-              onChange={(event) =>
-                setPermission(event.target.value as "" | ClosurePayload["permission"])
-              }
-              className={cn(
-                "h-10 w-full cursor-pointer rounded-lg border border-input bg-card px-3 text-sm outline-none focus:ring-2 focus:ring-ring",
-                permission ? "text-foreground" : "text-muted-foreground",
-              )}
+              onValueChange={(value) => setPermission(value as ClosurePayload["permission"])}
             >
-              <option value="" disabled>
-                Permissão
-              </option>
-              {(["Público", "Clientes", "Empresa"] as const).map((item) => (
-                <option key={item} value={item}>
-                  {item}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="h-10 rounded-lg bg-card text-sm">
+                <SelectValue placeholder="Permissão" />
+              </SelectTrigger>
+              <SelectContent>
+                {(["Público", "Clientes", "Empresa"] as const).map((item) => (
+                  <SelectItem key={item} value={item}>
+                    {item}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </Field>
 
           <div className="sm:col-span-2">
@@ -1347,15 +1337,21 @@ function CloseTicketDialog({
           </div>
 
           <Field label="Tipo">
-            <select
+            <Select
               value={type}
-              onChange={(event) => setType(event.target.value as ClosurePayload["type"])}
-              className="h-10 w-full cursor-pointer rounded-lg border border-input bg-card px-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring"
+              onValueChange={(value) => setType(value as ClosurePayload["type"])}
             >
-              {typeOptions.map((item) => (
-                <option key={item}>{item}</option>
-              ))}
-            </select>
+              <SelectTrigger className="h-10 rounded-lg bg-card text-sm">
+                <SelectValue placeholder="Selecione o tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                {typeOptions.map((item) => (
+                  <SelectItem key={item} value={item}>
+                    {item}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </Field>
           <div />
 
