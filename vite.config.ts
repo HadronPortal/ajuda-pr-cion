@@ -7,6 +7,7 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import type { Plugin } from "vite";
 
 function readProjectEnvironment() {
   const values: Record<string, string> = {};
@@ -22,20 +23,31 @@ function readProjectEnvironment() {
 }
 
 const projectEnvironment = readProjectEnvironment();
+const supabaseConfigModuleId = "virtual:crm-supabase-config";
+const resolvedSupabaseConfigModuleId = `\0${supabaseConfigModuleId}`;
+
+function crmSupabaseConfigPlugin(): Plugin {
+  return {
+    name: "crm-supabase-config",
+    enforce: "post",
+    resolveId(id) {
+      return id === supabaseConfigModuleId ? resolvedSupabaseConfigModuleId : undefined;
+    },
+    load(id) {
+      if (id !== resolvedSupabaseConfigModuleId) return undefined;
+
+      return [
+        `export const supabaseProjectId = ${JSON.stringify(projectEnvironment.VITE_SUPABASE_PROJECT_ID)};`,
+        `export const supabaseUrl = ${JSON.stringify(projectEnvironment.VITE_SUPABASE_URL)};`,
+        `export const supabasePublishableKey = ${JSON.stringify(projectEnvironment.VITE_SUPABASE_PUBLISHABLE_KEY)};`,
+      ].join("\n");
+    },
+  };
+}
 
 export default defineConfig({
   vite: {
-    define: {
-      "import.meta.env.VITE_SUPABASE_PROJECT_ID": JSON.stringify(
-        projectEnvironment.VITE_SUPABASE_PROJECT_ID,
-      ),
-      "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(
-        projectEnvironment.VITE_SUPABASE_URL,
-      ),
-      "import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY": JSON.stringify(
-        projectEnvironment.VITE_SUPABASE_PUBLISHABLE_KEY,
-      ),
-    },
+    plugins: [crmSupabaseConfigPlugin()],
   },
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
