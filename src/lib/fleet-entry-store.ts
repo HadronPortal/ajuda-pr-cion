@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { loadFleetState, saveFleetState } from "@/lib/fleet-persistence";
 
 export type FleetEntryType =
   | "abastecimento"
@@ -56,23 +57,23 @@ export type FleetEntry = {
 const STORAGE_KEY = "procion.fleet-entries.v1";
 let entries: FleetEntry[] = [];
 let hydrated = false;
+let remoteLoadStarted = false;
 const listeners = new Set<() => void>();
 
 function hydrate() {
   if (hydrated || typeof window === "undefined") return;
   hydrated = true;
-  try {
-    const parsed = JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? "[]");
-    if (Array.isArray(parsed)) entries = parsed.filter((entry) => entry?.type !== "receita");
-  } catch {
-    entries = [];
-  }
+  window.localStorage.removeItem(STORAGE_KEY);
+  if (remoteLoadStarted) return;
+  remoteLoadStarted = true;
+  void loadFleetState<FleetEntry[]>("fleet_entries").then((saved) => {
+    entries = Array.isArray(saved) ? saved.filter((entry) => entry?.type !== "receita") : [];
+    listeners.forEach((listener) => listener());
+  });
 }
 
 function persist() {
-  if (typeof window !== "undefined") {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
-  }
+  void saveFleetState("fleet_entries", entries);
 }
 
 function subscribe(listener: () => void) {

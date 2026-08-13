@@ -3,6 +3,7 @@ import corollaImg from "@/assets/vehicles/gol-g4.png";
 import trackerImg from "@/assets/vehicles/celta.png";
 import onixImg from "@/assets/vehicles/mobi.png";
 import stradaImg from "@/assets/vehicles/saveiro-g5.png";
+import { loadFleetState, saveFleetState } from "@/lib/fleet-persistence";
 
 // -----------------------------------------------------------------------------
 // Tipos alinhados a um futuro backend / API
@@ -154,8 +155,8 @@ export type VehicleUsage = {
 };
 
 const nowISO = () => new Date().toISOString();
-const RUNTIME_STORAGE_KEY = "procion.fleet-runtime.v2";
-const VEHICLES_STORAGE_KEY = "procion.fleet-vehicles.v1";
+const LEGACY_RUNTIME_STORAGE_KEY = "procion.fleet-runtime.v2";
+const LEGACY_VEHICLES_STORAGE_KEY = "procion.fleet-vehicles.v1";
 const SP_TIME_ZONE = "America/Sao_Paulo";
 
 /**
@@ -347,7 +348,7 @@ let vehicles: Vehicle[] = [
     fuelLevel: "Cheio",
     nextRevisionDate: "10/09/2026",
     nextRevisionMileage: 60000,
-    status: "manutencao",
+    status: "disponivel",
     imageUrl: stradaImg,
     tires: {
       frontLeft: {
@@ -379,24 +380,6 @@ let vehicles: Vehicle[] = [
   },
 ];
 
-// Add initial maintenance record for Saveiro
-const strada = vehicles.find((v) => v.id === "strada");
-if (strada) {
-  strada.maintenanceRecords = [
-    {
-      id: "mnt-initial",
-      vehicleId: "strada",
-      entryDate: "2026-07-28T09:00:00",
-      entryMileage: 54802,
-      reason: "Revisão geral e troca de suspensão",
-      workshop: "Mecânica São Carlos",
-      status: "em_andamento",
-      createdAt: "2026-07-28T09:00:00",
-      updatedAt: "2026-07-28T09:00:00",
-    },
-  ];
-}
-
 // -----------------------------------------------------------------------------
 // Utilizações (usages) — inclui alguns registros para "hoje" (2026-07-20)
 // -----------------------------------------------------------------------------
@@ -405,67 +388,24 @@ let usages: VehicleUsage[] = [];
 let reservations: VehicleReservation[] = [];
 let runtimeHydrated = false;
 let vehiclesHydrated = false;
+let remoteLoadStarted = false;
 
 function hydrateVehicles() {
   if (vehiclesHydrated || typeof window === "undefined") return;
   vehiclesHydrated = true;
-  try {
-    const raw = window.localStorage.getItem(VEHICLES_STORAGE_KEY);
-    if (!raw) return;
-    const saved = JSON.parse(raw) as Vehicle[];
-    if (!Array.isArray(saved)) return;
-    vehicles = vehicles.map((vehicle) => {
-      const stored = saved.find((item) => item.id === vehicle.id);
-      return stored ? { ...vehicle, ...stored, imageUrl: vehicle.imageUrl } : vehicle;
-    });
-  } catch {
-    // Mantém a frota padrão quando o armazenamento estiver indisponível.
-  }
+  window.localStorage.removeItem(LEGACY_VEHICLES_STORAGE_KEY);
+  startRemoteLoad();
 }
 
 function persistVehicles() {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(VEHICLES_STORAGE_KEY, JSON.stringify(vehicles));
+  void persistCoreState();
 }
 
 function hydrateRuntimeRecords() {
   if (runtimeHydrated || typeof window === "undefined") return;
   runtimeHydrated = true;
-  try {
-    const raw = window.localStorage.getItem(RUNTIME_STORAGE_KEY);
-    if (!raw) return;
-    const parsed = JSON.parse(raw) as {
-      usages?: Array<VehicleUsage & { expectedDepartureAt?: string }>;
-      reservations?: VehicleReservation[];
-    };
-    const requiresUsageMigration = Array.isArray(parsed.usages)
-      ? parsed.usages.some((usage) => !usage.scheduledStartAt)
-      : false;
-    const savedReservations = Array.isArray(parsed.reservations) ? parsed.reservations : [];
-    const savedUsages = (Array.isArray(parsed.usages) ? parsed.usages : []).map((usage) => {
-      if (usage.scheduledStartAt) return usage;
-      const reservation = savedReservations.find(
-        (item) => String(item.eventId) === String(usage.appointmentId),
-      );
-      const calendarStart = getCalendarEventStart(usage.appointmentId);
-      return {
-        ...usage,
-        scheduledStartAt: usage.expectedDepartureAt ?? reservation?.startAt ?? calendarStart,
-      };
-    });
-    const usageIds = new Set(usages.map((usage) => usage.id));
-    const reservationIds = new Set(reservations.map((reservation) => reservation.id));
-    usages = [...savedUsages.filter((usage) => !usageIds.has(usage.id)), ...usages];
-    reservations = [
-      ...savedReservations.filter((reservation) => !reservationIds.has(reservation.id)),
-      ...reservations,
-    ];
-    if (requiresUsageMigration) {
-      persistRuntimeRecords();
-    }
-  } catch {
-    // Mantém os registros da sessão quando o armazenamento estiver indisponível.
-  }
+  window.localStorage.removeItem(LEGACY_RUNTIME_STORAGE_KEY);
+  startRemoteLoad();
 }
 
 function getCalendarEventStart(appointmentId?: string | number) {
@@ -482,18 +422,33 @@ function getCalendarEventStart(appointmentId?: string | number) {
 }
 
 function persistRuntimeRecords() {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(
-      RUNTIME_STORAGE_KEY,
-      JSON.stringify({
-        usages: usages.filter((usage) => usage.appointmentId !== undefined),
-        reservations: reservations.filter((reservation) => reservation.eventId !== undefined),
-      }),
-    );
-  } catch {
-    // A aplicação continua funcional durante a sessão.
-  }
+  void persistCoreState();
+}
+
+type FleetCoreState = {
+  vehicles?: Vehicle[];
+  usages?: VehicleUsage[];
+  reservations?: VehicleReservation[];
+};
+
+function persistCoreState() {
+  return saveFleetState("fleet_core", { vehicles, usages, reservations });
+}
+
+function startRemoteLoad() {
+  if (remoteLoadStarted || typeof window === "undefined") return;
+  remoteLoadStarted = true;
+  void loadFleetState<FleetCoreState>("fleet_core").then((state) => {
+    if (state?.vehicles?.length) {
+      vehicles = vehicles.map((base) => {
+        const stored = state.vehicles?.find((item) => item.id === base.id);
+        return stored ? { ...base, ...stored, imageUrl: base.imageUrl } : base;
+      });
+    }
+    usages = Array.isArray(state?.usages) ? state.usages : [];
+    reservations = Array.isArray(state?.reservations) ? state.reservations : [];
+    emit();
+  });
 }
 
 export function removeFleetRecordsForAppointments(appointmentIds: Array<string | number>) {

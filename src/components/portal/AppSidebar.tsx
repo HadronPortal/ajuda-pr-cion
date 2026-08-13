@@ -36,12 +36,12 @@ type NavItem = {
   children?: Array<{ to: string; label: string; icon?: NavIcon }>;
 };
 
-function createMaskedMenuIcon(maskUrl: string): NavIcon {
+function createMaskedMenuIcon(maskUrl: string, toneClass?: string): NavIcon {
   return function MaskedMenuIcon({ className }) {
     return (
       <span
         aria-hidden="true"
-        className={cn("block bg-current", className)}
+        className={cn("block bg-current", toneClass, className)}
         style={{
           WebkitMask: `url(${maskUrl}) center / contain no-repeat`,
           mask: `url(${maskUrl}) center / contain no-repeat`,
@@ -62,8 +62,8 @@ const CustomersIcon = createMaskedMenuIcon(customersIconUrl);
 const CalendarIcon = createMaskedMenuIcon(calendarIconUrl);
 const FleetIcon = createMaskedMenuIcon(fleetIconUrl);
 const HadronIcon = createMaskedMenuIcon(hadronIconUrl);
-const CommercialIcon = createMaskedMenuIcon(commercialIconUrl);
-const ContactsIcon = createMaskedMenuIcon(contactsIconUrl);
+const CommercialIcon = createMaskedMenuIcon(commercialIconUrl, "opacity-60");
+const ContactsIcon = createMaskedMenuIcon(contactsIconUrl, "opacity-60");
 
 const nav: NavItem[] = [
   { to: "/", label: "Dashboard", icon: DashboardIcon, exact: true },
