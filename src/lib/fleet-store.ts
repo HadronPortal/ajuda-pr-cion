@@ -527,17 +527,25 @@ function subscribe(listener: () => void) {
 export function getVehiclesSnapshot() {
   hydrateVehicles();
   hydrateRuntimeRecords();
-  let changed = false;
-  vehicles = vehicles.map((vehicle) => {
-    if (vehicle.status !== "em_uso") return vehicle;
-    const hasActiveDeparture = usages.some(
-      (usage) => usage.vehicleId === vehicle.id && usage.status === "em_deslocamento",
+  const staleVehicleIds = new Set(
+    vehicles
+      .filter(
+        (vehicle) =>
+          vehicle.status === "em_uso" &&
+          !usages.some(
+            (usage) => usage.vehicleId === vehicle.id && usage.status === "em_deslocamento",
+          ),
+      )
+      .map((vehicle) => vehicle.id),
+  );
+  if (staleVehicleIds.size > 0) {
+    vehicles = vehicles.map((vehicle) =>
+      staleVehicleIds.has(vehicle.id)
+        ? { ...vehicle, status: "disponivel" as VehicleStatus }
+        : vehicle,
     );
-    if (hasActiveDeparture) return vehicle;
-    changed = true;
-    return { ...vehicle, status: "disponivel" as VehicleStatus };
-  });
-  if (changed) persistVehicles();
+    persistVehicles();
+  }
   return vehicles;
 }
 export function getUsagesSnapshot() {
