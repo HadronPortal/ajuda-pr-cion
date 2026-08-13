@@ -282,11 +282,13 @@ export function LeadDetailsPage() {
               <Button
                 size="sm"
                 className="h-8 text-xs bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 border-none"
-                onClick={() => setShowCloseDealDialog(true)}
+                asChild
                 disabled={actionLoading}
               >
-                <CheckCircle className="h-3.5 w-3.5" />
-                Negócio fechado
+                <Link to="/comercial/contatos/$leadId/fechamento" params={{ leadId }}>
+                  <CheckCircle className="h-3.5 w-3.5" />
+                  Negócio fechado
+                </Link>
               </Button>
 
               <Button
