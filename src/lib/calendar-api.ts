@@ -5,10 +5,28 @@ export type CrmCalendarEvent = CalendarEvent;
 
 const typeLabels: Record<string, CrmCalendarEvent["type"]> = {
   visit: "Visita presencial",
+  visita: "Visita presencial",
+  "visita presencial": "Visita presencial",
   remote_meeting: "Reunião remota",
+  "reunião remota": "Reunião remota",
   procion_meeting: "Reunião na Prócion",
+  "reunião na prócion": "Reunião na Prócion",
   personal: "Pessoal",
+  pessoal: "Pessoal",
 };
+
+function normalizeEventType(event: Record<string, unknown>): CrmCalendarEvent["type"] {
+  const candidates = [event.legacy_type, event.type, event.kind];
+  for (const value of candidates) {
+    const normalized = String(value || "")
+      .trim()
+      .toLocaleLowerCase("pt-BR");
+    if (typeLabels[normalized]) return typeLabels[normalized];
+  }
+
+  if (event.vehicleId || event.needsDisplacement === true) return "Visita presencial";
+  return "Pessoal";
+}
 const originLabels: Record<string, CrmCalendarEvent["origin"]> = {
   admin: "Administração",
   support: "Suporte",
@@ -28,7 +46,7 @@ export async function listCrmCalendarEvents(): Promise<CrmCalendarEvent[]> {
     date: String(event.date || ""),
     time: String(event.time || ""),
     end: String(event.end || ""),
-    type: typeLabels[String(event.kind || "")] || "Pessoal",
+    type: normalizeEventType(event),
     origin: originLabels[String(event.origin || "")] || "Administração",
     operator: String(event.operator || ""),
     title: String(event.title || ""),
