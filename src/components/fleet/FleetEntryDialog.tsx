@@ -45,8 +45,6 @@ type Draft = {
   reminderKind: "despesa" | "servico";
   attachmentName: string;
   vehicleStatus: "" | Extract<VehicleStatus, "manutencao" | "disponivel">;
-  plannedServices: string[];
-  plannedParts: string[];
 };
 
 function localNow(offsetHours = 0) {
@@ -85,8 +83,6 @@ function emptyDraft(vehicleId = ""): Draft {
     reminderKind: "despesa",
     attachmentName: "",
     vehicleStatus: "",
-    plannedServices: [],
-    plannedParts: [],
   };
 }
 
@@ -128,8 +124,6 @@ export function FleetEntryDialog({
           [draft.driver ? `Responsável: ${draft.driver}` : "", draft.notes.trim()]
             .filter(Boolean)
             .join("\n") || undefined,
-        plannedServices: draft.plannedServices,
-        plannedParts: draft.plannedParts,
       });
       createFleetEntry({
         type: "servico",
@@ -457,10 +451,8 @@ function ServiceFields({
   set: Setter;
   operators: string[];
 }) {
-  const suggestions = maintenanceSuggestions(draft.title);
   return (
-    <div className="space-y-4">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Field label="Motivo da manutenção">
           <Input
             value={draft.title}
@@ -476,146 +468,6 @@ function ServiceFields({
           onChange={(value) => set("driver", value)}
           operators={operators}
         />
-      </div>
-      <div className="grid gap-4 rounded-md border bg-muted/20 p-4 sm:grid-cols-2">
-        <SuggestionPicker
-          label="Mão de obra prevista"
-          suggestions={suggestions.services}
-          selected={draft.plannedServices}
-          onChange={(value) => set("plannedServices", value)}
-          placeholder="Pesquisar ou adicionar serviço"
-        />
-        <SuggestionPicker
-          label="Peças previstas"
-          suggestions={suggestions.parts}
-          selected={draft.plannedParts}
-          onChange={(value) => set("plannedParts", value)}
-          placeholder="Pesquisar ou adicionar peça"
-        />
-      </div>
-      <p className="text-xs text-muted-foreground">
-        As opções são uma previsão para orçamento e podem ser ajustadas após o diagnóstico da
-        oficina.
-      </p>
-    </div>
-  );
-}
-
-const MAINTENANCE_CATALOG = [
-  {
-    keys: ["roda", "suspens", "pivo", "pivô", "barulho"],
-    services: ["Diagnóstico da suspensão", "Troca de pivô", "Alinhamento e balanceamento"],
-    parts: ["Pivô esquerdo", "Pivô direito", "Rolamento de roda", "Terminal de direção"],
-  },
-  {
-    keys: ["freio", "pastilha"],
-    services: [
-      "Inspeção do sistema de freios",
-      "Troca de pastilhas",
-      "Sangria do sistema de freios",
-    ],
-    parts: ["Pastilhas de freio", "Disco de freio", "Fluido de freio"],
-  },
-  {
-    keys: ["oleo", "óleo", "revisao", "revisão"],
-    services: ["Troca de óleo e filtros", "Revisão preventiva"],
-    parts: ["Óleo do motor", "Filtro de óleo", "Filtro de ar", "Filtro de combustível"],
-  },
-  {
-    keys: ["motor", "falha", "injeção"],
-    services: ["Diagnóstico eletrônico", "Revisão do sistema de ignição"],
-    parts: ["Velas de ignição", "Bobina de ignição", "Correia"],
-  },
-  {
-    keys: ["bateria", "eletric"],
-    services: ["Teste do sistema elétrico", "Troca de bateria"],
-    parts: ["Bateria", "Alternador", "Fusível"],
-  },
-  {
-    keys: ["pneu"],
-    services: ["Troca de pneus", "Alinhamento e balanceamento"],
-    parts: ["Pneu dianteiro", "Pneu traseiro", "Válvula"],
-  },
-];
-
-function maintenanceSuggestions(reason: string) {
-  const normalized = reason.toLocaleLowerCase("pt-BR");
-  const matches = MAINTENANCE_CATALOG.filter((item) =>
-    item.keys.some((key) => normalized.includes(key)),
-  );
-  const source = matches.length ? matches : MAINTENANCE_CATALOG;
-  return {
-    services: [...new Set(source.flatMap((item) => item.services))],
-    parts: [...new Set(source.flatMap((item) => item.parts))],
-  };
-}
-
-function SuggestionPicker({
-  label,
-  suggestions,
-  selected,
-  onChange,
-  placeholder,
-}: {
-  label: string;
-  suggestions: string[];
-  selected: string[];
-  onChange: (value: string[]) => void;
-  placeholder: string;
-}) {
-  const [query, setQuery] = useState("");
-  const filtered = suggestions
-    .filter(
-      (item) =>
-        !selected.includes(item) &&
-        item.toLocaleLowerCase("pt-BR").includes(query.toLocaleLowerCase("pt-BR")),
-    )
-    .slice(0, 5);
-  const add = (value: string) => {
-    const clean = value.trim();
-    if (clean && !selected.includes(clean)) onChange([...selected, clean]);
-    setQuery("");
-  };
-  return (
-    <div className="space-y-2">
-      <Label>{label}</Label>
-      <Input
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            e.preventDefault();
-            add(query);
-          }
-        }}
-        placeholder={placeholder}
-      />
-      {query && filtered.length > 0 && (
-        <div className="rounded-md border bg-popover p-1 shadow-sm">
-          {filtered.map((item) => (
-            <button
-              key={item}
-              type="button"
-              className="block w-full cursor-pointer rounded px-2 py-1.5 text-left text-sm hover:bg-accent"
-              onClick={() => add(item)}
-            >
-              {item}
-            </button>
-          ))}
-        </div>
-      )}
-      <div className="flex flex-wrap gap-2">
-        {selected.map((item) => (
-          <button
-            key={item}
-            type="button"
-            onClick={() => onChange(selected.filter((value) => value !== item))}
-            className="cursor-pointer rounded-full border bg-background px-2.5 py-1 text-xs hover:border-destructive"
-          >
-            {item} ×
-          </button>
-        ))}
-      </div>
     </div>
   );
 }
