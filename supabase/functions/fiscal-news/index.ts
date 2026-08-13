@@ -533,6 +533,9 @@ serve(async (request) => {
     return json({ articles });
   } catch (error) {
     console.error("[fiscal-news]", error);
-    return json({ error: "Falha ao carregar notícias fiscais oficiais." }, 500);
+    return json({
+      articles: [],
+      warning: "As fontes fiscais oficiais estão temporariamente indisponíveis.",
+    });
   }
 });
