@@ -35,18 +35,29 @@ export function evaluateVehicle(
   vehicle: Vehicle,
   windowStart: string | null,
   windowEnd: string | null,
+  ignoreEventId?: string | number,
 ): VehicleAvailability {
   if (vehicle.status === "em_uso") return { key: "em_uso", label: "Em uso" };
   if (vehicle.status === "manutencao") return { key: "indisponivel", label: "Em manutenção" };
   if (windowStart && windowEnd && hasConflict(vehicle.id, windowStart, windowEnd)) {
     return { key: "em_uso", label: "Em uso no período" };
   }
-  const reservations = getActiveReservationsByVehicle(vehicle.id);
+  const reservations = getActiveReservationsByVehicle(vehicle.id).filter(
+    (reservation) => String(reservation.eventId ?? "") !== String(ignoreEventId ?? ""),
+  );
   if (reservations.length === 0) return { key: "disponivel", label: "Disponível" };
   if (!windowStart || !windowEnd) {
     return { key: "pre_agendado", label: "Pré-agendado", conflict: false };
   }
-  const conflict = hasReservationConflict(vehicle.id, windowStart, windowEnd);
+  const ignoredReservation = getActiveReservationsByVehicle(vehicle.id).find(
+    (reservation) => String(reservation.eventId ?? "") === String(ignoreEventId ?? ""),
+  );
+  const conflict = hasReservationConflict(
+    vehicle.id,
+    windowStart,
+    windowEnd,
+    ignoredReservation?.id,
+  );
   return { key: "pre_agendado", label: "Pré-agendado", conflict: !!conflict };
 }
 
@@ -59,7 +70,12 @@ export function isUnavailable(info?: VehicleAvailability) {
 }
 
 /** Disponibilidade dos veículos para a janela informada (data + horários do evento). */
-export function useVehicleAvailability(date: string, startTime: string, endTime: string) {
+export function useVehicleAvailability(
+  date: string,
+  startTime: string,
+  endTime: string,
+  ignoreEventId?: string | number,
+) {
   const vehicles = useVehicles();
   useReservations(); // re-render em mudanças de reserva
   const windowStart = combineDateTime(date, startTime);
@@ -71,11 +87,16 @@ export function useVehicleAvailability(date: string, startTime: string, endTime:
     for (const vehicle of vehicles) {
       map.set(
         vehicle.id,
-        evaluateVehicle(vehicle, windowValid ? windowStart : null, windowValid ? windowEnd : null),
+        evaluateVehicle(
+          vehicle,
+          windowValid ? windowStart : null,
+          windowValid ? windowEnd : null,
+          ignoreEventId,
+        ),
       );
     }
     return map;
-  }, [vehicles, windowStart, windowEnd, windowValid]);
+  }, [vehicles, windowStart, windowEnd, windowValid, ignoreEventId]);
 
   return { vehicles, availability, windowStart, windowEnd, windowValid };
 }
@@ -91,17 +112,20 @@ export function VehicleAvailabilitySelect({
   endTime,
   value,
   onChange,
+  ignoreEventId,
 }: {
   date: string;
   startTime: string;
   endTime: string;
   value: string;
   onChange: (value: string) => void;
+  ignoreEventId?: string | number;
 }) {
   const { vehicles, availability, windowStart, windowEnd } = useVehicleAvailability(
     date,
     startTime,
     endTime,
+    ignoreEventId,
   );
 
   useEffect(() => {
@@ -111,7 +135,14 @@ export function VehicleAvailabilitySelect({
     if (isUnavailable(info)) {
       const conflict =
         windowStart && windowEnd
-          ? hasReservationConflict(value, windowStart, windowEnd)
+          ? hasReservationConflict(
+              value,
+              windowStart,
+              windowEnd,
+              getActiveReservationsByVehicle(value).find(
+                (reservation) => String(reservation.eventId ?? "") === String(ignoreEventId ?? ""),
+              )?.id,
+            )
           : undefined;
       onChange(NO_VEHICLE);
       if (conflict) {
@@ -125,7 +156,7 @@ export function VehicleAvailabilitySelect({
         toast.info("Veículo indisponível no período selecionado. Escolha outro.");
       }
     }
-  }, [availability, value, onChange, windowStart, windowEnd]);
+  }, [availability, value, onChange, windowStart, windowEnd, ignoreEventId]);
 
   const selected = availability.get(value);
 

@@ -103,10 +103,24 @@ export function CreateEventDialog({
 
   // Resolve o cliente do evento em edição assim que a lista do CRM estiver carregada.
   useEffect(() => {
-    if (client || !editingEvent?.clientId || clients.length === 0) return;
-    const found = getClientById(editingEvent.clientId);
+    if (client || !editingEvent || clients.length === 0) return;
+    const eventClientLabel = editingEvent.client?.trim() ?? "";
+    const eventAcronym = eventClientLabel.split(/[·\-]/, 1)[0]?.trim();
+    const normalizedLabel = eventClientLabel.toLocaleLowerCase("pt-BR");
+    const found =
+      getClientById(editingEvent.clientId) ??
+      getClientById(eventAcronym) ??
+      clients.find((candidate) =>
+        [candidate.fantasia, candidate.name, candidate.razaoSocial, candidate.acronym]
+          .filter(Boolean)
+          .some((value) => {
+            const normalizedValue = String(value).trim().toLocaleLowerCase("pt-BR");
+            return normalizedValue === normalizedLabel || normalizedLabel.includes(normalizedValue);
+          }),
+      ) ??
+      null;
     if (found) setClient(found);
-  }, [client, editingEvent?.clientId, clients.length]);
+  }, [client, editingEvent, clients]);
 
   // Empresas do mesmo grupo do cliente selecionado (quando aplicável).
   const groupCompanies = useMemo(() => {
@@ -357,6 +371,7 @@ export function CreateEventDialog({
                   endTime={endTime}
                   value={vehicleId}
                   onChange={setVehicleId}
+                  ignoreEventId={editingEvent?.id}
                 />
               </NewField>
             </div>
