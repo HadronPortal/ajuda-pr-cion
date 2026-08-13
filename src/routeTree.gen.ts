@@ -34,6 +34,7 @@ import { Route as BaseDeConhecimentoSlugRouteImport } from './routes/base-de-con
 import { Route as ComercialContatosLeadIdRouteImport } from './routes/comercial/contatos/$leadId'
 import { Route as ComercialContatoLeadIdRouteImport } from './routes/comercial.contato.$leadId'
 import { Route as ApiPublicTestPlacesRouteImport } from './routes/api/public/test-places'
+import { Route as ComercialContatosLeadIdFechamentoRouteImport } from './routes/comercial/contatos/$leadId/fechamento'
 
 const VersoesRoute = VersoesRouteImport.update({
   id: '/versoes',
@@ -160,6 +161,12 @@ const ApiPublicTestPlacesRoute = ApiPublicTestPlacesRouteImport.update({
   path: '/api/public/test-places',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ComercialContatosLeadIdFechamentoRoute =
+  ComercialContatosLeadIdFechamentoRouteImport.update({
+    id: '/fechamento',
+    path: '/fechamento',
+    getParentRoute: () => ComercialContatosLeadIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -186,7 +193,8 @@ export interface FileRoutesByFullPath {
   '/frota/': typeof FrotaIndexRoute
   '/api/public/test-places': typeof ApiPublicTestPlacesRoute
   '/comercial/contato/$leadId': typeof ComercialContatoLeadIdRoute
-  '/comercial/contatos/$leadId': typeof ComercialContatosLeadIdRoute
+  '/comercial/contatos/$leadId': typeof ComercialContatosLeadIdRouteWithChildren
+  '/comercial/contatos/$leadId/fechamento': typeof ComercialContatosLeadIdFechamentoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -211,7 +219,8 @@ export interface FileRoutesByTo {
   '/frota': typeof FrotaIndexRoute
   '/api/public/test-places': typeof ApiPublicTestPlacesRoute
   '/comercial/contato/$leadId': typeof ComercialContatoLeadIdRoute
-  '/comercial/contatos/$leadId': typeof ComercialContatosLeadIdRoute
+  '/comercial/contatos/$leadId': typeof ComercialContatosLeadIdRouteWithChildren
+  '/comercial/contatos/$leadId/fechamento': typeof ComercialContatosLeadIdFechamentoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -239,7 +248,8 @@ export interface FileRoutesById {
   '/frota/': typeof FrotaIndexRoute
   '/api/public/test-places': typeof ApiPublicTestPlacesRoute
   '/comercial/contato/$leadId': typeof ComercialContatoLeadIdRoute
-  '/comercial/contatos/$leadId': typeof ComercialContatosLeadIdRoute
+  '/comercial/contatos/$leadId': typeof ComercialContatosLeadIdRouteWithChildren
+  '/comercial/contatos/$leadId/fechamento': typeof ComercialContatosLeadIdFechamentoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -269,6 +279,7 @@ export interface FileRouteTypes {
     | '/api/public/test-places'
     | '/comercial/contato/$leadId'
     | '/comercial/contatos/$leadId'
+    | '/comercial/contatos/$leadId/fechamento'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -294,6 +305,7 @@ export interface FileRouteTypes {
     | '/api/public/test-places'
     | '/comercial/contato/$leadId'
     | '/comercial/contatos/$leadId'
+    | '/comercial/contatos/$leadId/fechamento'
   id:
     | '__root__'
     | '/'
@@ -321,6 +333,7 @@ export interface FileRouteTypes {
     | '/api/public/test-places'
     | '/comercial/contato/$leadId'
     | '/comercial/contatos/$leadId'
+    | '/comercial/contatos/$leadId/fechamento'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -521,6 +534,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicTestPlacesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/comercial/contatos/$leadId/fechamento': {
+      id: '/comercial/contatos/$leadId/fechamento'
+      path: '/fechamento'
+      fullPath: '/comercial/contatos/$leadId/fechamento'
+      preLoaderRoute: typeof ComercialContatosLeadIdFechamentoRouteImport
+      parentRoute: typeof ComercialContatosLeadIdRoute
+    }
   }
 }
 
@@ -572,12 +592,27 @@ const KanbanRouteChildren: KanbanRouteChildren = {
 const KanbanRouteWithChildren =
   KanbanRoute._addFileChildren(KanbanRouteChildren)
 
+interface ComercialContatosLeadIdRouteChildren {
+  ComercialContatosLeadIdFechamentoRoute: typeof ComercialContatosLeadIdFechamentoRoute
+}
+
+const ComercialContatosLeadIdRouteChildren: ComercialContatosLeadIdRouteChildren =
+  {
+    ComercialContatosLeadIdFechamentoRoute:
+      ComercialContatosLeadIdFechamentoRoute,
+  }
+
+const ComercialContatosLeadIdRouteWithChildren =
+  ComercialContatosLeadIdRoute._addFileChildren(
+    ComercialContatosLeadIdRouteChildren,
+  )
+
 interface ComercialContatosRouteChildren {
-  ComercialContatosLeadIdRoute: typeof ComercialContatosLeadIdRoute
+  ComercialContatosLeadIdRoute: typeof ComercialContatosLeadIdRouteWithChildren
 }
 
 const ComercialContatosRouteChildren: ComercialContatosRouteChildren = {
-  ComercialContatosLeadIdRoute: ComercialContatosLeadIdRoute,
+  ComercialContatosLeadIdRoute: ComercialContatosLeadIdRouteWithChildren,
 }
 
 const ComercialContatosRouteWithChildren =
