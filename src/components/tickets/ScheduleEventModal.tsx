@@ -11,6 +11,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import { EventDateTimeFields } from "@/components/calendar/EventDateTimeFields";
 import {
@@ -30,8 +37,6 @@ import { CorrectionHint } from "@/components/ui/smart-text";
 import { useSpellCorrection } from "@/lib/spellcheck";
 
 const EVENT_TYPES = ["Visita", "Reunião remota", "Reunião PRC"];
-const selectClass =
-  "h-9 w-full cursor-pointer rounded-md border border-input bg-background px-3 text-[13px] outline-none focus:ring-2 focus:ring-ring";
 const preventOutsideClose = (event: Event) => event.preventDefault();
 
 export function ScheduleEventModal({
@@ -220,15 +225,18 @@ export function ScheduleEventModal({
         <div className="flex-1 space-y-2.5 overflow-y-auto bg-card px-5 py-3 md:px-6">
           <div className="grid gap-2.5 sm:grid-cols-2">
             <Field label="Tipo do evento" required>
-              <select
-                value={type}
-                onChange={(e) => setType(e.target.value)}
-                className={selectClass}
-              >
-                {EVENT_TYPES.map((item) => (
-                  <option key={item}>{item}</option>
-                ))}
-              </select>
+              <Select value={type} onValueChange={setType}>
+                <SelectTrigger className="h-9 text-[13px]">
+                  <SelectValue placeholder="Selecione o tipo do evento" />
+                </SelectTrigger>
+                <SelectContent>
+                  {EVENT_TYPES.map((item) => (
+                    <SelectItem key={item} value={item}>
+                      {item}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </Field>
             <Field label="Responsável" required>
               <CollaboratorSelect value={responsible} onChange={setResponsible} />
@@ -246,31 +254,36 @@ export function ScheduleEventModal({
 
           <div className="grid gap-2.5 sm:grid-cols-2">
             <Field label="Módulo" required>
-              <select
-                value={module}
-                onChange={(e) => changeModule(e.target.value)}
-                className={selectClass}
-              >
-                {moduleOptions.map((item) => (
-                  <option key={item} value={item}>
-                    {item}
-                  </option>
-                ))}
-              </select>
+              <Select value={module} onValueChange={changeModule}>
+                <SelectTrigger className="h-9 text-[13px]">
+                  <SelectValue placeholder="Selecione o módulo" />
+                </SelectTrigger>
+                <SelectContent>
+                  {moduleOptions.map((item) => (
+                    <SelectItem key={item} value={item}>
+                      {item}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </Field>
             <Field label="Submódulo" required>
-              <select
+              <Select
                 value={submodule}
-                onChange={(e) => setSubmodule(e.target.value)}
-                className={selectClass}
+                onValueChange={setSubmodule}
                 disabled={availableSubs.length === 0}
               >
-                {availableSubs.map((item) => (
-                  <option key={item} value={item}>
-                    {item}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger className="h-9 text-[13px]">
+                  <SelectValue placeholder="Selecione o submódulo" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableSubs.map((item) => (
+                    <SelectItem key={item} value={item}>
+                      {item}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </Field>
           </div>
           <div className={type === "Visita" ? "grid gap-2.5 sm:grid-cols-2" : "grid gap-2.5"}>

@@ -2,6 +2,13 @@ import { useEffect, useMemo } from "react";
 import { Car } from "lucide-react";
 import { toast } from "sonner";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   useVehicles,
   useReservations,
   hasReservationConflict,
@@ -12,9 +19,6 @@ import {
 } from "@/lib/fleet-store";
 
 export const NO_VEHICLE = "__none__";
-
-const selectClass =
-  "h-9 w-full cursor-pointer rounded-md border border-input bg-background px-3 text-[13px] outline-none focus:ring-2 focus:ring-ring";
 
 export type VehicleAvailability =
   | { key: "disponivel"; label: "Disponível"; conflict?: undefined }
@@ -129,24 +133,25 @@ export function VehicleAvailabilitySelect({
     <>
       <div className="relative">
         <Car className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <select
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className={`${selectClass} pl-8`}
-        >
-          <option value={NO_VEHICLE}>Não definido</option>
-          {vehicles.map((vehicle) => {
-            const info = availability.get(vehicle.id);
-            const label = info?.label ?? VEHICLE_STATUS_LABEL[vehicle.status];
-            const disabled = isUnavailable(info);
-            return (
-              <option key={vehicle.id} value={vehicle.id}>
-                {vehicle.model} · {vehicle.plate} — {label}
-                {disabled ? " (indisponível)" : ""}
-              </option>
-            );
-          })}
-        </select>
+        <Select value={value} onValueChange={onChange}>
+          <SelectTrigger className="h-9 pl-8 text-[13px]">
+            <SelectValue placeholder="Selecione o veículo" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={NO_VEHICLE}>Não definido</SelectItem>
+            {vehicles.map((vehicle) => {
+              const info = availability.get(vehicle.id);
+              const label = info?.label ?? VEHICLE_STATUS_LABEL[vehicle.status];
+              const disabled = isUnavailable(info);
+              return (
+                <SelectItem key={vehicle.id} value={vehicle.id} disabled={disabled}>
+                  {vehicle.model} · {vehicle.plate} — {label}
+                  {disabled ? " (indisponível)" : ""}
+                </SelectItem>
+              );
+            })}
+          </SelectContent>
+        </Select>
       </div>
       {value !== NO_VEHICLE && selected?.key === "pre_agendado" && selected.conflict && (
         <p className="mt-1 text-[11px] text-destructive">
