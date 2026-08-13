@@ -507,6 +507,10 @@ function EventReportDialog({
   setReport: Dispatch<SetStateAction<ReportDraft>>;
   onSave: (completed: boolean) => void;
 }) {
+  const primaryLabel = event.client ?? event.title;
+  const showTitle =
+    event.title.trim().toLocaleLowerCase("pt-BR") !==
+    primaryLabel.trim().toLocaleLowerCase("pt-BR");
   const versionOptions = useMemo(
     () =>
       erpVersions.map((version) => `${version.versao}-${formatVersionDate(version.data_versao)}`),
@@ -522,8 +526,8 @@ function EventReportDialog({
         <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-5">
           <div className="grid gap-3 rounded-lg border border-border bg-muted/20 px-4 py-3 text-sm sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
             <div className="min-w-0">
-              <p className="truncate font-medium">{event.client ?? event.title}</p>
-              <p className="mt-1 text-muted-foreground">{event.title}</p>
+              <p className="truncate font-medium">{primaryLabel}</p>
+              {showTitle && <p className="mt-1 truncate text-muted-foreground">{event.title}</p>}
             </div>
             <p className="whitespace-nowrap text-muted-foreground">
               {formatDate(event.date)} · {event.time} às {event.end}
@@ -620,22 +624,31 @@ const reportPriorities = [
     value: "Baixa" as const,
     label: "Baixa",
     icon: ChevronDown,
-    className: "border-success/25 bg-success/10 text-success",
-    activeClass: "border-success/70 ring-2 ring-success/40 bg-success/15",
+    baseClass: "border-success/25 bg-success/10 dark:bg-success/15",
+    activeClass:
+      "border-success/70 ring-2 ring-success/40 shadow-sm bg-success/15 dark:bg-success/20",
+    iconWrapClass: "bg-success text-success-foreground",
+    textClass: "text-success",
   },
   {
     value: "Média" as const,
     label: "Média",
     icon: Minus,
-    className: "border-warning/30 bg-warning/10 text-warning-foreground",
-    activeClass: "border-warning/70 ring-2 ring-warning/40 bg-warning/20",
+    baseClass: "border-warning/30 bg-warning/12 dark:bg-warning/15",
+    activeClass:
+      "border-warning/70 ring-2 ring-warning/40 shadow-sm bg-warning/20 dark:bg-warning/25",
+    iconWrapClass: "bg-warning text-warning-foreground",
+    textClass: "text-warning-foreground",
   },
   {
     value: "Alta" as const,
     label: "Alta",
     icon: ArrowUp,
-    className: "border-destructive/25 bg-destructive/10 text-destructive",
-    activeClass: "border-destructive/70 ring-2 ring-destructive/40 bg-destructive/15",
+    baseClass: "border-destructive/25 bg-destructive/10 dark:bg-destructive/15",
+    activeClass:
+      "border-destructive/70 ring-2 ring-destructive/40 shadow-sm bg-destructive/15 dark:bg-destructive/20",
+    iconWrapClass: "bg-destructive text-destructive-foreground",
+    textClass: "text-destructive",
   },
 ];
 
@@ -661,13 +674,21 @@ function PriorityField({
               aria-checked={active}
               onClick={() => onChange(priority.value)}
               className={cn(
-                "flex h-10 cursor-pointer items-center justify-center gap-1.5 rounded-xl border text-xs font-medium transition",
-                priority.className,
+                "relative flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border text-xs font-medium transition",
+                "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-background",
+                priority.baseClass,
                 active && priority.activeClass,
               )}
             >
-              <Icon className="h-4 w-4" />
-              {priority.label}
+              <span
+                className={cn(
+                  "grid h-5 w-5 shrink-0 place-items-center rounded-full",
+                  priority.iconWrapClass,
+                )}
+              >
+                <Icon className="h-3 w-3" strokeWidth={3} />
+              </span>
+              <span className={cn("font-medium", priority.textClass)}>{priority.label}</span>
             </button>
           );
         })}
