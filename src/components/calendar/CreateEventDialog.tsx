@@ -1,14 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import {
-  Building2,
-  CalendarDays,
-  Car,
-  Check,
-  Laptop,
-  Link2,
-  Lock,
-  X,
-} from "lucide-react";
+import { Building2, CalendarDays, Car, Check, Laptop, Link2, Lock, X } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -20,13 +11,19 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { SmartTextarea } from "@/components/ui/smart-text";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import { EventDateTimeFields } from "@/components/calendar/EventDateTimeFields";
 import {
   NO_VEHICLE,
   VehicleAvailabilitySelect,
 } from "@/components/fleet/VehicleAvailabilitySelect";
-
 
 import { cn } from "@/lib/utils";
 import {
@@ -36,12 +33,7 @@ import {
 } from "@/components/portal/CollaboratorPicker";
 import { useCollaborators } from "@/lib/collaborators-store";
 import { ClientPicker } from "@/components/portal/ClientPicker";
-import {
-  getClientById,
-  getGroupMembers,
-  resolveGroupCode,
-  useClients,
-} from "@/lib/clients-store";
+import { getClientById, getGroupMembers, resolveGroupCode, useClients } from "@/lib/clients-store";
 import type { ClientRow } from "@/routes/clientes.index";
 import {
   PLATFORM_OPTIONS,
@@ -52,8 +44,8 @@ import {
   type EventType,
 } from "@/lib/calendar-events";
 
-
 const preventOutsideClose = (event: Event) => event.preventDefault();
+type MeetingTarget = "Empresa" | "Cliente";
 
 export function CreateEventDialog({
   open,
@@ -98,6 +90,8 @@ export function CreateEventDialog({
   const [platform, setPlatform] = useState(editingEvent?.platform ?? PLATFORM_OPTIONS[0]);
   const [room, setRoom] = useState(editingEvent?.room ?? ROOM_OPTIONS[0]);
   const [isPrivate, setIsPrivate] = useState(editingEvent?.isPrivate ?? false);
+  const [meetingTarget, setMeetingTarget] = useState<MeetingTarget>("Empresa");
+  const [meetingReason, setMeetingReason] = useState(editingEvent?.description ?? "");
 
   useEffect(() => {
     if (open && !editingEvent) setDate(initialDate);
@@ -122,20 +116,29 @@ export function CreateEventDialog({
     return getGroupMembers(code, clients).filter((c) => c.id !== client.id);
   }, [client, clients]);
 
-
   const reset = () => {
-    setType("Visita presencial"); setTitle(""); setDescription("");
+    setType("Visita presencial");
+    setTitle("");
+    setDescription("");
     setGuests([]);
-    setStartTime("09:00"); setEndTime("10:00");
-    setClient(null); setVehicleId(NO_VEHICLE);
+    setStartTime("09:00");
+    setEndTime("10:00");
+    setClient(null);
+    setVehicleId(NO_VEHICLE);
     setResponsible(defaultResponsible);
-    setMeetingLink(""); setPlatform(PLATFORM_OPTIONS[0]);
-    setRoom(ROOM_OPTIONS[0]); setIsPrivate(false);
+    setMeetingLink("");
+    setPlatform(PLATFORM_OPTIONS[0]);
+    setRoom(ROOM_OPTIONS[0]);
+    setIsPrivate(false);
+    setMeetingTarget("Empresa");
+    setMeetingReason("");
   };
 
-
   const dayEvents = useMemo(
-    () => existingEvents.filter((event) => event.date === date).sort((a, b) => a.time.localeCompare(b.time)),
+    () =>
+      existingEvents
+        .filter((event) => event.date === date)
+        .sort((a, b) => a.time.localeCompare(b.time)),
     [existingEvents, date],
   );
 
@@ -144,34 +147,64 @@ export function CreateEventDialog({
     : "Selecione uma data";
 
   const submit = () => {
-    if (!title.trim()) { toast.error("Informe o título do agendamento."); return; }
-    if (!date || !startTime || !endTime) { toast.error("Preencha data e horários."); return; }
+    if (!title.trim()) {
+      toast.error("Informe o título do agendamento.");
+      return;
+    }
+    if (!date || !startTime || !endTime) {
+      toast.error("Preencha data e horários.");
+      return;
+    }
     if (hasEventStarted({ date, time: startTime })) {
       toast.error("Esse horário já passou. Escolha um horário futuro.");
       return;
     }
-    if (endTime <= startTime) { toast.error("O horário final deve ser posterior ao inicial."); return; }
+    if (endTime <= startTime) {
+      toast.error("O horário final deve ser posterior ao inicial.");
+      return;
+    }
+    if (type === "Visita presencial" && !lockedClient && !client) {
+      toast.error("Selecione a empresa da visita presencial.");
+      return;
+    }
+    const isMeeting = type === "Reunião remota" || type === "Reunião na Prócion";
+    if (isMeeting && meetingTarget === "Cliente" && !lockedClient && !client) {
+      toast.error("Selecione o cliente da reunião.");
+      return;
+    }
+    if (isMeeting && meetingTarget === "Cliente" && !meetingReason.trim()) {
+      toast.error("Informe o motivo da reunião com o cliente.");
+      return;
+    }
     onCreate({
-      date, time: startTime, end: endTime, type,
+      date,
+      time: startTime,
+      end: endTime,
+      type,
       origin: type === "Pessoal" ? "Administração" : "Suporte",
       operator: responsible,
       title: title.trim(),
       client: lockedClient
         ? lockedClient.label
-        : type === "Visita presencial" && client
-          ? (client.fantasia || client.name || client.razaoSocial || client.acronym)
+        : (type === "Visita presencial" || (isMeeting && meetingTarget === "Cliente")) && client
+          ? client.fantasia || client.name || client.razaoSocial || client.acronym
           : undefined,
-      clientId: lockedClient?.id ?? (type === "Visita presencial" ? client?.id : undefined),
-      description: description.trim() || undefined,
+      clientId:
+        lockedClient?.id ??
+        (type === "Visita presencial" || (isMeeting && meetingTarget === "Cliente")
+          ? client?.id
+          : undefined),
+      description:
+        isMeeting && meetingTarget === "Cliente"
+          ? meetingReason.trim()
+          : description.trim() || undefined,
       guests: guests.length ? guests.map((g) => g.acronym ?? g.name) : undefined,
       guestList: guests.length ? guests : undefined,
-      needsDisplacement:
-        type === "Visita presencial" ? vehicleId !== NO_VEHICLE : undefined,
-      vehicleId:
-        type === "Visita presencial" && vehicleId !== NO_VEHICLE ? vehicleId : undefined,
+      needsDisplacement: type === "Visita presencial" ? vehicleId !== NO_VEHICLE : undefined,
+      vehicleId: type === "Visita presencial" && vehicleId !== NO_VEHICLE ? vehicleId : undefined,
 
       responsible,
-      meetingLink: type === "Reunião remota" ? (meetingLink.trim() || undefined) : undefined,
+      meetingLink: type === "Reunião remota" ? meetingLink.trim() || undefined : undefined,
       platform: type === "Reunião remota" ? platform : undefined,
       room: type === "Reunião na Prócion" ? room : undefined,
       isPrivate: type === "Pessoal" ? isPrivate : undefined,
@@ -209,17 +242,32 @@ export function CreateEventDialog({
 
         <div className="flex-1 min-h-0 space-y-4 overflow-y-auto bg-card px-5 py-4 md:px-6">
           <NewField label="Título" required>
-            <Input lang="pt-BR" spellCheck autoCorrect="on" autoCapitalize="sentences" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Informe o título do agendamento" maxLength={140} />
+            <Input
+              lang="pt-BR"
+              spellCheck
+              autoCorrect="on"
+              autoCapitalize="sentences"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Informe o título do agendamento"
+              maxLength={140}
+            />
           </NewField>
 
           <NewField label="Descrição">
-            <SmartTextarea value={description} onValueChange={setDescription} rows={3} maxLength={700} placeholder="Descreva o objetivo ou as informações do agendamento" className="min-h-[80px] resize-none" />
+            <SmartTextarea
+              value={description}
+              onValueChange={setDescription}
+              rows={3}
+              maxLength={700}
+              placeholder="Descreva o objetivo ou as informações do agendamento"
+              className="min-h-[80px] resize-none"
+            />
           </NewField>
 
           <NewField label="Convidados">
             <CollaboratorMultiSelect value={guests} onChange={setGuests} />
           </NewField>
-
 
           <EventDateTimeFields
             date={date}
@@ -229,7 +277,6 @@ export function CreateEventDialog({
             endTime={endTime}
             onEndTimeChange={setEndTime}
           />
-
 
           <NewField label="Tipo de agendamento" required>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -268,7 +315,7 @@ export function CreateEventDialog({
           {type === "Visita presencial" && (
             <div className="grid gap-3 sm:grid-cols-2">
               {!lockedClient && (
-                <NewField label="Cliente" className="sm:col-span-2">
+                <NewField label="Empresa" required className="sm:col-span-2">
                   <ClientPicker
                     compact
                     label=""
@@ -289,7 +336,9 @@ export function CreateEventDialog({
                             onClick={() => setClient(company)}
                             className="cursor-pointer rounded-full border border-input bg-background px-2.5 py-1 text-[11.5px] text-foreground transition hover:border-primary/40 hover:bg-accent"
                           >
-                            <span className="font-mono text-muted-foreground">{company.acronym}</span>{" "}
+                            <span className="font-mono text-muted-foreground">
+                              {company.acronym}
+                            </span>{" "}
                             {company.fantasia || company.name}
                           </button>
                         ))}
@@ -313,13 +362,26 @@ export function CreateEventDialog({
             </div>
           )}
 
-
           {type === "Reunião remota" && (
             <div className="grid gap-3 sm:grid-cols-2">
+              <MeetingTargetFields
+                target={meetingTarget}
+                onTargetChange={setMeetingTarget}
+                client={client}
+                onClientChange={setClient}
+                lockedClient={lockedClient}
+                reason={meetingReason}
+                onReasonChange={setMeetingReason}
+              />
               <NewField label="Link da reunião" className="sm:col-span-2">
                 <div className="relative">
                   <Link2 className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input className="pl-8" value={meetingLink} onChange={(e) => setMeetingLink(e.target.value)} placeholder="https://" />
+                  <Input
+                    className="pl-8"
+                    value={meetingLink}
+                    onChange={(e) => setMeetingLink(e.target.value)}
+                    placeholder="https://"
+                  />
                 </div>
               </NewField>
               <NewField label="Plataforma">
@@ -333,6 +395,15 @@ export function CreateEventDialog({
 
           {type === "Reunião na Prócion" && (
             <div className="grid gap-3 sm:grid-cols-2">
+              <MeetingTargetFields
+                target={meetingTarget}
+                onTargetChange={setMeetingTarget}
+                client={client}
+                onClientChange={setClient}
+                lockedClient={lockedClient}
+                reason={meetingReason}
+                onReasonChange={setMeetingReason}
+              />
               <NewField label="Sala">
                 <SelectNative value={room} onChange={setRoom} options={ROOM_OPTIONS} />
               </NewField>
@@ -349,7 +420,11 @@ export function CreateEventDialog({
               </NewField>
               <div className="flex items-end">
                 <label className="flex cursor-pointer items-center gap-2 text-[13px] text-foreground">
-                  <Checkbox checked={isPrivate} onCheckedChange={(v) => setIsPrivate(v === true)} className="h-4 w-4 cursor-pointer" />
+                  <Checkbox
+                    checked={isPrivate}
+                    onCheckedChange={(v) => setIsPrivate(v === true)}
+                    className="h-4 w-4 cursor-pointer"
+                  />
                   <Lock className="h-3.5 w-3.5 text-muted-foreground" />
                   Evento privado
                 </label>
@@ -359,11 +434,17 @@ export function CreateEventDialog({
 
           <section className="rounded-lg border border-border bg-background/40">
             <div className="flex items-center justify-between border-b border-border px-3 py-2">
-              <p className="text-[12px] font-medium uppercase tracking-wider text-muted-foreground">Agendamentos do dia</p>
-              <Badge variant="secondary" className="text-[11px]">{dayEvents.length}</Badge>
+              <p className="text-[12px] font-medium uppercase tracking-wider text-muted-foreground">
+                Agendamentos do dia
+              </p>
+              <Badge variant="secondary" className="text-[11px]">
+                {dayEvents.length}
+              </Badge>
             </div>
             {dayEvents.length === 0 ? (
-              <p className="px-3 py-4 text-center text-[12.5px] text-muted-foreground">Nenhum agendamento para esta data</p>
+              <p className="px-3 py-4 text-center text-[12.5px] text-muted-foreground">
+                Nenhum agendamento para esta data
+              </p>
             ) : (
               <div className="max-h-48 overflow-y-auto">
                 <table className="w-full text-left text-[12px]">
@@ -381,7 +462,9 @@ export function CreateEventDialog({
                       const Icon = TYPE_ICON[ev.type];
                       return (
                         <tr key={ev.id} className="border-t border-border/50">
-                          <td className="px-3 py-1.5 tabular-nums text-foreground">{ev.time}–{ev.end}</td>
+                          <td className="px-3 py-1.5 tabular-nums text-foreground">
+                            {ev.time}–{ev.end}
+                          </td>
                           <td className="px-2 py-1.5">
                             <span className="inline-flex items-center gap-1 text-muted-foreground">
                               <Icon className="h-3.5 w-3.5" />
@@ -389,8 +472,12 @@ export function CreateEventDialog({
                             </span>
                           </td>
                           <td className="px-2 py-1.5 text-foreground">{ev.title}</td>
-                          <td className="px-2 py-1.5 text-muted-foreground">{ev.operator || "—"}</td>
-                          <td className="px-3 py-1.5 text-muted-foreground">{ev.address || ev.room || ev.client || "—"}</td>
+                          <td className="px-2 py-1.5 text-muted-foreground">
+                            {ev.operator || "—"}
+                          </td>
+                          <td className="px-3 py-1.5 text-muted-foreground">
+                            {ev.address || ev.room || ev.client || "—"}
+                          </td>
                         </tr>
                       );
                     })}
@@ -402,8 +489,13 @@ export function CreateEventDialog({
         </div>
 
         <DialogFooter className="flex shrink-0 items-center justify-end gap-2 border-t border-border bg-card px-5 py-3 md:px-6">
-          <Button variant="outline" onClick={() => onOpenChange(false)} className="cursor-pointer">Cancelar</Button>
-          <Button onClick={submit} className="cursor-pointer bg-blue-600 text-white hover:bg-blue-700">
+          <Button variant="outline" onClick={() => onOpenChange(false)} className="cursor-pointer">
+            Cancelar
+          </Button>
+          <Button
+            onClick={submit}
+            className="cursor-pointer bg-blue-600 text-white hover:bg-blue-700"
+          >
             <CalendarDays className="mr-1.5 h-4 w-4" />
             Adicionar evento
           </Button>
@@ -413,19 +505,96 @@ export function CreateEventDialog({
   );
 }
 
-function SelectNative({ value, onChange, options }: { value: string; onChange: (value: string) => void; options: string[] }) {
+function MeetingTargetFields({
+  target,
+  onTargetChange,
+  client,
+  onClientChange,
+  lockedClient,
+  reason,
+  onReasonChange,
+}: {
+  target: MeetingTarget;
+  onTargetChange: (value: MeetingTarget) => void;
+  client: ClientRow | null;
+  onClientChange: (value: ClientRow | null) => void;
+  lockedClient?: { id: string; label: string };
+  reason: string;
+  onReasonChange: (value: string) => void;
+}) {
+  return (
+    <>
+      <NewField label="Empresa ou cliente" required className="sm:col-span-2">
+        <Select value={target} onValueChange={(value) => onTargetChange(value as MeetingTarget)}>
+          <SelectTrigger className="h-9 cursor-pointer">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Empresa">Empresa</SelectItem>
+            <SelectItem value="Cliente">Cliente</SelectItem>
+          </SelectContent>
+        </Select>
+      </NewField>
+      {target === "Cliente" && !lockedClient && (
+        <NewField label="Cliente" required className="sm:col-span-2">
+          <ClientPicker
+            compact
+            label=""
+            value={client}
+            onSelect={onClientChange}
+            placeholder="Buscar por sigla, razão social, fantasia, CNPJ ou grupo..."
+          />
+        </NewField>
+      )}
+      {target === "Cliente" && (
+        <NewField label="Motivo da reunião" required className="sm:col-span-2">
+          <SmartTextarea
+            value={reason}
+            onValueChange={onReasonChange}
+            rows={2}
+            maxLength={700}
+            placeholder="Informe por que a reunião será realizada"
+            className="min-h-[64px] resize-none"
+          />
+        </NewField>
+      )}
+    </>
+  );
+}
+
+function SelectNative({
+  value,
+  onChange,
+  options,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  options: string[];
+}) {
   return (
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
       className="h-9 w-full cursor-pointer rounded-md border border-input bg-background px-3 text-[13px] outline-none focus:ring-2 focus:ring-ring"
     >
-      {options.map((option) => <option key={option}>{option}</option>)}
+      {options.map((option) => (
+        <option key={option}>{option}</option>
+      ))}
     </select>
   );
 }
 
-function NewField({ label, required, children, className }: { label: string; required?: boolean; children: ReactNode; className?: string }) {
+function NewField({
+  label,
+  required,
+  children,
+  className,
+}: {
+  label: string;
+  required?: boolean;
+  children: ReactNode;
+  className?: string;
+}) {
   return (
     <div className={className}>
       <Label className="mb-1.5 block text-[12.5px] font-medium">

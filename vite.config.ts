@@ -23,6 +23,8 @@ function readProjectEnvironment() {
 }
 
 const projectEnvironment = readProjectEnvironment();
+const CRM_SUPABASE_PROJECT_REF = "vbkbbfeujqmvgmmhmeao";
+const CRM_SUPABASE_URL = `https://${CRM_SUPABASE_PROJECT_REF}.supabase.co`;
 const supabaseConfigModuleId = "virtual:crm-supabase-config";
 const resolvedSupabaseConfigModuleId = `\0${supabaseConfigModuleId}`;
 
@@ -37,8 +39,8 @@ function crmSupabaseConfigPlugin(): Plugin {
       if (id !== resolvedSupabaseConfigModuleId) return undefined;
 
       return [
-        `export const supabaseProjectId = ${JSON.stringify(projectEnvironment.VITE_SUPABASE_PROJECT_ID)};`,
-        `export const supabaseUrl = ${JSON.stringify(projectEnvironment.VITE_SUPABASE_URL)};`,
+        `export const supabaseProjectId = ${JSON.stringify(CRM_SUPABASE_PROJECT_REF)};`,
+        `export const supabaseUrl = ${JSON.stringify(CRM_SUPABASE_URL)};`,
         `export const supabasePublishableKey = ${JSON.stringify(projectEnvironment.VITE_SUPABASE_PUBLISHABLE_KEY)};`,
       ].join("\n");
     },
