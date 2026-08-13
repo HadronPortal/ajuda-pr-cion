@@ -233,7 +233,9 @@ export function AppSidebar() {
                                 : "text-sidebar-foreground/70 hover:bg-sidebar-accent/40 hover:text-sidebar-accent-foreground",
                             )}
                           >
-                            {ChildIcon && <ChildIcon className="h-4 w-4 shrink-0" />}
+                            {ChildIcon && (
+                              <ChildIcon className="h-4 w-4 shrink-0 text-sidebar-foreground/70" />
+                            )}
                             <span className="truncate">{child.label}</span>
                           </Link>
                         </li>
@@ -274,7 +276,9 @@ export function AppSidebar() {
                         : "text-popover-foreground hover:bg-accent hover:text-accent-foreground",
                     )}
                   >
-                    {ChildIcon && <ChildIcon className="h-4 w-4 shrink-0" />}
+                    {ChildIcon && (
+                      <ChildIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                    )}
                     <span className="truncate">{child.label}</span>
                   </Link>
                 </li>
