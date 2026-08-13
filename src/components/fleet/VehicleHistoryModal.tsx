@@ -65,7 +65,7 @@ function diffHours(a?: string, b?: string) {
   return Math.max(0, (end - start) / 36e5);
 }
 
-const safeText = (value: unknown) => typeof value === "string" ? value : String(value ?? "");
+const safeText = (value: unknown) => (typeof value === "string" ? value : String(value ?? ""));
 function fmtDuration(h: number) {
   if (h <= 0) return "0h";
   const hh = Math.floor(h);
@@ -114,9 +114,11 @@ export function VehicleHistoryModal({
     if (!vehicle) return [];
     return allUsages
       .filter((u) => u.vehicleId === vehicle.id)
-      .sort((a, b) => safeText(b.departureAt ?? b.scheduledStartAt ?? b.returnedAt).localeCompare(
-        safeText(a.departureAt ?? a.scheduledStartAt ?? a.returnedAt),
-      ));
+      .sort((a, b) =>
+        safeText(b.departureAt ?? b.scheduledStartAt ?? b.returnedAt).localeCompare(
+          safeText(a.departureAt ?? a.scheduledStartAt ?? a.returnedAt),
+        ),
+      );
   }, [allUsages, vehicle]);
 
   const filtered = useMemo(() => {
@@ -125,7 +127,10 @@ export function VehicleHistoryModal({
       if (!ref) return false;
       if (dateFrom && ref < dateFrom) return false;
       if (dateTo && ref > dateTo) return false;
-      if (operator.trim() && !safeText(u.operatorId).toLowerCase().includes(operator.trim().toLowerCase()))
+      if (
+        operator.trim() &&
+        !safeText(u.operatorId).toLowerCase().includes(operator.trim().toLowerCase())
+      )
         return false;
       if (statusFilter !== "all" && u.status !== statusFilter) return false;
       if (destination.trim()) {
@@ -176,7 +181,7 @@ export function VehicleHistoryModal({
           chips={
             <div className="flex items-center gap-2">
               <VehicleStatusChip status={vehicle.status} />
-              {vehicle.maintenanceRecords?.some(m => m.status === "em_andamento") && (
+              {vehicle.maintenanceRecords?.some((m) => m.status === "em_andamento") && (
                 <Badge className="border-amber-500/25 bg-amber-500/10 text-amber-600 dark:text-amber-300">
                   <Wrench className="mr-1 h-3 w-3" />
                   Manutenção em andamento
@@ -190,7 +195,9 @@ export function VehicleHistoryModal({
               <span aria-hidden className="hidden h-3 w-px bg-border sm:block" />
               <span className="inline-flex items-center gap-1">
                 <Gauge className="h-3 w-3" />
-                <span className="font-medium text-foreground">{formatKm(vehicle.currentMileage)}</span>
+                <span className="font-medium text-foreground">
+                  {formatKm(vehicle.currentMileage)}
+                </span>
               </span>
               <span aria-hidden className="hidden h-3 w-px bg-border sm:block" />
               <span className="inline-flex items-center gap-1">
@@ -207,49 +214,51 @@ export function VehicleHistoryModal({
           }
         />
 
-
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-            {selected ? (
-              <DetailView usage={selected} vehicle={vehicle} onBack={() => setSelectedId(null)} />
-            ) : (
-              <Tabs defaultValue="lancamentos" className="flex min-h-0 flex-1 flex-col">
-                <div className="border-b px-6">
-                  <TabsList className="h-10 w-auto">
-                    <TabsTrigger value="lancamentos">Lançamentos</TabsTrigger>
-                    <TabsTrigger value="utilizacao">Utilização</TabsTrigger>
-                    <TabsTrigger value="manutencao">Manutenção</TabsTrigger>
-                  </TabsList>
-                </div>
-                <TabsContent value="utilizacao" className="min-h-0 flex-1 flex-col overflow-hidden m-0 data-[state=active]:flex">
-                  <ListView
-                    stats={stats}
-                    usages={filtered}
-                    totalCount={vehicleUsages.length}
-                    onOpen={(id) => setSelectedId(id)}
-                    filters={{
-                      dateFrom,
-                      dateTo,
-                      operator,
-                      statusFilter,
-                      destination,
-                      setDateFrom,
-                      setDateTo,
-                      setOperator,
-                      setStatusFilter,
-                      setDestination,
-                      clearFilters,
-                    }}
-                  />
-                </TabsContent>
-                <TabsContent value="lancamentos" className="min-h-0 flex-1 overflow-y-auto m-0 p-6">
-                  <FleetEntriesList entries={vehicleEntries} />
-                </TabsContent>
-                <TabsContent value="manutencao" className="min-h-0 flex-1 overflow-y-auto m-0 p-6">
-                  <MaintenanceListView maintenanceRecords={vehicle.maintenanceRecords ?? []} />
-                </TabsContent>
-              </Tabs>
-            )}
-          </div>
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          {selected ? (
+            <DetailView usage={selected} vehicle={vehicle} onBack={() => setSelectedId(null)} />
+          ) : (
+            <Tabs defaultValue="lancamentos" className="flex min-h-0 flex-1 flex-col">
+              <div className="border-b px-6">
+                <TabsList className="h-10 w-auto">
+                  <TabsTrigger value="lancamentos">Lançamentos</TabsTrigger>
+                  <TabsTrigger value="utilizacao">Utilização</TabsTrigger>
+                  <TabsTrigger value="manutencao">Manutenção</TabsTrigger>
+                </TabsList>
+              </div>
+              <TabsContent
+                value="utilizacao"
+                className="min-h-0 flex-1 flex-col overflow-hidden m-0 data-[state=active]:flex"
+              >
+                <ListView
+                  stats={stats}
+                  usages={filtered}
+                  totalCount={vehicleUsages.length}
+                  onOpen={(id) => setSelectedId(id)}
+                  filters={{
+                    dateFrom,
+                    dateTo,
+                    operator,
+                    statusFilter,
+                    destination,
+                    setDateFrom,
+                    setDateTo,
+                    setOperator,
+                    setStatusFilter,
+                    setDestination,
+                    clearFilters,
+                  }}
+                />
+              </TabsContent>
+              <TabsContent value="lancamentos" className="min-h-0 flex-1 overflow-y-auto m-0 p-6">
+                <FleetEntriesList entries={vehicleEntries} />
+              </TabsContent>
+              <TabsContent value="manutencao" className="min-h-0 flex-1 overflow-y-auto m-0 p-6">
+                <MaintenanceListView maintenanceRecords={vehicle.maintenanceRecords ?? []} />
+              </TabsContent>
+            </Tabs>
+          )}
+        </div>
 
         {/* Rodapé */}
         <footer className="flex shrink-0 items-center justify-between gap-2 border-t border-border bg-card px-4 py-3 md:px-6">
@@ -315,9 +324,13 @@ function FleetEntriesList({ entries }: { entries: FleetEntry[] }) {
               </div>
               <p className="text-xs text-muted-foreground">
                 {formatFleetDateTime(entry.occurredAt)}
-                {entry.mileage !== undefined ? ` · ${entry.mileage.toLocaleString("pt-BR")} km` : ""}
+                {entry.mileage !== undefined
+                  ? ` · ${entry.mileage.toLocaleString("pt-BR")} km`
+                  : ""}
               </p>
-              {entry.notes && <p className="whitespace-pre-line text-xs text-muted-foreground">{entry.notes}</p>}
+              {entry.notes && (
+                <p className="whitespace-pre-line text-xs text-muted-foreground">{entry.notes}</p>
+              )}
             </div>
             {entry.amount !== undefined && (
               <span className="shrink-0 text-sm font-medium">
@@ -675,38 +688,6 @@ function DetailView({
             value={distance !== undefined ? formatKm(distance) : "—"}
           />
         </DetailBlock>
-
-        <DetailBlock title="Observações da retirada" full>
-          <p className="text-[12.5px] text-foreground">
-            {usage.departureNotes ?? (
-              <span className="text-muted-foreground">Sem observações.</span>
-            )}
-          </p>
-        </DetailBlock>
-
-        <DetailBlock title="Observações da devolução" full>
-          <p className="text-[12.5px] text-foreground">
-            {usage.returnNotes ?? <span className="text-muted-foreground">Sem observações.</span>}
-          </p>
-        </DetailBlock>
-
-        <DetailBlock title="Fotos da saída" full>
-          <PhotoGallery photos={usage.departurePhotos} />
-        </DetailBlock>
-
-        <DetailBlock title="Fotos da devolução" full>
-          <PhotoGallery photos={usage.returnPhotos} />
-        </DetailBlock>
-
-        <DetailBlock title="Checklist de devolução" full>
-          <p className="text-[12.5px] text-muted-foreground">
-            Nenhum item de checklist registrado.
-          </p>
-        </DetailBlock>
-
-        <DetailBlock title="Ocorrências ou avarias" full>
-          <p className="text-[12.5px] text-muted-foreground">Nenhuma ocorrência registrada.</p>
-        </DetailBlock>
       </div>
     </div>
   );
@@ -874,13 +855,27 @@ function MaintenanceListView({ maintenanceRecords }: { maintenanceRecords: Vehic
       {maintenanceRecords.map((m) => {
         const inProgress = m.status === "em_andamento";
         return (
-          <Card key={m.id} className={cn("overflow-hidden border-l-4", inProgress ? "border-l-amber-500 bg-amber-500/5" : "border-l-emerald-500")}>
+          <Card
+            key={m.id}
+            className={cn(
+              "overflow-hidden border-l-4",
+              inProgress ? "border-l-amber-500 bg-amber-500/5" : "border-l-emerald-500",
+            )}
+          >
             <div className="p-4">
               <div className="flex items-start justify-between gap-4">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-semibold">{m.reason}</span>
-                    <Badge variant={inProgress ? "outline" : "secondary"} className={cn("h-5 text-[10px] uppercase", inProgress ? "border-amber-500 text-amber-600" : "bg-emerald-500/10 text-emerald-600")}>
+                    <Badge
+                      variant={inProgress ? "outline" : "secondary"}
+                      className={cn(
+                        "h-5 text-[10px] uppercase",
+                        inProgress
+                          ? "border-amber-500 text-amber-600"
+                          : "bg-emerald-500/10 text-emerald-600",
+                      )}
+                    >
                       {inProgress ? "Em andamento" : "Concluída"}
                     </Badge>
                   </div>
@@ -892,7 +887,11 @@ function MaintenanceListView({ maintenanceRecords }: { maintenanceRecords: Vehic
                 {m.cost !== undefined && (
                   <div className="text-right">
                     <p className="text-sm font-bold text-foreground">
-                      {m.cost.toLocaleString("pt-BR", { style: "currency", currency: "BRL", minimumFractionDigits: 2 })}
+                      {m.cost.toLocaleString("pt-BR", {
+                        style: "currency",
+                        currency: "BRL",
+                        minimumFractionDigits: 2,
+                      })}
                     </p>
                     <p className="text-[10px] uppercase text-muted-foreground">Custo Total</p>
                   </div>
@@ -903,13 +902,17 @@ function MaintenanceListView({ maintenanceRecords }: { maintenanceRecords: Vehic
                 <div className="space-y-0.5">
                   <p className="text-[10px] uppercase text-muted-foreground">Entrada</p>
                   <p className="text-[12px] font-medium">{formatFleetDateTime(m.entryDate)}</p>
-                  <p className="text-[11px] text-muted-foreground">{m.entryMileage.toLocaleString("pt-BR")} km</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    {m.entryMileage.toLocaleString("pt-BR")} km
+                  </p>
                 </div>
                 {m.exitDate && (
                   <div className="space-y-0.5">
                     <p className="text-[10px] uppercase text-muted-foreground">Conclusão</p>
                     <p className="text-[12px] font-medium">{formatFleetDateTime(m.exitDate)}</p>
-                    <p className="text-[11px] text-muted-foreground">{m.exitMileage?.toLocaleString("pt-BR")} km</p>
+                    <p className="text-[11px] text-muted-foreground">
+                      {m.exitMileage?.toLocaleString("pt-BR")} km
+                    </p>
                   </div>
                 )}
                 {m.duration && (
@@ -922,11 +925,15 @@ function MaintenanceListView({ maintenanceRecords }: { maintenanceRecords: Vehic
                   <div className="col-span-2 space-y-0.5">
                     <p className="text-[10px] uppercase text-muted-foreground">Serviços / Peças</p>
                     <p className="text-[12px] line-clamp-2">{m.servicesPerformed}</p>
-                    {m.partsReplaced && <p className="text-[11px] text-muted-foreground line-clamp-1 italic">{m.partsReplaced}</p>}
+                    {m.partsReplaced && (
+                      <p className="text-[11px] text-muted-foreground line-clamp-1 italic">
+                        {m.partsReplaced}
+                      </p>
+                    )}
                   </div>
                 )}
               </div>
-              
+
               {m.notes && (
                 <div className="mt-3 rounded bg-muted/50 p-2 text-[11px] text-muted-foreground">
                   <strong>Obs:</strong> {m.notes}

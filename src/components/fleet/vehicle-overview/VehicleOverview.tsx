@@ -1,9 +1,9 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { 
-  ArrowLeft, 
-  KeyRound, 
-  Undo2, 
+import {
+  ArrowLeft,
+  KeyRound,
+  Undo2,
   History,
   Gauge,
   Fuel,
@@ -14,14 +14,15 @@ import {
   Key,
   AlertTriangle,
   Settings,
-  CheckCircle2
+  CheckCircle2,
+  Wrench,
 } from "lucide-react";
-import { 
-  type Vehicle, 
+import {
+  type Vehicle,
   useUsages,
   formatFleetDateTime,
   VEHICLE_STATUS_LABEL,
-  updateVehicle
+  updateVehicle,
 } from "@/lib/fleet-store";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,7 @@ import { VehicleHistoryTimeline } from "../VehicleHistoryTimeline";
 import { VehicleLastMonthStats } from "./VehicleLastMonthStats";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { VehicleEditorModal } from "../VehicleEditorModal";
+import { MaintenanceDialog } from "../MaintenanceDialog";
 
 interface VehicleOverviewProps {
   vehicle: Vehicle;
@@ -47,6 +49,7 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
   const [activeTab, setActiveTab] = useState("overview");
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [isMaintenanceOpen, setIsMaintenanceOpen] = useState(false);
   const [selectedUsage, setSelectedUsage] = useState<any>(null);
   const [isUsageDetailsOpen, setIsUsageDetailsOpen] = useState(false);
 
@@ -56,7 +59,7 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
       .sort((a, b) => (b.returnedAt ?? b.updatedAt).localeCompare(a.returnedAt ?? a.updatedAt));
   }, [usages, vehicle.id]);
 
-  const lastUsage = vehicleUsages.find(u => u.status === "devolvido");
+  const lastUsage = vehicleUsages.find((u) => u.status === "devolvido");
 
   return (
     <div className="flex flex-col gap-6 p-6">
@@ -64,9 +67,9 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
       <div className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={() => navigate({ to: "/frota" })}
               className="h-8 w-8"
             >
@@ -74,19 +77,25 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
             </Button>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-xl font-bold tracking-tight">{vehicle.model.split(" / ")[0]}</h1>
-                <Badge variant="secondary" className="font-mono text-[11px]">{vehicle.yearModel.split(" / ")[0] || "2024"}</Badge>
+                <h1 className="text-xl font-bold tracking-tight">
+                  {vehicle.model.split(" / ")[0]}
+                </h1>
+                <Badge variant="secondary" className="font-mono text-[11px]">
+                  {vehicle.yearModel.split(" / ")[0] || "2024"}
+                </Badge>
               </div>
               <p className="text-xs text-muted-foreground">Visão geral do veículo</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Badge 
+            <Badge
               className={cn(
                 "h-7 px-3 text-[11px] font-semibold uppercase tracking-wider",
-                vehicle.status === "disponivel" ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/20" :
-                vehicle.status === "manutencao" ? "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/20" :
-                "bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/20"
+                vehicle.status === "disponivel"
+                  ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+                  : vehicle.status === "manutencao"
+                    ? "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/20"
+                    : "bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/20",
               )}
             >
               {VEHICLE_STATUS_LABEL[vehicle.status]}
@@ -98,9 +107,17 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
           <HeaderStat icon={Calendar} label="Modelo" value={vehicle.model.split(" / ")[0]} />
           <HeaderStat icon={Key} label="Placa" value={vehicle.plate} />
           <HeaderStat icon={ShieldCheck} label="Renavam" value={vehicle.renavam || "—"} />
-          <HeaderStat icon={Gauge} label="KM Atual" value={`${vehicle.currentMileage.toLocaleString("pt-BR")} km`} />
+          <HeaderStat
+            icon={Gauge}
+            label="KM Atual"
+            value={`${vehicle.currentMileage.toLocaleString("pt-BR")} km`}
+          />
           <HeaderStat icon={Fuel} label="Combustível" value={vehicle.fuelLevel} />
-          <HeaderStat icon={LayoutDashboard} label="Status" value={VEHICLE_STATUS_LABEL[vehicle.status]} />
+          <HeaderStat
+            icon={LayoutDashboard}
+            label="Status"
+            value={VEHICLE_STATUS_LABEL[vehicle.status]}
+          />
           <HeaderStat icon={User} label="Último condutor" value={lastUsage?.operatorId || "—"} />
         </Card>
       </div>
@@ -110,32 +127,38 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
         <FleetEntryDialog defaultVehicleId={vehicle.id} triggerLabel="Adicionar lançamento" />
         {vehicle.status === "manutencao" && (
           <ActionButton
-            icon={CheckCircle2}
-            label="Liberar veículo"
-            onClick={() => {
-              updateVehicle(vehicle.id, { status: "disponivel" });
-              toast.success("Veículo liberado e disponível para uso.");
-            }}
+            icon={Wrench}
+            label="Encerrar manutenção"
+            onClick={() => setIsMaintenanceOpen(true)}
           />
         )}
         {vehicle.status === "em_uso" && (
-          <ActionButton 
-            icon={Undo2} 
-            label="Registrar devolução" 
+          <ActionButton
+            icon={Undo2}
+            label="Registrar devolução"
             onClick={() => {
-              const current = vehicleUsages.find(u => u.status === "em_deslocamento");
+              const current = vehicleUsages.find((u) => u.status === "em_deslocamento");
               if (current) fleetActions.openReturn(current.id);
-            }} 
+            }}
           />
         )}
-        <ActionButton icon={History} label="Histórico" onClick={() => setIsHistoryModalOpen(true)} />
-        <ActionButton icon={Settings} label="Editar veículo" onClick={() => setIsEditorOpen(true)} />
+        <ActionButton
+          icon={History}
+          label="Histórico"
+          onClick={() => setIsHistoryModalOpen(true)}
+        />
+        <ActionButton
+          icon={Settings}
+          label="Editar veículo"
+          onClick={() => setIsEditorOpen(true)}
+        />
       </div>
 
-      <VehicleEditorModal 
-        vehicle={vehicle} 
-        open={isEditorOpen} 
-        onOpenChange={setIsEditorOpen} 
+      <VehicleEditorModal vehicle={vehicle} open={isEditorOpen} onOpenChange={setIsEditorOpen} />
+      <MaintenanceDialog
+        vehicle={vehicle}
+        open={isMaintenanceOpen}
+        onOpenChange={setIsMaintenanceOpen}
       />
 
       {/* Main Content Area */}
@@ -168,7 +191,7 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
               </div>
               <FleetEntryDialog defaultVehicleId={vehicle.id} triggerLabel="Nova ocorrência" />
             </div>
-            
+
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground border border-dashed rounded-lg">
               <AlertTriangle className="h-8 w-8 mb-2 opacity-20" />
               <p className="text-sm">Nenhuma ocorrência registrada.</p>
@@ -178,10 +201,10 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
       </Tabs>
 
       {/* Modais */}
-      <VehicleHistoryModal 
-        vehicle={vehicle} 
-        open={isHistoryModalOpen} 
-        onOpenChange={setIsHistoryModalOpen} 
+      <VehicleHistoryModal
+        vehicle={vehicle}
+        open={isHistoryModalOpen}
+        onOpenChange={setIsHistoryModalOpen}
       />
 
       {/* Modal Detalhes Utilização */}
@@ -197,11 +220,38 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
                 <DetailItem label="Operador" value={selectedUsage.operatorId} />
                 <DetailItem label="Status" value={selectedUsage.status} />
                 <DetailItem label="Destino" value={selectedUsage.destination} fullWidth />
-                <DetailItem label="Saída Real" value={formatFleetDateTime(selectedUsage.departureAt || selectedUsage.scheduledStartAt)} />
-                <DetailItem label="Retorno Real" value={selectedUsage.returnedAt ? formatFleetDateTime(selectedUsage.returnedAt) : "—"} />
-                <DetailItem label="KM Saída" value={selectedUsage.departureMileage ? `${selectedUsage.departureMileage.toLocaleString("pt-BR")} km` : "—"} />
-                <DetailItem label="KM Retorno" value={selectedUsage.returnMileage ? `${selectedUsage.returnMileage.toLocaleString("pt-BR")} km` : "—"} />
-                <DetailItem label="Combustível Saída" value={selectedUsage.fuelAtDeparture || "—"} />
+                <DetailItem
+                  label="Saída Real"
+                  value={formatFleetDateTime(
+                    selectedUsage.departureAt || selectedUsage.scheduledStartAt,
+                  )}
+                />
+                <DetailItem
+                  label="Retorno Real"
+                  value={
+                    selectedUsage.returnedAt ? formatFleetDateTime(selectedUsage.returnedAt) : "—"
+                  }
+                />
+                <DetailItem
+                  label="KM Saída"
+                  value={
+                    selectedUsage.departureMileage
+                      ? `${selectedUsage.departureMileage.toLocaleString("pt-BR")} km`
+                      : "—"
+                  }
+                />
+                <DetailItem
+                  label="KM Retorno"
+                  value={
+                    selectedUsage.returnMileage
+                      ? `${selectedUsage.returnMileage.toLocaleString("pt-BR")} km`
+                      : "—"
+                  }
+                />
+                <DetailItem
+                  label="Combustível Saída"
+                  value={selectedUsage.fuelAtDeparture || "—"}
+                />
                 <DetailItem label="Combustível Retorno" value={selectedUsage.fuelAtReturn || "—"} />
               </div>
             </>
@@ -212,7 +262,17 @@ export function VehicleOverview({ vehicle }: VehicleOverviewProps) {
   );
 }
 
-function HeaderStat({ icon: Icon, label, value, className }: { icon: any; label: string; value: string; className?: string }) {
+function HeaderStat({
+  icon: Icon,
+  label,
+  value,
+  className,
+}: {
+  icon: any;
+  label: string;
+  value: string;
+  className?: string;
+}) {
   return (
     <div className={cn("flex flex-col gap-1 min-w-0", className)}>
       <div className="flex items-center gap-1.5 text-muted-foreground">
@@ -224,11 +284,21 @@ function HeaderStat({ icon: Icon, label, value, className }: { icon: any; label:
   );
 }
 
-function ActionButton({ icon: Icon, label, onClick, disabled }: { icon: any; label: string; onClick?: () => void; disabled?: boolean }) {
+function ActionButton({
+  icon: Icon,
+  label,
+  onClick,
+  disabled,
+}: {
+  icon: any;
+  label: string;
+  onClick?: () => void;
+  disabled?: boolean;
+}) {
   return (
-    <Button 
-      variant="outline" 
-      size="sm" 
+    <Button
+      variant="outline"
+      size="sm"
       onClick={onClick}
       disabled={disabled}
       className="h-9 gap-2 text-[12px] font-semibold border-border/60 hover:border-primary hover:bg-primary/5 transition-all"
@@ -239,10 +309,20 @@ function ActionButton({ icon: Icon, label, onClick, disabled }: { icon: any; lab
   );
 }
 
-function DetailItem({ label, value, fullWidth }: { label: string; value: string; fullWidth?: boolean }) {
+function DetailItem({
+  label,
+  value,
+  fullWidth,
+}: {
+  label: string;
+  value: string;
+  fullWidth?: boolean;
+}) {
   return (
     <div className={cn("flex flex-col gap-1", fullWidth && "col-span-2")}>
-      <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{label}</span>
+      <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+        {label}
+      </span>
       <p className="text-sm font-medium">{value}</p>
     </div>
   );
