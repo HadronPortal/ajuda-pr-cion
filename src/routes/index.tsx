@@ -18,7 +18,7 @@
  * credenciais
  * endpoints
  * configurações de autenticação
- * arquivos de configuração que não estejam diretamente relacionados à alteração solicitada
+ * arquivos de configuration que não estejam diretamente relacionados à alteração solicitada
  *
  * As credenciais e configurações existentes são consideradas CORRETAS e FUNCIONAIS.
  *
