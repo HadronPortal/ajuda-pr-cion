@@ -1,12 +1,10 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { ProcionLogo } from "./ProcionLogo";
 import {
-  BriefcaseBusiness,
   CalendarDays,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  ContactRound,
   MessageSquare,
 } from "lucide-react";
 import { useState, type ComponentType } from "react";
@@ -21,6 +19,8 @@ import customersIconUrl from "@/assets/menu-customers-solid.png";
 import calendarIconUrl from "@/assets/ticket-schedule-solid.png";
 import fleetIconUrl from "@/assets/menu-fleet-solid.png";
 import hadronIconUrl from "@/assets/menu-hadron-solid.png";
+import commercialIconUrl from "@/assets/menu-commercial-solid.png";
+import contactsIconUrl from "@/assets/menu-contacts-solid.png";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { sidebarStore, useSidebarCollapsed } from "@/lib/sidebar-store";
@@ -62,6 +62,8 @@ const CustomersIcon = createMaskedMenuIcon(customersIconUrl);
 const CalendarIcon = createMaskedMenuIcon(calendarIconUrl);
 const FleetIcon = createMaskedMenuIcon(fleetIconUrl);
 const HadronIcon = createMaskedMenuIcon(hadronIconUrl);
+const CommercialIcon = createMaskedMenuIcon(commercialIconUrl);
+const ContactsIcon = createMaskedMenuIcon(contactsIconUrl);
 
 const nav: NavItem[] = [
   { to: "/", label: "Dashboard", icon: DashboardIcon, exact: true },
@@ -77,8 +79,8 @@ const nav: NavItem[] = [
   {
     to: "/comercial/contatos",
     label: "Comercial",
-    icon: BriefcaseBusiness,
-    children: [{ to: "/comercial/contatos", label: "Contatos", icon: ContactRound }],
+    icon: CommercialIcon,
+    children: [{ to: "/comercial/contatos", label: "Contatos", icon: ContactsIcon }],
   },
   { to: "/frota", label: "Frota", icon: FleetIcon },
   { to: "/iniciar-hadron", label: "Hadron", icon: HadronIcon },
