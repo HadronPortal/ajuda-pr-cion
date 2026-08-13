@@ -79,7 +79,7 @@ const stageColors: Record<CompanyLeadStage, string> = {
 };
 
 export function LeadDetailsPage() {
-  const { leadId } = useParams({ strict: false });
+  const { leadId } = useParams({ from: "/comercial/contatos/$leadId" });
   const [lead, setLead] = useState<CompanyLeadDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);

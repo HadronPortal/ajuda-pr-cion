@@ -112,7 +112,7 @@ function closeDealFallback(lead: CompanyLeadDetails, key: string) {
 }
 
 export function CloseDealPage() {
-  const { leadId } = useParams({ strict: false });
+  const { leadId } = useParams({ from: "/comercial/contatos/$leadId/fechamento" });
   const navigate = useNavigate();
   const [lead, setLead] = useState<CompanyLeadDetails | null>(null);
   const [loading, setLoading] = useState(true);
