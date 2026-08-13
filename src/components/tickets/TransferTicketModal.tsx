@@ -2,21 +2,20 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { ArrowUp, ChevronDown, Minus, Plus, Repeat, Search, X } from "lucide-react";
 import { toast } from "sonner";
 import { useOperatorAcronyms } from "@/lib/collaborators-store";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogFooter, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import {
-  getTransferBlockReason,
-  ticketsStore,
-} from "@/lib/tickets-store";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
+import { getTransferBlockReason, ticketsStore } from "@/lib/tickets-store";
 import { cn } from "@/lib/utils";
 import { computeSla } from "@/lib/ticket-sla";
 import {
@@ -162,9 +161,6 @@ function PrioritySegmented({
   );
 }
 
-const selectClass =
-  "h-9 w-full cursor-pointer rounded-lg border border-input bg-card px-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring";
-
 const preventOutsideClose = (event: Event) => event.preventDefault();
 
 export function TransferTicketModal({
@@ -214,9 +210,7 @@ export function TransferTicketModal({
   ).slice(0, 6);
 
   const articleSuggestions = kbArticlesFull
-    .filter((a) =>
-      `${a.title} ${a.module}`.toLowerCase().includes(articleQuery.toLowerCase()),
-    )
+    .filter((a) => `${a.title} ${a.module}`.toLowerCase().includes(articleQuery.toLowerCase()))
     .filter((a) => !relatedArticles.includes(a.title))
     .slice(0, 5)
     .map((a) => a.title);
@@ -298,9 +292,7 @@ export function TransferTicketModal({
         style={{ maxHeight: "min(94svh, calc(100dvh - 1.5rem))" }}
         className="flex w-[calc(100vw-2rem)] max-w-[940px] flex-col gap-0 overflow-hidden rounded-2xl border border-border bg-card p-0 shadow-[0_30px_80px_rgba(0,0,0,0.35)] [&>button]:hidden"
       >
-        <DialogTitle className="sr-only">
-          Transferir chamado {ticket.protocol}
-        </DialogTitle>
+        <DialogTitle className="sr-only">Transferir chamado {ticket.protocol}</DialogTitle>
 
         <DetailModalHeader
           icon={Repeat}
@@ -344,8 +336,12 @@ export function TransferTicketModal({
           meta={
             <span className="inline-flex items-center gap-1">
               <span className="font-semibold text-primary">{ticket.clientCode || "—"}</span>
-              <span aria-hidden className="text-border">·</span>
-              <span className="truncate text-foreground">{ticket.clientName || "Cliente não vinculado"}</span>
+              <span aria-hidden className="text-border">
+                ·
+              </span>
+              <span className="truncate text-foreground">
+                {ticket.clientName || "Cliente não vinculado"}
+              </span>
             </span>
           }
         />
@@ -387,17 +383,21 @@ export function TransferTicketModal({
           </Field>
 
           <Field label="Permissão">
-            <select
+            <Select
               value={permission}
-              onChange={(e) => setPermission(e.target.value as (typeof PERMISSIONS)[number])}
-              className={selectClass}
+              onValueChange={(value) => setPermission(value as (typeof PERMISSIONS)[number])}
             >
-              {PERMISSIONS.map((p) => (
-                <option key={p} value={p}>
-                  {p}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="h-9 w-full cursor-pointer rounded-lg bg-card text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {PERMISSIONS.map((p) => (
+                  <SelectItem key={p} value={p}>
+                    {p}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </Field>
 
           <Field label="Prioridade">
@@ -405,17 +405,18 @@ export function TransferTicketModal({
           </Field>
 
           <Field label="Tipo" required>
-            <select
-              value={type}
-              onChange={(e) => setType(e.target.value as TransferType)}
-              className={selectClass}
-            >
-              {TYPE_OPTIONS.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
+            <Select value={type} onValueChange={(value) => setType(value as TransferType)}>
+              <SelectTrigger className="h-9 w-full cursor-pointer rounded-lg bg-card text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {TYPE_OPTIONS.map((t) => (
+                  <SelectItem key={t} value={t}>
+                    {t}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </Field>
 
           {needsOperator && (
@@ -481,8 +482,11 @@ export function TransferTicketModal({
               placeholder="Registre o motivo da transferência e as orientações ao próximo operador..."
               className="min-h-[72px] w-full resize-y rounded-lg border border-input bg-card p-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
             />
-            <CorrectionHint correcting={messageCorrection.correcting} corrected={messageCorrection.corrected} onUndo={messageCorrection.undo} />
-
+            <CorrectionHint
+              correcting={messageCorrection.correcting}
+              corrected={messageCorrection.corrected}
+              onUndo={messageCorrection.undo}
+            />
           </div>
 
           <RelatedPicker
@@ -497,9 +501,7 @@ export function TransferTicketModal({
               }
               setArticleQuery("");
             }}
-            onRemove={(item) =>
-              setRelatedArticles((cur) => cur.filter((v) => v !== item))
-            }
+            onRemove={(item) => setRelatedArticles((cur) => cur.filter((v) => v !== item))}
           />
           <RelatedPicker
             label="Opções/Formulários relacionados"
@@ -513,9 +515,7 @@ export function TransferTicketModal({
               }
               setFormQuery("");
             }}
-            onRemove={(item) =>
-              setRelatedForms((cur) => cur.filter((v) => v !== item))
-            }
+            onRemove={(item) => setRelatedForms((cur) => cur.filter((v) => v !== item))}
           />
         </div>
 

@@ -5,6 +5,13 @@ import { Dialog, DialogContent, DialogFooter, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import { ticketsStore } from "@/lib/tickets-store";
 import { cn } from "@/lib/utils";
@@ -19,7 +26,6 @@ import {
 } from "@/lib/hadron-options";
 import { CorrectionHint } from "@/components/ui/smart-text";
 import { useSpellCorrection } from "@/lib/spellcheck";
-
 
 const PRIORITY_OPTIONS: {
   value: TicketPriority;
@@ -123,8 +129,6 @@ const AREAS = [
   "Ag. Desenvolvimento",
   "Ag. Web",
 ];
-const selectClass =
-  "h-9 w-full cursor-pointer rounded-md border border-input bg-background px-3 text-[13px] outline-none focus:ring-2 focus:ring-ring";
 const preventOutsideClose = (event: Event) => event.preventDefault();
 
 type ForwardSpecialistModalProps = {
@@ -271,37 +275,46 @@ function ForwardSpecialistModalContent({
         <div className="min-h-0 flex-1 space-y-2.5 overflow-y-auto px-5 py-3 md:px-6">
           <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
             <Field label="Tipo">
-              <select
-                value={type}
-                onChange={(e) => setType(e.target.value)}
-                className={selectClass}
-              >
-                {TYPES.map((item) => (
-                  <option key={item}>{item}</option>
-                ))}
-              </select>
+              <Select value={type} onValueChange={setType}>
+                <SelectTrigger className="h-9 w-full cursor-pointer text-[13px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {TYPES.map((item) => (
+                    <SelectItem key={item} value={item}>
+                      {item}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </Field>
             <Field label="Área de espera">
-              <select
-                value={waitingArea}
-                onChange={(e) => setWaitingArea(e.target.value)}
-                className={selectClass}
-              >
-                {AREAS.map((item) => (
-                  <option key={item}>{item}</option>
-                ))}
-              </select>
+              <Select value={waitingArea} onValueChange={setWaitingArea}>
+                <SelectTrigger className="h-9 w-full cursor-pointer text-[13px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {AREAS.map((item) => (
+                    <SelectItem key={item} value={item}>
+                      {item}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </Field>
             <Field label="Permissão">
-              <select
-                value={permission}
-                onChange={(e) => setPermission(e.target.value)}
-                className={selectClass}
-              >
-                {PERMISSIONS.map((item) => (
-                  <option key={item}>{item}</option>
-                ))}
-              </select>
+              <Select value={permission} onValueChange={setPermission}>
+                <SelectTrigger className="h-9 w-full cursor-pointer text-[13px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PERMISSIONS.map((item) => (
+                    <SelectItem key={item} value={item}>
+                      {item}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </Field>
             <Field label="Prioridade">
               <PrioritySegmented value={priority} onChange={setPriority} />
@@ -309,31 +322,36 @@ function ForwardSpecialistModalContent({
           </div>
           <div className="grid gap-2.5 sm:grid-cols-2">
             <Field label="Módulo" required>
-              <select
-                value={module}
-                onChange={(e) => changeModule(e.target.value)}
-                className={selectClass}
-              >
-                {moduleOptions.map((item) => (
-                  <option key={item} value={item}>
-                    {item}
-                  </option>
-                ))}
-              </select>
+              <Select value={module} onValueChange={changeModule}>
+                <SelectTrigger className="h-9 w-full cursor-pointer text-[13px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {moduleOptions.map((item) => (
+                    <SelectItem key={item} value={item}>
+                      {item}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </Field>
             <Field label="Submódulo" required>
-              <select
+              <Select
                 value={submodule}
-                onChange={(e) => setSubmodule(e.target.value)}
-                className={selectClass}
+                onValueChange={setSubmodule}
                 disabled={availableSubs.length === 0}
               >
-                {availableSubs.map((item) => (
-                  <option key={item} value={item}>
-                    {item}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger className="h-9 w-full cursor-pointer text-[13px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableSubs.map((item) => (
+                    <SelectItem key={item} value={item}>
+                      {item}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </Field>
           </div>
           <HadronOptionPicker
@@ -362,8 +380,11 @@ function ForwardSpecialistModalContent({
               placeholder="Descreva o diagnóstico, testes realizados e o que precisa ser analisado..."
               className="min-h-[60px] w-full resize-none rounded-md border border-input bg-background p-2.5 text-[13px] outline-none focus:ring-2 focus:ring-ring"
             />
-            <CorrectionHint correcting={reasonCorrection.correcting} corrected={reasonCorrection.corrected} onUndo={reasonCorrection.undo} />
-
+            <CorrectionHint
+              correcting={reasonCorrection.correcting}
+              corrected={reasonCorrection.corrected}
+              onUndo={reasonCorrection.undo}
+            />
           </Field>
           <div className="grid gap-3 md:grid-cols-2">
             <RelatedPicker
