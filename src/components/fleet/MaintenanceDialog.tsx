@@ -1,5 +1,19 @@
 import { useEffect, useState } from "react";
-import { Wrench, CheckCircle2, History, Plus, AlertCircle, Calendar, Gauge, Store, MessageSquare, ClipboardList, Package, DollarSign, Clock } from "lucide-react";
+import {
+  Wrench,
+  CheckCircle2,
+  History,
+  Plus,
+  AlertCircle,
+  Calendar,
+  Gauge,
+  Store,
+  MessageSquare,
+  ClipboardList,
+  Package,
+  DollarSign,
+  Clock,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,7 +37,13 @@ import {
 } from "@/lib/fleet-store";
 import { cn } from "@/lib/utils";
 import { createFleetEntry, updateFleetEntryByMaintenance } from "@/lib/fleet-entry-store";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type MaintenanceDialogProps = {
   vehicle: Vehicle;
@@ -49,7 +69,8 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
   const [closeForm, setCloseForm] = useState({
     exitDate: new Date().toISOString().slice(0, 16),
     exitMileage: String(vehicle.currentMileage),
-    cost: "", // This will hold the "R$ 1.234,56" string
+    partsCost: "",
+    laborCost: "",
     servicesPerformed: "",
     partsReplaced: "",
     notes: "",
@@ -60,14 +81,22 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
 
   useEffect(() => {
     if (open) {
-      const active = vehicle.maintenanceRecords?.find(m => m.status === "em_andamento");
+      const active = vehicle.maintenanceRecords?.find((m) => m.status === "em_andamento");
       if (active) {
         setMode("close");
         setSelectedMaint(active);
-        setCloseForm(prev => ({
-          ...prev,
+        setCloseForm({
+          exitDate: new Date().toISOString().slice(0, 16),
           exitMileage: String(vehicle.currentMileage),
-        }));
+          partsCost: "",
+          laborCost: "",
+          servicesPerformed: "",
+          partsReplaced: "",
+          notes: "",
+          nextRevisionDate: "",
+          nextRevisionMileage: "",
+          vehicleStatus: "disponivel",
+        });
       } else {
         setMode("create");
         setCreateForm({
@@ -87,14 +116,18 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
       toast.error("Preencha o motivo e a oficina.");
       return;
     }
-    
-    const maintenance = addVehicleMaintenance(vehicle.id, {
-      entryDate: createForm.entryDate,
-      entryMileage: Number(createForm.entryMileage),
-      reason: createForm.reason.trim(),
-      workshop: createForm.workshop.trim(),
-      notes: createForm.notes.trim() || undefined,
-    }, createForm.vehicleStatus);
+
+    const maintenance = addVehicleMaintenance(
+      vehicle.id,
+      {
+        entryDate: createForm.entryDate,
+        entryMileage: Number(createForm.entryMileage),
+        reason: createForm.reason.trim(),
+        workshop: createForm.workshop.trim(),
+        notes: createForm.notes.trim() || undefined,
+      },
+      createForm.vehicleStatus,
+    );
 
     createFleetEntry({
       type: "servico",
@@ -102,16 +135,21 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
       occurredAt: createForm.entryDate,
       mileage: Number(createForm.entryMileage),
       title: createForm.reason.trim(),
-      notes: [
-        createForm.workshop.trim() ? `Oficina: ${createForm.workshop.trim()}` : "",
-        createForm.notes.trim(),
-      ].filter(Boolean).join("\n") || undefined,
+      notes:
+        [
+          createForm.workshop.trim() ? `Oficina: ${createForm.workshop.trim()}` : "",
+          createForm.notes.trim(),
+        ]
+          .filter(Boolean)
+          .join("\n") || undefined,
       maintenanceId: maintenance.id,
     });
 
-    toast.success(createForm.vehicleStatus === "manutencao"
-      ? "Manutenção iniciada. Veículo agora está em manutenção."
-      : "Manutenção registrada e veículo mantido disponível.");
+    toast.success(
+      createForm.vehicleStatus === "manutencao"
+        ? "Manutenção iniciada. Veículo agora está em manutenção."
+        : "Manutenção registrada e veículo mantido disponível.",
+    );
     onOpenChange(false);
   };
 
@@ -128,37 +166,42 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
     }
 
     // Parse numeric cost from formatted string
-    const numericCost = closeForm.cost 
-      ? Number(closeForm.cost.replace(/[^\d,]/g, "").replace(",", ".")) 
-      : undefined;
+    const partsCost = parseCurrency(closeForm.partsCost);
+    const laborCost = parseCurrency(closeForm.laborCost);
+    const numericCost = partsCost + laborCost;
 
     // Calculate duration
     const start = new Date(selectedMaint.entryDate);
     const end = new Date(closeForm.exitDate);
     const diffMs = end.getTime() - start.getTime();
     const diffMinutes = Math.floor(diffMs / (1000 * 60));
-    
+
     let duration = "";
-    if (diffMinutes < 1440) { // < 24h
+    if (diffMinutes < 1440) {
+      // < 24h
       const hours = Math.floor(diffMinutes / 60);
       const mins = diffMinutes % 60;
       duration = `${hours}h ${mins}min`;
     } else {
       const days = Math.floor(diffMinutes / 1440);
       const hours = Math.floor((diffMinutes % 1440) / 60);
-      duration = `${days} ${days === 1 ? 'dia' : 'dias'} e ${hours}h`;
+      duration = `${days} ${days === 1 ? "dia" : "dias"} e ${hours}h`;
     }
 
     closeVehicleMaintenance(selectedMaint.id, {
       exitDate: closeForm.exitDate,
       exitMileage: Number(closeForm.exitMileage),
       cost: numericCost,
+      partsCost,
+      laborCost,
       duration,
       servicesPerformed: closeForm.servicesPerformed.trim(),
       partsReplaced: closeForm.partsReplaced.trim(),
       notes: closeForm.notes.trim() || undefined,
       nextRevisionDate: closeForm.nextRevisionDate || undefined,
-      nextRevisionMileage: closeForm.nextRevisionMileage ? Number(closeForm.nextRevisionMileage) : undefined,
+      nextRevisionMileage: closeForm.nextRevisionMileage
+        ? Number(closeForm.nextRevisionMileage)
+        : undefined,
       vehicleStatus: closeForm.vehicleStatus,
     });
 
@@ -166,11 +209,14 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
       occurredAt: closeForm.exitDate,
       mileage: Number(closeForm.exitMileage),
       title: closeForm.servicesPerformed.trim() || selectedMaint.reason,
-      notes: [
-        selectedMaint.workshop ? `Oficina: ${selectedMaint.workshop}` : "",
-        closeForm.partsReplaced.trim() ? `Itens trocados: ${closeForm.partsReplaced.trim()}` : "",
-        closeForm.notes.trim(),
-      ].filter(Boolean).join("\n") || undefined,
+      notes:
+        [
+          selectedMaint.workshop ? `Oficina: ${selectedMaint.workshop}` : "",
+          closeForm.partsReplaced.trim() ? `Itens trocados: ${closeForm.partsReplaced.trim()}` : "",
+          closeForm.notes.trim(),
+        ]
+          .filter(Boolean)
+          .join("\n") || undefined,
       amount: numericCost,
     };
     const updatedHistory = updateFleetEntryByMaintenance(selectedMaint.id, historyChanges);
@@ -183,9 +229,11 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
       });
     }
 
-    toast.success(closeForm.vehicleStatus === "manutencao"
-      ? "Manutenção encerrada e veículo mantido em manutenção."
-      : "Manutenção encerrada. Veículo agora está disponível.");
+    toast.success(
+      closeForm.vehicleStatus === "manutencao"
+        ? "Manutenção encerrada e veículo mantido em manutenção."
+        : "Manutenção encerrada. Veículo agora está disponível.",
+    );
     onOpenChange(false);
   };
 
@@ -193,7 +241,7 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
     // Remove non-digits
     const cleanValue = value.replace(/\D/g, "");
     if (!cleanValue) return "";
-    
+
     const numberValue = parseInt(cleanValue) / 100;
     return new Intl.NumberFormat("pt-BR", {
       minimumFractionDigits: 2,
@@ -203,24 +251,25 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
 
   const calculateCurrentDuration = () => {
     if (!selectedMaint || !closeForm.exitDate) return "Em andamento";
-    
+
     const start = new Date(selectedMaint.entryDate);
     const end = new Date(closeForm.exitDate);
-    
+
     if (isNaN(start.getTime()) || isNaN(end.getTime())) return "Data inválida";
     if (end < start) return "Conclusão anterior à entrada";
 
     const diffMs = end.getTime() - start.getTime();
     const diffMinutes = Math.floor(diffMs / (1000 * 60));
-    
-    if (diffMinutes < 1440) { // < 24h
+
+    if (diffMinutes < 1440) {
+      // < 24h
       const hours = Math.floor(diffMinutes / 60);
       const mins = diffMinutes % 60;
       return `${hours}h ${mins}min`;
     } else {
       const days = Math.floor(diffMinutes / 1440);
       const hours = Math.floor((diffMinutes % 1440) / 60);
-      return `${days} ${days === 1 ? 'dia' : 'dias'} e ${hours}h`;
+      return `${days} ${days === 1 ? "dia" : "dias"} e ${hours}h`;
     }
   };
 
@@ -248,7 +297,7 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
                     <Input
                       type="datetime-local"
                       value={createForm.entryDate}
-                      onChange={e => setCreateForm({ ...createForm, entryDate: e.target.value })}
+                      onChange={(e) => setCreateForm({ ...createForm, entryDate: e.target.value })}
                       className="pl-9"
                     />
                   </div>
@@ -260,7 +309,9 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
                     <Input
                       type="number"
                       value={createForm.entryMileage}
-                      onChange={e => setCreateForm({ ...createForm, entryMileage: e.target.value })}
+                      onChange={(e) =>
+                        setCreateForm({ ...createForm, entryMileage: e.target.value })
+                      }
                       className="pl-9"
                     />
                   </div>
@@ -274,7 +325,7 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
                   <Input
                     placeholder="Ex: Barulho na suspensão, Troca de óleo..."
                     value={createForm.reason}
-                    onChange={e => setCreateForm({ ...createForm, reason: e.target.value })}
+                    onChange={(e) => setCreateForm({ ...createForm, reason: e.target.value })}
                     className="pl-9"
                   />
                 </div>
@@ -287,7 +338,7 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
                   <Input
                     placeholder="Nome da oficina ou concessionária"
                     value={createForm.workshop}
-                    onChange={e => setCreateForm({ ...createForm, workshop: e.target.value })}
+                    onChange={(e) => setCreateForm({ ...createForm, workshop: e.target.value })}
                     className="pl-9"
                   />
                 </div>
@@ -300,7 +351,7 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
                   <Textarea
                     placeholder="Detalhes adicionais..."
                     value={createForm.notes}
-                    onChange={e => setCreateForm({ ...createForm, notes: e.target.value })}
+                    onChange={(e) => setCreateForm({ ...createForm, notes: e.target.value })}
                     className="min-h-[100px] pl-9"
                   />
                 </div>
@@ -314,7 +365,9 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
                     setCreateForm({ ...createForm, vehicleStatus: value })
                   }
                 >
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="manutencao">Em manutenção</SelectItem>
                     <SelectItem value="disponivel">Disponível</SelectItem>
@@ -337,7 +390,9 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
                   </div>
                   <div>
                     <span className="text-muted-foreground">KM Entrada:</span>
-                    <p className="font-medium">{selectedMaint?.entryMileage.toLocaleString("pt-BR")} km</p>
+                    <p className="font-medium">
+                      {selectedMaint?.entryMileage.toLocaleString("pt-BR")} km
+                    </p>
                   </div>
                   <div className="col-span-2">
                     <span className="text-muted-foreground">Motivo:</span>
@@ -354,7 +409,7 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
                     <Input
                       type="datetime-local"
                       value={closeForm.exitDate}
-                      onChange={e => setCloseForm({ ...closeForm, exitDate: e.target.value })}
+                      onChange={(e) => setCloseForm({ ...closeForm, exitDate: e.target.value })}
                       className="pl-9"
                     />
                   </div>
@@ -366,28 +421,38 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
                     <Input
                       type="number"
                       value={closeForm.exitMileage}
-                      onChange={e => setCloseForm({ ...closeForm, exitMileage: e.target.value })}
+                      onChange={(e) => setCloseForm({ ...closeForm, exitMileage: e.target.value })}
                       className="pl-9"
                     />
                   </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <div className="space-y-2">
-                  <Label>Valor Total</Label>
-                  <div className="relative">
-                    <div className="flex h-10 w-full items-center rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
-                      <span className="mr-1 text-muted-foreground select-none">R$</span>
-                      <input
-                        placeholder="0,00"
-                        value={closeForm.cost}
-                        onChange={e => setCloseForm({ ...closeForm, cost: formatCurrency(e.target.value) })}
-                        className="flex-1 bg-transparent outline-none placeholder:text-muted-foreground"
-                      />
-                    </div>
-                  </div>
+                  <Label>Peças (R$)</Label>
+                  <CurrencyField
+                    value={closeForm.partsCost}
+                    onChange={(partsCost) => setCloseForm({ ...closeForm, partsCost })}
+                  />
                 </div>
+                <div className="space-y-2">
+                  <Label>Mão de obra (R$)</Label>
+                  <CurrencyField
+                    value={closeForm.laborCost}
+                    onChange={(laborCost) => setCloseForm({ ...closeForm, laborCost })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Total</Label>
+                  <Input
+                    readOnly
+                    value={`R$ ${(parseCurrency(closeForm.partsCost) + parseCurrency(closeForm.laborCost)).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                    className="bg-muted/50"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label>Duração do serviço</Label>
                   <div className="relative">
@@ -408,7 +473,9 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
                   <Textarea
                     placeholder="Descreva detalhadamente o que foi feito..."
                     value={closeForm.servicesPerformed}
-                    onChange={e => setCloseForm({ ...closeForm, servicesPerformed: e.target.value })}
+                    onChange={(e) =>
+                      setCloseForm({ ...closeForm, servicesPerformed: e.target.value })
+                    }
                     className="min-h-[80px] pl-9"
                   />
                 </div>
@@ -421,7 +488,7 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
                   <Textarea
                     placeholder="Listagem de peças..."
                     value={closeForm.partsReplaced}
-                    onChange={e => setCloseForm({ ...closeForm, partsReplaced: e.target.value })}
+                    onChange={(e) => setCloseForm({ ...closeForm, partsReplaced: e.target.value })}
                     className="min-h-[80px] pl-9"
                   />
                 </div>
@@ -433,7 +500,9 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
                   <Input
                     type="date"
                     value={closeForm.nextRevisionDate}
-                    onChange={e => setCloseForm({ ...closeForm, nextRevisionDate: e.target.value })}
+                    onChange={(e) =>
+                      setCloseForm({ ...closeForm, nextRevisionDate: e.target.value })
+                    }
                   />
                 </div>
                 <div className="space-y-2">
@@ -442,7 +511,9 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
                     type="number"
                     placeholder="Ex: 60000"
                     value={closeForm.nextRevisionMileage}
-                    onChange={e => setCloseForm({ ...closeForm, nextRevisionMileage: e.target.value })}
+                    onChange={(e) =>
+                      setCloseForm({ ...closeForm, nextRevisionMileage: e.target.value })
+                    }
                   />
                 </div>
               </div>
@@ -455,7 +526,9 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
                     setCloseForm({ ...closeForm, vehicleStatus: value })
                   }
                 >
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="disponivel">Disponível</SelectItem>
                     <SelectItem value="manutencao">Em manutenção</SelectItem>
@@ -468,7 +541,7 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
                 <Textarea
                   placeholder="Informações adicionais sobre a conclusão..."
                   value={closeForm.notes}
-                  onChange={e => setCloseForm({ ...closeForm, notes: e.target.value })}
+                  onChange={(e) => setCloseForm({ ...closeForm, notes: e.target.value })}
                   className="min-h-[80px]"
                 />
               </div>
@@ -481,16 +554,41 @@ export function MaintenanceDialog({ vehicle, open, onOpenChange }: MaintenanceDi
             Cancelar
           </Button>
           {mode === "create" ? (
-            <Button onClick={handleCreate}>
-              Iniciar Manutenção
-            </Button>
+            <Button onClick={handleCreate}>Iniciar Manutenção</Button>
           ) : (
-            <Button onClick={handleClose}>
-              Encerrar Manutenção
-            </Button>
+            <Button onClick={handleClose}>Encerrar Manutenção</Button>
           )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
+}
+
+function parseCurrency(value: string) {
+  const parsed = Number(value.replace(/\./g, "").replace(",", "."));
+  return value.trim() && Number.isFinite(parsed) ? parsed : 0;
+}
+
+function CurrencyField({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+  return (
+    <div className="flex h-10 items-center rounded-md border border-input bg-background px-3 text-sm focus-within:ring-2 focus-within:ring-ring">
+      <span className="mr-1 text-muted-foreground">R$</span>
+      <input
+        className="min-w-0 flex-1 bg-transparent outline-none"
+        inputMode="decimal"
+        placeholder="0,00"
+        value={value}
+        onChange={(event) => onChange(formatCurrencyValue(event.target.value))}
+      />
+    </div>
+  );
+}
+
+function formatCurrencyValue(value: string) {
+  const digits = value.replace(/\D/g, "");
+  if (!digits) return "";
+  return (Number(digits) / 100).toLocaleString("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 }

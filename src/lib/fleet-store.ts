@@ -91,6 +91,8 @@ export type VehicleMaintenance = {
   workshop: string;
   notes?: string;
   cost?: number; // Numeric value in DB
+  partsCost?: number;
+  laborCost?: number;
   duration?: string; // Formatted duration string (e.g., "6h 30min")
   servicesPerformed?: string;
   partsReplaced?: string;
@@ -524,6 +526,18 @@ function subscribe(listener: () => void) {
 // -----------------------------------------------------------------------------
 export function getVehiclesSnapshot() {
   hydrateVehicles();
+  hydrateRuntimeRecords();
+  let changed = false;
+  vehicles = vehicles.map((vehicle) => {
+    if (vehicle.status !== "em_uso") return vehicle;
+    const hasActiveDeparture = usages.some(
+      (usage) => usage.vehicleId === vehicle.id && usage.status === "em_deslocamento",
+    );
+    if (hasActiveDeparture) return vehicle;
+    changed = true;
+    return { ...vehicle, status: "disponivel" as VehicleStatus };
+  });
+  if (changed) persistVehicles();
   return vehicles;
 }
 export function getUsagesSnapshot() {
@@ -737,6 +751,8 @@ export function closeVehicleMaintenance(
     exitDate: string;
     exitMileage: number;
     cost?: number;
+    partsCost?: number;
+    laborCost?: number;
     duration?: string;
     servicesPerformed: string;
     partsReplaced: string;
