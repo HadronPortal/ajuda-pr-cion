@@ -96,6 +96,8 @@ export type VehicleMaintenance = {
   duration?: string; // Formatted duration string (e.g., "6h 30min")
   servicesPerformed?: string;
   partsReplaced?: string;
+  plannedServices?: string[];
+  plannedParts?: string[];
   nextRevisionDate?: string;
   nextRevisionMileage?: number;
   status: "em_andamento" | "concluido";

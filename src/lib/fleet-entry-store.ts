@@ -7,7 +7,11 @@ export type FleetEntryType =
   | "percurso"
   | "leitura"
   | "checklist"
-  | "lembrete";
+  | "lembrete"
+  | "ocorrencia";
+
+export type FleetOccurrenceKind = "colisao" | "multa" | "avaria" | "pane" | "outro";
+export type FleetOccurrenceSeverity = "baixa" | "media" | "alta";
 
 export type FleetEntry = {
   id: string;
@@ -44,6 +48,9 @@ export type FleetEntry = {
   reminderKind?: "despesa" | "servico";
   createdAt: string;
   maintenanceId?: string;
+  occurrenceKind?: FleetOccurrenceKind;
+  occurrenceSeverity?: FleetOccurrenceSeverity;
+  occurrenceReference?: string;
 };
 
 const STORAGE_KEY = "procion.fleet-entries.v1";
