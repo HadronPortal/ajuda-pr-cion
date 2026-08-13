@@ -315,6 +315,42 @@ export function TicketDetailSheet({
     return null;
   }, [ticket?.clientCode, ticket?.clientName, loadedClients]);
   const clientSlug = resolvedClient?.id ?? null;
+  const appointmentHistory = useMemo(() => {
+    if (!ticket) return [];
+
+    const normalize = (value?: string) =>
+      (value ?? "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .trim()
+        .toUpperCase();
+    const clientIds = new Set(
+      [resolvedClient?.id, ticket.companyId]
+        .filter((value): value is string => Boolean(value))
+        .map(normalize),
+    );
+    const clientCodes = new Set(
+      [resolvedClient?.acronym, ticket.clientCode]
+        .filter((value): value is string => Boolean(value))
+        .map(normalize),
+    );
+
+    return localCalendarEvents
+      .filter((event) => {
+        if (event.status !== "Concluído" && event.status !== "Cancelado") return false;
+        if (event.ticketId && String(event.ticketId) === String(ticket.id)) return true;
+        if (event.clientId && clientIds.has(normalize(event.clientId))) return true;
+        const eventClient = normalize(event.client);
+        return [...clientCodes].some(
+          (code) => eventClient === code || eventClient.startsWith(`${code} `),
+        );
+      })
+      .sort((left, right) => {
+        const leftTime = new Date(`${left.date}T${left.time || "00:00"}:00`).getTime();
+        const rightTime = new Date(`${right.date}T${right.time || "00:00"}:00`).getTime();
+        return rightTime - leftTime;
+      });
+  }, [localCalendarEvents, resolvedClient, ticket]);
 
   if (!ticket || !sla || !attendanceTime) return null;
 
@@ -1035,7 +1071,12 @@ export function TicketDetailSheet({
           <TicketPastAttendancesSidePanel
             ticket={ticket}
             items={historyList}
+            appointments={appointmentHistory}
             onSelect={setSelectedHistory}
+            onSelectAppointment={(event) => {
+              setCalendarEventAction("details");
+              setSelectedCalendarEvent(event);
+            }}
             onSeeAll={() => setHistoryOpen(true)}
             className="hidden max-h-[90vh] overflow-hidden rounded-2xl border border-border bg-card shadow-[0_30px_80px_rgba(0,0,0,0.35)] xl:flex"
           />
@@ -1710,13 +1751,17 @@ function TicketTimelineInline({ events }: { events: TicketEvent[] }) {
 function TicketPastAttendancesSidePanel({
   ticket,
   items,
+  appointments,
   onSelect,
+  onSelectAppointment,
   onSeeAll,
   className,
 }: {
   ticket: SupportTicket;
   items: PastAttendance[];
+  appointments: CalendarEvent[];
   onSelect: (item: PastAttendance) => void;
+  onSelectAppointment: (event: CalendarEvent) => void;
   onSeeAll: () => void;
   className?: string;
 }) {
@@ -1766,16 +1811,78 @@ function TicketPastAttendancesSidePanel({
 
       <div
         className={cn(
-          "modal-scrollbar flex-1 min-h-0 bg-muted/20 px-3 py-3",
-          items.length > 5 ? "overflow-y-auto" : "overflow-hidden",
+          "modal-scrollbar flex-1 min-h-0 space-y-4 overflow-y-auto bg-muted/20 px-3 py-3",
         )}
       >
-        {items.length === 0 ? (
+        {items.length === 0 && appointments.length === 0 ? (
           <p className="py-8 text-center text-[12px] text-muted-foreground">
-            Sem atendimentos anteriores.
+            Sem atendimentos ou agendamentos anteriores.
           </p>
         ) : (
-          <TicketHistoryList items={items.slice(0, 5)} onSelect={onSelect} timeline />
+          <>
+            {items.length > 0 && (
+              <TicketHistoryList items={items.slice(0, 5)} onSelect={onSelect} timeline />
+            )}
+
+            <section>
+              <div className="mb-2 flex items-baseline gap-1.5 border-t border-border pt-3">
+                <span className="text-[12px] font-medium text-foreground">Agendamentos</span>
+                <span className="text-[11px] font-medium text-muted-foreground">
+                  ({appointments.length})
+                </span>
+              </div>
+              {appointments.length === 0 ? (
+                <p className="rounded-lg border border-border bg-card px-3 py-5 text-center text-[11px] text-muted-foreground">
+                  Sem agendamentos concluídos ou cancelados.
+                </p>
+              ) : (
+                <ul className="space-y-2">
+                  {appointments.slice(0, 5).map((event) => {
+                    const eventDate = new Date(`${event.date}T${event.time || "00:00"}:00`);
+                    const cancelled = event.status === "Cancelado";
+                    return (
+                      <li key={String(event.id)}>
+                        <button
+                          type="button"
+                          onClick={() => onSelectAppointment(event)}
+                          className="flex w-full cursor-pointer items-center gap-3 rounded-lg border border-border bg-card px-3 py-2.5 text-left transition hover:border-primary/35 hover:bg-primary/[0.03]"
+                        >
+                          <span
+                            className={cn(
+                              "grid h-8 w-8 shrink-0 place-items-center rounded-full",
+                              cancelled
+                                ? "bg-destructive/10 text-destructive"
+                                : "bg-success/10 text-success",
+                            )}
+                          >
+                            <CalendarClock className="h-4 w-4" />
+                          </span>
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate text-[11.5px] font-medium text-foreground">
+                              {event.title}
+                            </span>
+                            <span className="mt-0.5 block text-[10px] text-muted-foreground">
+                              {eventDate.toLocaleDateString("pt-BR")} às {event.time.slice(0, 5)}
+                            </span>
+                          </span>
+                          <Badge
+                            className={cn(
+                              "shrink-0 rounded-full border px-2 py-0.5 text-[9px] font-medium",
+                              cancelled
+                                ? "border-destructive/20 bg-destructive/10 text-destructive"
+                                : "border-success/20 bg-success/10 text-success",
+                            )}
+                          >
+                            {event.status}
+                          </Badge>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </section>
+          </>
         )}
       </div>
     </aside>
