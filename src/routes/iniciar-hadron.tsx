@@ -36,6 +36,9 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { erpVersions, formatVersionDate } from "@/lib/erp-versions";
+import { hadronOptions } from "@/lib/hadron-options";
+import { cvsArticles } from "@/lib/cvs-catalogs-imported";
+import { useTickets } from "@/lib/tickets-store";
 
 export const Route = createFileRoute("/iniciar-hadron")({
   head: () => ({ meta: [{ title: "Iniciar Hadron - CRM Procion" }] }),
@@ -307,81 +310,88 @@ function HadronPage() {
 }
 
 function Overview({ onOpen }: { onOpen: (d: Detail) => void }) {
+  const tickets = useTickets();
+  const active = useMemo(
+    () => tickets.filter((ticket) => !["Finalizado", "Cancelado"].includes(ticket.status)),
+    [tickets],
+  );
+  const completed = useMemo(
+    () => tickets.filter((ticket) => ["Finalizado", "Cancelado"].includes(ticket.status)),
+    [tickets],
+  );
+  const latestVersion = erpVersions[0];
   const cards = [
-    ["Ag. revisão / ocorrência", "1 / 1", ClipboardCheck, "text-amber-600 bg-amber-500/10"],
-    ["Opções com ocorrência", "27 / 1.575", ListChecks, "text-primary bg-primary/10"],
-    ["Releases", "1.011", PackageCheck, "text-violet-600 bg-violet-500/10"],
-    ["Versão Hádron", "2.0", Code2, "text-emerald-600 bg-emerald-500/10"],
+    ["Ag. revisão / ocorrência", `${active.length} / ${tickets.length}`, ClipboardCheck, "text-rose-600 bg-rose-500/10"],
+    ["Opção ocorrência / total", `${active.length} / ${hadronOptions.length}`, ListChecks, "text-cyan-600 bg-cyan-500/10"],
+    ["Releases", String(cvsArticles.length), PackageCheck, "text-amber-600 bg-amber-500/10"],
+    ["Versão Hádron", latestVersion ? `${formatVersionDate(latestVersion.data_versao)} v${latestVersion.versao}` : "Não informada", Code2, "text-slate-600 bg-slate-500/10"],
   ] as const;
   return (
-    <div className="mt-5 space-y-5">
+    <div className="mt-5 space-y-4">
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {cards.map(([label, value, Icon, color]) => (
-          <div key={label} className="rounded-lg border bg-card p-4 shadow-sm">
-            <div className="flex items-center justify-between">
-              <span className={cn("grid h-9 w-9 place-items-center rounded-lg", color)}>
-                <Icon className="h-5 w-5" />
+          <div key={label} className="min-h-20 rounded-md border bg-card px-4 py-3 shadow-sm">
+            <div className="flex items-center gap-2">
+              <span className={cn("grid h-6 w-6 place-items-center rounded", color)}>
+                <Icon className="h-3.5 w-3.5" />
               </span>
-              <span className="text-[11px] text-muted-foreground">Atualizado hoje</span>
+              <p className="text-[10px] font-medium uppercase text-muted-foreground">{label}</p>
             </div>
-            <p className="mt-4 text-2xl font-medium">{value}</p>
-            <p className="mt-1 text-xs text-muted-foreground">{label}</p>
+            <p className="mt-2 text-lg font-medium">{value}</p>
           </div>
         ))}
       </div>
-      <div className="grid gap-5 xl:grid-cols-[1.55fr_1fr]">
-        <section className="rounded-lg border bg-card p-5 shadow-sm">
-          <SectionTitle
-            icon={Sparkles}
-            title="Opcoes em destaque"
-            subtitle="Itens que precisam de acompanhamento do time."
-          />{" "}
-          <div className="mt-4 divide-y">
-            {options.slice(0, 3).map((o) => (
-              <button
-                key={o.id}
-                onClick={() => onOpen(optionDetail(o))}
-                className="flex w-full cursor-pointer items-center gap-3 py-3 text-left hover:bg-muted/35"
-              >
-                <StatusDot tone={o.priority} />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm">
-                    {o.id} - {o.title}
-                  </p>
-                  <p className="truncate text-xs text-muted-foreground">{o.description}</p>
-                </div>
-                <Badge variant="outline">{o.owner}</Badge>
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
-              </button>
-            ))}
-          </div>
-        </section>
-        <section className="rounded-lg border bg-card p-5 shadow-sm">
-          <SectionTitle
-            icon={UserRound}
-            title="Ocorrências por operador"
-            subtitle="Distribuicao atual da fila Hadron."
-          />
-          <div className="mt-5 space-y-3">
-            {operatorStats.map(([name, count]) => (
-              <div key={name}>
-                <div className="mb-1 flex justify-between text-xs">
-                  <span>{name}</span>
-                  <span>{count}</span>
-                </div>
-                <div className="h-2 overflow-hidden rounded-full bg-muted">
-                  <div
-                    className="h-full rounded-full bg-primary"
-                    style={{ width: `${Math.max(10, (count / 11) * 100)}%` }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
+      <div className="grid gap-4 xl:grid-cols-2">
+        <HadronDashboardPanel title="Opções" subtitle="Exceto Hádron">
+          {hadronOptions.slice(0, 14).map((option) => (
+            <button key={option.id} onClick={() => onOpen({ title: option.description, subtitle: `Opção ${option.option}`, body: option.label, meta: [`Formulário: ${option.form || option.option}`, "Origem: cvs_options.json"] })} className="grid w-full cursor-pointer grid-cols-[72px_72px_1fr] items-center gap-2 border-b px-3 py-2 text-left text-xs hover:bg-muted/40">
+              <Badge variant="destructive" className="justify-center text-[9px]">OPÇÃO</Badge>
+              <span className="text-muted-foreground">{option.option}</span>
+              <span className="truncate text-primary">{option.description}</span>
+            </button>
+          ))}
+        </HadronDashboardPanel>
+        <HadronDashboardPanel title="Ocorrências" subtitle="Aguardando revisão">
+          <HadronOccurrenceRows rows={active.slice(0, 10)} onOpen={onOpen} empty="Nenhuma ocorrência aguardando revisão." />
+        </HadronDashboardPanel>
+        <HadronDashboardPanel title="Ocorrências" subtitle="Geral">
+          <HadronOccurrenceRows rows={[...active, ...completed].slice(0, 12)} onOpen={onOpen} empty="Nenhuma ocorrência registrada." />
+        </HadronDashboardPanel>
+        <HadronDashboardPanel title="Releases" subtitle="Últimos releases">
+          {[...cvsArticles].reverse().slice(0, 12).map((release) => (
+            <button key={release.id} onClick={() => onOpen({ title: release.title, subtitle: `Release ${release.id}`, body: release.title, meta: [`Status: ${release.status}`, "Origem: cvs_articles.json"] })} className="grid w-full cursor-pointer grid-cols-[64px_1fr_72px] items-center gap-3 border-b px-3 py-2 text-left text-xs hover:bg-muted/40">
+              <span className="text-muted-foreground">{release.id}</span>
+              <span className="truncate font-medium">{release.title}</span>
+              <Badge variant="outline" className="justify-center">{release.status}</Badge>
+            </button>
+          ))}
+        </HadronDashboardPanel>
       </div>
     </div>
   );
+}
+
+function HadronDashboardPanel({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {
+  return (
+    <section className="min-h-80 overflow-hidden rounded-md border bg-card shadow-sm">
+      <div className="flex items-baseline gap-2 border-b px-3 py-3">
+        <h2 className="text-sm font-medium">{title}</h2>
+        <span className="text-[10px] text-primary">{subtitle}</span>
+      </div>
+      <div className="max-h-80 overflow-y-auto">{children}</div>
+    </section>
+  );
+}
+
+function HadronOccurrenceRows({ rows, onOpen, empty }: { rows: ReturnType<typeof useTickets>; onOpen: (d: Detail) => void; empty: string }) {
+  if (!rows.length) return <p className="p-6 text-center text-xs text-muted-foreground">{empty}</p>;
+  return rows.map((ticket) => (
+    <button key={ticket.id} onClick={() => onOpen({ title: ticket.subject, subtitle: ticket.protocol, body: ticket.description || "Sem descrição informada.", meta: [`Módulo: ${ticket.module}`, `Operador: ${ticket.owner}`, `Status: ${ticket.status}`, `Atualizado: ${new Date(ticket.updatedAt).toLocaleString("pt-BR")}`] })} className="grid w-full cursor-pointer grid-cols-[90px_1fr_90px] items-center gap-3 border-b px-3 py-2 text-left text-xs hover:bg-muted/40">
+      <span className="truncate text-muted-foreground">{ticket.module}</span>
+      <span className="truncate">{ticket.subject}</span>
+      <Badge variant="outline" className="justify-center truncate">{ticket.status}</Badge>
+    </button>
+  ));
 }
 
 function OptionsTable({ query, onOpen }: TableProps) {
