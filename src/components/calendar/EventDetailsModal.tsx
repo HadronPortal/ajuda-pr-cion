@@ -11,8 +11,11 @@ import {
   CalendarDays,
   Car,
   CheckCircle2,
+  ChevronDown,
   ExternalLink,
   FileText,
+  Minus,
+  ArrowUp,
   KeyRound,
   Link2,
   MapPin,
@@ -31,6 +34,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
 import { cn } from "@/lib/utils";
+import { erpVersions, formatVersionDate } from "@/lib/erp-versions";
 import {
   EVENT_TONE_LABEL,
   EVENT_TONE_STYLES,
@@ -503,6 +507,12 @@ function EventReportDialog({
   setReport: Dispatch<SetStateAction<ReportDraft>>;
   onSave: (completed: boolean) => void;
 }) {
+  const versionOptions = useMemo(
+    () =>
+      erpVersions.map((version) => `${version.versao}-${formatVersionDate(version.data_versao)}`),
+    [],
+  );
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-3xl flex-col gap-0 overflow-hidden p-0">
@@ -510,9 +520,12 @@ function EventReportDialog({
           Relatório do agendamento
         </DialogTitle>
         <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-5">
-          <div className="rounded-lg border border-border bg-muted/20 px-4 py-3 text-sm">
-            <p className="font-medium">{event.title}</p>
-            <p className="mt-1 text-muted-foreground">
+          <div className="grid gap-3 rounded-lg border border-border bg-muted/20 px-4 py-3 text-sm sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+            <div className="min-w-0">
+              <p className="truncate font-medium">{event.client ?? event.title}</p>
+              <p className="mt-1 text-muted-foreground">{event.title}</p>
+            </div>
+            <p className="whitespace-nowrap text-muted-foreground">
               {formatDate(event.date)} · {event.time} às {event.end}
             </p>
           </div>
@@ -525,13 +538,9 @@ function EventReportDialog({
                 setReport((p) => ({ ...p, permission: permission as ReportDraft["permission"] }))
               }
             />
-            <SelectField
-              label="Prioridade"
+            <PriorityField
               value={report.priority}
-              options={["Baixa", "Média", "Alta"]}
-              onChange={(priority) =>
-                setReport((p) => ({ ...p, priority: priority as ReportDraft["priority"] }))
-              }
+              onChange={(priority) => setReport((p) => ({ ...p, priority }))}
             />
           </div>
           <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-border px-3 py-2.5 text-sm">
@@ -550,25 +559,30 @@ function EventReportDialog({
               value={report.option}
               onChange={(option) => setReport((p) => ({ ...p, option }))}
             />
-            <Field
+            <SelectField
               label="Versão do Hádron"
               value={report.version}
-              onChange={(version) => setReport((p) => ({ ...p, version }))}
-              placeholder="Ex.: 2.0 - 30/07/2026"
+              options={["Selecione a versão", ...versionOptions]}
+              onChange={(version) =>
+                setReport((p) => ({
+                  ...p,
+                  version: version === "Selecione a versão" ? "" : version,
+                }))
+              }
             />
-            <Field
-              label="Horário inicial"
-              type="time"
-              value={report.startedAt}
-              onChange={(startedAt) => setReport((p) => ({ ...p, startedAt }))}
-            />
-            <Field
-              label="Horário final"
-              type="time"
-              value={report.endedAt}
-              onChange={(endedAt) => setReport((p) => ({ ...p, endedAt }))}
-            />
-            <div className="sm:col-span-2">
+            <div className="grid gap-4 sm:col-span-2 sm:grid-cols-3">
+              <Field
+                label="Horário inicial"
+                type="time"
+                value={report.startedAt}
+                onChange={(startedAt) => setReport((p) => ({ ...p, startedAt }))}
+              />
+              <Field
+                label="Horário final"
+                type="time"
+                value={report.endedAt}
+                onChange={(endedAt) => setReport((p) => ({ ...p, endedAt }))}
+              />
               <Field
                 label="Contato"
                 value={report.contact}
@@ -598,6 +612,67 @@ function EventReportDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+const reportPriorities = [
+  {
+    value: "Baixa" as const,
+    label: "Baixa",
+    icon: ChevronDown,
+    className: "border-success/25 bg-success/10 text-success",
+    activeClass: "border-success/70 ring-2 ring-success/40 bg-success/15",
+  },
+  {
+    value: "Média" as const,
+    label: "Média",
+    icon: Minus,
+    className: "border-warning/30 bg-warning/10 text-warning-foreground",
+    activeClass: "border-warning/70 ring-2 ring-warning/40 bg-warning/20",
+  },
+  {
+    value: "Alta" as const,
+    label: "Alta",
+    icon: ArrowUp,
+    className: "border-destructive/25 bg-destructive/10 text-destructive",
+    activeClass: "border-destructive/70 ring-2 ring-destructive/40 bg-destructive/15",
+  },
+];
+
+function PriorityField({
+  value,
+  onChange,
+}: {
+  value: ReportDraft["priority"];
+  onChange: (value: ReportDraft["priority"]) => void;
+}) {
+  return (
+    <div className="space-y-2">
+      <Label>Prioridade</Label>
+      <div role="radiogroup" aria-label="Prioridade" className="grid grid-cols-3 gap-2">
+        {reportPriorities.map((priority) => {
+          const Icon = priority.icon;
+          const active = value === priority.value;
+          return (
+            <button
+              key={priority.value}
+              type="button"
+              role="radio"
+              aria-checked={active}
+              onClick={() => onChange(priority.value)}
+              className={cn(
+                "flex h-10 cursor-pointer items-center justify-center gap-1.5 rounded-xl border text-xs font-medium transition",
+                priority.className,
+                active && priority.activeClass,
+              )}
+            >
+              <Icon className="h-4 w-4" />
+              {priority.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
