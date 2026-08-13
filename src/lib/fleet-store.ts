@@ -30,7 +30,7 @@ export type Vehicle = {
   maintenanceRecords?: VehicleMaintenance[];
   inspectionHistory?: VehicleInspection[];
   tires?: TireSystem;
-  
+
   // Novos campos do editor
   type?: string;
   brand?: string;
@@ -123,6 +123,7 @@ export type VehicleReservation = {
 };
 
 export const VEHICLE_RESERVATION_BUFFER_MS = 60 * 60 * 1000;
+export const VEHICLE_RETURN_BUFFER_MS = 30 * 60 * 1000;
 
 export type VehicleUsage = {
   id: string;
@@ -224,12 +225,32 @@ let vehicles: Vehicle[] = [
     status: "disponivel",
     imageUrl: corollaImg,
     tires: {
-      frontLeft: { pressure: 32, condition: "normal", lastSwapMileage: 35000, nextRotationMileage: 45000 },
-      frontRight: { pressure: 32, condition: "normal", lastSwapMileage: 35000, nextRotationMileage: 45000 },
-      rearLeft: { pressure: 30, condition: "normal", lastSwapMileage: 35000, nextRotationMileage: 45000 },
-      rearRight: { pressure: 30, condition: "normal", lastSwapMileage: 35000, nextRotationMileage: 45000 },
-      lastInspectionDate: "2026-07-15"
-    }
+      frontLeft: {
+        pressure: 32,
+        condition: "normal",
+        lastSwapMileage: 35000,
+        nextRotationMileage: 45000,
+      },
+      frontRight: {
+        pressure: 32,
+        condition: "normal",
+        lastSwapMileage: 35000,
+        nextRotationMileage: 45000,
+      },
+      rearLeft: {
+        pressure: 30,
+        condition: "normal",
+        lastSwapMileage: 35000,
+        nextRotationMileage: 45000,
+      },
+      rearRight: {
+        pressure: 30,
+        condition: "normal",
+        lastSwapMileage: 35000,
+        nextRotationMileage: 45000,
+      },
+      lastInspectionDate: "2026-07-15",
+    },
   },
   {
     id: "tracker",
@@ -245,12 +266,32 @@ let vehicles: Vehicle[] = [
     status: "disponivel",
     imageUrl: trackerImg,
     tires: {
-      frontLeft: { pressure: 33, condition: "normal", lastSwapMileage: 25000, nextRotationMileage: 35000 },
-      frontRight: { pressure: 33, condition: "normal", lastSwapMileage: 25000, nextRotationMileage: 35000 },
-      rearLeft: { pressure: 31, condition: "normal", lastSwapMileage: 25000, nextRotationMileage: 35000 },
-      rearRight: { pressure: 31, condition: "normal", lastSwapMileage: 25000, nextRotationMileage: 35000 },
-      lastInspectionDate: "2026-07-10"
-    }
+      frontLeft: {
+        pressure: 33,
+        condition: "normal",
+        lastSwapMileage: 25000,
+        nextRotationMileage: 35000,
+      },
+      frontRight: {
+        pressure: 33,
+        condition: "normal",
+        lastSwapMileage: 25000,
+        nextRotationMileage: 35000,
+      },
+      rearLeft: {
+        pressure: 31,
+        condition: "normal",
+        lastSwapMileage: 25000,
+        nextRotationMileage: 35000,
+      },
+      rearRight: {
+        pressure: 31,
+        condition: "normal",
+        lastSwapMileage: 25000,
+        nextRotationMileage: 35000,
+      },
+      lastInspectionDate: "2026-07-10",
+    },
   },
   {
     id: "onix",
@@ -266,12 +307,32 @@ let vehicles: Vehicle[] = [
     status: "disponivel",
     imageUrl: onixImg,
     tires: {
-      frontLeft: { pressure: 28, condition: "warning", lastSwapMileage: 50000, nextRotationMileage: 60000 },
-      frontRight: { pressure: 32, condition: "normal", lastSwapMileage: 50000, nextRotationMileage: 60000 },
-      rearLeft: { pressure: 22, condition: "critical", lastSwapMileage: 50000, nextRotationMileage: 60000 },
-      rearRight: { pressure: 30, condition: "normal", lastSwapMileage: 50000, nextRotationMileage: 60000 },
-      lastInspectionDate: "2026-07-18"
-    }
+      frontLeft: {
+        pressure: 28,
+        condition: "warning",
+        lastSwapMileage: 50000,
+        nextRotationMileage: 60000,
+      },
+      frontRight: {
+        pressure: 32,
+        condition: "normal",
+        lastSwapMileage: 50000,
+        nextRotationMileage: 60000,
+      },
+      rearLeft: {
+        pressure: 22,
+        condition: "critical",
+        lastSwapMileage: 50000,
+        nextRotationMileage: 60000,
+      },
+      rearRight: {
+        pressure: 30,
+        condition: "normal",
+        lastSwapMileage: 50000,
+        nextRotationMileage: 60000,
+      },
+      lastInspectionDate: "2026-07-18",
+    },
   },
   {
     id: "strada",
@@ -287,29 +348,51 @@ let vehicles: Vehicle[] = [
     status: "manutencao",
     imageUrl: stradaImg,
     tires: {
-      frontLeft: { pressure: 32, condition: "normal", lastSwapMileage: 40000, nextRotationMileage: 50000 },
-      frontRight: { pressure: 32, condition: "normal", lastSwapMileage: 40000, nextRotationMileage: 50000 },
-      rearLeft: { pressure: 34, condition: "normal", lastSwapMileage: 40000, nextRotationMileage: 50000 },
-      rearRight: { pressure: 34, condition: "normal", lastSwapMileage: 40000, nextRotationMileage: 50000 },
-      lastInspectionDate: "2026-07-12"
-    }
+      frontLeft: {
+        pressure: 32,
+        condition: "normal",
+        lastSwapMileage: 40000,
+        nextRotationMileage: 50000,
+      },
+      frontRight: {
+        pressure: 32,
+        condition: "normal",
+        lastSwapMileage: 40000,
+        nextRotationMileage: 50000,
+      },
+      rearLeft: {
+        pressure: 34,
+        condition: "normal",
+        lastSwapMileage: 40000,
+        nextRotationMileage: 50000,
+      },
+      rearRight: {
+        pressure: 34,
+        condition: "normal",
+        lastSwapMileage: 40000,
+        nextRotationMileage: 50000,
+      },
+      lastInspectionDate: "2026-07-12",
+    },
   },
 ];
 
 // Add initial maintenance record for Saveiro
-const strada = vehicles.find(v => v.id === "strada");
+const strada = vehicles.find((v) => v.id === "strada");
 if (strada) {
-  strada.maintenanceRecords = [{
-    id: "mnt-initial",
-    vehicleId: "strada",
-    entryDate: "2026-07-28T09:00:00",
-    entryMileage: 54802,
-    reason: "Revisão geral e troca de suspensão",
-    workshop: "Mecânica São Carlos",
-    status: "em_andamento",
-    createdAt: "2026-07-28T09:00:00",
-    updatedAt: "2026-07-28T09:00:00"
-  }];
+  strada.maintenanceRecords = [
+    {
+      id: "mnt-initial",
+      vehicleId: "strada",
+      entryDate: "2026-07-28T09:00:00",
+      entryMileage: 54802,
+      reason: "Revisão geral e troca de suspensão",
+      workshop: "Mecânica São Carlos",
+      status: "em_andamento",
+      createdAt: "2026-07-28T09:00:00",
+      updatedAt: "2026-07-28T09:00:00",
+    },
+  ];
 }
 
 // -----------------------------------------------------------------------------
@@ -416,9 +499,7 @@ export function removeFleetRecordsForAppointments(appointmentIds: Array<string |
   hydrateRuntimeRecords();
   const ids = new Set(appointmentIds.map(String));
   usages = usages.filter((usage) => !ids.has(String(usage.appointmentId ?? "")));
-  reservations = reservations.filter(
-    (reservation) => !ids.has(String(reservation.eventId ?? "")),
-  );
+  reservations = reservations.filter((reservation) => !ids.has(String(reservation.eventId ?? "")));
   persistRuntimeRecords();
   emit();
 }
@@ -480,7 +561,7 @@ export function hasReservationConflict(
     if (r.vehicleId !== vehicleId) return false;
     if (r.status !== "pre_agendado") return false;
     const reservedFrom = new Date(r.startAt).getTime() - VEHICLE_RESERVATION_BUFFER_MS;
-    const reservedUntil = new Date(r.endAt).getTime();
+    const reservedUntil = new Date(r.endAt).getTime() + VEHICLE_RETURN_BUFFER_MS;
     const requestedFrom = new Date(startAt).getTime();
     const requestedUntil = new Date(endAt).getTime();
     return requestedFrom < reservedUntil && requestedUntil > reservedFrom;
@@ -558,16 +639,31 @@ export function getVehicleById(id?: string) {
 }
 
 export function normalizeVehiclePlate(value: string) {
-  const clean = value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 7);
+  const clean = value
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "")
+    .slice(0, 7);
   return clean.length === 7 ? `${clean.slice(0, 3)}-${clean.slice(3)}` : clean;
 }
 
-export function calculateLicensingDueDate(plate: string, state = "SP", year = new Date().getFullYear()) {
+export function calculateLicensingDueDate(
+  plate: string,
+  state = "SP",
+  year = new Date().getFullYear(),
+) {
   if (state.toUpperCase() !== "SP") return undefined;
   const finalDigit = plate.replace(/\D/g, "").at(-1);
   const monthByDigit: Record<string, number> = {
-    "1": 7, "2": 7, "3": 8, "4": 8, "5": 9,
-    "6": 9, "7": 10, "8": 10, "9": 11, "0": 12,
+    "1": 7,
+    "2": 7,
+    "3": 8,
+    "4": 8,
+    "5": 9,
+    "6": 9,
+    "7": 10,
+    "8": 10,
+    "9": 11,
+    "0": 12,
   };
   const month = finalDigit ? monthByDigit[finalDigit] : undefined;
   if (!month) return undefined;
@@ -580,17 +676,26 @@ export function getLicensingStatus(vehicle: Vehicle, today = new Date()) {
   if ((vehicle.licensingYear ?? 0) >= year) {
     return { status: "regular" as LicensingStatus, label: `Licenciado ${vehicle.licensingYear}` };
   }
-  const dueDate = vehicle.licensingDueDate || calculateLicensingDueDate(vehicle.plate, vehicle.state, year);
+  const dueDate =
+    vehicle.licensingDueDate || calculateLicensingDueDate(vehicle.plate, vehicle.state, year);
   if (!dueDate) return { status: "unknown" as LicensingStatus, label: "Prazo não informado" };
   const due = new Date(`${dueDate}T23:59:59`);
   const days = Math.ceil((due.getTime() - today.getTime()) / 86_400_000);
-  if (days < 0) return { status: "overdue" as LicensingStatus, label: `Vencido há ${Math.abs(days)} dias`, dueDate };
-  if (days <= 45) return { status: "due_soon" as LicensingStatus, label: `Vence em ${days} dias`, dueDate };
+  if (days < 0)
+    return {
+      status: "overdue" as LicensingStatus,
+      label: `Vencido há ${Math.abs(days)} dias`,
+      dueDate,
+    };
+  if (days <= 45)
+    return { status: "due_soon" as LicensingStatus, label: `Vence em ${days} dias`, dueDate };
   return { status: "regular" as LicensingStatus, label: `Vence em ${days} dias`, dueDate };
 }
 
 export function updateVehicle(vehicleId: string, changes: Partial<Vehicle>) {
-  vehicles = vehicles.map((vehicle) => vehicle.id === vehicleId ? { ...vehicle, ...changes } : vehicle);
+  vehicles = vehicles.map((vehicle) =>
+    vehicle.id === vehicleId ? { ...vehicle, ...changes } : vehicle,
+  );
   persistVehicles();
   emit();
 }
@@ -609,8 +714,8 @@ export function addVehicleMaintenance(
     createdAt: now,
     updatedAt: now,
   };
-  
-  vehicles = vehicles.map((vehicle) => 
+
+  vehicles = vehicles.map((vehicle) =>
     vehicle.id === vehicleId
       ? {
           ...vehicle,
@@ -618,42 +723,43 @@ export function addVehicleMaintenance(
           currentMileage: Math.max(vehicle.currentMileage, input.entryMileage),
           maintenanceRecords: [record, ...(vehicle.maintenanceRecords ?? [])],
         }
-      : vehicle
+      : vehicle,
   );
-  
+
   persistVehicles();
   emit();
   return record;
 }
 
-export function closeVehicleMaintenance(maintenanceId: string, input: {
-  exitDate: string;
-  exitMileage: number;
-  cost?: number;
-  duration?: string;
-  servicesPerformed: string;
-  partsReplaced: string;
-  notes?: string;
-  nextRevisionDate?: string;
-  nextRevisionMileage?: number;
-  vehicleStatus?: VehicleStatus;
-}) {
+export function closeVehicleMaintenance(
+  maintenanceId: string,
+  input: {
+    exitDate: string;
+    exitMileage: number;
+    cost?: number;
+    duration?: string;
+    servicesPerformed: string;
+    partsReplaced: string;
+    notes?: string;
+    nextRevisionDate?: string;
+    nextRevisionMileage?: number;
+    vehicleStatus?: VehicleStatus;
+  },
+) {
   const now = nowISO();
   let vehicleId = "";
 
   vehicles = vehicles.map((vehicle) => {
     const maintenance = vehicle.maintenanceRecords?.find((m) => m.id === maintenanceId);
     if (!maintenance) return vehicle;
-    
+
     vehicleId = vehicle.id;
-    const updatedRecords = vehicle.maintenanceRecords?.map((m) => 
-      m.id === maintenanceId 
-        ? { ...m, ...input, status: "concluido" as const, updatedAt: now } 
-        : m
+    const updatedRecords = vehicle.maintenanceRecords?.map((m) =>
+      m.id === maintenanceId ? { ...m, ...input, status: "concluido" as const, updatedAt: now } : m,
     );
 
     // Check if there are any other open maintenances for this vehicle
-    const hasOtherOpen = updatedRecords?.some(m => m.status === "em_andamento");
+    const hasOtherOpen = updatedRecords?.some((m) => m.status === "em_andamento");
 
     return {
       ...vehicle,
@@ -855,29 +961,34 @@ export function hasConflict(vehicleId: string, start: string, end: string, ignor
     const s = u.departureAt ?? u.scheduledStartAt;
     if (!s) return false;
     const e = u.expectedReturnAt ?? u.returnedAt ?? end;
-    return s < end && e > start;
+    const blockedUntil = new Date(e).getTime() + VEHICLE_RETURN_BUFFER_MS;
+    return (
+      new Date(s).getTime() < new Date(end).getTime() && blockedUntil > new Date(start).getTime()
+    );
   });
 }
 
 export function deleteVehicle(id: string) {
-  const vehicle = vehicles.find(v => v.id === id);
+  const vehicle = vehicles.find((v) => v.id === id);
   if (!vehicle) return { success: false, message: "Veículo não encontrado." };
 
   if (vehicle.status === "em_uso") {
     return { success: false, message: "Não é possível excluir um veículo em uso." };
   }
 
-  const hasOpenMaintenance = vehicle.maintenanceRecords?.some(m => m.status === "em_andamento");
+  const hasOpenMaintenance = vehicle.maintenanceRecords?.some((m) => m.status === "em_andamento");
   if (hasOpenMaintenance) {
-    return { success: false, message: "Não é possível excluir um veículo com manutenção em andamento." };
+    return {
+      success: false,
+      message: "Não é possível excluir um veículo com manutenção em andamento.",
+    };
   }
 
-  vehicles = vehicles.filter(v => v.id !== id);
+  vehicles = vehicles.filter((v) => v.id !== id);
   persistVehicles();
   emit();
   return { success: true };
 }
-
 
 // -----------------------------------------------------------------------------
 // Rótulos

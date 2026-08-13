@@ -119,7 +119,7 @@ export function VehicleAvailabilitySelect({
           description: `Agendado para ${new Date(conflict.startAt).toLocaleString("pt-BR", {
             dateStyle: "short",
             timeStyle: "short",
-          })}. O veículo fica bloqueado a partir de 1 hora antes.`,
+          })}. O veículo fica bloqueado desde 1 hora antes até 30 minutos após o término previsto.`,
         });
       } else {
         toast.info("Veículo indisponível no período selecionado. Escolha outro.");
@@ -155,7 +155,7 @@ export function VehicleAvailabilitySelect({
       </div>
       {value !== NO_VEHICLE && selected?.key === "pre_agendado" && selected.conflict && (
         <p className="mt-1 text-[11px] text-destructive">
-          O veículo fica bloqueado desde 1 hora antes de outro agendamento.
+          O veículo fica bloqueado desde 1 hora antes até 30 minutos após outro agendamento.
         </p>
       )}
     </>
