@@ -7,6 +7,7 @@ import {
   ClipboardCheck,
   Code2,
   FileCode2,
+  Eye,
   Filter,
   GitBranch,
   History,
@@ -422,41 +423,123 @@ function OptionsTable({ query, onOpen }: TableProps) {
   );
 }
 function OccurrencesTable({ query, onOpen }: TableProps) {
-  const rows = useFiltered(occurrences, query);
-  return (
-    <DataCard
-      title="Ocorrências"
-      subtitle="Fila geral, revisoes e solucoes registradas."
-      headers={["Tipo", "Opção / formulário", "Ocorrência", "Operador", "Situação", "Data"]}
-    >
-      {rows.map((o) => (
-        <DataRow
-          key={o.title}
-          onClick={() =>
-            onOpen({
-              title: o.title,
-              subtitle: o.option,
-              body: "Registro detalhado da ocorrência, análise realizada e solução proposta pelo operador.",
-              meta: [
-                `Tipo: ${o.type}`,
-                `Operador: ${o.owner}`,
-                `Situação: ${o.state}`,
-                `Data: ${o.date}`,
-              ],
-            })
-          }
-          cells={[
-            o.type,
-            o.option,
-            o.title,
-            o.owner,
-            <Badge variant="outline">{o.state}</Badge>,
-            o.date,
-          ]}
-        />
-      ))}
-    </DataCard>
+  const tickets = useTickets();
+  const [optionQuery, setOptionQuery] = useState("");
+  const [formQuery, setFormQuery] = useState("");
+  const [occurrenceType, setOccurrenceType] = useState("todos");
+  const [userType, setUserType] = useState("todos");
+  const [operator, setOperator] = useState("todos");
+  const [dateType, setDateType] = useState("abertura");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const operators = useMemo(
+    () => [...new Set(tickets.map((ticket) => ticket.owner).filter(Boolean))].sort(),
+    [tickets],
   );
+  const rows = useMemo(() => {
+    const global = normalizeOccurrenceText(query);
+    const optionFilter = normalizeOccurrenceText(optionQuery);
+    const formFilter = normalizeOccurrenceText(formQuery);
+    const from = dateFrom ? new Date(`${dateFrom}T00:00:00`).getTime() : null;
+    const to = dateTo ? new Date(`${dateTo}T23:59:59`).getTime() : null;
+    return tickets
+      .map((ticket) => ({ ticket, option: findTicketOption(ticket) }))
+      .filter(({ ticket, option }) => {
+        const date = new Date(dateType === "solucao" ? ticket.closedAt || ticket.updatedAt : ticket.openedAt).getTime();
+        const searchable = normalizeOccurrenceText([ticket.protocol, ticket.subject, ticket.description, ticket.module, ticket.owner, option?.label].filter(Boolean).join(" "));
+        return (!global || searchable.includes(global))
+          && (!optionFilter || searchable.includes(optionFilter))
+          && (!formFilter || normalizeOccurrenceText(option?.form).includes(formFilter))
+          && (occurrenceType === "todos" || occurrenceKind(ticket) === occurrenceType)
+          && (userType === "todos" || (userType === "cliente" ? ticket.source === "Portal do cliente" : ticket.source !== "Portal do cliente"))
+          && (operator === "todos" || ticket.owner === operator)
+          && (from === null || date >= from)
+          && (to === null || date <= to);
+      })
+      .sort((a, b) => b.ticket.updatedAt.localeCompare(a.ticket.updatedAt));
+  }, [dateFrom, dateTo, dateType, formQuery, occurrenceType, operator, optionQuery, query, tickets, userType]);
+  const clearFilters = () => {
+    setOptionQuery(""); setFormQuery(""); setOccurrenceType("todos"); setUserType("todos");
+    setOperator("todos"); setDateType("abertura"); setDateFrom(""); setDateTo("");
+  };
+  return (
+    <section className="overflow-hidden rounded-md border bg-card shadow-sm">
+      <div className="border-b px-4 py-4">
+        <h2 className="text-lg font-medium">Ocorrências</h2>
+        <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-[1.5fr_.7fr_.75fr_.75fr_.8fr_.8fr_.75fr_.75fr_auto]">
+          <Input value={optionQuery} onChange={(event) => setOptionQuery(event.target.value)} placeholder="Opção/descrição" />
+          <Input value={formQuery} onChange={(event) => setFormQuery(event.target.value)} placeholder="Formulário" />
+          <OccurrenceSelect value={occurrenceType} onValueChange={setOccurrenceType} items={[["todos", "Tipo Oco."], ["problema", "Problema"], ["solicitacao", "Solicitação"], ["revisado", "Revisado"]]} />
+          <OccurrenceSelect value={userType} onValueChange={setUserType} items={[["todos", "Tipo Usu."], ["cliente", "Cliente"], ["interno", "Interno"]]} />
+          <OccurrenceSelect value={operator} onValueChange={setOperator} items={[["todos", "Operador"], ...operators.map((item) => [item, item] as [string, string])]} />
+          <OccurrenceSelect value={dateType} onValueChange={setDateType} items={[["abertura", "Ocorrência"], ["solucao", "Solução"]]} />
+          <Input type="date" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} aria-label="De" />
+          <Input type="date" value={dateTo} onChange={(event) => setDateTo(event.target.value)} aria-label="Até" />
+          <Button type="button" className="cursor-pointer px-6">Buscar</Button>
+        </div>
+        <Button type="button" variant="outline" size="sm" onClick={clearFilters} className="mt-3 cursor-pointer">Limpar</Button>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[1280px] text-left text-xs">
+          <thead className="border-b bg-muted/20 text-primary"><tr>
+            <th className="w-14 px-3 py-3 font-medium">Tipo</th><th className="w-28 px-3 py-3 font-medium">Opção/Formulário</th>
+            <th className="w-72 px-3 py-3 font-medium">Descrição</th><th className="px-3 py-3 font-medium">Detalhes</th>
+            <th className="w-24 px-3 py-3 font-medium">Responsável</th><th className="w-28 px-3 py-3 font-medium">Ocorrência</th>
+            <th className="w-28 px-3 py-3 font-medium">Solução</th><th className="w-24 px-3 py-3 font-medium">Revisado</th>
+            <th className="w-20 px-3 py-3 text-center font-medium">Ações</th>
+          </tr></thead>
+          <tbody className="divide-y">{rows.map(({ ticket, option }) => {
+            const reviewed = ["Finalizado", "Cancelado"].includes(ticket.status);
+            return <tr key={ticket.id} className="align-top hover:bg-muted/25">
+              <td className="px-3 py-3"><OccurrenceTypeIcon ticket={ticket} /></td>
+              <td className="px-3 py-3 font-medium">{option ? `${option.option}/${option.form || option.option}` : "-"}</td>
+              <td className="px-3 py-3 font-medium">{option?.description || ticket.module}</td>
+              <td className="max-w-md px-3 py-3 leading-5 text-muted-foreground">{ticket.description || ticket.subject}</td>
+              <td className="px-3 py-3">{ticket.owner || "-"}</td>
+              <td className="px-3 py-3"><OccurrenceDate value={ticket.openedAt} operator={ticket.owner} /></td>
+              <td className="px-3 py-3"><OccurrenceDate value={ticket.closedAt || ticket.updatedAt} operator={reviewed ? ticket.owner : ""} /></td>
+              <td className="px-3 py-3">{reviewed ? <span className="text-emerald-600">{formatOccurrenceDate(ticket.closedAt || ticket.updatedAt)}<br />{ticket.owner}</span> : <Button size="sm" variant="secondary" className="h-10 cursor-pointer" onClick={() => openOccurrence(ticket, option, onOpen)}>Revisar</Button>}</td>
+              <td className="px-3 py-3 text-center"><Button size="icon" variant="ghost" title="Ver ocorrência" className="cursor-pointer" onClick={() => openOccurrence(ticket, option, onOpen)}><Eye className="h-4 w-4" /></Button></td>
+            </tr>;
+          })}</tbody>
+        </table>
+        {!rows.length && <p className="p-10 text-center text-sm text-muted-foreground">Nenhuma ocorrência encontrada com os filtros aplicados.</p>}
+      </div>
+    </section>
+  );
+}
+
+function OccurrenceSelect({ value, onValueChange, items }: { value: string; onValueChange: (value: string) => void; items: [string, string][] }) {
+  return <Select value={value} onValueChange={onValueChange}><SelectTrigger className="w-full cursor-pointer"><SelectValue /></SelectTrigger><SelectContent>{items.map(([itemValue, label]) => <SelectItem key={itemValue} value={itemValue}>{label}</SelectItem>)}</SelectContent></Select>;
+}
+
+function normalizeOccurrenceText(value: unknown) {
+  return String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("pt-BR");
+}
+
+type TicketRow = ReturnType<typeof useTickets>[number];
+function findTicketOption(ticket: TicketRow) {
+  const terms = normalizeOccurrenceText(`${ticket.subject} ${ticket.module}`).split(/\s+/).filter((term) => term.length > 3);
+  return hadronOptions.find((option) => terms.some((term) => normalizeOccurrenceText(option.label).includes(term)));
+}
+function occurrenceKind(ticket: TicketRow) {
+  if (["Finalizado", "Cancelado"].includes(ticket.status)) return "revisado";
+  return ticket.priority === "Alta" ? "problema" : "solicitacao";
+}
+function OccurrenceTypeIcon({ ticket }: { ticket: TicketRow }) {
+  const kind = occurrenceKind(ticket);
+  return <span className={cn("text-base", kind === "revisado" ? "text-emerald-600" : kind === "problema" ? "text-rose-600" : "text-amber-500")}>{kind === "revisado" ? "✓" : kind === "problema" ? "✹" : "★"}</span>;
+}
+function formatOccurrenceDate(value: string | null | undefined) {
+  if (!value) return "-";
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? "-" : parsed.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
+}
+function OccurrenceDate({ value, operator }: { value: string | null | undefined; operator: string }) {
+  return <span>{formatOccurrenceDate(value)}{operator && <><br /><span className="text-[10px] text-muted-foreground">{operator}</span></>}</span>;
+}
+function openOccurrence(ticket: TicketRow, option: ReturnType<typeof findTicketOption>, onOpen: (detail: Detail) => void) {
+  onOpen({ title: ticket.subject, subtitle: option ? `${option.option}/${option.form || option.option}` : ticket.protocol, body: ticket.description || "Sem detalhes informados para esta ocorrência.", meta: [`Tipo: ${occurrenceKind(ticket)}`, `Operador: ${ticket.owner || "Não informado"}`, `Situação: ${ticket.status}`, `Ocorrência: ${formatOccurrenceDate(ticket.openedAt)}`, `Solução: ${formatOccurrenceDate(ticket.closedAt)}`] });
 }
 function ReleasesTable({ query, onOpen }: TableProps) {
   const rows = useFiltered(releases, query);
