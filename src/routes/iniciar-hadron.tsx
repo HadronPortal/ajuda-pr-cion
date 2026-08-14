@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import {
   BookOpenText,
+  Bug,
   Boxes,
   CheckCircle2,
   ChevronRight,
@@ -26,6 +27,7 @@ import {
   ArrowUp,
   Trash2,
   UserRound,
+  Wrench,
   X,
 } from "lucide-react";
 import { AppShell } from "@/components/portal/AppShell";
@@ -51,7 +53,7 @@ import { hadronOptions } from "@/lib/hadron-options";
 import { modulesMap } from "@/lib/modules-map";
 import { cvsArticles } from "@/lib/cvs-catalogs-imported";
 import { getCategory, kbArticlesFull } from "@/lib/kb-data";
-import { useTickets, type TicketEvent } from "@/lib/tickets-store";
+import { ticketsStore, useTickets, type TicketEvent } from "@/lib/tickets-store";
 
 export const Route = createFileRoute("/iniciar-hadron")({
   head: () => ({ meta: [{ title: "Iniciar Hadron - CRM Procion" }] }),
@@ -64,6 +66,20 @@ type Detail = {
   body: string;
   meta: string[];
   occurrences?: TicketEvent[];
+  hadronOccurrence?: HadronOccurrenceDetail;
+};
+
+type HadronOccurrenceDetail = {
+  option: string;
+  form: string;
+  kind: ReturnType<typeof occurrenceKind>;
+  reporter: string;
+  openedAt: string;
+  solver: string;
+  solvedAt?: string | null;
+  description: string;
+  solution: string;
+  status: string;
 };
 
 const options = [
@@ -301,7 +317,9 @@ function HadronPage() {
             onClose={() => setDetail(null)}
           />
           <div className="max-h-[68vh] space-y-4 overflow-y-auto px-5 py-4">
-          {detail?.occurrences ? (
+          {detail?.hadronOccurrence ? (
+            <HadronOccurrenceDetailView occurrence={detail.hadronOccurrence} />
+          ) : detail?.occurrences ? (
             <TicketTimelineList
               events={detail.occurrences}
               variant="compact"
@@ -444,13 +462,22 @@ function HadronDashboardPanel({ title, subtitle, children }: { title: string; su
 
 function HadronOccurrenceRows({ rows, onOpen, empty }: { rows: ReturnType<typeof useTickets>; onOpen: (d: Detail) => void; empty: string }) {
   if (!rows.length) return <p className="p-6 text-center text-xs text-muted-foreground">{empty}</p>;
-  return rows.map((ticket) => (
-    <button key={ticket.id} onClick={() => onOpen({ title: ticket.subject, subtitle: ticket.protocol, body: ticket.description || "Sem descrição informada.", meta: [`Módulo: ${ticket.module}`, `Operador: ${ticket.owner}`, `Status: ${ticket.status}`, `Atualizado: ${new Date(ticket.updatedAt).toLocaleString("pt-BR")}`] })} className="grid w-full cursor-pointer grid-cols-[90px_1fr_90px] items-center gap-3 border-b px-3 py-2 text-left text-xs hover:bg-muted/40">
-      <span className="truncate text-muted-foreground">{ticket.module}</span>
-      <span className="truncate">{ticket.subject}</span>
-      <Badge variant="outline" className="justify-center truncate">{ticket.status}</Badge>
-    </button>
-  ));
+  return <>
+    <div className="grid grid-cols-[28px_92px_minmax(150px,1fr)_88px_88px_38px] gap-2 border-b bg-muted/25 px-3 py-2 text-[10px] uppercase text-muted-foreground">
+      <span>Tipo</span><span>Opç./Form.</span><span>Detalhes</span><span>Ocorrência</span><span>Solução</span><span />
+    </div>
+    {rows.map((ticket) => {
+      const option = findTicketOption(ticket);
+      return <button key={ticket.id} onClick={() => openOccurrence(ticket, option, onOpen)} className="grid w-full cursor-pointer grid-cols-[28px_92px_minmax(150px,1fr)_88px_88px_38px] items-center gap-2 border-b px-3 py-2 text-left text-[11px] transition-colors hover:bg-muted/40">
+        <OccurrenceTypeIcon ticket={ticket} />
+        <span className="truncate font-medium">{option ? `${option.option}/${option.form || option.option}` : ticket.module}</span>
+        <span className="line-clamp-2 leading-4">{ticket.description || ticket.subject}</span>
+        <OccurrenceDate value={ticket.openedAt} operator={ticket.owner} />
+        <OccurrenceDate value={ticket.closedAt} operator={ticket.closedAt ? ticket.owner : ""} />
+        <span className="grid h-8 w-8 place-items-center rounded-md text-muted-foreground" title="Ver detalhes"><ClipboardCheck className="h-4 w-4" /></span>
+      </button>;
+    })}
+  </>;
 }
 
 function OptionsTable({ query, onOpen }: TableProps) {
@@ -710,7 +737,8 @@ function occurrenceKind(ticket: TicketRow) {
 }
 function OccurrenceTypeIcon({ ticket }: { ticket: TicketRow }) {
   const kind = occurrenceKind(ticket);
-  return <span className={cn("text-base", kind === "revisado" ? "text-emerald-600" : kind === "problema" ? "text-rose-600" : "text-amber-500")}>{kind === "revisado" ? "✓" : kind === "problema" ? "✹" : "★"}</span>;
+  const Icon = kind === "revisado" ? CheckCircle2 : kind === "problema" ? Bug : Wrench;
+  return <span className={cn("grid h-6 w-6 place-items-center rounded-full", kind === "revisado" ? "bg-emerald-500/10 text-emerald-600" : kind === "problema" ? "bg-rose-500/10 text-rose-600" : "bg-amber-500/10 text-amber-600")} title={kind === "revisado" ? "Revisada" : kind === "problema" ? "Problema" : "Solicitação"}><Icon className="h-3.5 w-3.5" /></span>;
 }
 function formatOccurrenceDate(value: string | null | undefined) {
   if (!value) return "-";
@@ -721,7 +749,65 @@ function OccurrenceDate({ value, operator }: { value: string | null | undefined;
   return <span>{formatOccurrenceDate(value)}{operator && <><br /><span className="text-[10px] text-muted-foreground">{operator}</span></>}</span>;
 }
 function openOccurrence(ticket: TicketRow, option: ReturnType<typeof findTicketOption>, onOpen: (detail: Detail) => void) {
-  onOpen({ title: ticket.subject, subtitle: option ? `${option.option}/${option.form || option.option}` : ticket.protocol, body: ticket.description || "Sem detalhes informados para esta ocorrência.", meta: [`Tipo: ${occurrenceKind(ticket)}`, `Operador: ${ticket.owner || "Não informado"}`, `Situação: ${ticket.status}`, `Ocorrência: ${formatOccurrenceDate(ticket.openedAt)}`, `Solução: ${formatOccurrenceDate(ticket.closedAt)}`] });
+  const events = ticketsStore.getEvents(ticket.id);
+  const solutionEvent = [...events].reverse().find((event) => ["solution", "closed"].includes(event.kind));
+  onOpen({
+    title: "Ocorrência",
+    subtitle: `Opção: ${option ? `${option.option}/${option.form || option.option}` : ticket.protocol}`,
+    body: ticket.description || "Sem detalhes informados para esta ocorrência.",
+    meta: [],
+    hadronOccurrence: {
+      option: option?.option || ticket.protocol,
+      form: option?.form || option?.option || "-",
+      kind: occurrenceKind(ticket),
+      reporter: ticket.owner || "Não informado",
+      openedAt: ticket.openedAt,
+      solver: solutionEvent?.actor || (ticket.closedAt ? ticket.owner : "Não informado"),
+      solvedAt: solutionEvent?.when || ticket.closedAt,
+      description: ticket.description || ticket.subject || "Sem detalhes informados.",
+      solution: solutionEvent?.description || (ticket.closedAt ? "Ocorrência concluída sem descrição de solução." : "Solução ainda não registrada."),
+      status: ticket.status,
+    },
+  });
+}
+
+function HadronOccurrenceDetailView({ occurrence }: { occurrence: HadronOccurrenceDetail }) {
+  const reviewed = occurrence.kind === "revisado";
+  return (
+    <div className="relative pl-12">
+      <span className="absolute bottom-2 left-5 top-2 w-px bg-border" />
+      <span className={cn("absolute left-0 top-1 grid h-10 w-10 place-items-center rounded-full border-4 border-card", reviewed ? "bg-emerald-500 text-white" : occurrence.kind === "problema" ? "bg-rose-500 text-white" : "bg-amber-500 text-white")}>
+        {reviewed ? <CheckCircle2 className="h-5 w-5" /> : occurrence.kind === "problema" ? <Bug className="h-5 w-5" /> : <Wrench className="h-5 w-5" />}
+      </span>
+      <div className="space-y-4">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b pb-3 text-xs">
+          <span className="font-medium text-foreground">{occurrence.reporter}</span>
+          <span className="text-muted-foreground">{formatOccurrenceDate(occurrence.openedAt)}</span>
+          {occurrence.solvedAt && <>
+            <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+            <span className="font-medium text-emerald-600">{occurrence.solver}</span>
+            <span className="text-muted-foreground">{formatOccurrenceDate(occurrence.solvedAt)}</span>
+            <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+          </>}
+        </div>
+        <p className="text-sm leading-6 text-foreground">{occurrence.description}</p>
+        <p className="text-xs text-muted-foreground">{occurrence.option}/{occurrence.form}</p>
+        <div className={cn("rounded-md border p-4", reviewed ? "border-emerald-500/25 bg-emerald-500/5" : "bg-muted/30")}>
+          <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+            <CheckCircle2 className={cn("h-4 w-4", reviewed ? "text-emerald-600" : "text-muted-foreground")} />
+            <span>{occurrence.solver}</span>
+            {occurrence.solvedAt && <span>{formatOccurrenceDate(occurrence.solvedAt)}</span>}
+          </div>
+          <p className="mt-3 text-sm leading-6 text-foreground">{occurrence.solution}</p>
+        </div>
+        <div className="flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted-foreground">
+          <span>Situação: <strong className="font-medium text-foreground">{occurrence.status}</strong></span>
+          <span>Registrada em {formatOccurrenceDate(occurrence.openedAt)}</span>
+          {occurrence.solvedAt && <span>Solucionada em {formatOccurrenceDate(occurrence.solvedAt)}</span>}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function ParametersTable({ query, onOpen }: TableProps) {
