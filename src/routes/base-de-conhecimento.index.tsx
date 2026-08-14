@@ -32,9 +32,11 @@ import {
   getCategory,
   type KbCategoryId,
 } from "@/lib/kb-data";
+import { cvsArticles } from "@/lib/cvs-catalogs-imported";
 
 type KbSearch = {
   search?: string;
+  release?: string;
   modulo?: string;
   from?: string;
   ticketId?: string;
@@ -53,6 +55,7 @@ export const Route = createFileRoute("/base-de-conhecimento/")({
   }),
   validateSearch: (raw: Record<string, unknown>): KbSearch => ({
     search: typeof raw.search === "string" ? raw.search : undefined,
+    release: typeof raw.release === "string" ? raw.release : undefined,
     modulo: typeof raw.modulo === "string" ? raw.modulo : undefined,
     from: typeof raw.from === "string" ? raw.from : undefined,
     ticketId: typeof raw.ticketId === "string" ? raw.ticketId : undefined,
@@ -92,6 +95,10 @@ function KbIndexPage() {
   const navigate = useNavigate({ from: Route.fullPath });
   const [query, setQuery] = useState(search.search ?? "");
   const [activeCategory, setActiveCategory] = useState<KbCategoryId | "all">("all");
+  const selectedRelease = useMemo(
+    () => search.release ? cvsArticles.find((article) => article.id === search.release) : undefined,
+    [search.release],
+  );
 
   // Sync query state when URL param changes (chip click from other page)
   useEffect(() => {
@@ -177,6 +184,27 @@ function KbIndexPage() {
         description="Manuais, guias, erros e correções, legislação e novidades organizados por módulo."
         breadcrumbs={[{ label: "Base de Conhecimento" }]}
       />
+
+      {selectedRelease && (
+        <section className="mb-6 overflow-hidden rounded-lg border bg-card shadow-sm">
+          <div className="flex flex-wrap items-start justify-between gap-3 border-b px-5 py-4">
+            <div className="min-w-0">
+              <div className="mb-1 flex items-center gap-2 text-xs text-primary"><Sparkles className="h-4 w-4" /> Release Hádron</div>
+              <h2 className="text-lg font-semibold leading-snug text-foreground">{selectedRelease.title}</h2>
+              <p className="mt-1 text-xs text-muted-foreground">Responsável: {selectedRelease.owner || "Não informado"} · Atualizado em {formatReleaseDate(selectedRelease.updatedAt)}</p>
+            </div>
+            <Button asChild variant="outline" size="sm"><Link to="/base-de-conhecimento" search={{}}>Voltar para a base</Link></Button>
+          </div>
+          <div className="grid gap-5 p-5 lg:grid-cols-[190px_minmax(0,1fr)]">
+            <aside className="space-y-3 text-sm lg:border-r lg:pr-5">
+              <ReleaseField label="Categoria" value={selectedRelease.category || "Release"} />
+              <ReleaseField label="Status" value={selectedRelease.status || "Não informado"} />
+              <ReleaseField label="Cliques" value={String(selectedRelease.clicks || 0)} />
+            </aside>
+            <ReleaseContent value={selectedRelease.description || "Este release não possui detalhes no JSON importado."} />
+          </div>
+        </section>
+      )}
 
 
       <Card className="p-4 mb-6">
@@ -362,6 +390,34 @@ function KbIndexPage() {
       </section>
     </AppShell>
   );
+}
+
+function ReleaseField({ label, value }: { label: string; value: string }) {
+  return <div className="border-b pb-3"><p className="text-[10px] uppercase text-muted-foreground">{label}</p><p className="mt-1 text-foreground">{value}</p></div>;
+}
+
+function ReleaseContent({ value }: { value: string }) {
+  const images = [...value.matchAll(/<img[^>]+src=["']([^"']+)["'][^>]*>/gi)].map((match) => normalizeReleaseUrl(match[1])).filter(Boolean);
+  const paragraphs = value.replace(/<img[^>]*>/gi, " ").split(/<\/?(?:p|div|h[1-6]|li|ul|ol|br)[^>]*>/gi).map(stripReleaseHtml).filter(Boolean);
+  return <div className="min-w-0 space-y-3 text-sm leading-6 text-foreground">
+    <h3 className="font-medium">Detalhes do release</h3>
+    {paragraphs.map((paragraph, index) => <p key={`${index}-${paragraph.slice(0, 20)}`}>{paragraph}</p>)}
+    {images.map((src) => <img key={src} src={src} alt="Imagem do release" loading="lazy" className="max-h-[620px] max-w-full rounded-md border bg-white object-contain" />)}
+  </div>;
+}
+
+function normalizeReleaseUrl(value: string) {
+  if (/^https?:\/\//i.test(value)) return value;
+  return value.startsWith("/") ? `https://crm.procion.com${value}` : "";
+}
+
+function stripReleaseHtml(value: string) {
+  return value.replace(/<[^>]+>/g, " ").replace(/&nbsp;|&#160;/gi, " ").replace(/&amp;/gi, "&").replace(/&quot;/gi, '"').replace(/&#39;|&apos;/gi, "'").replace(/&lt;/gi, "<").replace(/&gt;/gi, ">").replace(/\s+/g, " ").trim();
+}
+
+function formatReleaseDate(value: string) {
+  const parsed = new Date(value.replace(" ", "T"));
+  return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
 }
 
 function CategoryPill({

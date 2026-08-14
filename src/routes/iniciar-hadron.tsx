@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import {
   BookOpenText,
@@ -14,6 +14,7 @@ import {
   Flag,
   GitBranch,
   History,
+  Globe2,
   KeyRound,
   ListChecks,
   ListTodo,
@@ -67,6 +68,21 @@ type Detail = {
   meta: string[];
   occurrences?: TicketEvent[];
   hadronOccurrence?: HadronOccurrenceDetail;
+  release?: ReleaseDetail;
+};
+
+type ReleaseDetail = {
+  id: string;
+  title: string;
+  content: string;
+  option: string;
+  form: string;
+  owner: string;
+  version: string;
+  date: string;
+  module: string;
+  submodule: string;
+  clicks: number;
 };
 
 type HadronOccurrenceDetail = {
@@ -80,6 +96,7 @@ type HadronOccurrenceDetail = {
   description: string;
   solution: string;
   status: string;
+  events?: TicketEvent[];
 };
 
 const options = [
@@ -306,7 +323,7 @@ function HadronPage() {
 
       <Dialog open={!!detail} onOpenChange={(open) => !open && setDetail(null)}>
         <DialogContent
-          className="max-w-2xl gap-0 overflow-hidden bg-card p-0 [&>button]:hidden"
+          className={cn(detail?.release ? "max-w-5xl" : "max-w-2xl", "gap-0 overflow-hidden bg-card p-0 [&>button]:hidden")}
           onPointerDownOutside={(e) => e.preventDefault()}
         >
           <DialogTitle className="sr-only">{detail?.title}</DialogTitle>
@@ -317,7 +334,9 @@ function HadronPage() {
             onClose={() => setDetail(null)}
           />
           <div className="max-h-[68vh] space-y-4 overflow-y-auto px-5 py-4">
-          {detail?.hadronOccurrence ? (
+          {detail?.release ? (
+            <ReleaseDetailView release={detail.release} />
+          ) : detail?.hadronOccurrence ? (
             <HadronOccurrenceDetailView occurrence={detail.hadronOccurrence} />
           ) : detail?.occurrences ? (
             <TicketTimelineList
@@ -432,16 +451,27 @@ function Overview({ onOpen }: { onOpen: (d: Detail) => void }) {
           <HadronOccurrenceRows rows={active.slice(0, 10)} onOpen={onOpen} empty="Nenhuma ocorrência aguardando revisão." />
         </HadronDashboardPanel>
         <HadronDashboardPanel title="Ocorrências" subtitle="Geral">
-          <HadronOccurrenceRows rows={[...active, ...completed].slice(0, 12)} onOpen={onOpen} empty="Nenhuma ocorrência registrada." />
+          <HadronOccurrenceRows rows={[...active, ...completed].slice(0, 12)} onOpen={onOpen} empty="Nenhuma ocorrência registrada." variant="general" />
         </HadronDashboardPanel>
         <HadronDashboardPanel title="Releases" subtitle="Últimos releases">
-          {[...cvsArticles].reverse().slice(0, 12).map((release) => (
-            <button key={release.id} onClick={() => onOpen({ title: release.title, subtitle: `Release ${release.id}`, body: release.title, meta: [`Status: ${release.status}`, "Origem: cvs_articles.json"] })} className="grid w-full cursor-pointer grid-cols-[64px_1fr_72px] items-center gap-3 border-b px-3 py-2 text-left text-xs hover:bg-muted/40">
-              <span className="text-muted-foreground">{release.id}</span>
-              <span className="truncate font-medium">{release.title}</span>
-              <Badge variant="outline" className="justify-center">{release.status}</Badge>
-            </button>
-          ))}
+          <div className="grid grid-cols-[28px_92px_minmax(180px,1fr)_118px_90px_68px] gap-2 border-b bg-muted/25 px-3 py-2 text-[10px] uppercase text-muted-foreground">
+            <span>Tipo</span><span>Opç./Form.</span><span>Descrição</span><span>Responsável/versão</span><span>Data</span><span>Ações</span>
+          </div>
+          {[...cvsArticles].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).slice(0, 12).map((release) => {
+            const option = findReleaseOption(release.title);
+            const releaseDetail = createReleaseDetail(release, option);
+            return <div key={release.id} className="grid min-h-12 grid-cols-[28px_92px_minmax(180px,1fr)_118px_90px_68px] items-center gap-2 border-b px-3 py-2 text-[11px] hover:bg-muted/40">
+              <Sparkles className="h-4 w-4 text-amber-500" />
+              <span className="truncate">{option ? `${option.option}/${option.form || option.option}` : release.id}</span>
+              <button type="button" onClick={() => onOpen({ title: release.title, subtitle: `Release ${release.id}`, body: "", meta: [], release: releaseDetail })} className="line-clamp-2 cursor-pointer text-left font-medium hover:text-primary">{release.title}</button>
+              <span><span className="block truncate">{release.owner || "Não informado"}</span><span className="text-muted-foreground">{release.status}</span></span>
+              <span className="text-primary">{formatCatalogDate(release.updatedAt)}</span>
+              <span className="flex items-center justify-end gap-1">
+                <Button asChild variant="ghost" size="icon" className="h-7 w-7 cursor-pointer" title="Abrir release na Base de Conhecimento"><Link to="/base-de-conhecimento" search={{ release: release.id }}><Globe2 className="h-4 w-4" /></Link></Button>
+                <Button type="button" variant="ghost" size="icon" className="h-7 w-7 cursor-pointer" title="Visualizar release" onClick={() => onOpen({ title: release.title, subtitle: `Release ${release.id}`, body: "", meta: [], release: releaseDetail })}><Eye className="h-4 w-4" /></Button>
+              </span>
+            </div>;
+          })}
         </HadronDashboardPanel>
       </div>
     </div>
@@ -460,8 +490,24 @@ function HadronDashboardPanel({ title, subtitle, children }: { title: string; su
   );
 }
 
-function HadronOccurrenceRows({ rows, onOpen, empty }: { rows: ReturnType<typeof useTickets>; onOpen: (d: Detail) => void; empty: string }) {
+function HadronOccurrenceRows({ rows, onOpen, empty, variant = "review" }: { rows: ReturnType<typeof useTickets>; onOpen: (d: Detail) => void; empty: string; variant?: "review" | "general" }) {
   if (!rows.length) return <p className="p-6 text-center text-xs text-muted-foreground">{empty}</p>;
+  if (variant === "general") return <>
+    <div className="grid grid-cols-[28px_92px_minmax(130px,0.8fr)_minmax(220px,1.5fr)_92px_38px] gap-2 border-b bg-muted/25 px-3 py-2 text-[10px] uppercase text-muted-foreground">
+      <span>Tipo</span><span>Opção/Form.</span><span>Descrição</span><span>Ocorrência</span><span>Operador</span><span />
+    </div>
+    {rows.map((ticket) => {
+      const option = findTicketOption(ticket);
+      return <button key={ticket.id} type="button" onClick={() => openOccurrence(ticket, option, onOpen)} className="grid w-full cursor-pointer grid-cols-[28px_92px_minmax(130px,0.8fr)_minmax(220px,1.5fr)_92px_38px] items-center gap-2 border-b px-3 py-2 text-left text-[11px] transition-colors hover:bg-muted/40">
+        <OccurrenceTypeIcon ticket={ticket} />
+        <span className="truncate font-medium">{option ? `${option.option}/${option.form || option.option}` : ticket.module}</span>
+        <span className="line-clamp-2 font-medium leading-4">{option?.description || ticket.subject}</span>
+        <span className="line-clamp-2 leading-4 text-muted-foreground">{htmlToText(ticket.description || ticket.subject)}</span>
+        <OccurrenceDate value={ticket.openedAt} operator={ticket.owner} />
+        <span className="grid h-8 w-8 place-items-center rounded-md text-muted-foreground" title="Ver prévia"><ClipboardCheck className="h-4 w-4" /></span>
+      </button>;
+    })}
+  </>;
   return <>
     <div className="grid grid-cols-[28px_92px_minmax(150px,1fr)_88px_88px_38px] gap-2 border-b bg-muted/25 px-3 py-2 text-[10px] uppercase text-muted-foreground">
       <span>Tipo</span><span>Opç./Form.</span><span>Detalhes</span><span>Ocorrência</span><span>Solução</span><span />
@@ -767,6 +813,7 @@ function openOccurrence(ticket: TicketRow, option: ReturnType<typeof findTicketO
       description: ticket.description || ticket.subject || "Sem detalhes informados.",
       solution: solutionEvent?.description || (ticket.closedAt ? "Ocorrência concluída sem descrição de solução." : "Solução ainda não registrada."),
       status: ticket.status,
+      events,
     },
   });
 }
@@ -790,7 +837,7 @@ function HadronOccurrenceDetailView({ occurrence }: { occurrence: HadronOccurren
             <CheckCircle2 className="h-4 w-4 text-emerald-600" />
           </>}
         </div>
-        <p className="text-sm leading-6 text-foreground">{occurrence.description}</p>
+        <LegacyRichContent value={occurrence.description} />
         <p className="text-xs text-muted-foreground">{occurrence.option}/{occurrence.form}</p>
         <div className={cn("rounded-md border p-4", reviewed ? "border-emerald-500/25 bg-emerald-500/5" : "bg-muted/30")}>
           <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
@@ -798,8 +845,14 @@ function HadronOccurrenceDetailView({ occurrence }: { occurrence: HadronOccurren
             <span>{occurrence.solver}</span>
             {occurrence.solvedAt && <span>{formatOccurrenceDate(occurrence.solvedAt)}</span>}
           </div>
-          <p className="mt-3 text-sm leading-6 text-foreground">{occurrence.solution}</p>
+          <div className="mt-3"><LegacyRichContent value={occurrence.solution} /></div>
         </div>
+        {occurrence.events && occurrence.events.length > 2 && (
+          <div className="border-t pt-4">
+            <p className="mb-3 text-xs font-medium uppercase text-muted-foreground">Histórico da ocorrência</p>
+            <TicketTimelineList events={occurrence.events} variant="compact" emptyLabel="Nenhum histórico adicional." />
+          </div>
+        )}
         <div className="flex flex-wrap gap-x-5 gap-y-1 text-xs text-muted-foreground">
           <span>Situação: <strong className="font-medium text-foreground">{occurrence.status}</strong></span>
           <span>Registrada em {formatOccurrenceDate(occurrence.openedAt)}</span>
@@ -808,6 +861,95 @@ function HadronOccurrenceDetailView({ occurrence }: { occurrence: HadronOccurren
       </div>
     </div>
   );
+}
+
+function createReleaseDetail(
+  release: (typeof cvsArticles)[number],
+  option: ReturnType<typeof findReleaseOption>,
+): ReleaseDetail {
+  return {
+    id: release.id,
+    title: release.title,
+    content: release.description,
+    option: option?.option || release.id,
+    form: option?.form || option?.option || release.id,
+    owner: release.owner || option?.owner || "Não informado",
+    version: release.status || "Não informada",
+    date: release.updatedAt || release.createdAt,
+    module: option?.moduleId ? `Módulo ${option.moduleId}` : release.moduleId ? `Módulo ${release.moduleId}` : "Não informado",
+    submodule: option?.submoduleId ? `Submódulo ${option.submoduleId}` : release.submoduleId ? `Submódulo ${release.submoduleId}` : "Não informado",
+    clicks: release.clicks,
+  };
+}
+
+function ReleaseDetailView({ release }: { release: ReleaseDetail }) {
+  return (
+    <div className="grid gap-5 lg:grid-cols-[220px_minmax(0,1fr)]">
+      <aside className="space-y-4 lg:border-r lg:pr-5">
+        <ReleaseMeta label="Opção/Formulário" value={`${release.option}/${release.form}`} />
+        <ReleaseMeta label="Data do release" value={formatCatalogDate(release.date)} />
+        <ReleaseMeta label="Versão Hádron" value={release.version} />
+        <ReleaseMeta label="Módulo e submódulo" value={`${release.module} · ${release.submodule}`} />
+        <ReleaseMeta label="Responsável" value={release.owner} />
+        <ReleaseMeta label="Cliques" value={String(release.clicks)} />
+      </aside>
+      <section className="min-w-0">
+        <h3 className="mb-4 text-base font-medium text-foreground">Detalhes</h3>
+        <LegacyRichContent value={release.content || "Este release não possui descrição detalhada no JSON importado."} />
+      </section>
+    </div>
+  );
+}
+
+function ReleaseMeta({ label, value }: { label: string; value: string }) {
+  return <div className="border-b pb-3"><p className="text-[10px] uppercase text-muted-foreground">{label}</p><p className="mt-1 text-sm text-foreground">{value || "Não informado"}</p></div>;
+}
+
+function LegacyRichContent({ value }: { value: string }) {
+  const images = [...value.matchAll(/<img[^>]+src=["']([^"']+)["'][^>]*>/gi)]
+    .map((match) => normalizeLegacyUrl(match[1]))
+    .filter(Boolean);
+  const links = [...value.matchAll(/<a[^>]+href=["']([^"']+)["'][^>]*>(.*?)<\/a>/gis)]
+    .map((match) => ({ href: normalizeLegacyUrl(match[1]), label: htmlToText(match[2]) }))
+    .filter((link) => link.href);
+  const paragraphs = value
+    .replace(/<img[^>]*>/gi, " ")
+    .replace(/<a[^>]*>(.*?)<\/a>/gis, "$1")
+    .split(/<\/?(?:p|div|h[1-6]|li|ul|ol|br)[^>]*>/gi)
+    .map(htmlToText)
+    .filter(Boolean);
+
+  return <div className="space-y-3 text-sm leading-6 text-foreground">
+    {paragraphs.map((paragraph, index) => <p key={`${index}-${paragraph.slice(0, 24)}`}>{paragraph}</p>)}
+    {images.map((src) => <img key={src} src={src} alt="Imagem vinculada ao registro" loading="lazy" className="max-h-[520px] w-auto max-w-full rounded-md border bg-white object-contain" />)}
+    {links.map((link) => <a key={link.href} href={link.href} target="_blank" rel="noreferrer" className="block break-all text-primary hover:underline">{link.label || link.href}</a>)}
+  </div>;
+}
+
+function normalizeLegacyUrl(value: string) {
+  const url = value.trim();
+  if (/^https?:\/\//i.test(url)) return url;
+  if (url.startsWith("/")) return `https://crm.procion.com${url}`;
+  return "";
+}
+
+function htmlToText(value: string) {
+  return value
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;|&#160;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function formatCatalogDate(value: string) {
+  if (!value) return "Não informada";
+  const parsed = new Date(value.replace(" ", "T"));
+  return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
 }
 
 function ParametersTable({ query, onOpen }: TableProps) {
@@ -1049,8 +1191,15 @@ function ReleasesTable({ query, onOpen }: TableProps) {
                 <td className="px-4 py-3"><Sparkles className={cn("h-4 w-4", release.status === "publish" ? "text-amber-500" : "text-muted-foreground")} /></td>
                 <td className="px-4 py-3 font-medium">{option ? `${option.option}/${option.form || option.option}` : "Não informado"}</td>
                 <td className="px-4 py-3">{release.title}</td>
-                <td className="px-4 py-3 text-muted-foreground">Não informado</td><td className="px-4 py-3 text-muted-foreground">Não informado</td><td className="px-4 py-3 text-center text-muted-foreground">-</td><td className="px-4 py-3 text-muted-foreground">Não informada</td><td className="px-4 py-3 text-muted-foreground">Não informada</td>
-                <td className="px-4 py-3 text-center"><Button variant="ghost" size="icon" title="Ver detalhes" onClick={() => onOpen({ title: release.title, subtitle: option ? `${option.option}/${option.form || option.option}` : `Release ${release.id}`, body: "Registro importado do catálogo oficial de releases do Hádron.", meta: [`Status: ${release.status}`, `Opção/Formulário: ${option ? `${option.option}/${option.form || option.option}` : "Não informado"}`, "Os demais campos não constam no JSON fornecido."] })}><Eye className="h-4 w-4" /></Button></td>
+                <td className="px-4 py-3 text-muted-foreground">{release.moduleId ? `Módulo ${release.moduleId}` : "Não informado"}{release.submoduleId && <><br /><span className="text-xs">Submódulo {release.submoduleId}</span></>}</td>
+                <td className="px-4 py-3 text-muted-foreground">{release.owner || "Não informado"}</td>
+                <td className="px-4 py-3 text-center text-muted-foreground">{release.clicks}</td>
+                <td className="px-4 py-3 text-muted-foreground">{release.status}</td>
+                <td className="px-4 py-3 text-muted-foreground">{formatCatalogDate(release.updatedAt)}</td>
+                <td className="px-4 py-3"><div className="flex justify-center gap-1">
+                  <Button asChild variant="ghost" size="icon" title="Abrir release na Base de Conhecimento"><Link to="/base-de-conhecimento" search={{ release: release.id }}><Globe2 className="h-4 w-4" /></Link></Button>
+                  <Button variant="ghost" size="icon" title="Visualizar release" onClick={() => onOpen({ title: release.title, subtitle: option ? `${option.option}/${option.form || option.option}` : `Release ${release.id}`, body: "", meta: [], release: createReleaseDetail(release, option) })}><Eye className="h-4 w-4" /></Button>
+                </div></td>
               </tr>
             ))}
             {pagedRows.length === 0 && <tr><td colSpan={9} className="px-4 py-12 text-center text-muted-foreground">Nenhum release encontrado.</td></tr>}

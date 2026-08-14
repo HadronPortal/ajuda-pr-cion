@@ -73,6 +73,16 @@ const articles = tableRows(articlesPath, "cvs_articles")
     id: String(row.id || ""),
     title: repairText(row.art_title),
     status: String(row.art_status || ""),
+    description: repairText(row.art_description),
+    category: repairText(row.art_category),
+    owner: repairText(row.art_collaborator),
+    clicks: Number(row.art_clicks || 0),
+    tags: repairText(row.art_tags),
+    relatedReleaseIds: repairText(row.art_id_releases_related),
+    moduleId: String(row.cvs_modules_id || ""),
+    submoduleId: String(row.cvs_submodules_id || ""),
+    createdAt: repairText(row.created),
+    updatedAt: repairText(row.modified),
   }))
   .filter((row) => row.id && row.title);
 
