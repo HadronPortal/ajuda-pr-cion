@@ -18,6 +18,7 @@ import {
   Pencil,
   Rocket,
   Search,
+  SlidersHorizontal,
   Sparkles,
   Trash2,
   UserRound,
@@ -149,6 +150,27 @@ const hadronChecklist = [
   ["zebra", "RHCD", "Impressão Zebra", "Teste em Impressora Zebra e similares", false, "01/11/2019 16:38", "01/11/2019 16:38"],
 ] as const;
 
+const hadronParameters = [
+  {
+    id: "1",
+    option: "60",
+    form: "60",
+    title: "Tag ICMS-60 do XML da Nota Fiscal Eletrônica (NF-e, NFC-e, SAT)",
+    description: "Cálculo do valor do ICMS-ST recolhido anteriormente.",
+    createdAt: "16/08/2022 17:46",
+    updatedAt: "17/08/2022 17:05",
+  },
+  {
+    id: "2",
+    option: "3",
+    form: "3",
+    title: "Automatização B2C de procedimento de Cadastro de Clientes (e-commerce)",
+    description: "Web",
+    createdAt: "18/08/2022 11:03",
+    updatedAt: "29/11/2022 12:08",
+  },
+] as const;
+
 function HadronPage() {
   const [tab, setTab] = useState("visao-geral");
   const [query, setQuery] = useState("");
@@ -205,6 +227,7 @@ function HadronPage() {
               ["ocorrencias", "Ocorrências", ClipboardCheck],
               ["releases", "Releases", GitBranch],
               ["checklist", "Checklist", ListTodo],
+              ["parametros", "Parâmetros", SlidersHorizontal],
               ["versoes", "Versões", History],
               ["artigos", "Artigos", BookOpenText],
             ].map(([value, label, Icon]) => (
@@ -232,6 +255,9 @@ function HadronPage() {
           </TabsContent>
           <TabsContent value="checklist">
             <ChecklistTable query={query} onOpen={setDetail} />
+          </TabsContent>
+          <TabsContent value="parametros">
+            <ParametersTable query={query} onOpen={setDetail} />
           </TabsContent>
           <TabsContent value="versoes">
             <VersionsTable query={query} onOpen={setDetail} />
@@ -617,6 +643,80 @@ function OccurrenceDate({ value, operator }: { value: string | null | undefined;
 }
 function openOccurrence(ticket: TicketRow, option: ReturnType<typeof findTicketOption>, onOpen: (detail: Detail) => void) {
   onOpen({ title: ticket.subject, subtitle: option ? `${option.option}/${option.form || option.option}` : ticket.protocol, body: ticket.description || "Sem detalhes informados para esta ocorrência.", meta: [`Tipo: ${occurrenceKind(ticket)}`, `Operador: ${ticket.owner || "Não informado"}`, `Situação: ${ticket.status}`, `Ocorrência: ${formatOccurrenceDate(ticket.openedAt)}`, `Solução: ${formatOccurrenceDate(ticket.closedAt)}`] });
+}
+
+function ParametersTable({ query, onOpen }: TableProps) {
+  const [search, setSearch] = useState("");
+  const [option, setOption] = useState("");
+  const [form, setForm] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const normalizedSearch = normalizeOccurrenceText(`${query} ${search}`);
+  const rows = useMemo(() => hadronParameters.filter((parameter) => {
+    if (normalizedSearch && !normalizeOccurrenceText(`${parameter.id} ${parameter.title} ${parameter.description}`).includes(normalizedSearch)) return false;
+    if (option && !normalizeOccurrenceText(parameter.option).includes(normalizeOccurrenceText(option))) return false;
+    if (form && !normalizeOccurrenceText(parameter.form).includes(normalizeOccurrenceText(form))) return false;
+    const updatedAt = parameterDateValue(parameter.updatedAt);
+    if (dateFrom && updatedAt < new Date(`${dateFrom}T00:00:00`).getTime()) return false;
+    if (dateTo && updatedAt > new Date(`${dateTo}T23:59:59`).getTime()) return false;
+    return true;
+  }), [dateFrom, dateTo, form, normalizedSearch, option]);
+
+  const clearFilters = () => {
+    setSearch("");
+    setOption("");
+    setForm("");
+    setDateFrom("");
+    setDateTo("");
+  };
+
+  return (
+    <section className="overflow-hidden rounded-md border bg-card shadow-sm">
+      <div className="border-b p-4">
+        <h2 className="text-lg font-medium">Parâmetros</h2>
+        <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-[2fr_.6fr_.6fr_.9fr_.9fr_auto]">
+          <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Pesquisa" />
+          <Input value={option} onChange={(event) => setOption(event.target.value)} placeholder="Opção" />
+          <Input value={form} onChange={(event) => setForm(event.target.value)} placeholder="Formulário" />
+          <Input type="date" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} aria-label="De" />
+          <Input type="date" value={dateTo} onChange={(event) => setDateTo(event.target.value)} aria-label="Até" />
+          <Button type="button" className="cursor-pointer px-8">Buscar</Button>
+        </div>
+        <Button type="button" variant="outline" size="sm" onClick={clearFilters} disabled={!search && !option && !form && !dateFrom && !dateTo} className="mt-3 cursor-pointer">Limpar</Button>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[960px] text-left text-sm">
+          <thead className="border-b bg-muted/25 text-xs font-medium text-muted-foreground">
+            <tr><th className="w-16 px-4 py-3">ID</th><th className="px-4 py-3">Título</th><th className="w-[34%] px-4 py-3">Descrição</th><th className="w-44 px-4 py-3">Datas</th><th className="w-28 px-4 py-3 text-center">Ações</th></tr>
+          </thead>
+          <tbody className="divide-y">
+            {rows.map((parameter, index) => (
+              <tr key={parameter.id} className={cn("transition-colors hover:bg-muted/35", index % 2 === 0 && "bg-muted/15")}>
+                <td className="px-4 py-3 text-muted-foreground">{parameter.id}</td>
+                <td className="px-4 py-3">{parameter.title}</td>
+                <td className="px-4 py-3 text-muted-foreground">{parameter.description}</td>
+                <td className="px-4 py-3 text-xs text-primary"><span>{parameter.createdAt}</span><br /><span>{parameter.updatedAt}</span></td>
+                <td className="px-4 py-3"><div className="flex justify-center gap-1">
+                  <Button variant="ghost" size="icon" title="Ver parâmetro" className="cursor-pointer" onClick={() => onOpen({ title: parameter.title, subtitle: `Parâmetro ${parameter.id}`, body: parameter.description, meta: [`Opção: ${parameter.option}`, `Formulário: ${parameter.form}`, `Criado em: ${parameter.createdAt}`, `Atualizado em: ${parameter.updatedAt}`] })}><Eye className="h-4 w-4" /></Button>
+                  <Button variant="ghost" size="icon" title="Edição indisponível para registros legados" disabled><Pencil className="h-4 w-4" /></Button>
+                  <Button variant="ghost" size="icon" title="Exclusão indisponível para registros legados" disabled><Trash2 className="h-4 w-4" /></Button>
+                </div></td>
+              </tr>
+            ))}
+            {rows.length === 0 && <tr><td colSpan={5} className="px-4 py-12 text-center text-muted-foreground">Nenhum parâmetro encontrado.</td></tr>}
+          </tbody>
+        </table>
+      </div>
+      <div className="border-t px-4 py-3 text-xs text-muted-foreground">Página 1 de 1, mostrando {rows.length} de {rows.length} no total.</div>
+    </section>
+  );
+}
+
+function parameterDateValue(value: string) {
+  const [date, time] = value.split(" ");
+  const [day, month, year] = date.split("/").map(Number);
+  const [hour, minute] = time.split(":").map(Number);
+  return new Date(year, month - 1, day, hour, minute).getTime();
 }
 
 function ChecklistTable({ query, onOpen }: TableProps) {
