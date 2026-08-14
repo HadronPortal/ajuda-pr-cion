@@ -9,13 +9,17 @@ import {
   FileCode2,
   Eye,
   Filter,
+  Flag,
   GitBranch,
   History,
   ListChecks,
+  ListTodo,
   PackageCheck,
+  Pencil,
   Rocket,
   Search,
   Sparkles,
+  Trash2,
   UserRound,
   X,
 } from "lucide-react";
@@ -154,6 +158,23 @@ const operatorStats = [
   ["PRCAND", 1],
 ] as const;
 
+const hadronChecklist = [
+  ["direction", "Elaborado", "Direcionamento", "Direcionamento de Impressão", true, "18/10/2019 11:17", "18/10/2019 11:17"],
+  ["pagination", "Elaborado", "Intervalo paginação", "Intervalo de Páginas / Inicial / Final", true, "18/10/2019 11:17", "18/10/2019 11:17"],
+  ["ordering", "Elaborado", "Ordenação", "Verificar ordenação/separação/quebra", false, "18/10/2019 11:17", "18/10/2019 11:17"],
+  ["data-integrity", "Elaborado", "Integridade dos dados", "Verificar integridade e resultados de todos os Filtros e Intervalos utilizados", false, "18/10/2019 11:17", "18/10/2019 11:17"],
+  ["models", "Elaborado", "Modelos", "Modelos dos Relatórios", false, "18/10/2019 11:17", "18/10/2019 11:17"],
+  ["alignment", "Elaborado", "Alinhamento", "Alinhamento de Campos, Sintaxe em cada opção habilitada", false, "18/10/2019 11:17", "18/10/2019 11:17"],
+  ["print-types", "Elaborado", "Impres. tipos habilitados", "Impressão nas opções habilitadas", true, "18/10/2019 11:17", "18/10/2019 11:17"],
+  ["print-enable", "Elaborado", "Hab. tipos impressão", "Habilitação das opções de impressão (disponíveis/necessárias)", true, "18/10/2019 11:17", "18/10/2019 11:17"],
+  ["specific-integrity", "Específico", "Integridade", "Consequência dos dados após processo", false, "01/11/2019 16:49", "01/11/2019 16:49"],
+  ["other-integrity", "Outros s/ ACP", "Integridade", "Consequência dos dados após processo", false, "01/11/2019 16:48", "01/11/2019 16:49"],
+  ["process-integrity", "Processos", "Integridade", "Consequência dos dados após processo", false, "01/11/2019 16:47", "01/11/2019 16:47"],
+  ["f3-item", "F3", "Escolher item", "Escolher itens com tela preenchida ou durante sua montagem", true, "01/11/2019 16:43", "01/11/2019 16:43"],
+  ["f3-exit", "F3", "Saída com ESC", "Sair com ESC logo na entrada do Formulário, após marcado um item e durante a montagem com vários itens", true, "01/11/2019 16:43", "01/11/2019 16:46"],
+  ["zebra", "RHCD", "Impressão Zebra", "Teste em Impressora Zebra e similares", false, "01/11/2019 16:38", "01/11/2019 16:38"],
+] as const;
+
 function HadronPage() {
   const [tab, setTab] = useState("visao-geral");
   const [query, setQuery] = useState("");
@@ -209,6 +230,7 @@ function HadronPage() {
               ["opcoes", "Opcoes", ListChecks],
               ["ocorrencias", "Ocorrências", ClipboardCheck],
               ["releases", "Releases", GitBranch],
+              ["checklist", "Checklist", ListTodo],
               ["versoes", "Versões", History],
               ["artigos", "Artigos", BookOpenText],
             ].map(([value, label, Icon]) => (
@@ -233,6 +255,9 @@ function HadronPage() {
           </TabsContent>
           <TabsContent value="releases">
             <ReleasesTable query={query} onOpen={setDetail} />
+          </TabsContent>
+          <TabsContent value="checklist">
+            <ChecklistTable query={query} onOpen={setDetail} />
           </TabsContent>
           <TabsContent value="versoes">
             <VersionsTable query={query} onOpen={setDetail} />
@@ -619,6 +644,47 @@ function OccurrenceDate({ value, operator }: { value: string | null | undefined;
 function openOccurrence(ticket: TicketRow, option: ReturnType<typeof findTicketOption>, onOpen: (detail: Detail) => void) {
   onOpen({ title: ticket.subject, subtitle: option ? `${option.option}/${option.form || option.option}` : ticket.protocol, body: ticket.description || "Sem detalhes informados para esta ocorrência.", meta: [`Tipo: ${occurrenceKind(ticket)}`, `Operador: ${ticket.owner || "Não informado"}`, `Situação: ${ticket.status}`, `Ocorrência: ${formatOccurrenceDate(ticket.openedAt)}`, `Solução: ${formatOccurrenceDate(ticket.closedAt)}`] });
 }
+
+function ChecklistTable({ query, onOpen }: TableProps) {
+  const [filter, setFilter] = useState("");
+  const normalizedQuery = normalizeOccurrenceText(`${query} ${filter}`);
+  const rows = useMemo(() => hadronChecklist.filter((item) => !normalizedQuery || normalizeOccurrenceText(item.join(" ")).includes(normalizedQuery)), [normalizedQuery]);
+
+  return (
+    <section className="overflow-hidden rounded-md border bg-card shadow-sm">
+      <div className="flex flex-col gap-3 border-b p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="font-semibold">Checklist</h2>
+          <p className="text-sm text-muted-foreground">Itens de validação utilizados nas opções e formulários do Hádron.</p>
+        </div>
+        <div className="flex w-full gap-2 sm:w-auto">
+          <Input value={filter} onChange={(event) => setFilter(event.target.value)} placeholder="Buscar característica, título ou descrição" className="sm:w-80" />
+          <Button variant="outline" onClick={() => setFilter("")} disabled={!filter} className="cursor-pointer">Limpar</Button>
+        </div>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[980px] text-sm">
+          <thead className="border-b bg-muted/30 text-left text-xs font-medium text-muted-foreground">
+            <tr><th className="w-36 px-4 py-3">Característica</th><th className="w-64 px-4 py-3">Título</th><th className="px-4 py-3">Descrição</th><th className="w-20 px-4 py-3 text-center">Salvo</th><th className="w-44 px-4 py-3">Datas</th><th className="w-24 px-4 py-3 text-center">Ações</th></tr>
+          </thead>
+          <tbody>
+            {rows.map(([id, characteristic, title, description, saved, createdAt, updatedAt], index) => (
+              <tr key={id} className={cn("border-b transition-colors hover:bg-muted/40", index % 2 === 0 && "bg-muted/20")}>
+                <td className="px-4 py-3">{characteristic}</td><td className="px-4 py-3 font-medium">{title}</td><td className="px-4 py-3">{description}</td>
+                <td className="px-4 py-3 text-center">{saved ? <Flag className="mx-auto h-4 w-4 text-muted-foreground" /> : <span className="text-muted-foreground">-</span>}</td>
+                <td className="px-4 py-3 text-xs text-primary"><span>{createdAt}</span><br /><span>{updatedAt}</span></td>
+                <td className="px-4 py-3"><div className="flex justify-center gap-1"><Button variant="ghost" size="icon" title="Ver detalhes" className="cursor-pointer" onClick={() => onOpen({ title, subtitle: characteristic, body: description, meta: [`Criado em: ${createdAt}`, `Atualizado em: ${updatedAt}`, `Salvo: ${saved ? "Sim" : "Não"}`] })}><Pencil className="h-4 w-4" /></Button><Button variant="ghost" size="icon" title="Exclusão indisponível para registros legados" disabled><Trash2 className="h-4 w-4" /></Button></div></td>
+              </tr>
+            ))}
+            {rows.length === 0 && <tr><td colSpan={6} className="px-4 py-12 text-center text-muted-foreground">Nenhum item de checklist encontrado.</td></tr>}
+          </tbody>
+        </table>
+      </div>
+      <div className="border-t px-4 py-3 text-xs text-muted-foreground">{rows.length} item(ns) encontrado(s)</div>
+    </section>
+  );
+}
+
 function ReleasesTable({ query, onOpen }: TableProps) {
   const [page, setPage] = useState(1);
   const normalizedQuery = normalizeOccurrenceText(query);
