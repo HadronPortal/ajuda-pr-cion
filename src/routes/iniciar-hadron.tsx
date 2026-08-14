@@ -406,12 +406,23 @@ function OptionsTable({ query, onOpen }: TableProps) {
   const [dateType, setDateType] = useState("atualizacao");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
-  const optionsWithTickets = useMemo(() => hadronOptions.map((option) => {
-    const related = tickets.filter((ticket) => findTicketOption(ticket)?.id === option.id);
-    const active = related.filter((ticket) => !["Finalizado", "Cancelado"].includes(ticket.status));
-    const latest = [...related].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0];
-    return { option, active, latest };
-  }), [tickets]);
+  const [page, setPage] = useState(1);
+  const optionsWithTickets = useMemo(() => {
+    const grouped = new Map<string, TicketRow[]>();
+    tickets.forEach((ticket) => {
+      const optionId = findTicketOption(ticket)?.id;
+      if (!optionId) return;
+      const group = grouped.get(optionId) || [];
+      group.push(ticket);
+      grouped.set(optionId, group);
+    });
+    return hadronOptions.map((option) => {
+      const related = grouped.get(option.id) || [];
+      const active = related.filter((ticket) => !["Finalizado", "Cancelado"].includes(ticket.status));
+      const latest = related.reduce<TicketRow | undefined>((current, ticket) => !current || ticket.updatedAt > current.updatedAt ? ticket : current, undefined);
+      return { option, active, latest };
+    });
+  }, [tickets]);
   const operators = useMemo(() => [...new Set(tickets.map((ticket) => ticket.owner).filter(Boolean))].sort(), [tickets]);
   const modules = useMemo(() => [...new Set(tickets.map((ticket) => ticket.module).filter(Boolean))].sort(), [tickets]);
   const rows = useMemo(() => {
@@ -438,7 +449,11 @@ function OptionsTable({ query, onOpen }: TableProps) {
   const clearFilters = () => {
     setOptionQuery(""); setFormQuery(""); setOperator("todos"); setHadronScope("exceto");
     setCharacteristic("todos"); setModule("todos"); setDateType("atualizacao"); setDateFrom(""); setDateTo("");
+    setPage(1);
   };
+  const pageCount = Math.max(1, Math.ceil(rows.length / 50));
+  const safePage = Math.min(page, pageCount);
+  const pagedRows = rows.slice((safePage - 1) * 50, safePage * 50);
   return (
     <section className="overflow-hidden rounded-md border bg-card shadow-sm">
       <div className="border-b px-4 py-4">
@@ -462,7 +477,7 @@ function OptionsTable({ query, onOpen }: TableProps) {
           <thead className="border-b bg-muted/25 text-primary">
             <tr>{["Status", "P", "Opção", "Formulário", "Descrição", "Chamada", "Data", "DLL EXE", "Módulo / Submódulo", "Responsável", "Ações"].map((header) => <th key={header} className="whitespace-nowrap px-3 py-3 font-medium">{header}</th>)}</tr>
           </thead>
-          <tbody>{rows.map(({ option, active, latest }) => {
+          <tbody>{pagedRows.map(({ option, active, latest }) => {
             const priority = active.some((ticket) => ticket.priority === "Alta") ? "Alta" : active.some((ticket) => ticket.priority === "Media") ? "Media" : "Baixa";
             const detail: Detail = { title: option.description, subtitle: `Opção ${option.option} / Formulário ${option.form || "Não informado"}`, body: latest?.description || "Nenhuma ocorrência vinculada a esta opção.", meta: [`Correções em aberto: ${active.length}`, `Responsável: ${latest?.owner || "Não informado"}`, `Módulo: ${latest?.module || "Não informado"}`, "Origem: cvs_options.json"] };
             return <tr key={option.id} className={cn("border-b transition-colors hover:bg-muted/40", active.length > 0 && "bg-rose-50/80 dark:bg-rose-950/20")}>
@@ -482,11 +497,16 @@ function OptionsTable({ query, onOpen }: TableProps) {
         </table>
         {!rows.length && <p className="p-10 text-center text-sm text-muted-foreground">Nenhuma opção encontrada com os filtros aplicados.</p>}
       </div>
+      {!!rows.length && <TablePagination noun="opções" page={safePage} pageCount={pageCount} total={rows.length} onPageChange={setPage} />}
     </section>
   );
 }
 function OccurrencesTable({ query, onOpen }: TableProps) {
   const tickets = useTickets();
+  const ticketsWithOptions = useMemo(
+    () => tickets.map((ticket) => ({ ticket, option: findTicketOption(ticket) })),
+    [tickets],
+  );
   const [optionQuery, setOptionQuery] = useState("");
   const [formQuery, setFormQuery] = useState("");
   const [occurrenceType, setOccurrenceType] = useState("todos");
@@ -495,6 +515,7 @@ function OccurrencesTable({ query, onOpen }: TableProps) {
   const [dateType, setDateType] = useState("abertura");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [page, setPage] = useState(1);
   const operators = useMemo(
     () => [...new Set(tickets.map((ticket) => ticket.owner).filter(Boolean))].sort(),
     [tickets],
@@ -505,8 +526,7 @@ function OccurrencesTable({ query, onOpen }: TableProps) {
     const formFilter = normalizeOccurrenceText(formQuery);
     const from = dateFrom ? new Date(`${dateFrom}T00:00:00`).getTime() : null;
     const to = dateTo ? new Date(`${dateTo}T23:59:59`).getTime() : null;
-    return tickets
-      .map((ticket) => ({ ticket, option: findTicketOption(ticket) }))
+    return ticketsWithOptions
       .filter(({ ticket, option }) => {
         const date = new Date(dateType === "solucao" ? ticket.closedAt || ticket.updatedAt : ticket.openedAt).getTime();
         const searchable = normalizeOccurrenceText([ticket.protocol, ticket.subject, ticket.description, ticket.module, ticket.owner, option?.label].filter(Boolean).join(" "));
@@ -520,11 +540,15 @@ function OccurrencesTable({ query, onOpen }: TableProps) {
           && (to === null || date <= to);
       })
       .sort((a, b) => b.ticket.updatedAt.localeCompare(a.ticket.updatedAt));
-  }, [dateFrom, dateTo, dateType, formQuery, occurrenceType, operator, optionQuery, query, tickets, userType]);
+  }, [dateFrom, dateTo, dateType, formQuery, occurrenceType, operator, optionQuery, query, ticketsWithOptions, userType]);
   const clearFilters = () => {
     setOptionQuery(""); setFormQuery(""); setOccurrenceType("todos"); setUserType("todos");
     setOperator("todos"); setDateType("abertura"); setDateFrom(""); setDateTo("");
+    setPage(1);
   };
+  const pageCount = Math.max(1, Math.ceil(rows.length / 50));
+  const safePage = Math.min(page, pageCount);
+  const pagedRows = rows.slice((safePage - 1) * 50, safePage * 50);
   return (
     <section className="overflow-hidden rounded-md border bg-card shadow-sm">
       <div className="border-b px-4 py-4">
@@ -551,7 +575,7 @@ function OccurrencesTable({ query, onOpen }: TableProps) {
             <th className="w-28 px-3 py-3 font-medium">Solução</th><th className="w-24 px-3 py-3 font-medium">Revisado</th>
             <th className="w-20 px-3 py-3 text-center font-medium">Ações</th>
           </tr></thead>
-          <tbody className="divide-y">{rows.map(({ ticket, option }) => {
+          <tbody className="divide-y">{pagedRows.map(({ ticket, option }) => {
             const reviewed = ["Finalizado", "Cancelado"].includes(ticket.status);
             return <tr key={ticket.id} className="align-top hover:bg-muted/25">
               <td className="px-3 py-3"><OccurrenceTypeIcon ticket={ticket} /></td>
@@ -568,8 +592,20 @@ function OccurrencesTable({ query, onOpen }: TableProps) {
         </table>
         {!rows.length && <p className="p-10 text-center text-sm text-muted-foreground">Nenhuma ocorrência encontrada com os filtros aplicados.</p>}
       </div>
+      {!!rows.length && <TablePagination noun="ocorrências" page={safePage} pageCount={pageCount} total={rows.length} onPageChange={setPage} />}
     </section>
   );
+}
+
+function TablePagination({ noun, page, pageCount, total, onPageChange }: { noun: string; page: number; pageCount: number; total: number; onPageChange: (page: number) => void }) {
+  return <div className="flex flex-wrap items-center justify-between gap-3 border-t px-4 py-3 text-xs text-muted-foreground">
+    <span>Mostrando {(page - 1) * 50 + 1} a {Math.min(page * 50, total)} de {total} {noun}</span>
+    <div className="flex items-center gap-2">
+      <Button type="button" size="sm" variant="outline" disabled={page === 1} onClick={() => onPageChange(Math.max(1, page - 1))}>Anterior</Button>
+      <span>Página {page} de {pageCount}</span>
+      <Button type="button" size="sm" variant="outline" disabled={page === pageCount} onClick={() => onPageChange(Math.min(pageCount, page + 1))}>Próxima</Button>
+    </div>
+  </div>;
 }
 
 function OccurrenceSelect({ value, onValueChange, items }: { value: string; onValueChange: (value: string) => void; items: [string, string][] }) {
@@ -581,9 +617,15 @@ function normalizeOccurrenceText(value: unknown) {
 }
 
 type TicketRow = ReturnType<typeof useTickets>[number];
+const hadronOptionByTerm = new Map<string, (typeof hadronOptions)[number]>();
+hadronOptions.forEach((option) => {
+  normalizeOccurrenceText(option.label).split(/\s+/).filter((term) => term.length > 3).forEach((term) => {
+    if (!hadronOptionByTerm.has(term)) hadronOptionByTerm.set(term, option);
+  });
+});
 function findTicketOption(ticket: TicketRow) {
   const terms = normalizeOccurrenceText(`${ticket.subject} ${ticket.module}`).split(/\s+/).filter((term) => term.length > 3);
-  return hadronOptions.find((option) => terms.some((term) => normalizeOccurrenceText(option.label).includes(term)));
+  return terms.map((term) => hadronOptionByTerm.get(term)).find(Boolean);
 }
 function occurrenceKind(ticket: TicketRow) {
   if (["Finalizado", "Cancelado"].includes(ticket.status)) return "revisado";
