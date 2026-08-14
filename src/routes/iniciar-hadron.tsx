@@ -16,12 +16,14 @@ import {
   KeyRound,
   ListChecks,
   ListTodo,
+  Minus,
   PackageCheck,
   Pencil,
   Rocket,
   Search,
   SlidersHorizontal,
   Sparkles,
+  ArrowUp,
   Trash2,
   UserRound,
   X,
@@ -35,6 +37,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Info } from "lucide-react";
 import { DetailModalHeader } from "@/components/portal/DetailModalHeader";
+import { TicketTimelineList } from "@/components/tickets/TicketTimelineList";
 import {
   Select,
   SelectContent,
@@ -48,27 +51,19 @@ import { hadronOptions } from "@/lib/hadron-options";
 import { modulesMap } from "@/lib/modules-map";
 import { cvsArticles } from "@/lib/cvs-catalogs-imported";
 import { getCategory, kbArticlesFull } from "@/lib/kb-data";
-import { useTickets } from "@/lib/tickets-store";
+import { useTickets, type TicketEvent } from "@/lib/tickets-store";
 
 export const Route = createFileRoute("/iniciar-hadron")({
   head: () => ({ meta: [{ title: "Iniciar Hadron - CRM Procion" }] }),
   component: HadronPage,
 });
 
-type DetailOccurrence = {
-  id: string;
-  operator: string;
-  period: string;
-  description: string;
-  status: string;
-};
-
 type Detail = {
   title: string;
   subtitle: string;
   body: string;
   meta: string[];
-  occurrences?: DetailOccurrence[];
+  occurrences?: TicketEvent[];
 };
 
 const options = [
@@ -307,18 +302,11 @@ function HadronPage() {
           />
           <div className="max-h-[68vh] space-y-4 overflow-y-auto px-5 py-4">
           {detail?.occurrences ? (
-            <div className="space-y-3">
-              {detail.occurrences.length ? detail.occurrences.map((occurrence) => (
-                <article key={occurrence.id} className="relative ml-5 border-l-2 border-border pb-5 pl-8 last:pb-0">
-                  <span className="absolute -left-4 top-0 grid h-8 w-8 place-items-center rounded-full bg-rose-500 text-white shadow-sm"><ClipboardCheck className="h-4 w-4" /></span>
-                  <div className="rounded-md border border-rose-200 bg-rose-50/80 p-4 dark:border-rose-900 dark:bg-rose-950/25">
-                    <div className="flex flex-wrap items-center justify-between gap-2 text-xs"><span className="font-medium">{occurrence.operator}</span><span className="text-muted-foreground">{occurrence.period}</span></div>
-                    <p className="mt-3 whitespace-pre-wrap text-sm leading-6">{occurrence.description}</p>
-                    <p className="mt-3 text-[11px] uppercase text-muted-foreground">{occurrence.status}</p>
-                  </div>
-                </article>
-              )) : <p className="rounded-md border bg-muted/20 p-6 text-center text-sm text-muted-foreground">Nenhuma ocorrência vinculada a esta opção.</p>}
-            </div>
+            <TicketTimelineList
+              events={detail.occurrences}
+              variant="compact"
+              emptyLabel="Nenhuma ocorrência vinculada a esta opção."
+            />
           ) : <>
             <div className="grid gap-2 sm:grid-cols-2">{detail?.meta.map((item) => <div key={item} className="rounded-lg border bg-background p-3 text-xs text-muted-foreground">{item}</div>)}</div>
             <p className="rounded-lg border bg-background p-4 text-sm leading-6 text-foreground">{detail?.body}</p>
@@ -397,11 +385,22 @@ function Overview({ onOpen }: { onOpen: (d: Detail) => void }) {
             {optionRows.map(({ option, tickets: related }) => {
               const openCount = related.filter((ticket) => !["Finalizado", "Cancelado"].includes(ticket.status)).length;
               const count = Math.max(1, openCount);
-              const occurrencesForModal: DetailOccurrence[] = related.map((ticket) => ({ id: ticket.id, operator: ticket.owner || option.owner || "Não informado", period: `${formatOccurrenceDate(ticket.openedAt)} - ${formatOccurrenceDate(ticket.closedAt || ticket.updatedAt)}`, description: ticket.description || ticket.subject, status: ticket.status }));
+              const occurrencesForModal: TicketEvent[] = related.map((ticket) => ({
+                id: ticket.id,
+                kind: ["Finalizado", "Cancelado"].includes(ticket.status) ? "closed" : "status",
+                when: ticket.closedAt || ticket.updatedAt || ticket.openedAt,
+                actor: ticket.owner || option.owner || "Não informado",
+                actorType: "suporte",
+                description: `${ticket.subject}${ticket.description ? ` — ${ticket.description}` : ""}`,
+              }));
+              const priority = normalizeOptionPriority(related[0]?.priority || option.priority);
+              const PriorityIcon = priority.icon;
               const openPreview = () => onOpen({ title: "Ocorrências", subtitle: `Opção: ${option.option}`, body: option.observation || option.description, meta: [], occurrences: occurrencesForModal });
-              return <div key={option.id} className="grid min-h-9 grid-cols-[118px_36px_64px_minmax(190px,1fr)_92px_44px] items-center border-b border-rose-200 bg-rose-50 px-2 text-xs dark:border-rose-900/70 dark:bg-rose-950/25">
+              return <div key={option.id} className="grid min-h-9 grid-cols-[118px_36px_64px_minmax(190px,1fr)_92px_44px] items-center border-b bg-background px-2 text-xs transition-colors hover:bg-muted/40">
                 <span className="flex items-center gap-1"><Badge className="h-5 rounded-sm bg-rose-500 px-1.5 text-[9px] text-white hover:bg-rose-500">CORREÇÕES</Badge><span className="grid h-5 min-w-5 place-items-center rounded-full bg-rose-500 px-1 text-[10px] text-white">{count}</span></span>
-                <span className="h-4 w-4 rounded-full bg-rose-500" title={`Prioridade ${option.priority || "não informada"}`} />
+                <span className={cn("grid h-6 w-6 place-items-center rounded-full border", priority.className)} title={`Prioridade ${priority.label}`}>
+                  <PriorityIcon className="h-3.5 w-3.5" />
+                </span>
                 <span className="text-muted-foreground">{option.option}</span>
                 <button type="button" onClick={openPreview} className="truncate text-left text-primary hover:underline">{option.description}</button>
                 <span className="truncate text-muted-foreground">{related[0]?.owner || option.owner || "-"}</span>
@@ -676,6 +675,25 @@ function normalizeOccurrenceText(value: unknown) {
 }
 
 type TicketRow = ReturnType<typeof useTickets>[number];
+
+function normalizeOptionPriority(value: string | undefined) {
+  const normalized = (value || "").trim().toLowerCase();
+  if (["alta", "1"].includes(normalized)) {
+    return { label: "Alta", icon: ArrowUp, className: "border-destructive/20 bg-destructive/12 text-destructive" };
+  }
+  if (["media", "média", "2"].includes(normalized)) {
+    return {
+      label: "Média",
+      icon: Minus,
+      className: "border-amber-200 bg-amber-100 text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/15 dark:text-amber-300",
+    };
+  }
+  return {
+    label: "Baixa",
+    icon: CheckCircle2,
+    className: "border-[#bfdcff] bg-[#eaf4ff] text-[#246cb5] dark:border-[#24527d] dark:bg-[#17314e] dark:text-[#9dcaff]",
+  };
+}
 const hadronOptionByTerm = new Map<string, (typeof hadronOptions)[number]>();
 hadronOptions.forEach((option) => {
   normalizeOccurrenceText(option.label).split(/\s+/).filter((term) => term.length > 3).forEach((term) => {
