@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import {
   BookOpenText,
+  Boxes,
   CheckCircle2,
   ChevronRight,
   ClipboardCheck,
@@ -12,6 +13,7 @@ import {
   Flag,
   GitBranch,
   History,
+  KeyRound,
   ListChecks,
   ListTodo,
   PackageCheck,
@@ -43,6 +45,7 @@ import {
 import { cn } from "@/lib/utils";
 import { erpVersions, formatVersionDate } from "@/lib/erp-versions";
 import { hadronOptions } from "@/lib/hadron-options";
+import { modulesMap } from "@/lib/modules-map";
 import { cvsArticles } from "@/lib/cvs-catalogs-imported";
 import { getCategory, kbArticlesFull } from "@/lib/kb-data";
 import { useTickets } from "@/lib/tickets-store";
@@ -228,6 +231,8 @@ function HadronPage() {
               ["releases", "Releases", GitBranch],
               ["checklist", "Checklist", ListTodo],
               ["parametros", "Parâmetros", SlidersHorizontal],
+              ["modulos", "Módulos", Boxes],
+              ["seriais", "Seriais", KeyRound],
               ["versoes", "Versões", History],
               ["artigos", "Artigos", BookOpenText],
             ].map(([value, label, Icon]) => (
@@ -258,6 +263,12 @@ function HadronPage() {
           </TabsContent>
           <TabsContent value="parametros">
             <ParametersTable query={query} onOpen={setDetail} />
+          </TabsContent>
+          <TabsContent value="modulos">
+            <ModulesTable query={query} onOpen={setDetail} />
+          </TabsContent>
+          <TabsContent value="seriais">
+            <SerialsTable query={query} onOpen={setDetail} />
           </TabsContent>
           <TabsContent value="versoes">
             <VersionsTable query={query} onOpen={setDetail} />
@@ -717,6 +728,100 @@ function parameterDateValue(value: string) {
   const [day, month, year] = date.split("/").map(Number);
   const [hour, minute] = time.split(":").map(Number);
   return new Date(year, month - 1, day, hour, minute).getTime();
+}
+
+function ModulesTable({ query, onOpen }: TableProps) {
+  const [search, setSearch] = useState("");
+  const normalizedQuery = normalizeOccurrenceText(`${query} ${search}`);
+  const rows = useMemo(() => Object.entries(modulesMap).map(([module, submodules], moduleIndex) => ({
+    id: String(moduleIndex + 1),
+    module,
+    submodules: submodules.map((submodule) => ({
+      name: submodule,
+      options: hadronOptions.filter((option) => {
+        const optionText = normalizeOccurrenceText(option.description);
+        const terms = normalizeOccurrenceText(submodule).split(/\s+/).filter((term) => term.length > 3);
+        return terms.some((term) => optionText.includes(term));
+      }).slice(0, 12),
+    })),
+  })).filter((row) => !normalizedQuery || normalizeOccurrenceText([
+    row.id,
+    row.module,
+    ...row.submodules.flatMap((submodule) => [submodule.name, ...submodule.options.map((option) => option.label)]),
+  ].join(" ")).includes(normalizedQuery)), [normalizedQuery]);
+
+  return (
+    <section className="overflow-hidden rounded-md border bg-card shadow-sm">
+      <div className="flex flex-col gap-3 border-b p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div><h2 className="text-lg font-medium">Módulos e Submódulos</h2><p className="text-sm text-muted-foreground">Estrutura do Hádron carregada do catálogo importado.</p></div>
+        <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar módulo, submódulo ou opção" className="sm:w-80" />
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[920px] text-left text-sm">
+          <thead className="border-b bg-muted/25 text-xs font-medium text-muted-foreground"><tr><th className="w-20 px-4 py-3">ID</th><th className="px-4 py-3">Nome</th><th className="w-28 px-4 py-3 text-center">Ações</th></tr></thead>
+          <tbody className="divide-y">
+            {rows.map((row) => <tr key={row.id} className="align-top hover:bg-muted/20">
+              <td className="px-4 py-4 text-muted-foreground">{row.id}</td>
+              <td className="px-4 py-4">
+                <p className="font-medium uppercase">{row.module}</p>
+                <div className="mt-3 space-y-3 border-l pl-5">
+                  {row.submodules.map((submodule) => <div key={submodule.name}>
+                    <p className="text-xs font-medium uppercase text-muted-foreground">{submodule.name}</p>
+                    {submodule.options.length > 0 && <div className="mt-1 divide-y rounded-md border">
+                      {submodule.options.map((option) => <button key={option.id} type="button" onClick={() => onOpen({ title: option.description, subtitle: `${row.module} / ${submodule.name}`, body: "Opção pertencente ao catálogo oficial importado do Hádron.", meta: [`Opção: ${option.option}`, `Formulário: ${option.form || option.option}`] })} className="flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left text-xs transition-colors hover:bg-muted/40"><span className="font-mono text-muted-foreground">{option.option} | {option.form || option.option}</span><span>{option.description}</span></button>)}
+                    </div>}
+                  </div>)}
+                </div>
+              </td>
+              <td className="px-4 py-4"><div className="flex justify-center gap-1"><Button variant="ghost" size="icon" title="Ver módulo" className="cursor-pointer" onClick={() => onOpen({ title: row.module, subtitle: `${row.submodules.length} submódulos`, body: row.submodules.map((item) => item.name).join(", "), meta: [`ID: ${row.id}`, `Submódulos: ${row.submodules.length}`] })}><Eye className="h-4 w-4" /></Button><Button variant="ghost" size="icon" title="Edição indisponível para o catálogo importado" disabled><Pencil className="h-4 w-4" /></Button></div></td>
+            </tr>)}
+            {rows.length === 0 && <tr><td colSpan={3} className="px-4 py-12 text-center text-muted-foreground">Nenhum módulo encontrado.</td></tr>}
+          </tbody>
+        </table>
+      </div>
+      <div className="border-t px-4 py-3 text-xs text-muted-foreground">{rows.length} módulo(s) encontrado(s)</div>
+    </section>
+  );
+}
+
+function SerialsTable({ query }: TableProps) {
+  const [serial, setSerial] = useState("");
+  const [acronym, setAcronym] = useState("");
+  const [operator, setOperator] = useState("todos");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const hasFilter = Boolean(query || serial || acronym || operator !== "todos" || dateFrom || dateTo);
+  const clearFilters = () => {
+    setSerial("");
+    setAcronym("");
+    setOperator("todos");
+    setDateFrom("");
+    setDateTo("");
+  };
+
+  return (
+    <section className="overflow-hidden rounded-md border bg-card shadow-sm">
+      <div className="border-b p-4">
+        <h2 className="text-lg font-medium">Seriais</h2>
+        <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-[1.2fr_.6fr_.8fr_.8fr_.8fr_auto]">
+          <Input value={serial} onChange={(event) => setSerial(event.target.value)} placeholder="Número de série" />
+          <Input value={acronym} onChange={(event) => setAcronym(event.target.value.toUpperCase())} placeholder="Sigla" />
+          <OccurrenceSelect value={operator} onValueChange={setOperator} items={[["todos", "Operador"], ...operatorStats.map(([item]) => [item, item] as [string, string])]} />
+          <Input type="date" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} aria-label="De" />
+          <Input type="date" value={dateTo} onChange={(event) => setDateTo(event.target.value)} aria-label="Até" />
+          <Button type="button" className="cursor-pointer px-8">Buscar</Button>
+        </div>
+        <Button type="button" variant="outline" size="sm" onClick={clearFilters} disabled={!hasFilter} className="mt-3 cursor-pointer">Limpar</Button>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[920px] text-left text-sm">
+          <thead className="border-b bg-muted/25 text-xs font-medium text-muted-foreground"><tr><th className="w-20 px-4 py-3">ID</th><th className="px-4 py-3">Número de série</th><th className="w-64 px-4 py-3">Operador</th><th className="w-40 px-4 py-3">Cliente</th><th className="w-44 px-4 py-3">Datas</th><th className="w-24 px-4 py-3 text-center">Ações</th></tr></thead>
+          <tbody><tr><td colSpan={6} className="px-4 py-16 text-center"><KeyRound className="mx-auto mb-3 h-8 w-8 text-muted-foreground/50" /><p className="text-sm text-muted-foreground">Nenhum serial importado.</p><p className="mt-1 text-xs text-muted-foreground">O projeto ainda não possui um JSON de seriais para preencher esta tabela.</p></td></tr></tbody>
+        </table>
+      </div>
+      <div className="border-t px-4 py-3 text-xs text-muted-foreground">Página 1 de 1, mostrando 0 de 0 no total.</div>
+    </section>
+  );
 }
 
 function ChecklistTable({ query, onOpen }: TableProps) {
