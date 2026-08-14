@@ -43,6 +43,7 @@ import { cn } from "@/lib/utils";
 import { erpVersions, formatVersionDate } from "@/lib/erp-versions";
 import { hadronOptions } from "@/lib/hadron-options";
 import { cvsArticles } from "@/lib/cvs-catalogs-imported";
+import { getCategory, kbArticlesFull } from "@/lib/kb-data";
 import { useTickets } from "@/lib/tickets-store";
 
 export const Route = createFileRoute("/iniciar-hadron")({
@@ -119,33 +120,6 @@ const occurrences = [
     owner: "PRCGUI",
     state: "Em desenvolvimento",
     date: "15/07/2026",
-  },
-];
-
-const articles = [
-  {
-    title: "Como configurar uma tabela de tributacao",
-    category: "Fiscal",
-    option: "1111",
-    author: "PRCEDU",
-    updated: "18/07/2026",
-    views: 284,
-  },
-  {
-    title: "Permissoes do cadastro de operadores",
-    category: "Basico",
-    option: "1116",
-    author: "PRCJUL",
-    updated: "16/07/2026",
-    views: 176,
-  },
-  {
-    title: "Tratamento de rejeicoes da NF-e",
-    category: "Vendas - NFE",
-    option: "1398",
-    author: "PRCWAG",
-    updated: "14/07/2026",
-    views: 421,
   },
 ];
 
@@ -784,34 +758,83 @@ function VersionsTable({ query, onOpen }: TableProps) {
 }
 
 function ArticlesTable({ query, onOpen }: TableProps) {
-  const rows = useFiltered(articles, query);
-  return (
-    <DataCard
-      title="Artigos"
-      subtitle="Documentacao tecnica vinculada as opcoes do Hadron."
-      headers={["Artigo", "Categoria", "Opção", "Autor", "Atualizado", "Visualizações"]}
-    >
-      {rows.map((o) => (
-        <DataRow
-          key={o.title}
-          onClick={() =>
-            onOpen({
-              title: o.title,
-              subtitle: `${o.category} - Opção ${o.option}`,
-              body: "Conteúdo técnico com orientações de configuração, validação e resolução do processo no Hádron.",
-              meta: [
-                `Autor: ${o.author}`,
-                `Atualizado: ${o.updated}`,
-                `${o.views} visualizacoes`,
-                `Opção: ${o.option}`,
-              ],
-            })
-          }
-          cells={[o.title, o.category, o.option, o.author, o.updated, o.views]}
-        />
-      ))}
-    </DataCard>
+  const statusById = useMemo(
+    () => new Map(cvsArticles.map((article) => [article.id, article.status])),
+    [],
   );
+  const normalizedQuery = query.trim().toLocaleLowerCase("pt-BR");
+  const rows = useMemo(
+    () => kbArticlesFull.filter((article) =>
+      [article.id, article.title, article.author, article.module, getCategory(article.category).name]
+        .join(" ")
+        .toLocaleLowerCase("pt-BR")
+        .includes(normalizedQuery),
+    ),
+    [normalizedQuery],
+  );
+
+  return (
+    <section className="overflow-hidden rounded-lg border bg-card shadow-sm">
+      <div className="flex items-center justify-between border-b px-4 py-3">
+        <div>
+          <h2 className="text-sm font-medium">Artigos</h2>
+          <p className="text-xs text-muted-foreground">{rows.length} artigos do catálogo Hádron.</p>
+        </div>
+        <Badge variant="secondary">Fonte: cvs_articles.json</Badge>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[1180px] text-left text-xs">
+          <thead className="border-b bg-muted/35 text-[11px] text-muted-foreground">
+            <tr>
+              {["Permissão", "Título", "Categoria", "Responsável", "Módulo / Submódulo", "Status", "Cliques", "Datas", "Ações"].map((header) => (
+                <th key={header} className="whitespace-nowrap px-3 py-2 font-medium">{header}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((article, index) => {
+              const published = statusById.get(article.id) === "1";
+              return (
+                <tr key={article.id} className={cn("border-b last:border-0 hover:bg-muted/35", index % 2 === 1 && "bg-muted/20")}>
+                  <td className="px-3 py-2.5 text-muted-foreground"><UserRound className="h-4 w-4" /></td>
+                  <td className="max-w-[420px] px-3 py-2.5 font-medium">
+                    <span className="mr-1 text-muted-foreground">{article.id} -</span>{article.title}
+                  </td>
+                  <td className="px-3 py-2.5">{getCategory(article.category).name}</td>
+                  <td className="whitespace-nowrap px-3 py-2.5">{article.author}</td>
+                  <td className="px-3 py-2.5">
+                    <span className="block">{article.module}</span>
+                    <span className="text-[10px] text-muted-foreground">{article.tags.slice(0, 2).join(" / ") || "Não informado"}</span>
+                  </td>
+                  <td className="px-3 py-2.5"><Badge variant={published ? "default" : "secondary"}>{published ? "Publicado" : "Em análise"}</Badge></td>
+                  <td className="px-3 py-2.5 text-center text-muted-foreground">-</td>
+                  <td className="whitespace-nowrap px-3 py-2.5 text-primary">{formatHadronArticleDate(article.updatedAt)}</td>
+                  <td className="px-3 py-2.5">
+                    <div className="flex items-center justify-end gap-1">
+                      <Button variant="ghost" size="icon" className="h-7 w-7" title="Visualizar artigo" onClick={() => onOpen({
+                        title: article.title,
+                        subtitle: `${getCategory(article.category).name} - ${article.module}`,
+                        body: article.summary,
+                        meta: [`Responsável: ${article.author}`, `Atualizado: ${formatHadronArticleDate(article.updatedAt)}`, `Status: ${published ? "Publicado" : "Em análise"}`, `Artigo: ${article.id}`],
+                      })}><Eye className="h-4 w-4" /></Button>
+                      <Button variant="ghost" size="icon" className="h-7 w-7" title="Editar artigo"><Pencil className="h-4 w-4" /></Button>
+                      <Button variant="ghost" size="icon" className="h-7 w-7" title="Artigos importados não podem ser excluídos" disabled><Trash2 className="h-4 w-4" /></Button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      {rows.length === 0 && <div className="px-4 py-12 text-center text-sm text-muted-foreground">Nenhum artigo encontrado.</div>}
+    </section>
+  );
+}
+
+function formatHadronArticleDate(value: string) {
+  const date = new Date(`${value}T12:00:00`);
+  return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString("pt-BR");
 }
 
 type TableProps = { query: string; onOpen: (d: Detail) => void };
