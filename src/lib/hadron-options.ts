@@ -6,6 +6,16 @@ export type HadronOption = {
   form: string;
   description: string;
   label: string;
+  status: string;
+  owner: string;
+  priority: string;
+  characteristic: string;
+  observation: string;
+  call: string;
+  executable: string;
+  moduleId: string;
+  submoduleId: string;
+  updatedAt: string;
 };
 
 export function normalizeSearch(value: string) {
@@ -16,7 +26,7 @@ export function normalizeSearch(value: string) {
     .trim();
 }
 
-type CvsOption = { id: string; option: string; form: string; description: string };
+type CvsOption = Omit<HadronOption, "label">;
 
 export const hadronOptions: HadronOption[] = (
   cvsOptions as readonly CvsOption[]
@@ -26,6 +36,16 @@ export const hadronOptions: HadronOption[] = (
   form: item.form,
   description: item.description,
   label: `${item.description} (${item.option} - ${item.form || item.option})`,
+  status: item.status,
+  owner: item.owner,
+  priority: item.priority,
+  characteristic: item.characteristic,
+  observation: item.observation,
+  call: item.call,
+  executable: item.executable,
+  moduleId: item.moduleId,
+  submoduleId: item.submoduleId,
+  updatedAt: item.updatedAt,
 }));
 
 function search(query: string, formFirst: boolean, limit = 10) {

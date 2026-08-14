@@ -55,7 +55,21 @@ export const Route = createFileRoute("/iniciar-hadron")({
   component: HadronPage,
 });
 
-type Detail = { title: string; subtitle: string; body: string; meta: string[] };
+type DetailOccurrence = {
+  id: string;
+  operator: string;
+  period: string;
+  description: string;
+  status: string;
+};
+
+type Detail = {
+  title: string;
+  subtitle: string;
+  body: string;
+  meta: string[];
+  occurrences?: DetailOccurrence[];
+};
 
 const options = [
   {
@@ -291,21 +305,24 @@ function HadronPage() {
             meta={detail?.subtitle}
             onClose={() => setDetail(null)}
           />
-          <div className="space-y-4 px-5 py-4">
-
-          <div className="grid gap-2 sm:grid-cols-2">
-            {detail?.meta.map((item) => (
-              <div
-                key={item}
-                className="rounded-lg border bg-background p-3 text-xs text-muted-foreground"
-              >
-                {item}
-              </div>
-            ))}
-          </div>
-          <p className="rounded-lg border bg-background p-4 text-sm leading-6 text-foreground">
-            {detail?.body}
-          </p>
+          <div className="max-h-[68vh] space-y-4 overflow-y-auto px-5 py-4">
+          {detail?.occurrences ? (
+            <div className="space-y-3">
+              {detail.occurrences.length ? detail.occurrences.map((occurrence) => (
+                <article key={occurrence.id} className="relative ml-5 border-l-2 border-border pb-5 pl-8 last:pb-0">
+                  <span className="absolute -left-4 top-0 grid h-8 w-8 place-items-center rounded-full bg-rose-500 text-white shadow-sm"><ClipboardCheck className="h-4 w-4" /></span>
+                  <div className="rounded-md border border-rose-200 bg-rose-50/80 p-4 dark:border-rose-900 dark:bg-rose-950/25">
+                    <div className="flex flex-wrap items-center justify-between gap-2 text-xs"><span className="font-medium">{occurrence.operator}</span><span className="text-muted-foreground">{occurrence.period}</span></div>
+                    <p className="mt-3 whitespace-pre-wrap text-sm leading-6">{occurrence.description}</p>
+                    <p className="mt-3 text-[11px] uppercase text-muted-foreground">{occurrence.status}</p>
+                  </div>
+                </article>
+              )) : <p className="rounded-md border bg-muted/20 p-6 text-center text-sm text-muted-foreground">Nenhuma ocorrência vinculada a esta opção.</p>}
+            </div>
+          ) : <>
+            <div className="grid gap-2 sm:grid-cols-2">{detail?.meta.map((item) => <div key={item} className="rounded-lg border bg-background p-3 text-xs text-muted-foreground">{item}</div>)}</div>
+            <p className="rounded-lg border bg-background p-4 text-sm leading-6 text-foreground">{detail?.body}</p>
+          </>}
           <div className="flex justify-end">
             <Button onClick={() => setDetail(null)} className="cursor-pointer">
               Concluir visualizacao
@@ -330,6 +347,27 @@ function Overview({ onOpen }: { onOpen: (d: Detail) => void }) {
     [tickets],
   );
   const latestVersion = erpVersions[0];
+  const optionRows = useMemo(() => {
+    const grouped = new Map<string, TicketRow[]>();
+    tickets.forEach((ticket) => {
+      const optionId = findTicketOption(ticket)?.id;
+      if (!optionId) return;
+      grouped.set(optionId, [...(grouped.get(optionId) || []), ticket]);
+    });
+    return hadronOptions
+      .filter((option) => option.status !== "10")
+      .map((option) => ({ option, tickets: grouped.get(option.id) || [] }))
+      .sort((a, b) => b.tickets.length - a.tickets.length || a.option.option.localeCompare(b.option.option, "pt-BR", { numeric: true }))
+      .slice(0, 24);
+  }, [tickets]);
+  const overviewOperatorStats = useMemo(() => {
+    const totals = new Map<string, number>();
+    optionRows.forEach(({ option, tickets: related }) => {
+      if (related.length) related.forEach((ticket) => totals.set(ticket.owner, (totals.get(ticket.owner) || 0) + 1));
+      else if (option.owner) totals.set(option.owner, (totals.get(option.owner) || 0) + 1);
+    });
+    return [...totals.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6);
+  }, [optionRows]);
   const cards = [
     ["Ag. revisão / ocorrência", `${active.length} / ${tickets.length}`, ClipboardCheck, "text-rose-600 bg-rose-500/10"],
     ["Opção ocorrência / total", `${active.length} / ${hadronOptions.length}`, ListChecks, "text-cyan-600 bg-cyan-500/10"],
@@ -352,15 +390,27 @@ function Overview({ onOpen }: { onOpen: (d: Detail) => void }) {
         ))}
       </div>
       <div className="grid gap-4 xl:grid-cols-2">
-        <HadronDashboardPanel title="Opções" subtitle="Exceto Hádron">
-          {hadronOptions.slice(0, 14).map((option) => (
-            <button key={option.id} onClick={() => onOpen({ title: option.description, subtitle: `Opção ${option.option}`, body: option.label, meta: [`Formulário: ${option.form || option.option}`, "Origem: cvs_options.json"] })} className="grid w-full cursor-pointer grid-cols-[72px_72px_1fr] items-center gap-2 border-b px-3 py-2 text-left text-xs hover:bg-muted/40">
-              <Badge variant="destructive" className="justify-center text-[9px]">OPÇÃO</Badge>
-              <span className="text-muted-foreground">{option.option}</span>
-              <span className="truncate text-primary">{option.description}</span>
-            </button>
-          ))}
-        </HadronDashboardPanel>
+        <section className="overflow-hidden rounded-md border bg-card shadow-sm">
+          <div className="flex items-baseline gap-2 px-4 py-4"><h2 className="text-base font-medium">Opções</h2><span className="text-[10px] text-primary">Exceto Hádron</span></div>
+          <div className="grid grid-cols-[118px_36px_64px_minmax(190px,1fr)_92px_44px] border-b px-5 pb-2 text-[11px] text-muted-foreground"><span>Status</span><span>P</span><span>Opção</span><span>Descrição</span><span>Responsável</span><span className="text-center">Ações</span></div>
+          <div className="h-72 overflow-y-auto px-3">
+            {optionRows.map(({ option, tickets: related }) => {
+              const openCount = related.filter((ticket) => !["Finalizado", "Cancelado"].includes(ticket.status)).length;
+              const count = Math.max(1, openCount);
+              const occurrencesForModal: DetailOccurrence[] = related.map((ticket) => ({ id: ticket.id, operator: ticket.owner || option.owner || "Não informado", period: `${formatOccurrenceDate(ticket.openedAt)} - ${formatOccurrenceDate(ticket.closedAt || ticket.updatedAt)}`, description: ticket.description || ticket.subject, status: ticket.status }));
+              const openPreview = () => onOpen({ title: "Ocorrências", subtitle: `Opção: ${option.option}`, body: option.observation || option.description, meta: [], occurrences: occurrencesForModal });
+              return <div key={option.id} className="grid min-h-9 grid-cols-[118px_36px_64px_minmax(190px,1fr)_92px_44px] items-center border-b border-rose-200 bg-rose-50 px-2 text-xs dark:border-rose-900/70 dark:bg-rose-950/25">
+                <span className="flex items-center gap-1"><Badge className="h-5 rounded-sm bg-rose-500 px-1.5 text-[9px] text-white hover:bg-rose-500">CORREÇÕES</Badge><span className="grid h-5 min-w-5 place-items-center rounded-full bg-rose-500 px-1 text-[10px] text-white">{count}</span></span>
+                <span className="h-4 w-4 rounded-full bg-rose-500" title={`Prioridade ${option.priority || "não informada"}`} />
+                <span className="text-muted-foreground">{option.option}</span>
+                <button type="button" onClick={openPreview} className="truncate text-left text-primary hover:underline">{option.description}</button>
+                <span className="truncate text-muted-foreground">{related[0]?.owner || option.owner || "-"}</span>
+                <Button type="button" variant="ghost" size="icon" onClick={openPreview} className="h-8 w-8 cursor-pointer" title="Prévia das ocorrências"><ClipboardCheck className="h-4 w-4" /></Button>
+              </div>;
+            })}
+          </div>
+          <div className="border-t px-4 py-3"><p className="text-[10px] text-muted-foreground">Total de Ocorrências por Operador</p><div className="mt-1 flex flex-wrap gap-x-5 gap-y-1">{overviewOperatorStats.map(([operator, count]) => <span key={operator} className="flex items-center gap-1 text-xs font-medium text-primary">{operator}<span className="grid h-5 min-w-5 place-items-center rounded-full bg-rose-500 px-1 text-[10px] text-white">{count}</span></span>)}</div></div>
+        </section>
         <HadronDashboardPanel title="Ocorrências" subtitle="Aguardando revisão">
           <HadronOccurrenceRows rows={active.slice(0, 10)} onOpen={onOpen} empty="Nenhuma ocorrência aguardando revisão." />
         </HadronDashboardPanel>

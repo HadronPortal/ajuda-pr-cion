@@ -56,6 +56,15 @@ const options = tableRows(optionsPath, "cvs_options")
     form: repairText(row.formulario),
     description: repairText(row.descricao),
     status: String(row.status || ""),
+    owner: repairText(row.responsavel),
+    priority: String(row.prioridade || ""),
+    characteristic: repairText(row.caracteristica),
+    observation: repairText(row.observacao),
+    call: repairText(row.chamada),
+    executable: repairText(row.dll_exe),
+    moduleId: String(row.cvs_modules_id || ""),
+    submoduleId: String(row.cvs_submodules_id || ""),
+    updatedAt: repairText(row.modified || row.data_hadron || row.data),
   }))
   .filter((row) => row.id && row.option && row.description);
 
