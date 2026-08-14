@@ -118,33 +118,6 @@ const occurrences = [
   },
 ];
 
-const releases = [
-  {
-    version: "2.0.2026.07.18",
-    title: "Ajustes na emissão de NF-e",
-    module: "Vendas / NFE",
-    owner: "PRCEDU",
-    published: "18/07/2026",
-    status: "Publicado",
-  },
-  {
-    version: "2.0.2026.07.16",
-    title: "Permissoes por grupo de operadores",
-    module: "Basico / Seguranca",
-    owner: "PRCJUL",
-    published: "16/07/2026",
-    status: "Publicado",
-  },
-  {
-    version: "2.0.2026.07.14",
-    title: "Melhorias no fechamento financeiro",
-    module: "Financeiro",
-    owner: "PRCWAG",
-    published: "14/07/2026",
-    status: "Homologacao",
-  },
-];
-
 const articles = [
   {
     title: "Como configurar uma tabela de tributacao",
@@ -647,41 +620,57 @@ function openOccurrence(ticket: TicketRow, option: ReturnType<typeof findTicketO
   onOpen({ title: ticket.subject, subtitle: option ? `${option.option}/${option.form || option.option}` : ticket.protocol, body: ticket.description || "Sem detalhes informados para esta ocorrência.", meta: [`Tipo: ${occurrenceKind(ticket)}`, `Operador: ${ticket.owner || "Não informado"}`, `Situação: ${ticket.status}`, `Ocorrência: ${formatOccurrenceDate(ticket.openedAt)}`, `Solução: ${formatOccurrenceDate(ticket.closedAt)}`] });
 }
 function ReleasesTable({ query, onOpen }: TableProps) {
-  const rows = useFiltered(releases, query);
+  const [page, setPage] = useState(1);
+  const normalizedQuery = normalizeOccurrenceText(query);
+  const rows = useMemo(() => cvsArticles.map((release) => ({
+    release,
+    option: findReleaseOption(release.title),
+  })).filter(({ release, option }) => !normalizedQuery || normalizeOccurrenceText([
+    release.id, release.title, release.status, option?.option, option?.form, option?.description,
+  ].filter(Boolean).join(" ")).includes(normalizedQuery)), [normalizedQuery]);
+  const pageSize = 50;
+  const pageCount = Math.max(1, Math.ceil(rows.length / pageSize));
+  const currentPage = Math.min(page, pageCount);
+  const pagedRows = rows.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
   return (
-    <DataCard
-      title="Releases"
-      subtitle="Histórico de publicações e itens em homologação."
-      headers={["Versão", "Descrição", "Módulo", "Responsável", "Publicação", "Status"]}
-    >
-      {rows.map((o) => (
-        <DataRow
-          key={o.version}
-          onClick={() =>
-            onOpen({
-              title: o.title,
-              subtitle: `Release ${o.version}`,
-              body: "Pacote de atualização com correções, melhorias e orientações de implantação.",
-              meta: [
-                `Módulo: ${o.module}`,
-                `Responsável: ${o.owner}`,
-                `Publicacao: ${o.published}`,
-                `Status: ${o.status}`,
-              ],
-            })
-          }
-          cells={[
-            o.version,
-            o.title,
-            o.module,
-            o.owner,
-            o.published,
-            <Badge variant="outline">{o.status}</Badge>,
-          ]}
-        />
-      ))}
-    </DataCard>
+    <div className="overflow-hidden rounded-lg border bg-card shadow-sm">
+      <div className="border-b px-5 py-4">
+        <h2 className="font-semibold">Releases</h2>
+        <p className="text-sm text-muted-foreground">Histórico de publicações carregado do catálogo oficial importado.</p>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[1180px] text-sm">
+          <thead className="border-b bg-muted/35 text-left text-xs font-medium text-muted-foreground">
+            <tr><th className="w-14 px-4 py-3">Tipo</th><th className="w-40 px-4 py-3">Opção/Formulário</th><th className="min-w-[360px] px-4 py-3">Descrição</th><th className="w-44 px-4 py-3">Módulo/Submódulo</th><th className="w-32 px-4 py-3">Responsável</th><th className="w-20 px-4 py-3 text-center">Cliques</th><th className="w-24 px-4 py-3">Versão</th><th className="w-32 px-4 py-3">Data</th><th className="w-20 px-4 py-3 text-center">Ações</th></tr>
+          </thead>
+          <tbody className="divide-y">
+            {pagedRows.map(({ release, option }) => (
+              <tr key={release.id} className="transition-colors hover:bg-muted/30">
+                <td className="px-4 py-3"><Sparkles className={cn("h-4 w-4", release.status === "publish" ? "text-amber-500" : "text-muted-foreground")} /></td>
+                <td className="px-4 py-3 font-medium">{option ? `${option.option}/${option.form || option.option}` : "Não informado"}</td>
+                <td className="px-4 py-3">{release.title}</td>
+                <td className="px-4 py-3 text-muted-foreground">Não informado</td><td className="px-4 py-3 text-muted-foreground">Não informado</td><td className="px-4 py-3 text-center text-muted-foreground">-</td><td className="px-4 py-3 text-muted-foreground">Não informada</td><td className="px-4 py-3 text-muted-foreground">Não informada</td>
+                <td className="px-4 py-3 text-center"><Button variant="ghost" size="icon" title="Ver detalhes" onClick={() => onOpen({ title: release.title, subtitle: option ? `${option.option}/${option.form || option.option}` : `Release ${release.id}`, body: "Registro importado do catálogo oficial de releases do Hádron.", meta: [`Status: ${release.status}`, `Opção/Formulário: ${option ? `${option.option}/${option.form || option.option}` : "Não informado"}`, "Os demais campos não constam no JSON fornecido."] })}><Eye className="h-4 w-4" /></Button></td>
+              </tr>
+            ))}
+            {pagedRows.length === 0 && <tr><td colSpan={9} className="px-4 py-12 text-center text-muted-foreground">Nenhum release encontrado.</td></tr>}
+          </tbody>
+        </table>
+      </div>
+      <TablePagination noun="releases" page={currentPage} pageCount={pageCount} total={rows.length} onPageChange={setPage} />
+    </div>
   );
+}
+
+function findReleaseOption(title: string) {
+  const normalizedTitle = normalizeOccurrenceText(title);
+  const leadingCode = normalizedTitle.match(/^([a-z0-9]+)(?:\s*[-/]|\s)/)?.[1];
+  if (leadingCode) {
+    const exact = hadronOptions.find((option) => normalizeOccurrenceText(option.option) === leadingCode || normalizeOccurrenceText(option.form) === leadingCode);
+    if (exact) return exact;
+  }
+  return normalizedTitle.split(/\s+/).filter((term) => term.length > 3).map((term) => hadronOptionByTerm.get(term)).find(Boolean);
 }
 
 function VersionsTable({ query, onOpen }: TableProps) {
