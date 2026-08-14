@@ -879,6 +879,75 @@ function HadronOccurrenceRows({
   );
 }
 
+type HadronOptionStatus =
+  "desenvolvimento" | "testes" | "correcoes" | "aprovada" | "hadron" | "desativada";
+
+const HADRON_OPTION_MODULES: [string, string][] = [
+  ["todos", "Módulo"],
+  ["0", "0 : RESUMO DA VERSÃO"],
+  ["1", "1 : BÁSICO"],
+  ["5", "5 : VENDAS"],
+  ["9", "9 : COMPRAS"],
+  ["13", "13 : FINANCEIRO"],
+  ["17", "17 : CONTROLE DE ESTOQUES"],
+  ["21", "21 : PRODUÇÃO"],
+  ["25", "25 : RECURSOS HUMANOS"],
+  ["29", "29 : FISCAL"],
+  ["33", "33 : CONTÁBIL"],
+  ["37", "37 : GESTÃO RURAL"],
+  ["41", "41 : TRANSPORTES"],
+  ["45", "45 : COMBUSTÍVEIS"],
+  ["80", "80 : OUTROS MÓDULOS"],
+];
+
+const HADRON_OPTION_CHARACTERISTICS: [string, string][] = [
+  ["todos", "Característica"],
+  ["f3", "F3"],
+  ["abas", "Abas"],
+  ["rhcd", "RHCD"],
+  ["geral", "Geral"],
+  ["cadastro", "Cadastro"],
+  ["gerencia", "Gerência"],
+  ["listagem", "Listagem"],
+  ["listview", "Grids/List View"],
+  ["processos", "Processos"],
+  ["elaborado", "Elaborado"],
+  ["relatorios", "Relatórios"],
+  ["especifico", "Específico"],
+  ["outros_c_acp", "Outros c/ ACP"],
+  ["outros_s_acp", "Outros s/ ACP"],
+];
+
+function getHadronOptionStatus(
+  option: HadronOption,
+  activeCount: number,
+  disabled: boolean,
+): HadronOptionStatus {
+  const searchable = normalizeOccurrenceText(
+    `${option.description} ${option.observation} ${option.characteristic}`,
+  );
+  if (disabled || option.status === "10") return "desativada";
+  if (option.status === "90" || searchable.includes("hadron")) return "hadron";
+  if (option.status === "9") return "testes";
+  if (option.status === "8") return "aprovada";
+  if (option.status === "4" || activeCount > 0) return "correcoes";
+  return "desenvolvimento";
+}
+
+function getHadronOptionDate(
+  option: HadronOption,
+  latest: TicketRow | undefined,
+  related: TicketRow[],
+  dateType: string,
+) {
+  if (dateType === "criacao") return latest?.openedAt || option.updatedAt;
+  if (dateType === "liberacao") return latest?.closedAt || latest?.updatedAt || option.updatedAt;
+  const approved = related
+    .filter((ticket) => ticket.status === "Finalizado")
+    .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0];
+  return approved?.closedAt || approved?.updatedAt || option.updatedAt;
+}
+
 function OptionsTable({ query, onOpen }: TableProps) {
   const tickets = useTickets();
   const [optionOverrides, setOptionOverrides] = useState<Record<string, Partial<HadronOption>>>({});
@@ -892,7 +961,7 @@ function OptionsTable({ query, onOpen }: TableProps) {
   const [hadronScope, setHadronScope] = useState("exceto");
   const [characteristic, setCharacteristic] = useState("todos");
   const [module, setModule] = useState("todos");
-  const [dateType, setDateType] = useState("atualizacao");
+  const [dateType, setDateType] = useState("criacao");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [page, setPage] = useState(1);
@@ -931,17 +1000,13 @@ function OptionsTable({ query, onOpen }: TableProps) {
     () => [...new Set(tickets.map((ticket) => ticket.owner).filter(Boolean))].sort(),
     [tickets],
   );
-  const modules = useMemo(
-    () => [...new Set(tickets.map((ticket) => ticket.module).filter(Boolean))].sort(),
-    [tickets],
-  );
   const rows = useMemo(() => {
     const global = normalizeOccurrenceText(query);
     const optionFilter = normalizeOccurrenceText(optionQuery);
     const formFilter = normalizeOccurrenceText(formQuery);
     const from = dateFrom ? new Date(`${dateFrom}T00:00:00`).getTime() : null;
     const to = dateTo ? new Date(`${dateTo}T23:59:59`).getTime() : null;
-    return optionsWithTickets.filter(({ option, active, latest }) => {
+    return optionsWithTickets.filter(({ option, active, latest, related, disabled }) => {
       const searchable = normalizeOccurrenceText(
         [
           option.option,
@@ -954,10 +1019,9 @@ function OptionsTable({ query, onOpen }: TableProps) {
           .filter(Boolean)
           .join(" "),
       );
-      const dateValue = latest
-        ? new Date(dateType === "abertura" ? latest.openedAt : latest.updatedAt).getTime()
-        : null;
-      const isHadron = normalizeOccurrenceText(option.description).includes("hadron");
+      const rawDate = getHadronOptionDate(option, latest, related, dateType);
+      const dateValue = rawDate ? new Date(rawDate).getTime() : null;
+      const status = getHadronOptionStatus(option, active.length, disabled);
       return (
         (!global || searchable.includes(global)) &&
         (!optionFilter ||
@@ -966,10 +1030,10 @@ function OptionsTable({ query, onOpen }: TableProps) {
           )) &&
         (!formFilter || normalizeOccurrenceText(option.form).includes(formFilter)) &&
         (operator === "todos" || latest?.owner === operator) &&
-        (hadronScope === "todos" || (hadronScope === "somente" ? isHadron : !isHadron)) &&
-        (characteristic === "todos" ||
-          (characteristic === "correcao" ? active.length > 0 : active.length === 0)) &&
-        (module === "todos" || latest?.module === module) &&
+        (hadronScope === "todos" ||
+          (hadronScope === "exceto" ? status !== "hadron" : status === hadronScope)) &&
+        (characteristic === "todos" || option.characteristic === characteristic) &&
+        (module === "todos" || option.moduleId === module) &&
         (from === null || (dateValue !== null && dateValue >= from)) &&
         (to === null || (dateValue !== null && dateValue <= to))
       );
@@ -994,7 +1058,7 @@ function OptionsTable({ query, onOpen }: TableProps) {
     setHadronScope("exceto");
     setCharacteristic("todos");
     setModule("todos");
-    setDateType("atualizacao");
+    setDateType("criacao");
     setDateFrom("");
     setDateTo("");
     setPage(1);
@@ -1013,35 +1077,18 @@ function OptionsTable({ query, onOpen }: TableProps) {
     const activeDates: number[] = [];
     const now = Date.now();
 
-    rows.forEach(({ option, active, latest, related }) => {
+    rows.forEach(({ option, active, latest, related, disabled }) => {
       active.forEach((ticket) => {
         const openedAt = new Date(ticket.openedAt).getTime();
         if (Number.isFinite(openedAt)) activeDates.push(openedAt);
       });
 
-      const searchable = normalizeOccurrenceText(
-        [
-          option.description,
-          option.characteristic,
-          latest?.subject,
-          latest?.description,
-          latest?.status,
-          latest?.module,
-        ]
-          .filter(Boolean)
-          .join(" "),
-      );
-
-      if (searchable.includes("hadron")) counts.hadron += 1;
-      else if (/teste|homolog/.test(searchable)) counts.tests += 1;
-      else if (/desenvolvimento|especialista/.test(searchable)) counts.development += 1;
-      else if (active.length > 0) counts.corrections += 1;
-      else if (
-        related.length > 0 &&
-        latest &&
-        ["Finalizado", "Cancelado"].includes(latest.status)
-      )
-        counts.approved += 1;
+      const status = getHadronOptionStatus(option, active.length, disabled);
+      if (status === "hadron") counts.hadron += 1;
+      else if (status === "testes") counts.tests += 1;
+      else if (status === "desenvolvimento") counts.development += 1;
+      else if (status === "correcoes") counts.corrections += 1;
+      else if (status === "aprovada") counts.approved += 1;
     });
 
     const averageDelay = activeDates.length
@@ -1089,17 +1136,27 @@ function OptionsTable({ query, onOpen }: TableProps) {
           <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-[1fr_.8fr_.75fr_.8fr_.8fr_.8fr_.75fr_.72fr_.72fr_auto]">
             <Input
               value={optionQuery}
-              onChange={(event) => setOptionQuery(event.target.value)}
+              onChange={(event) => {
+                setOptionQuery(event.target.value);
+                setPage(1);
+              }}
               placeholder="Opção"
             />
             <Input
               value={formQuery}
-              onChange={(event) => setFormQuery(event.target.value)}
+              onChange={(event) => {
+                setFormQuery(event.target.value);
+                setPage(1);
+              }}
               placeholder="Formulário"
+              className="text-xs placeholder:text-xs"
             />
             <OccurrenceSelect
               value={operator}
-              onValueChange={setOperator}
+              onValueChange={(value) => {
+                setOperator(value);
+                setPage(1);
+              }}
               items={[
                 ["todos", "Operador"],
                 ...operators.map((item) => [item, item] as [string, string]),
@@ -1107,48 +1164,65 @@ function OptionsTable({ query, onOpen }: TableProps) {
             />
             <OccurrenceSelect
               value={hadronScope}
-              onValueChange={setHadronScope}
+              onValueChange={(value) => {
+                setHadronScope(value);
+                setPage(1);
+              }}
               items={[
+                ["todos", "Status"],
+                ["desenvolvimento", "Desenvolvimento"],
+                ["testes", "Testes"],
+                ["correcoes", "Correções"],
+                ["aprovada", "Aprovada"],
+                ["hadron", "Hádron"],
+                ["desativada", "Desativada"],
                 ["exceto", "Exceto HÁDRON"],
-                ["somente", "Somente HÁDRON"],
-                ["todos", "Todos"],
               ]}
             />
             <OccurrenceSelect
               value={characteristic}
-              onValueChange={setCharacteristic}
-              items={[
-                ["todos", "Característica"],
-                ["correcao", "Com correções"],
-                ["normal", "Sem correções"],
-              ]}
+              onValueChange={(value) => {
+                setCharacteristic(value);
+                setPage(1);
+              }}
+              items={HADRON_OPTION_CHARACTERISTICS}
             />
             <OccurrenceSelect
               value={module}
-              onValueChange={setModule}
-              items={[
-                ["todos", "Módulo"],
-                ...modules.map((item) => [item, item] as [string, string]),
-              ]}
+              onValueChange={(value) => {
+                setModule(value);
+                setPage(1);
+              }}
+              items={HADRON_OPTION_MODULES}
             />
             <OccurrenceSelect
               value={dateType}
-              onValueChange={setDateType}
+              onValueChange={(value) => {
+                setDateType(value);
+                setPage(1);
+              }}
               items={[
-                ["atualizacao", "Tipo data"],
-                ["abertura", "Abertura"],
+                ["criacao", "Criação"],
+                ["liberacao", "Liberação Cliente"],
+                ["aprovacao", "Aprovação"],
               ]}
             />
             <Input
               type="date"
               value={dateFrom}
-              onChange={(event) => setDateFrom(event.target.value)}
+              onChange={(event) => {
+                setDateFrom(event.target.value);
+                setPage(1);
+              }}
               aria-label="Data inicial"
             />
             <Input
               type="date"
               value={dateTo}
-              onChange={(event) => setDateTo(event.target.value)}
+              onChange={(event) => {
+                setDateTo(event.target.value);
+                setPage(1);
+              }}
               aria-label="Data final"
             />
             <Button type="button" className="cursor-pointer px-7">
@@ -1337,21 +1411,28 @@ function OptionsTable({ query, onOpen }: TableProps) {
           </p>
           <div className="mt-2 flex flex-wrap gap-1.5">
             {[
-              ["DESENVOLVIMENTO", optionSummary.development, "bg-slate-600"],
-              ["CORREÇÕES", optionSummary.corrections, "bg-rose-600"],
-              ["TESTES", optionSummary.tests, "bg-amber-500"],
-              ["APROVADA", optionSummary.approved, "bg-cyan-600"],
-              ["HÁDRON", optionSummary.hadron, "bg-lime-600"],
-            ].map(([label, count, color]) => (
-              <span
+              ["DESENVOLVIMENTO", optionSummary.development, "bg-slate-600", "desenvolvimento"],
+              ["CORREÇÕES", optionSummary.corrections, "bg-rose-600", "correcoes"],
+              ["TESTES", optionSummary.tests, "bg-amber-500", "testes"],
+              ["APROVADA", optionSummary.approved, "bg-cyan-600", "aprovada"],
+              ["HÁDRON", optionSummary.hadron, "bg-lime-600", "hadron"],
+            ].map(([label, count, color, filter]) => (
+              <button
+                type="button"
                 key={String(label)}
+                onClick={() => {
+                  setHadronScope(String(filter));
+                  setPage(1);
+                }}
+                aria-pressed={hadronScope === filter}
                 className={cn(
-                  "inline-flex items-center px-2 py-1 text-[10px] font-semibold text-white",
+                  "inline-flex cursor-pointer items-center px-2 py-1 text-[10px] font-semibold text-white transition-opacity hover:opacity-85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                   color,
+                  hadronScope === filter && "ring-2 ring-ring ring-offset-2",
                 )}
               >
                 {label} ({count})
-              </span>
+              </button>
             ))}
           </div>
         </div>
