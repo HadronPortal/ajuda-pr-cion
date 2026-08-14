@@ -1002,6 +1002,59 @@ function OptionsTable({ query, onOpen }: TableProps) {
   const pageCount = Math.max(1, Math.ceil(rows.length / 50));
   const safePage = Math.min(page, pageCount);
   const pagedRows = rows.slice((safePage - 1) * 50, safePage * 50);
+  const optionSummary = useMemo(() => {
+    const counts = {
+      development: 0,
+      corrections: 0,
+      tests: 0,
+      approved: 0,
+      hadron: 0,
+    };
+    const activeDates: number[] = [];
+    const now = Date.now();
+
+    rows.forEach(({ option, active, latest, related }) => {
+      active.forEach((ticket) => {
+        const openedAt = new Date(ticket.openedAt).getTime();
+        if (Number.isFinite(openedAt)) activeDates.push(openedAt);
+      });
+
+      const searchable = normalizeOccurrenceText(
+        [
+          option.description,
+          option.characteristic,
+          latest?.subject,
+          latest?.description,
+          latest?.status,
+          latest?.module,
+        ]
+          .filter(Boolean)
+          .join(" "),
+      );
+
+      if (searchable.includes("hadron")) counts.hadron += 1;
+      else if (/teste|homolog/.test(searchable)) counts.tests += 1;
+      else if (/desenvolvimento|especialista/.test(searchable)) counts.development += 1;
+      else if (active.length > 0) counts.corrections += 1;
+      else if (
+        related.length > 0 &&
+        latest &&
+        ["Finalizado", "Cancelado"].includes(latest.status)
+      )
+        counts.approved += 1;
+    });
+
+    const averageDelay = activeDates.length
+      ? Math.round(
+          activeDates.reduce(
+            (total, openedAt) => total + Math.max(0, (now - openedAt) / 86_400_000),
+            0,
+          ) / activeDates.length,
+        )
+      : 0;
+
+    return { ...counts, averageDelay };
+  }, [rows]);
   const persistOverride = (option: HadronOption) => {
     const next = { ...optionOverrides, [option.id]: option };
     setOptionOverrides(next);
@@ -1113,8 +1166,21 @@ function OptionsTable({ query, onOpen }: TableProps) {
             Limpar
           </Button>
         </div>
-        <div className="overflow-x-auto overflow-y-hidden">
-          <table className="w-full min-w-[1380px] text-left text-xs">
+        <div className="overflow-hidden">
+          <table className="w-full table-fixed text-left text-[11px] xl:text-xs">
+            <colgroup>
+              <col className="w-[9%]" />
+              <col className="w-[3%]" />
+              <col className="w-[6%]" />
+              <col className="w-[6%]" />
+              <col className="w-[19%]" />
+              <col className="w-[15%]" />
+              <col className="w-[9%]" />
+              <col className="w-[7%]" />
+              <col className="w-[10%]" />
+              <col className="w-[8%]" />
+              <col className="w-[8%]" />
+            </colgroup>
             <thead className="border-b bg-muted/25 text-primary">
               <tr>
                 {[
@@ -1130,7 +1196,7 @@ function OptionsTable({ query, onOpen }: TableProps) {
                   "Responsável",
                   "Ações",
                 ].map((header) => (
-                  <th key={header} className="whitespace-nowrap px-3 py-3 font-medium">
+                  <th key={header} className="break-words px-2 py-3 font-medium">
                     {header}
                   </th>
                 ))}
@@ -1167,7 +1233,7 @@ function OptionsTable({ query, onOpen }: TableProps) {
                       disabled && "opacity-55",
                     )}
                   >
-                    <td className="px-3 py-3">
+                    <td className="px-2 py-3">
                       <Badge
                         className={cn(
                           "whitespace-nowrap",
@@ -1185,7 +1251,7 @@ function OptionsTable({ query, onOpen }: TableProps) {
                             : "SEM OCORRÊNCIAS"}
                       </Badge>
                     </td>
-                    <td className="px-3 py-3">
+                    <td className="px-2 py-3">
                       <span
                         title={`Prioridade ${priority}`}
                         className={cn(
@@ -1198,17 +1264,17 @@ function OptionsTable({ query, onOpen }: TableProps) {
                         )}
                       />
                     </td>
-                    <td className="px-3 py-3 font-medium">{option.option}</td>
-                    <td className="px-3 py-3">{option.form || "Não informado"}</td>
-                    <td className="max-w-72 px-3 py-3 text-primary">{option.description}</td>
-                    <td className="max-w-56 px-3 py-3">{latest?.subject || "Não informado"}</td>
-                    <td className="whitespace-nowrap px-3 py-3">
+                    <td className="break-words px-2 py-3 font-medium">{option.option}</td>
+                    <td className="break-words px-2 py-3">{option.form || "Não informado"}</td>
+                    <td className="break-words px-2 py-3 text-primary">{option.description}</td>
+                    <td className="break-words px-2 py-3">{latest?.subject || "Não informado"}</td>
+                    <td className="break-words px-2 py-3">
                       {latest ? formatOccurrenceDate(latest.updatedAt) : "Não informado"}
                     </td>
-                    <td className="px-3 py-3">Não informado</td>
-                    <td className="max-w-44 px-3 py-3">{latest?.module || "Não informado"}</td>
-                    <td className="px-3 py-3">{latest?.owner || "Não informado"}</td>
-                    <td className="px-3 py-3">
+                    <td className="break-words px-2 py-3">Não informado</td>
+                    <td className="break-words px-2 py-3">{latest?.module || "Não informado"}</td>
+                    <td className="break-words px-2 py-3">{latest?.owner || "Não informado"}</td>
+                    <td className="px-2 py-3">
                       <div className="grid grid-cols-2 justify-items-center gap-0.5">
                         <Button
                           type="button"
@@ -1263,6 +1329,31 @@ function OptionsTable({ query, onOpen }: TableProps) {
               Nenhuma opção encontrada com os filtros aplicados.
             </p>
           )}
+        </div>
+        <div className="border-t bg-muted/15 px-4 py-3 text-xs text-muted-foreground">
+          <p>
+            <strong className="font-medium text-foreground">Média de atraso:</strong>{" "}
+            {optionSummary.averageDelay} dias (sendo exibido)
+          </p>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {[
+              ["DESENVOLVIMENTO", optionSummary.development, "bg-slate-600"],
+              ["CORREÇÕES", optionSummary.corrections, "bg-rose-600"],
+              ["TESTES", optionSummary.tests, "bg-amber-500"],
+              ["APROVADA", optionSummary.approved, "bg-cyan-600"],
+              ["HÁDRON", optionSummary.hadron, "bg-lime-600"],
+            ].map(([label, count, color]) => (
+              <span
+                key={String(label)}
+                className={cn(
+                  "inline-flex items-center px-2 py-1 text-[10px] font-semibold text-white",
+                  color,
+                )}
+              >
+                {label} ({count})
+              </span>
+            ))}
+          </div>
         </div>
         {!!rows.length && (
           <TablePagination
