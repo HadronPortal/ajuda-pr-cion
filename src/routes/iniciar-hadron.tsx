@@ -396,30 +396,93 @@ function HadronOccurrenceRows({ rows, onOpen, empty }: { rows: ReturnType<typeof
 }
 
 function OptionsTable({ query, onOpen }: TableProps) {
-  const rows = useFiltered(options, query);
+  const tickets = useTickets();
+  const [optionQuery, setOptionQuery] = useState("");
+  const [formQuery, setFormQuery] = useState("");
+  const [operator, setOperator] = useState("todos");
+  const [hadronScope, setHadronScope] = useState("exceto");
+  const [characteristic, setCharacteristic] = useState("todos");
+  const [module, setModule] = useState("todos");
+  const [dateType, setDateType] = useState("atualizacao");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const optionsWithTickets = useMemo(() => hadronOptions.map((option) => {
+    const related = tickets.filter((ticket) => findTicketOption(ticket)?.id === option.id);
+    const active = related.filter((ticket) => !["Finalizado", "Cancelado"].includes(ticket.status));
+    const latest = [...related].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0];
+    return { option, active, latest };
+  }), [tickets]);
+  const operators = useMemo(() => [...new Set(tickets.map((ticket) => ticket.owner).filter(Boolean))].sort(), [tickets]);
+  const modules = useMemo(() => [...new Set(tickets.map((ticket) => ticket.module).filter(Boolean))].sort(), [tickets]);
+  const rows = useMemo(() => {
+    const global = normalizeOccurrenceText(query);
+    const optionFilter = normalizeOccurrenceText(optionQuery);
+    const formFilter = normalizeOccurrenceText(formQuery);
+    const from = dateFrom ? new Date(`${dateFrom}T00:00:00`).getTime() : null;
+    const to = dateTo ? new Date(`${dateTo}T23:59:59`).getTime() : null;
+    return optionsWithTickets.filter(({ option, active, latest }) => {
+      const searchable = normalizeOccurrenceText([option.option, option.form, option.description, latest?.subject, latest?.owner, latest?.module].filter(Boolean).join(" "));
+      const dateValue = latest ? new Date(dateType === "abertura" ? latest.openedAt : latest.updatedAt).getTime() : null;
+      const isHadron = normalizeOccurrenceText(option.description).includes("hadron");
+      return (!global || searchable.includes(global))
+        && (!optionFilter || normalizeOccurrenceText(`${option.option} ${option.description}`).includes(optionFilter))
+        && (!formFilter || normalizeOccurrenceText(option.form).includes(formFilter))
+        && (operator === "todos" || latest?.owner === operator)
+        && (hadronScope === "todos" || (hadronScope === "somente" ? isHadron : !isHadron))
+        && (characteristic === "todos" || (characteristic === "correcao" ? active.length > 0 : active.length === 0))
+        && (module === "todos" || latest?.module === module)
+        && (from === null || (dateValue !== null && dateValue >= from))
+        && (to === null || (dateValue !== null && dateValue <= to));
+    });
+  }, [characteristic, dateFrom, dateTo, dateType, formQuery, hadronScope, module, operator, optionQuery, optionsWithTickets, query]);
+  const clearFilters = () => {
+    setOptionQuery(""); setFormQuery(""); setOperator("todos"); setHadronScope("exceto");
+    setCharacteristic("todos"); setModule("todos"); setDateType("atualizacao"); setDateFrom(""); setDateTo("");
+  };
   return (
-    <DataCard
-      title="Opcoes"
-      subtitle="Cadastros e funcionalidades monitoradas pelo time Hadron."
-      headers={["Status", "P", "Opção", "Descrição", "Responsável"]}
-    >
-      {rows.map((o) => (
-        <DataRow
-          key={o.id}
-          onClick={() => onOpen(optionDetail(o))}
-          cells={[
-            <Badge variant="outline">{o.status}</Badge>,
-            <Priority value={o.priority} />,
-            o.id,
-            <div>
-              <p>{o.title}</p>
-              <p className="text-xs text-muted-foreground">{o.description}</p>
-            </div>,
-            o.owner,
-          ]}
-        />
-      ))}
-    </DataCard>
+    <section className="overflow-hidden rounded-md border bg-card shadow-sm">
+      <div className="border-b px-4 py-4">
+        <h2 className="text-lg font-medium">Opções</h2>
+        <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-[1fr_.8fr_.75fr_.8fr_.8fr_.8fr_.75fr_.72fr_.72fr_auto]">
+          <Input value={optionQuery} onChange={(event) => setOptionQuery(event.target.value)} placeholder="Opção" />
+          <Input value={formQuery} onChange={(event) => setFormQuery(event.target.value)} placeholder="Formulário" />
+          <OccurrenceSelect value={operator} onValueChange={setOperator} items={[["todos", "Operador"], ...operators.map((item) => [item, item] as [string, string])]} />
+          <OccurrenceSelect value={hadronScope} onValueChange={setHadronScope} items={[["exceto", "Exceto HÁDRON"], ["somente", "Somente HÁDRON"], ["todos", "Todos"]]} />
+          <OccurrenceSelect value={characteristic} onValueChange={setCharacteristic} items={[["todos", "Característica"], ["correcao", "Com correções"], ["normal", "Sem correções"]]} />
+          <OccurrenceSelect value={module} onValueChange={setModule} items={[["todos", "Módulo"], ...modules.map((item) => [item, item] as [string, string])]} />
+          <OccurrenceSelect value={dateType} onValueChange={setDateType} items={[["atualizacao", "Tipo data"], ["abertura", "Abertura"]]} />
+          <Input type="date" value={dateFrom} onChange={(event) => setDateFrom(event.target.value)} aria-label="Data inicial" />
+          <Input type="date" value={dateTo} onChange={(event) => setDateTo(event.target.value)} aria-label="Data final" />
+          <Button type="button" className="cursor-pointer px-7"><Search className="mr-2 h-4 w-4" />Buscar</Button>
+        </div>
+        <Button type="button" variant="ghost" size="sm" onClick={clearFilters} className="mt-3 cursor-pointer">Limpar</Button>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[1380px] text-left text-xs">
+          <thead className="border-b bg-muted/25 text-primary">
+            <tr>{["Status", "P", "Opção", "Formulário", "Descrição", "Chamada", "Data", "DLL EXE", "Módulo / Submódulo", "Responsável", "Ações"].map((header) => <th key={header} className="whitespace-nowrap px-3 py-3 font-medium">{header}</th>)}</tr>
+          </thead>
+          <tbody>{rows.map(({ option, active, latest }) => {
+            const priority = active.some((ticket) => ticket.priority === "Alta") ? "Alta" : active.some((ticket) => ticket.priority === "Media") ? "Media" : "Baixa";
+            const detail: Detail = { title: option.description, subtitle: `Opção ${option.option} / Formulário ${option.form || "Não informado"}`, body: latest?.description || "Nenhuma ocorrência vinculada a esta opção.", meta: [`Correções em aberto: ${active.length}`, `Responsável: ${latest?.owner || "Não informado"}`, `Módulo: ${latest?.module || "Não informado"}`, "Origem: cvs_options.json"] };
+            return <tr key={option.id} className={cn("border-b transition-colors hover:bg-muted/40", active.length > 0 && "bg-rose-50/80 dark:bg-rose-950/20")}>
+              <td className="px-3 py-3"><Badge className={cn("whitespace-nowrap", active.length ? "bg-rose-600 text-white hover:bg-rose-600" : "bg-muted text-muted-foreground hover:bg-muted")}>{active.length ? `CORREÇÕES ${active.length}` : "SEM OCORRÊNCIAS"}</Badge></td>
+              <td className="px-3 py-3"><span title={`Prioridade ${priority}`} className={cn("block h-3 w-3 rounded-full", priority === "Alta" ? "bg-rose-500" : priority === "Media" ? "bg-amber-500" : "bg-emerald-500")} /></td>
+              <td className="px-3 py-3 font-medium">{option.option}</td>
+              <td className="px-3 py-3">{option.form || "Não informado"}</td>
+              <td className="max-w-72 px-3 py-3 text-primary">{option.description}</td>
+              <td className="max-w-56 px-3 py-3">{latest?.subject || "Não informado"}</td>
+              <td className="whitespace-nowrap px-3 py-3">{latest ? formatOccurrenceDate(latest.updatedAt) : "Não informado"}</td>
+              <td className="px-3 py-3">Não informado</td>
+              <td className="max-w-44 px-3 py-3">{latest?.module || "Não informado"}</td>
+              <td className="px-3 py-3">{latest?.owner || "Não informado"}</td>
+              <td className="px-3 py-3 text-center"><Button type="button" size="icon" variant="ghost" title="Ver opção" className="cursor-pointer" onClick={() => onOpen(detail)}><Eye className="h-4 w-4" /></Button></td>
+            </tr>;
+          })}</tbody>
+        </table>
+        {!rows.length && <p className="p-10 text-center text-sm text-muted-foreground">Nenhuma opção encontrada com os filtros aplicados.</p>}
+      </div>
+    </section>
   );
 }
 function OccurrencesTable({ query, onOpen }: TableProps) {
