@@ -1,12 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { ProcionLogo } from "./ProcionLogo";
-import {
-  CalendarDays,
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  MessageSquare,
-} from "lucide-react";
+import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, MessageSquare } from "lucide-react";
 import { useState, type ComponentType } from "react";
 import dashboardIconUrl from "@/assets/menu-dashboard-solid.png";
 import ticketsIconUrl from "@/assets/menu-tickets-solid.png";
@@ -80,7 +74,10 @@ const nav: NavItem[] = [
     to: "/comercial/contatos",
     label: "Comercial",
     icon: CommercialIcon,
-    children: [{ to: "/comercial/contatos", label: "Contatos", icon: ContactsIcon }],
+    children: [
+      { to: "/comercial/contatos", label: "Contatos", icon: ContactsIcon },
+      { to: "/comercial/atividades", label: "Atividades", icon: CalendarDays },
+    ],
   },
   { to: "/frota", label: "Frota", icon: FleetIcon },
   { to: "/iniciar-hadron", label: "Hadron", icon: HadronIcon },
@@ -181,7 +178,8 @@ export function AppSidebar() {
                       title={collapsed ? item.label : undefined}
                       className={cn(
                         "group relative flex h-12 items-center gap-4 rounded-l-lg rounded-r-[26px] px-4 text-[15px] font-semibold transition-all",
-                        (item.label === "Chamados" || item.label === "Comercial") && "cursor-pointer",
+                        (item.label === "Chamados" || item.label === "Comercial") &&
+                          "cursor-pointer",
                         collapsed && "mx-auto w-12 justify-center rounded-2xl px-0",
                         active
                           ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-[0_14px_30px_rgba(11,151,196,0.12)]"
@@ -276,9 +274,7 @@ export function AppSidebar() {
                         : "text-popover-foreground hover:bg-accent hover:text-accent-foreground",
                     )}
                   >
-                    {ChildIcon && (
-                      <ChildIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
-                    )}
+                    {ChildIcon && <ChildIcon className="h-4 w-4 shrink-0 text-muted-foreground" />}
                     <span className="truncate">{child.label}</span>
                   </Link>
                 </li>
