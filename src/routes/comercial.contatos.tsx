@@ -5,6 +5,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Eye,
+  ExternalLink,
   Mail,
   MapPin,
   Phone,
@@ -40,6 +41,13 @@ const stages: Array<{ value: CompanyLeadStage; label: string }> = [
   { value: "sem_interesse", label: "Sem interesse" },
 ];
 const visibleStages = stages.filter((item) => item.value !== "sem_interesse");
+
+const googleMapsAddressUrl = (lead: CompanyLead) => {
+  const address = [lead.address, lead.neighborhood, lead.city, lead.state, lead.postal_code]
+    .filter(Boolean)
+    .join(", ");
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+};
 
 function CommercialContactsRoute() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
@@ -244,15 +252,27 @@ function CommercialContactsPage() {
                       {stages.find((item) => item.value === lead.stage)?.label || lead.stage}
                     </td>
                     <td className="px-2 py-3 text-center">
-                      <Link
-                        to="/comercial/contatos/$leadId"
-                        params={{ leadId: lead.id }}
-                        title="Ver detalhes"
-                        aria-label={`Ver detalhes de ${lead.trade_name || lead.legal_name}`}
-                        className="mx-auto grid h-9 w-9 cursor-pointer place-items-center rounded-md text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Link>
+                      <div className="flex items-center justify-center gap-1">
+                        <Link
+                          to="/comercial/contatos/$leadId"
+                          params={{ leadId: lead.id }}
+                          title="Ver detalhes"
+                          aria-label={`Ver detalhes de ${lead.trade_name || lead.legal_name}`}
+                          className="grid h-9 w-9 cursor-pointer place-items-center rounded-md text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Link>
+                        <a
+                          href={googleMapsAddressUrl(lead)}
+                          target="_blank"
+                          rel="noreferrer"
+                          title="Abrir endereço no Google Maps"
+                          aria-label={`Abrir endereço de ${lead.trade_name || lead.legal_name} no Google Maps`}
+                          className="grid h-9 w-9 cursor-pointer place-items-center rounded-md text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                        </a>
+                      </div>
                     </td>
                   </tr>
                 ))

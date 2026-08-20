@@ -20,6 +20,7 @@ import {
   AlertTriangle,
   CheckCircle,
   Pencil,
+  ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/portal/AppShell";
@@ -76,6 +77,13 @@ const stageColors: Record<CompanyLeadStage, string> = {
   demonstracao: "bg-cyan-500/10 text-cyan-600 border-cyan-200",
   negocio_fechado: "bg-emerald-500/10 text-emerald-600 border-emerald-200",
   sem_interesse: "bg-rose-500/10 text-rose-600 border-rose-200",
+};
+
+const googleMapsAddressUrl = (lead: CompanyLeadDetails) => {
+  const address = [lead.address, lead.neighborhood, lead.city, lead.state, lead.postal_code]
+    .filter(Boolean)
+    .join(", ");
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
 };
 
 export function LeadDetailsPage() {
@@ -268,6 +276,12 @@ export function LeadDetailsPage() {
           }
           trailing={
             <div className="flex flex-wrap items-center gap-2">
+              <Button size="sm" asChild variant="outline" className="h-8 text-xs gap-1.5">
+                <a href={googleMapsAddressUrl(lead)} target="_blank" rel="noreferrer">
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  Google Maps
+                </a>
+              </Button>
               <Button
                 size="sm"
                 variant="destructive"

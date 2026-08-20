@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowDown,
   ArrowUp,
@@ -76,6 +76,16 @@ const initialFilters: CompanyLeadFilters = {
 
 const PAGE_SIZE = 50;
 const COLUMNS_STORAGE_KEY = "procion:company-leads:columns";
+const SEARCH_STORAGE_KEY = "procion:company-leads:search-state:v1";
+
+type PersistedSearchState = {
+  filters: CompanyLeadFilters;
+  appliedFilters: CompanyLeadFilters;
+  page: number;
+  sort: CompanyLeadSort;
+  direction: "asc" | "desc";
+  hasSearched: boolean;
+};
 
 const stageLabels: Record<CompanyLeadStage, string> = {
   novo: "Novo",
@@ -221,7 +231,9 @@ const formatCurrency = (value: number | null) =>
     ? "Não informado"
     : new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
 
-const googleMapsAddressUrl = (lead: CompanyLeadDetails) => {
+const googleMapsAddressUrl = (
+  lead: Pick<CompanyLead, "address" | "neighborhood" | "city" | "state" | "postal_code">,
+) => {
   const address = [lead.address, lead.neighborhood, lead.city, lead.state, lead.postal_code]
     .filter(Boolean)
     .join(", ");
@@ -249,18 +261,45 @@ function loadColumns(): ColumnKey[] {
   }
 }
 
+function loadSearchState(): PersistedSearchState {
+  const fallback: PersistedSearchState = {
+    filters: initialFilters,
+    appliedFilters: initialFilters,
+    page: 0,
+    sort: "opened_at",
+    direction: "desc",
+    hasSearched: false,
+  };
+  if (typeof window === "undefined") return fallback;
+  try {
+    const stored = window.localStorage.getItem(SEARCH_STORAGE_KEY);
+    if (!stored) return fallback;
+    const parsed = JSON.parse(stored) as Partial<PersistedSearchState>;
+    return {
+      ...fallback,
+      ...parsed,
+      filters: { ...initialFilters, ...parsed.filters },
+      appliedFilters: { ...initialFilters, ...parsed.appliedFilters },
+    };
+  } catch {
+    return fallback;
+  }
+}
+
 export function CompanyLeadsTab() {
-  const [filters, setFilters] = useState(initialFilters);
-  const [appliedFilters, setAppliedFilters] = useState(initialFilters);
+  const [restoredSearch] = useState(loadSearchState);
+  const restoredSearchStarted = useRef(false);
+  const [filters, setFilters] = useState(restoredSearch.filters);
+  const [appliedFilters, setAppliedFilters] = useState(restoredSearch.appliedFilters);
   const [leads, setLeads] = useState<CompanyLead[]>([]);
   const [loading, setLoading] = useState(false);
   const [searching, setSearching] = useState(false);
-  const [hasSearched, setHasSearched] = useState(false);
+  const [hasSearched, setHasSearched] = useState(restoredSearch.hasSearched);
   const [total, setTotal] = useState(0);
   const [totalCapped, setTotalCapped] = useState(false);
-  const [page, setPage] = useState(0);
-  const [sort, setSort] = useState<CompanyLeadSort>("opened_at");
-  const [direction, setDirection] = useState<"asc" | "desc">("desc");
+  const [page, setPage] = useState(restoredSearch.page);
+  const [sort, setSort] = useState<CompanyLeadSort>(restoredSearch.sort);
+  const [direction, setDirection] = useState<"asc" | "desc">(restoredSearch.direction);
   const [visibleColumns, setVisibleColumns] = useState<ColumnKey[]>(defaultColumns);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState<CompanyLeadDetails | null>(null);
@@ -318,6 +357,30 @@ export function CompanyLeadsTab() {
     }
   };
 
+  useEffect(() => {
+    if (restoredSearchStarted.current) return;
+    restoredSearchStarted.current = true;
+    if (restoredSearch.hasSearched) {
+      void runSearch(
+        restoredSearch.page,
+        restoredSearch.appliedFilters,
+        restoredSearch.sort,
+        restoredSearch.direction,
+      );
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(
+        SEARCH_STORAGE_KEY,
+        JSON.stringify({ filters, appliedFilters, page, sort, direction, hasSearched }),
+      );
+    } catch {
+      /* armazenamento local indisponível */
+    }
+  }, [filters, appliedFilters, page, sort, direction, hasSearched]);
+
   const searchLeads = (nextPage = 0) => {
     const nextFilters =
       filters.companyName?.trim() || filters.cnpj?.trim()
@@ -325,6 +388,28 @@ export function CompanyLeadsTab() {
         : filters;
     if (nextFilters !== filters) setFilters(nextFilters);
     void runSearch(nextPage, nextFilters, sort, direction);
+  };
+
+  const clearSearchFilters = () => {
+    const clearedFilters = {
+      ...initialFilters,
+      city: filters.city,
+      state: filters.state,
+    };
+    setFilters(clearedFilters);
+    setAppliedFilters(clearedFilters);
+    setLeads([]);
+    setTotal(0);
+    setTotalCapped(false);
+    setPage(0);
+    setSort("opened_at");
+    setDirection("desc");
+    setHasSearched(false);
+    try {
+      window.localStorage.removeItem(SEARCH_STORAGE_KEY);
+    } catch {
+      /* armazenamento local indisponível */
+    }
   };
 
   const toggleSort = (column: CompanyLeadSort) => {
@@ -914,13 +999,7 @@ export function CompanyLeadsTab() {
               <Button
                 type="button"
                 variant="ghost"
-                onClick={() =>
-                  setFilters((current) => ({
-                    ...initialFilters,
-                    city: current.city,
-                    state: current.state,
-                  }))
-                }
+                onClick={clearSearchFilters}
               >
                 Limpar filtros
               </Button>
@@ -1031,7 +1110,7 @@ export function CompanyLeadsTab() {
       </div>
 
       <Card className="overflow-hidden p-0">
-        <div className="hide-scrollbar overflow-x-auto">
+        <div className="overflow-x-auto">
           <table
             className={cn(
               "w-full min-w-[980px] table-auto",
@@ -1040,6 +1119,9 @@ export function CompanyLeadsTab() {
           >
             <thead className="bg-muted/35 text-left text-xs uppercase text-muted-foreground">
               <tr>
+                <th className="w-20 px-2.5 py-2">
+                  <span className="sr-only">Ações</span>
+                </th>
                 {columns.map((column) => (
                   <th
                     key={column.key}
@@ -1068,24 +1150,12 @@ export function CompanyLeadsTab() {
                     )}
                   </th>
                 ))}
-                <th className="w-10 px-2.5 py-2">
-                  <span className="sr-only">Ações</span>
-                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
               {!loading &&
                 leads.map((lead) => (
                   <tr key={lead.id} className="hover:bg-primary/[0.03]">
-                    {columns.map((column) => (
-                      <td
-                        key={column.key}
-                        title={cellTitle(column, lead)}
-                        className={cn("px-2.5 py-1.5 align-middle", column.className)}
-                      >
-                        {renderCell(column, lead)}
-                      </td>
-                    ))}
                     <td className="px-2.5 py-1.5">
                       <div className="flex items-center gap-1">
                         <Button
@@ -1098,8 +1168,28 @@ export function CompanyLeadsTab() {
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
+                        <Button asChild type="button" variant="ghost" size="icon" className="h-8 w-8">
+                          <a
+                            href={googleMapsAddressUrl(lead)}
+                            target="_blank"
+                            rel="noreferrer"
+                            title="Abrir endereço no Google Maps"
+                            aria-label={`Abrir endereço de ${lead.trade_name || lead.legal_name} no Google Maps`}
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                          </a>
+                        </Button>
                       </div>
                     </td>
+                    {columns.map((column) => (
+                      <td
+                        key={column.key}
+                        title={cellTitle(column, lead)}
+                        className={cn("px-2.5 py-1.5 align-middle", column.className)}
+                      >
+                        {renderCell(column, lead)}
+                      </td>
+                    ))}
                   </tr>
                 ))}
               {!loading && leads.length === 0 && (
