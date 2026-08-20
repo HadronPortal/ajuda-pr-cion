@@ -14,8 +14,7 @@ import { toast } from "sonner";
 import { AppShell, PageHeader } from "@/components/portal/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { CompanyLeadStage } from "@/lib/company-leads-api";
-import { supabase } from "@/lib/supabase";
+import { companyLeadsApi, type CompanyLead, type CompanyLeadStage } from "@/lib/company-leads-api";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/comercial/atividades")({
@@ -67,23 +66,23 @@ function CommercialActivitiesPage() {
     let active = true;
     async function load() {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("company_leads")
-        .select(
-          "id,legal_name,trade_name,city,state,company_size,cnae_description,stage,assigned_to,notes,discovered_at,commercial_data,relevance_score",
-        )
-        .not("stage", "eq", "novo")
-        .order("discovered_at", { ascending: false })
-        .limit(1000);
-
-      if (!active) return;
-      if (error) {
+      try {
+        const result = await companyLeadsApi.list({
+          filters: emptyLeadFilters,
+          sort: "opened_at",
+          direction: "desc",
+          limit: 1000,
+          offset: 0,
+        });
+        if (!active) return;
+        setActivities(result.leads.filter((lead) => lead.stage !== "novo").map(mapActivity));
+      } catch {
+        if (!active) return;
         toast.error("Não foi possível carregar as atividades comerciais.");
         setActivities([]);
-      } else {
-        setActivities((data || []).map(mapActivity));
+      } finally {
+        if (active) setLoading(false);
       }
-      setLoading(false);
     }
     void load();
     return () => {
@@ -349,9 +348,8 @@ function ActivityRow({ activity }: { activity: CommercialActivity }) {
   );
 }
 
-function mapActivity(row: Record<string, unknown>): CommercialActivity {
-  const commercial = (row.commercial_data || {}) as Record<string, unknown>;
-  const stage = row.stage as CompanyLeadStage;
+function mapActivity(row: CompanyLead): CommercialActivity {
+  const stage = row.stage;
   const score = Number(row.relevance_score || 0);
   return {
     id: String(row.id),
@@ -364,25 +362,28 @@ function mapActivity(row: Record<string, unknown>): CommercialActivity {
           : stage === "prospeccao"
             ? "ligacao"
             : "acompanhamento",
-    date: String(
-      commercial.updated_at ||
-        commercial.activity_at ||
-        row.discovered_at ||
-        new Date().toISOString(),
-    ),
-    returnAt: typeof commercial.return_at === "string" ? commercial.return_at : null,
+    date: row.discovered_at || new Date().toISOString(),
+    returnAt: null,
     company: String(row.trade_name || row.legal_name || "Empresa não informada"),
     profile: [row.cnae_description, row.company_size ? `Porte: ${row.company_size}` : ""]
       .filter(Boolean)
       .join(" · "),
-    note: String(commercial.activities || row.notes || `Etapa comercial: ${stageLabels[stage]}.`),
+    note: row.notes || `Etapa comercial: ${stageLabels[stage]}.`,
     city: String(row.city || "Não informada"),
     state: String(row.state || ""),
     stage,
-    operator: String(row.assigned_to || commercial.operator || "Não informado"),
+    operator: row.assigned_to || "Não informado",
     priority: score >= 8 ? "alta" : score >= 5 ? "media" : "baixa",
   };
 }
+
+const emptyLeadFilters = {
+  city: "",
+  state: "",
+  openedWithinDays: 0,
+  cnae: "",
+  companySize: "",
+};
 
 function normalize(value: string) {
   return value
