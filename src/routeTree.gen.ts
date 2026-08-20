@@ -29,6 +29,7 @@ import { Route as KanbanBoardIdRouteImport } from './routes/kanban.$boardId'
 import { Route as FrotaVehicleIdRouteImport } from './routes/frota.$vehicleId'
 import { Route as ComercialContatosRouteImport } from './routes/comercial.contatos'
 import { Route as ComercialAtividadesRouteImport } from './routes/comercial.atividades'
+import { Route as ComercialAgendamentosRouteImport } from './routes/comercial.agendamentos'
 import { Route as ClientesClienteIdRouteImport } from './routes/clientes.$clienteId'
 import { Route as ChamadosNovoRouteImport } from './routes/chamados.novo'
 import { Route as BaseDeConhecimentoSlugRouteImport } from './routes/base-de-conhecimento.$slug'
@@ -136,6 +137,11 @@ const ComercialAtividadesRoute = ComercialAtividadesRouteImport.update({
   path: '/comercial/atividades',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ComercialAgendamentosRoute = ComercialAgendamentosRouteImport.update({
+  id: '/comercial/agendamentos',
+  path: '/comercial/agendamentos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ClientesClienteIdRoute = ClientesClienteIdRouteImport.update({
   id: '/clientes/$clienteId',
   path: '/clientes/$clienteId',
@@ -184,6 +190,7 @@ export interface FileRoutesByFullPath {
   '/base-de-conhecimento/$slug': typeof BaseDeConhecimentoSlugRoute
   '/chamados/novo': typeof ChamadosNovoRoute
   '/clientes/$clienteId': typeof ClientesClienteIdRoute
+  '/comercial/agendamentos': typeof ComercialAgendamentosRoute
   '/comercial/atividades': typeof ComercialAtividadesRoute
   '/comercial/contatos': typeof ComercialContatosRouteWithChildren
   '/frota/$vehicleId': typeof FrotaVehicleIdRoute
@@ -210,6 +217,7 @@ export interface FileRoutesByTo {
   '/base-de-conhecimento/$slug': typeof BaseDeConhecimentoSlugRoute
   '/chamados/novo': typeof ChamadosNovoRoute
   '/clientes/$clienteId': typeof ClientesClienteIdRoute
+  '/comercial/agendamentos': typeof ComercialAgendamentosRoute
   '/comercial/atividades': typeof ComercialAtividadesRoute
   '/comercial/contatos': typeof ComercialContatosRouteWithChildren
   '/frota/$vehicleId': typeof FrotaVehicleIdRoute
@@ -239,6 +247,7 @@ export interface FileRoutesById {
   '/base-de-conhecimento/$slug': typeof BaseDeConhecimentoSlugRoute
   '/chamados/novo': typeof ChamadosNovoRoute
   '/clientes/$clienteId': typeof ClientesClienteIdRoute
+  '/comercial/agendamentos': typeof ComercialAgendamentosRoute
   '/comercial/atividades': typeof ComercialAtividadesRoute
   '/comercial/contatos': typeof ComercialContatosRouteWithChildren
   '/frota/$vehicleId': typeof FrotaVehicleIdRoute
@@ -269,6 +278,7 @@ export interface FileRouteTypes {
     | '/base-de-conhecimento/$slug'
     | '/chamados/novo'
     | '/clientes/$clienteId'
+    | '/comercial/agendamentos'
     | '/comercial/atividades'
     | '/comercial/contatos'
     | '/frota/$vehicleId'
@@ -295,6 +305,7 @@ export interface FileRouteTypes {
     | '/base-de-conhecimento/$slug'
     | '/chamados/novo'
     | '/clientes/$clienteId'
+    | '/comercial/agendamentos'
     | '/comercial/atividades'
     | '/comercial/contatos'
     | '/frota/$vehicleId'
@@ -323,6 +334,7 @@ export interface FileRouteTypes {
     | '/base-de-conhecimento/$slug'
     | '/chamados/novo'
     | '/clientes/$clienteId'
+    | '/comercial/agendamentos'
     | '/comercial/atividades'
     | '/comercial/contatos'
     | '/frota/$vehicleId'
@@ -350,6 +362,7 @@ export interface RootRouteChildren {
   MinhaContaRoute: typeof MinhaContaRoute
   VersoesRoute: typeof VersoesRoute
   ClientesClienteIdRoute: typeof ClientesClienteIdRoute
+  ComercialAgendamentosRoute: typeof ComercialAgendamentosRoute
   ComercialAtividadesRoute: typeof ComercialAtividadesRoute
   ComercialContatosRoute: typeof ComercialContatosRouteWithChildren
   ClientesIndexRoute: typeof ClientesIndexRoute
@@ -499,6 +512,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ComercialAtividadesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/comercial/agendamentos': {
+      id: '/comercial/agendamentos'
+      path: '/comercial/agendamentos'
+      fullPath: '/comercial/agendamentos'
+      preLoaderRoute: typeof ComercialAgendamentosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/clientes/$clienteId': {
       id: '/clientes/$clienteId'
       path: '/clientes/$clienteId'
@@ -618,6 +638,7 @@ const rootRouteChildren: RootRouteChildren = {
   MinhaContaRoute: MinhaContaRoute,
   VersoesRoute: VersoesRoute,
   ClientesClienteIdRoute: ClientesClienteIdRoute,
+  ComercialAgendamentosRoute: ComercialAgendamentosRoute,
   ComercialAtividadesRoute: ComercialAtividadesRoute,
   ComercialContatosRoute: ComercialContatosRouteWithChildren,
   ClientesIndexRoute: ClientesIndexRoute,

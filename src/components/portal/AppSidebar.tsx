@@ -77,6 +77,7 @@ const nav: NavItem[] = [
     children: [
       { to: "/comercial/contatos", label: "Contatos", icon: ContactsIcon },
       { to: "/comercial/atividades", label: "Atividades", icon: CalendarDays },
+      { to: "/comercial/agendamentos", label: "Agendamentos", icon: CalendarDays },
     ],
   },
   { to: "/frota", label: "Frota", icon: FleetIcon },
