@@ -1,6 +1,14 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { ProcionLogo } from "./ProcionLogo";
-import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, MessageSquare } from "lucide-react";
+import {
+  CalendarDays,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  MessageSquare,
+  Settings,
+  Users,
+} from "lucide-react";
 import { useState, type ComponentType } from "react";
 import dashboardIconUrl from "@/assets/menu-dashboard-solid.png";
 import ticketsIconUrl from "@/assets/menu-tickets-solid.png";
@@ -87,6 +95,12 @@ const nav: NavItem[] = [
   { to: "/analytics", label: "Analytics", icon: AnalyticsIcon },
   { to: "/kanban", label: "Kanban", icon: KanbanIcon },
   { to: "/clientes", label: "Clientes", icon: CustomersIcon },
+  {
+    to: "/configuracoes/colaboradores",
+    label: "Configurações",
+    icon: Settings,
+    children: [{ to: "/configuracoes/colaboradores", label: "Colaboradores", icon: Users }],
+  },
 ];
 
 function isActivePath(pathname: string, item: NavItem) {
