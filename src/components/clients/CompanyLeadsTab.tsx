@@ -9,7 +9,7 @@ import {
   ChevronRight,
   Columns3,
   Eye,
-  ExternalLink,
+  MapPinned,
   LoaderCircle,
   MapPin,
   RefreshCw,
@@ -1176,7 +1176,7 @@ export function CompanyLeadsTab() {
                             title="Abrir endereço no Google Maps"
                             aria-label={`Abrir endereço de ${lead.trade_name || lead.legal_name} no Google Maps`}
                           >
-                            <ExternalLink className="h-4 w-4" />
+                            <MapPinned className="h-4 w-4" />
                           </a>
                         </Button>
                       </div>

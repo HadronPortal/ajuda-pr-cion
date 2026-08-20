@@ -20,7 +20,7 @@ import {
   AlertTriangle,
   CheckCircle,
   Pencil,
-  ExternalLink,
+  MapPinned,
 } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/portal/AppShell";
@@ -278,7 +278,7 @@ export function LeadDetailsPage() {
             <div className="flex flex-wrap items-center gap-2">
               <Button size="sm" asChild variant="outline" className="h-8 text-xs gap-1.5">
                 <a href={googleMapsAddressUrl(lead)} target="_blank" rel="noreferrer">
-                  <ExternalLink className="h-3.5 w-3.5" />
+                  <MapPinned className="h-3.5 w-3.5" />
                   Google Maps
                 </a>
               </Button>

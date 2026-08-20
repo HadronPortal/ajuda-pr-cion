@@ -5,7 +5,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Eye,
-  ExternalLink,
+  MapPinned,
   Mail,
   MapPin,
   Phone,
@@ -270,7 +270,7 @@ function CommercialContactsPage() {
                           aria-label={`Abrir endereço de ${lead.trade_name || lead.legal_name} no Google Maps`}
                           className="grid h-9 w-9 cursor-pointer place-items-center rounded-md text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
                         >
-                          <ExternalLink className="h-4 w-4" />
+                          <MapPinned className="h-4 w-4" />
                         </a>
                       </div>
                     </td>
